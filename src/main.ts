@@ -1879,6 +1879,50 @@ if(bluetoothPanel){
   autoHelp.before(autoToggle);
  }
 }
+// Instant Ride: keep only non-sensitive route-builder preferences locally.
+// A saved route configuration can be regenerated without a loading screen.
+const QUICK_RIDE_KEY='breakaway.quickRide.v1';
+type QuickRideSettings={difficulty:string;terrain:string;miles:string;gain:string;seed:string};
+const quickRideIds={difficulty:'generatedDifficulty',terrain:'generatedTerrain',miles:'generatedMiles',gain:'generatedGain',seed:'generatedSeed'} as const;
+function readQuickRide():QuickRideSettings|null{
+ try{
+  const value=JSON.parse(localStorage.getItem(QUICK_RIDE_KEY)||'null');
+  if(!value||typeof value!=='object')return null;
+  if(!['flat','rolling','mountain','punchy'].includes(value.terrain))return null;
+  if(!['0.55','1','1.35'].includes(value.difficulty))return null;
+  if(!Number.isFinite(Number(value.miles))||Number(value.miles)<=0||Number(value.miles)>1000)return null;
+  if(!Number.isFinite(Number(value.seed)))return null;
+  if(value.gain!==''&&(!Number.isFinite(Number(value.gain))||Number(value.gain)<0))return null;
+  return value as QuickRideSettings;
+ }catch{return null;}
+}
+function saveQuickRide(){
+ const value={} as QuickRideSettings;
+ for(const [key,id] of Object.entries(quickRideIds)) (value as unknown as Record<string,string>)[key]=(document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value;
+ try{localStorage.setItem(QUICK_RIDE_KEY,JSON.stringify(value));}catch{}
+}
+const quickRideBar=document.createElement('div');
+quickRideBar.className='quick-ride-bar';
+quickRideBar.innerHTML='<span class="quick-ride-label">PICK UP WHERE YOU LEFT OFF</span><button id="quickRideResume" type="button">Ride last route →</button><span id="quickRideSummary"></span>';
+const routeBuilder=screenRoute.querySelector('.route-builder')||originalRouteStudio.querySelector('.route-builder');
+if(routeBuilder)routeBuilder.prepend(quickRideBar);
+const quickResume=quickRideBar.querySelector<HTMLButtonElement>('#quickRideResume')!;
+const quickSummary=quickRideBar.querySelector<HTMLElement>('#quickRideSummary')!;
+function refreshQuickRide(){
+ const saved=readQuickRide();
+ quickRideBar.hidden=!saved;
+ if(saved)quickSummary.textContent=saved.miles+' mi · '+saved.terrain+' · '+(saved.difficulty==='0.55'?'easy':saved.difficulty==='1.35'?'hard':'moderate');
+}
+quickResume.addEventListener('click',()=>{
+ const saved=readQuickRide();
+ if(!saved)return;
+ for(const [key,id] of Object.entries(quickRideIds)) (document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value=saved[key as keyof QuickRideSettings];
+ (document.getElementById('generateRoute') as HTMLButtonElement).click();
+ if(points.length)showBreakawayScreen('setup');
+});
+for(const id of Object.values(quickRideIds))document.getElementById(id)?.addEventListener('change',saveQuickRide);
+for(const id of ['generateRoute','endlessRoute','surpriseRoute'])document.getElementById(id)?.addEventListener('click',()=>{window.setTimeout(()=>{saveQuickRide();refreshQuickRide();},0);});
+refreshQuickRide();
 workspace.prepend(screenRide);
 workspace.prepend(screenSetup);
 workspace.prepend(screenRoute);
