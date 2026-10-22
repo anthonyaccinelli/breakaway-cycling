@@ -1901,11 +1901,42 @@ function saveQuickRide(){
  for(const [key,id] of Object.entries(quickRideIds)) (value as unknown as Record<string,string>)[key]=(document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value;
  try{localStorage.setItem(QUICK_RIDE_KEY,JSON.stringify(value));}catch{}
 }
+// Quick starts deliberately reuse the same route generator and trainer setup.
+// Presets are editable before riding; no separate loading screen or ride engine.
+const quickPresets=[
+ {name:'Recovery 30',terrain:'flat',difficulty:'0.55',miles:'10',gain:'',seed:'3001'},
+ {name:'Rolling 45',terrain:'rolling',difficulty:'1',miles:'15',gain:'',seed:'4502'},
+ {name:'Climbing 60',terrain:'mountain',difficulty:'1.35',miles:'18',gain:'1800',seed:'6003'},
+] as const;
+const quickPresetBar=document.createElement('div');
+quickPresetBar.className='quick-preset-bar';
+const presetLabel=document.createElement('span');
+presetLabel.className='quick-preset-label';
+presetLabel.textContent='QUICK START';
+quickPresetBar.append(presetLabel);
+for(const preset of quickPresets){
+ const button=document.createElement('button');
+ button.type='button';
+ button.className='quick-preset-button secondary';
+ button.textContent=preset.name;
+ button.addEventListener('click',()=>{
+  for(const [key,id] of Object.entries(quickRideIds)){
+   (document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value=preset[key as keyof QuickRideSettings];
+  }
+  (document.getElementById('generateRoute') as HTMLButtonElement).click();
+  if(!points.length)return;
+  saveQuickRide();
+  refreshQuickRide();
+  showBreakawayScreen('setup');
+  if(autoBluetoothEnabled)void reconnectRememberedBluetooth();
+ });
+ quickPresetBar.append(button);
+}
 const quickRideBar=document.createElement('div');
 quickRideBar.className='quick-ride-bar';
 quickRideBar.innerHTML='<span class="quick-ride-label">PICK UP WHERE YOU LEFT OFF</span><button id="quickRideResume" type="button">Ride last route →</button><span id="quickRideSummary"></span>';
 const routeBuilder=screenRoute.querySelector('.route-builder')||originalRouteStudio.querySelector('.route-builder');
-if(routeBuilder)routeBuilder.prepend(quickRideBar);
+if(routeBuilder){routeBuilder.prepend(quickPresetBar);routeBuilder.prepend(quickRideBar);}
 const quickResume=quickRideBar.querySelector<HTMLButtonElement>('#quickRideResume')!;
 const quickSummary=quickRideBar.querySelector<HTMLElement>('#quickRideSummary')!;
 function refreshQuickRide(){
