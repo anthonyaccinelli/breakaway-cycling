@@ -1,0 +1,1 @@
+v3.9.2 adds a dismissible Safari/unsupported-browser compatibility notice while keeping route planning accessible. Detects Web Bluetooth and Document Picture-in-Picture support. iOS explains that switching to Chrome on iOS does not enable Web Bluetooth. Dismissal lasts for current tab session. No server changes. Not hardware or browser tested.

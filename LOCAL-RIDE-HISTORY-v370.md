@@ -1,0 +1,1 @@
+Finished rides are saved in IndexedDB with full TCX recording, metadata, and optional Strava activity ID. Download TCX from summary or ride history, retry upload, delete rides. Data is local to browser/profile; clearing site data removes rides. Ride history requires at least 2 recorded samples. No cloud sync or guaranteed storage retention.\n

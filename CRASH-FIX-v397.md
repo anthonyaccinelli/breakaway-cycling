@@ -1,0 +1,1 @@
+v3.9.7 fixes the verified startup crash: update() previously wrote textContent on #profileLiveGrade before the elevation SVG was rendered, aborting initialization before the three-screen navigation was installed. The HUD is now guarded until the profile exists.

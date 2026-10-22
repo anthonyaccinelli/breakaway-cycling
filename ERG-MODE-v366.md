@@ -1,0 +1,1 @@
+Breakaway Cycling v3.6.6: Select ERG — fixed target wattage in Trainer control mode, enter 30–1000 W, then Set ERG target. Sends FTMS 0x05 Set Target Power directly; ignores route grade and virtual gear. Ride requires trainer connection and live telemetry. Trainer resistance is controlled by its own ERG feedback loop. Manual Strava upload and other features unchanged.

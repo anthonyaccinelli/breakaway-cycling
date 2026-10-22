@@ -1,0 +1,1 @@
+v4.0.3: clickable three-step navigation (trainer gate remains for ride), white route headings, generated distance and gain backfilled into input fields, new route CTA, viewport-fitted setup, unified navy/cobalt/white styling. Device and ride screen still require hardware verification.

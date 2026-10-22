@@ -1,0 +1,1 @@
+Fix: disable automatic Vercel body parsing for the XML upload endpoint and read raw application/xml bytes from request stream. Previous endpoint could reject valid TCX before forwarding to Strava. Retains 4 MB limit. Requires deployment of API functions; browser-only cache clearing will not fix the old endpoint.

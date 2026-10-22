@@ -1,0 +1,1 @@
+v3.7.2: Removes power-dependent SIM grade feedback to prevent oscillation from delayed trainer power readings; initializes grade controller at intended target; slows gear 1-8 grade changes; improves launch force and prevents modeled speed from stalling while receiving >=35W and >=30 RPM. Hardware testing still required.

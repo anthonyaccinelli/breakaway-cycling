@@ -1,0 +1,1 @@
+Overlay content opacity slider: 20–100%, saved locally, available in Chrome always-on-top Picture-in-Picture window. Browser Document Picture-in-Picture windows do not support making the native window truly transparent over other applications; this control fades the content, not the operating-system window.\n

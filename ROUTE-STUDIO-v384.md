@@ -1,0 +1,1 @@
+v3.8.4: Fuses route generator and elevation profile in a single side-by-side Route Studio. Existing element IDs, chart, editing, zoom, GPX, Surprise Me, and endless route controls retained. Stacks on narrow screens. Source package; hardware and browser tests pending.

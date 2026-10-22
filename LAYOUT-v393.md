@@ -1,0 +1,1 @@
+v3.9.3: Removed sign-in and guest UI and disabled auth.ts loading. Reorganized Ride controls & devices into two columns: trainer/HR/Zwift Click connections vertically on left; drivetrain and virtual shifting settings on right. Preserved all control element IDs and ride logic. Responsive single-column layout below 850px.

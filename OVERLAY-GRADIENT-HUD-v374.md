@@ -1,0 +1,1 @@
+v3.7.4: Displays the live gradient percentage in the upper-left of the elevation profile in both the browser Picture-in-Picture overlay and desktop overlay snapshot. Shares the dashboard gradient thresholds, colors, and text sizing. Grade is based on live route progress and updates as the overlay refreshes. No automatic uploads; TCX download remains manual.

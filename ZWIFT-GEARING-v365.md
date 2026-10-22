@@ -1,0 +1,1 @@
+Breakaway Cycling v3.6.5: Zwift default Mixed Terrain 24-speed ratios 0.75–5.49. SIM and ERG now both use ratio/2.40 as their virtual shift multiplier. The FTMS trainer commands approximate Zwift shifting feel; exact Zwift torque control is not replicated. Gear 12 is neutral reference.

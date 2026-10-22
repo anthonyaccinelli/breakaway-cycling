@@ -1,0 +1,1 @@
+v3.8.5: Desktop ride cockpit combines route studio and 12 live metrics side by side. Compact trainer/Bluetooth strip above, overlay choices and connection help collapsed in disclosures. Existing element IDs retained. Responsive stack on narrow screens. Hardware/browser validation still needed.

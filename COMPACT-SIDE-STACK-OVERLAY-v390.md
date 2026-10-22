@@ -1,0 +1,1 @@
+v3.9.0: Chrome always-on-top Picture-in-Picture overlay requests nearly full screen width and shallow 260px height. Elevation profile occupies the wide center column; selected readouts stack in left and right columns (up to 5 per side). Compact opacity toolbar. Chrome may clamp Picture-in-Picture window dimensions. Main application unchanged.

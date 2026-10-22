@@ -1,0 +1,1 @@
+v3.8.3: Surprise Me always generates a fixed 5.0–20.0 mile route, selecting randomized distance, terrain, difficulty, and seed. Clears any manually entered elevation-gain target so natural elevation variation is used. Endless rides remain on their own button.

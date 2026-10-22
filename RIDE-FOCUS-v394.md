@@ -1,0 +1,1 @@
+Ride Focus v3.9.4: Starting a ride automatically scrolls to the ride stage, hides the route builder and editing tools on desktop, and compresses elevation and dashboard so both are visible together on typical desktop screens. On smaller screens it prioritizes readability. Finishing, disconnecting, or resetting restores normal layout.

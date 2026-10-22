@@ -1,0 +1,1 @@
+v3.8.9: deferred automatic Surprise Me initialization with error reporting; route seed alignment; always-visible overlay readout controls; white/blue styling for virtual shifting, rider settings and history; dark reference-style elevation plot; fixed yellow marker at start throughout editing, inspection restored after Done editing.

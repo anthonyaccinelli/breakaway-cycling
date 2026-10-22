@@ -1,0 +1,1 @@
+v3.9.9: Root cause of repeated startup crashes: moving profileSection into an unattached screenRide removed #chart from document lookup, so MutationObserver.observe(null) threw, interrupting screen initialization. Resolve #chart from the retained originalProfile subtree instead. Tested via Chromium browser smoke harness with initial page and navigation.

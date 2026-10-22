@@ -1,0 +1,1 @@
+v3.9.8: First-screen Route Studio now has a live SVG elevation preview that mirrors the original chart without moving or replacing the authoritative ride chart. Route distance and gain are mirrored. Responsive two-column desktop layout and stacked mobile layout. Browser and hardware testing still required.\n

@@ -1,0 +1,1 @@
+v3.9.5: Route Studio → Ride workspace → Elevation Profile + Ride dashboard. Trainer required; HR and Zwift Click optional. When all three devices are connected upon Enjoy the Ride, a 5-second countdown enters the ride view. Riding begins only when Let’s Ride! is pressed. Auto-pedal start disabled.

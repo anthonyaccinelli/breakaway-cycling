@@ -1,0 +1,1 @@
+v3.8.6: Route Studio now spans the full Ride Workspace width. Ride Dashboard sits below it and displays six metrics per row on wide screens. Responsive layouts preserve access to all controls. No ride logic or element IDs changed.\n

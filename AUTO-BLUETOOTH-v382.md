@@ -1,0 +1,1 @@
+v3.8.2: Remembers device IDs after first manual browser approval, attempts automatic reconnection with navigator.bluetooth.getDevices on load, focus, and every 12 seconds while visible. Auto-connect toggle and Forget saved devices. Existing FTMS/HR/Click protocol handlers preserved. Browser restrictions apply; no background scanning while app closed. Not hardware tested.\n

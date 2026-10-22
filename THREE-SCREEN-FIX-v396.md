@@ -1,0 +1,1 @@
+v3.9.6: Enforces one visible screen at a time, hides legacy page sections, removes the old workspace scrolling container, and starts the five-second countdown whenever all three Bluetooth devices become ready in the setup screen. Trainer alone remains sufficient for manual continuation.\n

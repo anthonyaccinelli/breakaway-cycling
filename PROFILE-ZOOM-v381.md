@@ -1,0 +1,1 @@
+v3.8.1: Entire route is the default on generated and GPX routes. Next climb cycles detected categorized climbs; Entire route clears focus. The overlay mirrors manually selected climbs. Climb HUD and completion awards remain active during riding. Not hardware-tested.
