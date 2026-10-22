@@ -1,0 +1,1750 @@
+import './style.css';
+
+type Point = {distance:number; elevation:number; grade:number};
+type BLEDevice = any;
+const FTMS='00001826-0000-1000-8000-00805f9b34fb';
+const CONTROL='00002ad9-0000-1000-8000-00805f9b34fb';
+const STATUS='00002ada-0000-1000-8000-00805f9b34fb';
+const BIKE='00002ad2-0000-1000-8000-00805f9b34fb';
+let drivetrainMode:'traditional'|'virtual'='traditional';let realTelemetry=false;let trainerMode:'sim'|'erg'|'target'='sim';let lastTarget=0;let targetErgWatts=180;let lastFixedErgCommand=0;let controlResponseWaiter:((v:DataView)=>void)|null=null;let controlQueue=Promise.resolve();let points:Point[]=[];let distance=0;let speed=0;let power=0;let cadence=0;let gear=12;let running=false;let last=0;let device:BLEDevice;let control:any;let connected=false;let controlGranted=false;let pending=false;let trainerGrade=NaN;
+// Procedural routes: deterministic, streaming terrain; never allocate the entire endless route.
+type Terrain = 'flat'|'rolling'|'mountain'|'punchy';
+let procedural=false, endless=false, proceduralSeed=0, proceduralTerrain:Terrain='rolling', proceduralIntensity=1;
+let routeLimit=0, generatedThrough=0;
+let gainScale=1, plannedGainFeet:number|null=null;
+// Elevation totals for discarded route segments, in meters. Never reset on chunk eviction.
+let retiredGainMeters=0, retiredLossMeters=0;
+// Bounded, compressed overview of retired endless terrain. Cumulative totals are
+// stored at each checkpoint, so inspecting the past does not depend on live points.
+type HistoryPoint = Point & {gain:number;loss:number};
+let elevationHistory:HistoryPoint[]=[];
+let historyStride=400; // meters between archived checkpoints; doubles when compacted
+function archivePoint(p:Point,gain:number,loss:number){
+ const prev=elevationHistory.at(-1);
+ if(!prev||p.distance-prev.distance>=historyStride){
+  elevationHistory.push({...p,gain,loss});
+  if(elevationHistory.length>3000){elevationHistory=elevationHistory.filter((_,i)=>i%2===0);historyStride*=2;}
+ }
+}
+function overviewPoints():Point[]{
+ if(!endless)return points;
+ const boundary=points[0]?.distance??Infinity;
+ return [...elevationHistory.filter(p=>p.distance<boundary),...points];
+}
+function overviewAt(d:number):Point{
+ if(!endless||!points.length||d>=points[0].distance)return at(d);
+ const arr=elevationHistory;
+ if(!arr.length)return at(d);
+ if(d<=arr[0].distance)return {...arr[0]};
+ let lo=0,hi=arr.length-1;
+ while(lo<hi){const m=(lo+hi)>>1;if(arr[m].distance<d)lo=m+1;else hi=m;}
+ const b=arr[lo],a=arr[Math.max(0,lo-1)];const t=Math.max(0,Math.min(1,(d-a.distance)/Math.max(1,b.distance-a.distance)));
+ return {distance:d,elevation:a.elevation+(b.elevation-a.elevation)*t,grade:a.grade+(b.grade-a.grade)*t};
+}
+function resetClimbingTotals(){retiredGainMeters=0;retiredLossMeters=0;elevationHistory=[];historyStride=400;}
+function accumulateRetiredTerrain(cutIndex:number){
+ for(let i=1;i<=cutIndex;i++){
+  const delta=points[i].elevation-points[i-1].elevation;
+  if(delta>=0)retiredGainMeters+=delta;else retiredLossMeters-=delta;
+  archivePoint(points[i],retiredGainMeters,retiredLossMeters);
+ }
+}
+
+function totalClimb(pts:Point[]){let gain=0;for(let i=1;i<pts.length;i++)gain+=Math.max(0,pts[i].elevation-pts[i-1].elevation);return gain*FEET_PER_METER;}
+function estimatedGain(scale:number){
+ let gain=0;
+ for(let start=0;start<routeLimit;start+=STEP){const end=Math.min(routeLimit,start+STEP);const grade=Math.max(-12,Math.min(12,terrainGradeRaw((start+end)/2)*scale));gain+=Math.max(0,grade)*(end-start)/100;}
+ return gain*FEET_PER_METER;
+}
+function solveGain(target:number){
+ let lo=0,hi=1;
+ while(estimatedGain(hi)<target&&hi<10000)hi*=2;
+ if(estimatedGain(hi)+1<target)throw Error('Requested elevation gain exceeds the 12% grade limit for this route.');
+ for(let i=0;i<22;i++){const mid=(lo+hi)/2;if(estimatedGain(mid)<target)lo=mid;else hi=mid;}
+ return (lo+hi)/2;
+}
+const CHUNK=1609.344*5, STEP=80;
+// Seeded, non-repeating hill segments. Each segment has its own length, height,
+// steepness, direction and asymmetric crest. No repeating sine-wave patterns.
+// The seed makes the same route reproducible across reloads and endless chunks.
+type Hill = {start:number; end:number; sign:number; peak:number; skew:number; rough:number};
+let hills:Hill[]=[];
+function random01(index:number,salt:number){
+ let n=(Math.imul(index+1,0x9e3779b1)^Math.imul(proceduralSeed|0,0x85ebca6b)^Math.imul(salt,0xc2b2ae35))|0;
+ n=Math.imul(n^(n>>>16),0x7feb352d);n=Math.imul(n^(n>>>15),0x846ca68b);
+ return ((n^(n>>>16))>>>0)/4294967296;
+}
+function resetHills(){hills=[];}
+function extendHills(m:number){
+ const config={flat:[220,1100,0.4,2.2],rolling:[230,1550,1.8,7.5],mountain:[450,3100,3.0,10.5],punchy:[130,950,2.5,11]}[proceduralTerrain];
+ while(!hills.length||hills[hills.length-1].end<=m){
+  const i=hills.length, start=i?hills[i-1].end:0;
+  // Two independent random variables produce strongly nonuniform climb lengths.
+  const length=config[0]+(config[1]-config[0])*Math.pow(random01(i,1),1.25);
+  const sign=i===0?(random01(i,2)<0.5?1:-1):
+    (random01(i,2)<0.78?-hills[i-1].sign:hills[i-1].sign);
+  const peak=(config[2]+(config[3]-config[2])*Math.pow(random01(i,3),1.35))*proceduralIntensity;
+  hills.push({start,end:start+length,sign,peak,skew:0.25+0.5*random01(i,4),rough:random01(i,5)});
+ }
+}
+function terrainGradeRaw(m:number){
+ extendHills(Math.max(0,m));
+ // Binary search prevents long endless rides from scanning the whole hill list.
+ let lo=0,hi=hills.length-1;
+ while(lo<hi){const mid=(lo+hi)>>1;if(hills[mid].end<=m)lo=mid+1;else hi=mid;}
+ const h=hills[lo],t=Math.max(0,Math.min(1,(m-h.start)/(h.end-h.start)));
+ // A different crest position and shape on every climb or descent.
+ const crest=t<h.skew?t/h.skew:(1-t)/(1-h.skew);
+ const envelope=Math.pow(Math.max(0,Math.sin(Math.PI*crest/2)),0.65+1.2*h.rough);
+ const micro=1+0.13*Math.sin((2.5+3*h.rough)*Math.PI*t+Math.PI*h.rough)*Math.sin(Math.PI*t);
+ return h.sign*h.peak*envelope*micro;
+}
+function terrainGrade(m:number){return Math.max(-12,Math.min(12,terrainGradeRaw(m)*gainScale));}
+function appendTerrain(target:number){
+ if(!procedural)return;
+ const stop=endless?target:Math.min(target,routeLimit);
+ let prev=points.at(-1);
+ if(!prev){prev={distance:0,elevation:600,grade:terrainGrade(0)};points=[prev];generatedThrough=0;}
+ while(generatedThrough+0.001<stop){
+  const next=Math.min(stop,generatedThrough+STEP),mid=(next+generatedThrough)/2;
+  const grade=terrainGrade(mid);
+  const elevation:number=prev.elevation+(next-generatedThrough)*grade/100;
+  prev={distance:next,elevation,grade:terrainGrade(next)};points.push(prev);generatedThrough=next;
+ }
+ // Preserve the latest 3 miles behind the rider, plus the forward window.
+ if(endless&&points.length>1200){const cutoff=Math.max(0,distance-3*1609.344);let i=0;while(i<points.length-2&&points[i+1].distance<cutoff)i++;if(i>0){accumulateRetiredTerrain(i);points.splice(0,i);}}
+}
+function ensureTerrain(){if(!procedural)return;const ahead=distance+CHUNK; if(generatedThrough<ahead)appendTerrain(Math.ceil(ahead/CHUNK)*CHUNK);}
+function prepareProcedural(isEndless:boolean){
+ if(rideStart&&!rideEnd)finishRide();
+ const input=($('generatedMiles') as HTMLInputElement).value.trim();const mi=Number(input);
+ if(!isEndless&&(!input||!Number.isFinite(mi)||mi<=0||mi>Number.MAX_SAFE_INTEGER/1609.344)){status('Enter a valid positive distance in miles.');return;}
+ procedural=true;endless=isEndless;routeLimit=isEndless?Infinity:mi*1609.344;
+ proceduralTerrain=($('generatedTerrain') as HTMLSelectElement).value as Terrain;
+ const gainText=($('generatedGain') as HTMLInputElement).value.trim(),targetGain=gainText===""?null:Number(gainText);
+ if(targetGain!==null&&(!Number.isFinite(targetGain)||targetGain<0)){status("Enter a valid total elevation gain in feet.");return;}
+ proceduralIntensity=Number(($('generatedDifficulty') as HTMLSelectElement).value);
+ proceduralSeed=Number(($('generatedSeed') as HTMLInputElement).value)||Math.floor(Math.random()*1000000000);
+ ($('generatedSeed') as HTMLInputElement).value=String(proceduralSeed);
+ resetHills();gainScale=1;plannedGainFeet=null;
+ if(!isEndless){
+  try{gainScale=targetGain===null?1:targetGain===0?0:solveGain(targetGain);plannedGainFeet=estimatedGain(gainScale);}
+  catch(error){status(String(error));return;}
+ }
+ routeName=`${isEndless?'Endless':'Generated'} ${proceduralTerrain} ride (seed ${proceduralSeed})`;
+ clearElevationEditor();zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;resetClimbingTotals();points=[];generatedThrough=0;distance=0;speed=0;rideStart=null;rideEnd=null;clearRideRecovery();running=false;resetRideMetrics();
+ resetSimController();setRideFocus(false);$('start').textContent='Let’s Ride!';if(!isEndless&&routeLimit/STEP<=250000)appendTerrain(routeLimit);else ensureTerrain();svg();update();
+ if(!isEndless){const actualGain=Math.round(gainLossThrough(routeLimit).gain*FEET_PER_METER);($('generatedGain') as HTMLInputElement).value=String(actualGain);($('generatedMiles') as HTMLInputElement).value=(routeLimit/METERS_PER_MILE).toFixed(1);}
+ status(`${isEndless?'Endless ride ready':`Generated ${mi} mi route ready`} — connect trainer and pedal to begin.`);
+}
+// Dashboard metrics: 3-second rolling power and power-derived energy expenditure.
+// 24% assumed gross efficiency; 150 kcal per illustrative beer (not alcohol guidance).
+const POWER_WINDOW_MS=3000, BEER_KCAL=150, GROSS_EFFICIENCY=0.24;
+let powerHistory:{time:number;watts:number}[]=[];
+let energyKcal=0, activeRideMs=0, lastActiveTick=0;
+type RideSample={seconds:number; distance:number; elevation:number; power:number; cadence:number; heartRate:number|null};
+let rideSamples:RideSample[]=[];let lastSampleSecond=-1;
+// v409: local, versioned crash-recovery checkpoint. Never stores Bluetooth credentials.
+const RIDE_RECOVERY_KEY='breakaway-ride-recovery-v409';
+type RideCheckpoint={version:1;savedAt:number;rideStart:string;rideEnd:string|null;routeName:string;points:Point[];distance:number;speed:number;procedural:boolean;endless:boolean;proceduralSeed:number;proceduralTerrain:Terrain;proceduralIntensity:number;routeLimit:number;generatedThrough:number;gainScale:number;plannedGainFeet:number|null;retiredGainMeters:number;retiredLossMeters:number;elevationHistory:HistoryPoint[];historyStride:number;activeRideMs:number;energyKcal:number;avgPowerEnergy:number;avgPowerDuration:number;rideSamples:RideSample[]};
+let recoveryWriteFailed=false;
+function clearRideRecovery(){try{localStorage.removeItem(RIDE_RECOVERY_KEY);}catch{}}
+function saveRideRecovery(){
+ if(!rideStart||!points.length)return;
+ const checkpoint:RideCheckpoint={version:1,savedAt:Date.now(),rideStart,rideEnd,routeName,points,distance,speed,procedural,endless,proceduralSeed,proceduralTerrain,proceduralIntensity,routeLimit: Number.isFinite(routeLimit)?routeLimit:-1,generatedThrough,gainScale,plannedGainFeet,retiredGainMeters,retiredLossMeters,elevationHistory,historyStride,activeRideMs,energyKcal,avgPowerEnergy,avgPowerDuration,rideSamples};
+ try{localStorage.setItem(RIDE_RECOVERY_KEY,JSON.stringify(checkpoint));recoveryWriteFailed=false;}
+ catch(error){if(!recoveryWriteFailed){console.warn('Ride autosave unavailable',error);status('Ride autosave unavailable — storage full or blocked. Export your TCX when finished.');}recoveryWriteFailed=true;}
+}
+function readRideRecovery():RideCheckpoint|null{
+ try{const raw=localStorage.getItem(RIDE_RECOVERY_KEY);if(!raw)return null;const value=JSON.parse(raw) as RideCheckpoint;
+ if(value.version!==1||!value.rideStart||!Array.isArray(value.points)||!value.points.length||!Array.isArray(value.rideSamples)||!Number.isFinite(value.distance)||!Number.isFinite(value.activeRideMs))throw Error('Invalid checkpoint');
+ return value;
+ }catch(error){console.warn('Invalid ride checkpoint',error);return null;}
+}
+function restoreRideRecovery(c:RideCheckpoint){
+ // A restored ride is always paused. No resistance/control command is sent until the rider reconnects and presses Resume.
+ running=false;rideStart=c.rideStart;rideEnd=c.rideEnd||null;routeName=c.routeName;points=c.points;distance=c.distance;speed=0;
+ procedural=c.procedural;endless=c.endless;proceduralSeed=c.proceduralSeed;proceduralTerrain=c.proceduralTerrain;proceduralIntensity=c.proceduralIntensity;routeLimit=c.routeLimit===-1?Infinity:c.routeLimit;generatedThrough=c.generatedThrough;gainScale=c.gainScale;plannedGainFeet=c.plannedGainFeet;
+ retiredGainMeters=c.retiredGainMeters||0;retiredLossMeters=c.retiredLossMeters||0;elevationHistory=c.elevationHistory||[];historyStride=c.historyStride||400;
+ activeRideMs=c.activeRideMs;energyKcal=c.energyKcal;avgPowerEnergy=c.avgPowerEnergy;avgPowerDuration=c.avgPowerDuration;rideSamples=c.rideSamples;lastSampleSecond=rideSamples.at(-1)?.seconds??-1;powerHistory=[];lastActiveTick=0;stationarySince=0;stationaryPromptShown=false;
+ resetSimController();setRideFocus(false);$('start').textContent=rideEnd?'Let’s Ride!':'Resume ride';syncManualFinishButton();svg();update();showBreakawayScreen('ride');if(rideEnd){showRideSummary();status('Finished ride summary recovered.');}else status('Ride recovered and paused. Reconnect trainer, then resume or finish.');
+}
+function offerRideRecovery(){
+ const saved=readRideRecovery();if(!saved)return;
+ const overlay=document.createElement('div');overlay.className='stationary-ride-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
+ const dialog=document.createElement('div');dialog.className='stationary-ride-dialog';const title=document.createElement('h2');title.textContent='Recover your ride?';const detail=document.createElement('p');
+ const minutes=Math.floor(saved.activeRideMs/60000);detail.textContent=`${saved.routeName} · ${(saved.distance/METERS_PER_MILE).toFixed(2)} mi · ${minutes} min recorded. Saved ${new Date(saved.savedAt).toLocaleString()}. The saved ride will reopen ${saved.rideEnd?"at its summary":"paused"}.`;
+ const actions=document.createElement('div');actions.className='stationary-ride-actions';const discard=document.createElement('button');discard.className='secondary';discard.textContent='Discard saved ride';const recover=document.createElement('button');recover.textContent='Recover ride';
+ discard.onclick=()=>{clearRideRecovery();overlay.remove();};recover.onclick=()=>{try{restoreRideRecovery(saved);overlay.remove();}catch(error){console.error('Recovery failed',error);status('Could not restore saved ride. Reload to try again.');}};
+ actions.append(discard,recover);dialog.append(title,detail,actions);overlay.append(dialog);document.body.append(overlay);recover.focus();
+}
+
+function recordRideSample(){
+ const seconds=Math.floor(activeRideMs/1000);
+ if(seconds<=lastSampleSecond)return;
+ lastSampleSecond=seconds;
+ rideSamples.push({seconds,distance,elevation:at(distance).elevation,power:Math.round(Math.max(0,power)),cadence:Math.round(Math.max(0,cadence)),heartRate:Number(($('heartRate').textContent||'').trim())||null});
+}
+function tcxEscape(v:string){return v.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]!));}
+function buildRideTcx(){
+ if(!rideStart||!rideEnd||rideSamples.length<2)throw Error('Not enough recorded ride data to upload.');
+ const startMs=Date.parse(rideStart),start=new Date(startMs).toISOString();
+ const entries=rideSamples.map(s=>{
+  const t=new Date(startMs+s.seconds*1000).toISOString();
+  return `<Trackpoint><Time>${t}</Time><AltitudeMeters>${s.elevation.toFixed(2)}</AltitudeMeters><DistanceMeters>${s.distance.toFixed(2)}</DistanceMeters>${s.heartRate!==null?`<HeartRateBpm><Value>${s.heartRate}</Value></HeartRateBpm>`:''}<Cadence>${s.cadence}</Cadence><Extensions><TPX xmlns="http://www.garmin.com/xmlschemas/ActivityExtension/v2"><Watts>${s.power}</Watts><Speed>${(s.seconds>0?s.distance/s.seconds:0).toFixed(2)}</Speed></TPX></Extensions></Trackpoint>`;
+ }).join('');
+ return `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Activities><Activity Sport="Biking"><Id>${start}</Id><Lap StartTime="${start}"><TotalTimeSeconds>${(activeRideMs/1000).toFixed(1)}</TotalTimeSeconds><DistanceMeters>${distance.toFixed(2)}</DistanceMeters><Calories>${Math.round(energyKcal)}</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${entries}</Track></Lap><Notes>${tcxEscape(routeName)}</Notes></Activity></Activities></TrainingCenterDatabase>`;
+}
+
+type SavedRide={id:string;start:string;end:string;name:string;meters:number;elapsed:number;kcal:number;gain:number;avgPower:number|null;tcx:string};
+const RIDE_DB='breakaway-local-rides-v1',RIDE_STORE='rides';
+function rideDb():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{
+ const request=indexedDB.open(RIDE_DB,1);
+ request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(RIDE_STORE))request.result.createObjectStore(RIDE_STORE,{keyPath:'id'});};
+ request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
+});}
+async function rideTransaction<T>(mode:IDBTransactionMode,work:(store:IDBObjectStore,done:(value:T)=>void)=>void):Promise<T>{
+ const db=await rideDb();
+ return new Promise<T>((resolve,reject)=>{
+  const tx=db.transaction(RIDE_STORE,mode);let result:T;let assigned=false;
+  tx.oncomplete=()=>{db.close();if(assigned)resolve(result);else reject(Error('Ride database operation incomplete'));};
+  tx.onerror=()=>{db.close();reject(tx.error||Error('Ride storage failed'));};
+  tx.onabort=()=>{db.close();reject(tx.error||Error('Ride storage cancelled'));};
+  work(tx.objectStore(RIDE_STORE),value=>{result=value;assigned=true;});
+ });}
+function savedRides():Promise<SavedRide[]>{return rideTransaction('readonly',(store,done)=>{const req=store.getAll();req.onsuccess=()=>done((req.result as SavedRide[]).sort((a,b)=>b.start.localeCompare(a.start)));});}
+function saveRide(ride:SavedRide):Promise<void>{return rideTransaction('readwrite',(store,done)=>{store.put(ride);done(undefined);});}
+function deleteRide(id:string):Promise<void>{return rideTransaction('readwrite',(store,done)=>{store.delete(id);done(undefined);});}
+function downloadTcx(ride:SavedRide){
+ const url=URL.createObjectURL(new Blob([ride.tcx],{type:'application/vnd.garmin.tcx+xml;charset=utf-8'}));
+ const link=document.createElement('a');link.href=url;link.download='breakaway-'+ride.start.replace(/[:.]/g,'-')+'.tcx';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+async function renderRideHistory(){
+ const list=document.getElementById('localRideHistory');if(!list)return;
+ list.replaceChildren();
+ try{
+  const rides=await savedRides();
+  if(!rides.length){const empty=document.createElement('p');empty.className='note';empty.textContent='No saved rides yet. Finished rides will appear here automatically.';list.append(empty);return;}
+  for(const ride of rides){
+   const item=document.createElement('div');item.className='ride-history-item';
+   const details=document.createElement('div');
+   const title=document.createElement('strong');title.textContent=ride.name||'Virtual Ride';
+   const stats=document.createElement('p');stats.className='note';stats.textContent=`${new Date(ride.start).toLocaleString()} · ${(ride.meters/METERS_PER_MILE).toFixed(2)} mi · ${Math.round(ride.elapsed/60)} min · ${Math.round(ride.gain)} ft climbed`;
+   details.append(title,stats);item.append(details);
+   const actions=document.createElement('div');actions.className='ride-history-actions';
+   const download=document.createElement('button');download.type='button';download.className='secondary';download.textContent='Download TCX';download.onclick=()=>downloadTcx(ride);actions.append(download);
+
+   const remove=document.createElement('button');remove.type='button';remove.className='secondary';remove.textContent='Delete';remove.onclick=async()=>{if(!confirm('Delete this locally saved ride? This cannot be undone.'))return;try{await deleteRide(ride.id);await renderRideHistory();}catch(e){alert('Could not delete ride: '+String(e));}};actions.append(remove);
+   item.append(actions);list.append(item);
+  }
+ }catch(e){list.textContent='Local ride history unavailable: '+String(e);}
+}
+async function archiveFinishedRide(){
+ if(!rideStart||!rideEnd||rideSamples.length<2)throw Error('Not enough recorded data to archive ride.');
+ try{
+  const gain=points.length?gainLossThrough(distance).gain*FEET_PER_METER:rideSamples.reduce((a,x,i)=>a+(i?Math.max(0,x.elevation-rideSamples[i-1].elevation):0),0)*FEET_PER_METER;
+  await saveRide({id:rideStart,start:rideStart,end:rideEnd,name:routeName,meters:distance,elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:avgPowerDuration>0?avgPowerEnergy/avgPowerDuration:null,tcx:buildRideTcx()});
+  await renderRideHistory();
+ }catch(e){status('Could not save ride locally: '+String(e));throw e;}
+}
+
+function resetRideMetrics(){rideSamples=[];lastSampleSecond=-1;powerHistory=[];energyKcal=0;activeRideMs=0;lastActiveTick=0;avgPowerEnergy=0;avgPowerDuration=0;}
+function threeSecondWatts(){
+ if(!realTelemetry||!powerHistory.length)return null;
+ const now=performance.now();
+ const samples=powerHistory.filter(s=>now-s.time<=POWER_WINDOW_MS);
+ if(!samples.length)return null;
+ // Time-weighted average, treating each reading as valid until the next reading.
+ let sum=0,total=0;
+ for(let i=0;i<samples.length;i++){
+  const start=Math.max(now-POWER_WINDOW_MS,samples[i].time);
+  const end=i+1<samples.length?Math.min(now,samples[i+1].time):now;
+  const duration=Math.max(0,end-start);sum+=samples[i].watts*duration;total+=duration;
+ }
+ return total>0?sum/total:samples.at(-1)!.watts;
+}
+function rideClock(){
+ const seconds=Math.floor(activeRideMs/1000);
+ return `${String(Math.floor(seconds/3600)).padStart(2,'0')}:${String(Math.floor(seconds/60)%60).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+}
+
+let rideStart:string|null=null;let rideEnd:string|null=null;let pedalSince=0;let routeName='Virtual Ride';
+let stationarySince=0;let stationaryPromptShown=false;
+const STOP_SPEED_MPS=0.15; // About 0.34 mph; power alone must never trigger a stop.
+function closeStationaryPrompt(){document.getElementById('stationaryRidePrompt')?.remove();}
+function showStationaryPrompt(){
+ if(!running||!rideStart||rideEnd||stationaryPromptShown)return;
+ stationaryPromptShown=true;pauseRide();
+ const overlay=document.createElement('div');overlay.id='stationaryRidePrompt';overlay.className='stationary-ride-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','stationaryRideTitle');
+ overlay.innerHTML='<div class="stationary-ride-dialog"><h2 id="stationaryRideTitle">Ride paused</h2><p>You have been stationary for 10 seconds. Would you like to continue riding or finish your ride?</p><div class="stationary-ride-actions"><button type="button" id="stationaryContinue">Continue riding</button><button type="button" class="secondary" id="stationaryFinish">Finish ride</button></div></div>';
+ document.body.append(overlay);
+ overlay.querySelector<HTMLButtonElement>('#stationaryContinue')!.onclick=()=>{closeStationaryPrompt();stationarySince=0;stationaryPromptShown=false;beginRide();};
+ overlay.querySelector<HTMLButtonElement>('#stationaryFinish')!.onclick=()=>{closeStationaryPrompt();finishRide();};
+ overlay.querySelector<HTMLButtonElement>('#stationaryContinue')!.focus();
+}
+function checkStationaryRide(now:number){
+ if(!running||!connected||!realTelemetry||!rideStart||rideEnd){stationarySince=0;return;}
+ if(speed>STOP_SPEED_MPS){stationarySince=0;return;}
+ if(!stationarySince)stationarySince=now;
+ if(now-stationarySince>=10000)showStationaryPrompt();
+}
+
+
+let avgPowerEnergy=0, avgPowerDuration=0;
+function showRideSummary(){
+ const root=$('rideSummary');
+ const gain=(()=>{try{return points.length?gainLossThrough(distance).gain*FEET_PER_METER:rideSamples.reduce((acc,s,i)=>acc+(i?Math.max(0,s.elevation-rideSamples[i-1].elevation):0),0)*FEET_PER_METER;}catch{return 0;}})();
+ const elapsed=rideClock();
+ const values:[string,string][]=[
+  ['Distance',`${(distance/METERS_PER_MILE).toFixed(2)} mi`],
+  ['Ride time',elapsed],
+  ['Elevation gain',`${Math.round(gain).toLocaleString()} ft`],
+  ['Estimated calories',`${Math.round(energyKcal)} kcal`],
+  ['Average power',avgPowerDuration>0?`${Math.round(avgPowerEnergy/avgPowerDuration)} W`:'—'],
+  ['Average speed',activeRideMs>0?`${(distance/(activeRideMs/1000)*MPH_PER_MPS).toFixed(1)} mph`:'—'],
+  ['Maximum power',rideSamples.length?`${rideSamples.reduce((max,s)=>Math.max(max,s.power),0)} W`:'—'],
+  ['Average cadence',rideSamples.some(s=>s.cadence>0)?`${Math.round(rideSamples.reduce((a,s)=>a+s.cadence,0)/rideSamples.length)} rpm`:'—'],
+  ['Maximum cadence',rideSamples.length?`${rideSamples.reduce((max,s)=>Math.max(max,s.cadence),0)} rpm`:'—'],
+  ['Average heart rate',rideSamples.some(s=>s.heartRate!==null)?`${Math.round(rideSamples.filter(s=>s.heartRate!==null).reduce((a,s)=>a+(s.heartRate||0),0)/rideSamples.filter(s=>s.heartRate!==null).length)} bpm`:'—'],
+  ['Maximum heart rate',rideSamples.some(s=>s.heartRate!==null)?`${rideSamples.reduce((max,s)=>Math.max(max,s.heartRate||0),0)} bpm`:'—']
+ ];
+ root.replaceChildren();
+ const title=document.createElement('h2');title.textContent='Ride complete';root.append(title);
+ const rideName=document.createElement('p');rideName.textContent=routeName;root.append(rideName);
+ const grid=document.createElement('div');grid.className='ride-summary-grid';
+ for(const [label,value] of values){const item=document.createElement('div');item.className='ride-summary-stat';const small=document.createElement('small');small.textContent=label;const strong=document.createElement('strong');strong.textContent=value;item.append(small,strong);grid.append(item);}
+ root.append(grid);
+ const saveTcx=document.createElement('button');saveTcx.type='button';saveTcx.className='secondary';saveTcx.textContent='Download TCX';saveTcx.onclick=()=>{try{downloadTcx({id:rideStart||'',start:rideStart||'',end:rideEnd||'',name:routeName,meters:distance,elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:null,tcx:buildRideTcx()});}catch(e){status(String(e));}};root.append(saveTcx);
+ const note=document.createElement('p');note.className='note';note.textContent='Ride history and TCX files are stored in this browser, not the Breakaway cloud. Export TCX backups regularly.';root.append(note);
+ const done=document.createElement('button');done.type='button';done.textContent='Done — new ride';done.addEventListener('click',()=>{root.hidden=true;root.style.removeProperty('display');root.classList.remove('ride-summary-fullscreen');setRideFocus(false);distance=0;speed=0;rideStart=null;rideEnd=null;resetRideMetrics();resetSimController();$('start').textContent='Let’s Ride!';syncManualFinishButton();update();});root.append(done);
+ document.body.append(root);root.hidden=false;root.classList.add('ride-summary-fullscreen');root.style.display='block';root.scrollTop=0;
+}
+function setRideFocus(active:boolean){
+ document.body.classList.toggle('ride-focus-active',active);
+ if(active){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+   const stage=document.querySelector<HTMLElement>('.ride-stage');
+   if(!stage)return;
+   const top=window.scrollY+stage.getBoundingClientRect().top-8;
+   window.scrollTo({top:Math.max(0,top),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+  }));
+ }
+}
+function syncManualFinishButton(){
+ const button=document.getElementById('rideFinishNow') as HTMLButtonElement|null;
+ if(button)button.hidden=!(rideStart&&!rideEnd);
+}
+function confirmManualFinish(){
+ if(!rideStart||rideEnd)return;
+ const overlay=document.createElement('div');overlay.id='manualFinishPrompt';overlay.className='stationary-ride-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','manualFinishTitle');
+ overlay.innerHTML='<div class="stationary-ride-dialog"><h2 id="manualFinishTitle">Finish your ride?</h2><p>Your ride will end and your recorded statistics will be available in the summary and TCX download.</p><div class="stationary-ride-actions"><button type="button" id="manualKeepRiding">Keep riding</button><button type="button" class="secondary" id="manualConfirmFinish">Finish ride</button></div></div>';
+ document.body.append(overlay);
+ overlay.querySelector<HTMLButtonElement>('#manualKeepRiding')!.onclick=()=>overlay.remove();
+ overlay.querySelector<HTMLButtonElement>('#manualConfirmFinish')!.onclick=()=>{overlay.remove();finishRide();};
+ overlay.querySelector<HTMLButtonElement>('#manualKeepRiding')!.focus();
+}
+function beginRide(){stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!connected||!controlGranted||!realTelemetry)return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();void command([0x07]);if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
+function pauseRide(){if(!running)return;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
+function finishRide(){
+ closeStationaryPrompt();stationarySince=0;
+ if(!rideStart||rideEnd)return;
+ try{recordRideSample();}catch(error){console.warn('Could not record final ride sample',error);}
+ pauseRide();setRideFocus(false);
+ rideEnd=new Date().toISOString();
+ saveRideRecovery(); // Preserve final stats until archival succeeds.
+ $('start').textContent='Let’s Ride!';syncManualFinishButton();
+ try{showRideSummary();}
+ catch(error){
+  console.error('Ride summary error',error);
+  const root=$('rideSummary');document.body.append(root);root.replaceChildren();
+  const heading=document.createElement('h2');heading.textContent='Ride complete';root.append(heading);
+  const note=document.createElement('p');note.textContent='Your ride ended, but some summary statistics could not be displayed.';root.append(note);
+  const reset=document.createElement('button');reset.textContent='Done — New Ride';reset.onclick=()=>{root.hidden=true;root.style.removeProperty('display');root.classList.remove('ride-summary-fullscreen');rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();resetSimController();syncManualFinishButton();update();};root.append(reset);
+  root.hidden=false;root.classList.add('ride-summary-fullscreen');root.style.display='block';
+ }
+ const completedRideId=rideStart;
+ void archiveFinishedRide().then(()=>{const saved=readRideRecovery();if(saved?.rideStart===completedRideId)clearRideRecovery();}).catch(error=>console.warn('Ride archive failed; recovery checkpoint retained',error));
+ status('Ride complete');
+}
+// Zwift default Mixed Terrain 1x24 published virtual gear ratios.
+// Ratios are relative to gear 12 (2.40), matching Zwift's midpoint reference.
+const ZWIFT_GEAR_RATIOS:readonly number[]=[
+ 0.75,0.87,0.99,1.11,1.23,1.38,1.53,1.68,
+ 1.86,2.04,2.22,2.40,2.61,2.82,3.03,3.24,
+ 3.49,3.74,3.99,4.24,4.54,4.84,5.14,5.49
+];
+const zwiftGearMultiplier=()=>ZWIFT_GEAR_RATIOS[gear-1]/ZWIFT_GEAR_RATIOS[11];
+const SIM_TEST_WATTS=300, SIM_COMMAND_INTERVAL_MS=750;
+const SIM_GRADE_SLEW_PERCENT_PER_SECOND=1.0;
+let simAppliedGrade=NaN,simLastTime=0,simLastCommandTime=0,simBusy=false;
+const $=(id:string)=>document.getElementById(id)!;
+$('generateRoute').addEventListener('click',()=>prepareProcedural(false));
+$('endlessRoute').addEventListener('click',()=>prepareProcedural(true));
+$('surpriseRoute').addEventListener('click',()=>{
+ const terrainInput=$('generatedTerrain') as HTMLSelectElement;
+ const difficultyInput=$('generatedDifficulty') as HTMLSelectElement;
+ const seedInput=$('generatedSeed') as HTMLInputElement;
+ const milesInput=$('generatedMiles') as HTMLInputElement;
+ const gainInput=$('generatedGain') as HTMLInputElement;
+ const terrainOptions:Terrain[]=['flat','rolling','mountain','punchy'];
+ const difficultyOptions=[0.55,1,1.35];
+ // Always produce a finite 5–20 mile route. Each new seed generates
+ // natural randomized elevation changes; no stale elevation target carries over.
+ const randomMiles=Math.round((5+Math.random()*15)*10)/10;
+ milesInput.value=randomMiles.toFixed(1);
+ gainInput.value='';
+ terrainInput.value=terrainOptions[Math.floor(Math.random()*terrainOptions.length)];
+ difficultyInput.value=String(difficultyOptions[Math.floor(Math.random()*difficultyOptions.length)]);
+ seedInput.value=String(Math.floor(Math.random()*1000000000)+1);
+ prepareProcedural(false);
+});
+
+const num=(id:string)=>Number(($(id) as HTMLInputElement).value);
+const weightKg=(id:string)=>num(id)/POUNDS_PER_KG;
+const status=(s:string)=>{$('status').textContent=s};
+const rad=(v:number)=>v*Math.PI/180;
+const METERS_PER_MILE=1609.344;
+const FEET_PER_METER=3.280839895;
+const MPH_PER_MPS=2.2369362921;
+const POUNDS_PER_KG=2.2046226218;
+// GPX and trainer physics remain SI internally; imperial is used for display/input only.
+
+function parseGPX(xml:string):Point[]{
+ const doc=new DOMParser().parseFromString(xml,'application/xml');
+ if(doc.querySelector('parsererror'))throw Error('Invalid GPX XML');
+ const nodes=Array.from(doc.getElementsByTagName('*')).filter(e=>['trkpt','rtept'].includes(e.localName));
+ const raw=nodes.map(e=>({lat:Number(e.getAttribute('lat')),lon:Number(e.getAttribute('lon')),ele:Number(Array.from(e.children).find(c=>c.localName==='ele')?.textContent)})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Number.isFinite(p.ele));
+ if(raw.length<2)throw Error('GPX must contain at least two points with elevation');
+ let d=0;const result:Point[]=[{distance:0,elevation:raw[0].ele,grade:0}];
+ for(let i=1;i<raw.length;i++){
+  const a=raw[i-1],b=raw[i];const dl=rad(b.lat-a.lat),dn=rad(b.lon-a.lon);
+  const h=Math.sin(dl/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dn/2)**2;
+  const segment=6371000*2*Math.atan2(Math.sqrt(h),Math.sqrt(Math.max(0,1-h)));
+  if(segment<0.5)continue;
+  d+=segment;result.push({distance:d,elevation:b.ele,grade:0});
+ }
+ // Calculate grade over a 30m window to suppress short GPS elevation spikes.
+ for(let i=0;i<result.length;i++){
+  let a=i,b=i;while(a>0&&result[i].distance-result[a].distance<15)a--;
+  while(b<result.length-1&&result[b].distance-result[i].distance<15)b++;
+  const run=result[b].distance-result[a].distance;
+  result[i].grade=run>0?Math.max(-20,Math.min(20,100*(result[b].elevation-result[a].elevation)/run)):0;
+ }
+ return result;
+}
+function at(d:number):Point{
+ if(!points.length)return {distance:0,elevation:0,grade:0};
+ let lo=0,hi=points.length-1;while(lo<hi){const m=(lo+hi)>>1;if(points[m].distance<d)lo=m+1;else hi=m;}
+ const b=points[lo],a=points[Math.max(0,lo-1)];const t=b.distance===a.distance?0:Math.max(0,Math.min(1,(d-a.distance)/(b.distance-a.distance)));
+ return {distance:d,elevation:a.elevation+(b.elevation-a.elevation)*t,grade:a.grade+(b.grade-a.grade)*t};
+}
+// Automatic categorized climbs. Classification uses distance and mean ascent grade;
+// duration examples are descriptive, not fixed time limits.
+type Climb = {start:number;end:number;category:string;meanGrade:number;gain:number};
+let climbs:Climb[]=[];
+let lastClimbScan=0;
+let climbAwardUntil=0;
+let awardedClimbEnd=-1;
+let previousRideDistance=0;
+let activeClimbKey='';
+let climbSpeedEstimate=3.0; // m/s fallback until moving samples are available
+function climbCategory(km:number,grade:number):string|null{
+ if(km>=15&&grade>=7)return 'HC';
+ if(km>=8&&km<=18&&grade>=6&&grade<=9)return 'CAT 1';
+ if(km>=5&&km<=10&&grade>=5&&grade<=8)return 'CAT 2';
+ if(km>=2&&km<=5&&grade>=5&&grade<=8)return 'CAT 3';
+ if(km>=1&&km<=3&&grade>=4&&grade<=7)return 'CAT 4';
+ return null;
+}
+function classifyClimb(start:number,end:number,gain:number):Climb|null{
+ const km=(end-start)/1000,grade=100*gain/Math.max(1,end-start);
+ const category=climbCategory(km,grade);
+ return category?{start,end,category,meanGrade:grade,gain}:null;
+}
+function detectClimbs(){
+ const end=Math.max(0,Math.min(routeEndForProfile(),procedural?generatedThrough:routeEndForProfile()));
+ if(end<1000||!points.length){climbs=[];return;}
+ const step=100;
+ const elevations:number[]=[];
+ for(let d=0;d<=end;d+=step)elevations.push(at(d).elevation);
+ // Include the last point when route length is not a multiple of 100 m.
+ const candidates:Climb[]=[];
+ let start=-1,lastUp=-1;
+ const commit=()=>{
+  if(start<0||lastUp<=start)return;
+  const d0=start*step,d1=Math.min(end,lastUp*step);
+  const gain=elevations[lastUp]-elevations[start];
+  const c=classifyClimb(d0,d1,gain);
+  if(c)candidates.push(c);
+ };
+ for(let i=1;i<elevations.length;i++){
+  const delta=elevations[i]-elevations[i-1];
+  if(delta>0.2){if(start<0)start=i-1;lastUp=i;}
+  else if(start>=0&&(i-lastUp)*step>250){commit();start=-1;lastUp=-1;}
+ }
+ commit();
+ // Retain distinct, nonoverlapping climbs. Long climbs take precedence.
+ climbs=candidates.filter((c,i)=>i===0||c.start>=candidates[i-1].end);
+}
+function climbNow():Climb|null{
+ return climbs.find(c=>distance>=c.start&&distance<c.end)||null;
+}
+function climbEta(c:Climb){
+ const remaining=Math.max(0,c.end-distance);
+ const speedEstimate=Math.max(0.8,climbSpeedEstimate);
+ const mins=Math.ceil(remaining/speedEstimate/60);
+ return mins>=60?`${Math.floor(mins/60)}h ${String(mins%60).padStart(2,'0')}m`:`${mins} min`;
+}
+function climbHud(c:Climb|null){
+ if(!c)return '';
+ return `<div class="climb-hud-details" style="margin-top:7px;font:700 13px system-ui;color:#f1f8fc;text-shadow:0 2px 4px #081521;line-height:1.45">${c.category} · ${c.meanGrade.toFixed(1)}% avg<br>${((c.end-distance)/1000).toFixed(2)} km to summit<br>ETA ${climbEta(c)}</div>`;
+}
+function refreshClimbState(){
+ if(distance<previousRideDistance-100){awardedClimbEnd=-1;climbAwardUntil=0;}
+ const now=Date.now();
+ if(!lastClimbScan||now-lastClimbScan>10000){detectClimbs();lastClimbScan=now;}
+ const current=climbNow();
+ const key=current?`${current.start}-${current.end}`:'';
+ if(key!==activeClimbKey){activeClimbKey=key;}
+ if(running&&distance>previousRideDistance){
+  const completed=climbs.find(c=>previousRideDistance<c.end&&distance>=c.end&&distance<=c.end+200);
+  if(completed&&completed.end!==awardedClimbEnd){awardedClimbEnd=completed.end;climbAwardUntil=now+6000;}
+  if(speed>0.7)climbSpeedEstimate=climbSpeedEstimate*.92+speed*.08;
+ }
+ previousRideDistance=distance;
+ return current;
+}
+// Elevation editor: smooth localized vertical displacement, with undo and reset.
+// Editing is disabled once a ride has started to prevent abrupt resistance changes.
+let editElevation=false;
+let editOriginal:Point[]|null=null;
+let editHistory:Point[][]=[];
+let dragEdit:{pointer:number;startY:number;center:number;base:number[];metersPerPixel:number;radius:number}|null=null;
+function copyPoints(){return points.map(p=>({...p}));}
+function editingAllowed(){return points.length>1&&!running&&!rideStart;}
+function recomputeGrades(){
+ for(let i=0;i<points.length;i++){
+  let a=i,b=i;while(a>0&&points[i].distance-points[a].distance<15)a--;
+  while(b<points.length-1&&points[b].distance-points[i].distance<15)b++;
+  const run=points[b].distance-points[a].distance;
+  points[i].grade=run>0?Math.max(-20,Math.min(20,100*(points[b].elevation-points[a].elevation)/run)):0;
+ }
+}
+function clearElevationEditor(){editOriginal=null;editHistory=[];dragEdit=null;}
+// Zoom controls: whole route by default; nearest zoom is a 5-mile window.
+const MIN_ZOOM_METERS=5*1609.344;
+let zoomMeters:number|null=null;
+let selectedClimbIndex=-1; // Manual climb focus only; default is the entire route.
+function routeEndForProfile(){return procedural?(endless?Math.max(generatedThrough,distance+CHUNK):routeLimit):(points.at(-1)?.distance||1);}
+function profileBounds(){
+ const first=0;
+ const end=Math.max(first+1,procedural&&!endless&&generatedThrough<routeLimit?generatedThrough:routeEndForProfile());
+ const climb=selectedClimbIndex>=0?climbs[selectedClimbIndex]:null;
+ if(zoomMeters===null&&climb){
+  const margin=Math.min(350,Math.max(100,(climb.end-climb.start)*.04));
+  return {start:Math.max(0,climb.start-margin),max:Math.min(end,climb.end+margin)};
+ }
+ if(zoomMeters===null||end-first<=MIN_ZOOM_METERS)return {start:first,max:end};
+ const span=Math.min(zoomMeters,end-first);
+ // Keep the selected marker (or rider) in view as the rider moves.
+ const center=Math.max(first,Math.min(end,inspectDistance??distance));
+ const start=Math.max(first,Math.min(end-span,center-span/2));
+ return {start,max:start+span};
+}
+function editWindow(){
+ const {start,max}=profileBounds();
+ const visible=overviewPoints().filter(p=>p.distance>=start&&p.distance<=max);
+ const elevations=(visible.length?visible:overviewPoints()).map(p=>p.elevation);
+ return {start,max,min:Math.min(...elevations),range:Math.max(1,Math.max(...elevations)-Math.min(...elevations))};
+}
+function zoomDisplay(){
+ const {start,max}=profileBounds(),full=routeEndForProfile();
+ // Always show the complete route summary, even while the graph is zoomed in.
+ // For endless rides, show the cumulative gain of terrain generated so far;
+ // a truly endless route has no final distance or total ascent.
+ const totalMiles=procedural&&!endless?routeLimit/METERS_PER_MILE:(endless?generatedThrough/METERS_PER_MILE:routeEndForProfile()/METERS_PER_MILE);
+ const totalGainFeet=procedural&&!endless&&generatedThrough+1<routeLimit
+  ?(plannedGainFeet??estimatedGain(gainScale))
+  :gainLossThrough(endless?generatedThrough:routeEndForProfile()).gain*FEET_PER_METER;
+ const summary=endless
+  ?`Endless overview · ${totalMiles.toFixed(1)} mi generated · ${Math.round(totalGainFeet).toLocaleString()} ft gain generated`
+  :`Entire route · ${totalMiles.toFixed(1)} mi · ${Math.round(totalGainFeet).toLocaleString()} ft total gain`;
+ $('zoomLabel').textContent=zoomMeters===null?(selectedClimbIndex>=0&&climbs[selectedClimbIndex]?`${climbs[selectedClimbIndex].category} climb focus · ${summary}`:summary):`${((max-start)/METERS_PER_MILE).toFixed(1)} mi visible · ${summary}`;
+ ($('zoomIn') as HTMLButtonElement).disabled=full<=MIN_ZOOM_METERS+1||(zoomMeters!==null&&zoomMeters<=MIN_ZOOM_METERS+1);
+ ($('zoomOut') as HTMLButtonElement).disabled=zoomMeters===null;
+}
+$('zoomAll').addEventListener('click',()=>{zoomMeters=null;selectedClimbIndex=-1;svg();update();});
+$('zoomClimb').addEventListener('click',()=>{
+ detectClimbs();
+ if(!climbs.length){status('No categorized climbs detected on this route.');return;}
+ selectedClimbIndex=(selectedClimbIndex+1)%climbs.length;
+ zoomMeters=null;svg();update();
+ status(`Showing ${climbs[selectedClimbIndex].category} climb ${selectedClimbIndex+1} of ${climbs.length}. Select Next climb to continue or Entire route to reset.`);
+});
+$('zoomIn').addEventListener('click',()=>{const full=(procedural&&!endless&&generatedThrough<routeLimit?generatedThrough:routeEndForProfile());selectedClimbIndex=-1;zoomMeters=Math.max(MIN_ZOOM_METERS,(zoomMeters??full)/2);svg();update();});
+$('zoomOut').addEventListener('click',()=>{if(zoomMeters===null){selectedClimbIndex=-1;svg();update();return;}const full=(procedural&&!endless&&generatedThrough<routeLimit?generatedThrough:routeEndForProfile());zoomMeters=zoomMeters*2>=full?null:zoomMeters*2;svg();update();});
+const chartEl=$('chart');
+// Inspection is independent of the actual ride position and trainer commands.
+let inspectDistance:number|null=null;
+let scrubPointer:number|null=null;
+function inspectionBounds(){const {start,max}=editWindow();return {start,max};}
+function inspectFromX(clientX:number){
+ if(editElevation)return;
+ const rect=chartEl.querySelector('svg')?.getBoundingClientRect();if(!rect)return;
+ const {start,max}=inspectionBounds();
+ const fraction=Math.max(0,Math.min(1,((clientX-rect.left)/Math.max(1,rect.width)*900-12)/876));
+ inspectDistance=start+fraction*(max-start);refreshInspection();
+}
+function gainLossThrough(target:number){
+ let gain=retiredGainMeters,loss=retiredLossMeters;
+ if(endless&&points.length&&target<points[0].distance){
+  const arr=elevationHistory;
+  if(!arr.length)return {gain:0,loss:0};
+  if(target<=arr[0].distance)return {gain:0,loss:0};
+  let lo=0,hi=arr.length-1;
+  while(lo<hi){const m=(lo+hi)>>1;if(arr[m].distance<target)lo=m+1;else hi=m;}
+  const b=arr[lo],a=arr[Math.max(0,lo-1)];
+  const t=Math.max(0,Math.min(1,(target-a.distance)/Math.max(1,b.distance-a.distance)));
+  return {gain:a.gain+(b.gain-a.gain)*t,loss:a.loss+(b.loss-a.loss)*t};
+ }
+ for(let i=1;i<points.length;i++){
+  const a=points[i-1],b=points[i];if(target<=a.distance)break;
+  const part=Math.max(0,Math.min(1,(target-a.distance)/Math.max(0.00001,b.distance-a.distance)));
+  const delta=(b.elevation-a.elevation)*part;
+  if(delta>0)gain+=delta;else loss-=delta;
+  if(target<=b.distance)break;
+ }
+ return {gain,loss};
+}
+function refreshInspection(){
+ if(!points.length)return;
+ const {start,max}=inspectionBounds();
+ const d=editElevation?0:Math.max(start,Math.min(max,inspectDistance??distance));
+ const p=overviewAt(d),totals=gainLossThrough(d);
+ $('inspectMiles').textContent=(d/METERS_PER_MILE).toFixed(2)+' mi';
+ $('inspectElevation').textContent=Math.round(p.elevation*FEET_PER_METER)+' ft';
+ $('inspectGain').textContent='+'+Math.round(totals.gain*FEET_PER_METER)+' ft';
+ $('inspectLoss').textContent='−'+Math.round(totals.loss*FEET_PER_METER)+' ft';
+ $('inspectGrade').textContent=p.grade.toFixed(1)+'%';
+ const fullLength=procedural?(endless?generatedThrough:routeLimit):(points.at(-1)?.distance||0);
+ $('profileRouteMiles').textContent=(fullLength/METERS_PER_MILE).toFixed(1)+' mi';
+ $('profileRouteGain').textContent=Math.round(gainLossThrough(fullLength).gain*FEET_PER_METER)+' feet';
+ // During editing, the dashboard elevation readout follows the inspected terrain.
+ // Dashboard shows elapsed time; elevation remains available in the profile inspector.
+ const marker=$('marker');if(marker){const x=12+((d-start)/Math.max(1,max-start))*876;marker.setAttribute('x1',String(x));marker.setAttribute('x2',String(x));}
+}
+$('inspectReset').addEventListener('click',()=>{inspectDistance=null;update();refreshInspection();});
+
+$('editElevation').addEventListener('click',()=>{
+ if(!editingAllowed()){status('Finish or reset your ride before editing elevation.');return;}
+ editElevation=!editElevation;
+ $('editElevation').textContent=editElevation?'Done editing':'Edit elevation';
+ chartEl.classList.toggle('editing',editElevation);
+ if(editElevation){inspectDistance=null;scrubPointer=null;zoomMeters=null;selectedClimbIndex=-1;svg();}
+ update();
+ status(editElevation?'Drag the elevation line up to add a climb or down to create a descent.':'Elevation editing closed.');
+});
+chartEl.addEventListener('pointerdown',e=>{
+ if(e.button!==0||!points.length)return;
+ const rect=chartEl.querySelector('svg')?.getBoundingClientRect();if(!rect)return;
+ const marker=$('marker')?.getBoundingClientRect();
+ // During editing, even clicks near the marker modify terrain rather than scrubbing.
+ void marker;
+ if(!editElevation){scrubPointer=e.pointerId;inspectFromX(e.clientX);chartEl.setPointerCapture(e.pointerId);e.preventDefault();return;}
+ if(!editingAllowed())return;
+ const {start,max,range}=editWindow();
+ const x=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+ const center=start+x*(max-start);
+ // Keep the yellow position marker fixed at route start while editing.
+ // 15% of the displayed distance, bounded to 150m-3km, is affected.
+ const radius=Math.max(150,Math.min(3000,(max-start)*0.15));
+ if(!editOriginal)editOriginal=copyPoints();
+ editHistory.push(copyPoints());if(editHistory.length>20)editHistory.shift();
+ dragEdit={pointer:e.pointerId,startY:e.clientY,center,base:points.map(p=>p.elevation),metersPerPixel:Math.max(60,range*1.6)/Math.max(1,rect.height),radius};
+ chartEl.setPointerCapture(e.pointerId);e.preventDefault();
+});
+chartEl.addEventListener('pointermove',e=>{
+ if(scrubPointer===e.pointerId){inspectFromX(e.clientX);e.preventDefault();return;}
+ if(!dragEdit||dragEdit.pointer!==e.pointerId)return;
+ const {startY,center,base,metersPerPixel,radius}=dragEdit;
+ const change=Math.max(-300,Math.min(300,(startY-e.clientY)*metersPerPixel));
+ for(let i=0;i<points.length;i++){
+  const t=(points[i].distance-center)/radius;
+  const weight=Math.abs(t)<1?Math.pow((1+Math.cos(Math.PI*t))/2,2):0;
+  points[i].elevation=base[i]+change*weight;
+ }
+ recomputeGrades();svg();update();e.preventDefault();
+});
+function endElevationDrag(e:PointerEvent){if(scrubPointer===e.pointerId){scrubPointer=null;if(chartEl.hasPointerCapture(e.pointerId))chartEl.releasePointerCapture(e.pointerId);return;}if(dragEdit?.pointer!==e.pointerId)return;dragEdit=null;if(chartEl.hasPointerCapture(e.pointerId))chartEl.releasePointerCapture(e.pointerId);}
+chartEl.addEventListener('pointerup',endElevationDrag);
+chartEl.addEventListener('pointercancel',endElevationDrag);
+$('undoElevation').addEventListener('click',()=>{if(!editingAllowed())return;const prev=editHistory.pop();if(!prev)return;points=prev;svg();update();status('Undid last elevation edit.');});
+$('resetElevation').addEventListener('click',()=>{if(!editingAllowed()||!editOriginal)return;points=editOriginal;clearElevationEditor();svg();update();status('Elevation edits reset.');});
+function svg(){
+ const w=900,h=210,pad=12;
+ const {start,max}=profileBounds();
+ // Include interpolated endpoints so zoomed segments start and finish at their true elevation.
+ const visible=[overviewAt(start),...overviewPoints().filter(p=>p.distance>start&&p.distance<max),overviewAt(max)];
+ const elevations=visible.map(p=>p.elevation),min=Math.min(...elevations),range=Math.max(1,Math.max(...elevations)-min);
+ const stride=Math.max(1,Math.ceil(visible.length/650));
+ const reduced=visible.filter((_,i)=>i%stride===0);if(reduced.at(-1)!==visible.at(-1))reduced.push(visible.at(-1)!);
+ const x=(d:number)=>pad+(d-start)/Math.max(1,max-start)*(w-2*pad);
+ const y=(e:number)=>h-pad-(e-min)/range*(h-2*pad);
+ const line=reduced.map(p=>`${x(p.distance)},${y(p.elevation)}`).join(' ');
+ // Use the same grade colors in Chrome and in the floating Electron overlay.
+ // A segment's grade is measured from its two endpoints, not the entire hill.
+ const gradeColor=(g:number)=>g>18?'#a65cf5':g>12?'#f04452':g>6?'#ff9b31':'#35c96b';
+ const strips=240;
+ const colored=Array.from({length:strips},(_,i)=>{
+  const d0=start+(max-start)*i/strips;
+  const d1=start+(max-start)*(i+1)/strips;
+  const e0=overviewAt(d0).elevation;
+  const e1=overviewAt(d1).elevation;
+  const grade=100*(e1-e0)/Math.max(0.001,d1-d0);
+  return `<rect x="${x(d0).toFixed(2)}" y="0" width="${(x(d1)-x(d0)+0.3).toFixed(2)}" height="${h}" fill="${gradeColor(grade)}"/>`;
+ }).join('');
+ const terrainPath=`M ${x(start)} ${h-pad} L ${line.replaceAll(' ',' L ')} L ${x(max)} ${h-pad} Z`;
+ $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><line id="marker" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg>`;
+ zoomDisplay();syncProfileCharts();refreshInspection();
+}
+function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
+ zoomDisplay();
+ const liveGrade=$('profileLiveGrade');const hud=gradeHud(displayGrade());if(liveGrade){liveGrade.textContent=hud.label;liveGrade.style.color=hud.color;liveGrade.style.fontSize=hud.size+'px';liveGrade.innerHTML=hud.label+climbHud(currentClimb);}
+ $('totalGain').textContent=Math.round(points.length?gainLossThrough(distance).gain*FEET_PER_METER:0).toLocaleString();
+ $('distance').textContent=(distance/METERS_PER_MILE).toFixed(2);$('remaining').textContent=(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2));$('grade').textContent=p.grade.toFixed(1);$('elapsedTime').textContent=rideClock();$('beersEarned').textContent=(energyKcal/BEER_KCAL).toFixed(2);$('caloriesBurned').textContent=Math.round(energyKcal).toLocaleString();$('speed').textContent=(speed*MPH_PER_MPS).toFixed(1);$('power').textContent=threeSecondWatts()?.toFixed(0)??'—';$('cadence').textContent=realTelemetry?cadence.toFixed(0):'—';$('gear').textContent=drivetrainMode==='virtual'?String(gear):'—';
+ refreshInspection();
+ updateFloatingProfile();
+ publishDesktopOverlay();
+}
+// Serialize FTMS control point operations and wait for the indicated result.
+// A successful GATT write is NOT proof that the trainer accepted a command.
+async function command(bytes:number[]):Promise<boolean>{
+ const operation=async()=>{
+  if(!control||!connected) return false;
+  try{
+   const response=new Promise<DataView>((resolve,reject)=>{
+    const timer=setTimeout(()=>{controlResponseWaiter=null;reject(Error('FTMS response timeout'));},3000);
+    controlResponseWaiter=(v)=>{clearTimeout(timer);controlResponseWaiter=null;resolve(v);};
+   });
+   await control.writeValue(new Uint8Array(bytes));
+   const v=await response;
+   if(v.byteLength<3||v.getUint8(0)!==0x80||v.getUint8(1)!==bytes[0]||v.getUint8(2)!==1)
+    throw Error(`FTMS rejected opcode ${bytes[0]} (result ${v.byteLength>=3?v.getUint8(2):'missing'})`);
+   return true;
+  }catch(e){controlResponseWaiter=null;status('FTMS: '+String(e));return false;}
+ };
+ const result=controlQueue.then(operation,operation);
+ controlQueue=result.then(()=>undefined,()=>undefined);
+ return result;
+}
+async function setGrade(grade:number){
+ const scaled=Math.round(Math.max(-20,Math.min(20,grade))*100);
+ const b=new ArrayBuffer(7),v=new DataView(b);
+ v.setUint8(0,0x11);v.setInt16(1,0,true);v.setInt16(3,scaled,true);
+ v.setUint8(5,Math.min(255,Math.round(num('crr')*10000)));v.setUint8(6,51);
+ return command(Array.from(new Uint8Array(b)));
+}
+// FTMS SIM exposes gradient, not virtual gearing or a hard watt limit. Translate
+// the Zwift 24-speed ratio changes into a bounded *equivalent gradient*.
+// This is an approximation, not Zwift's proprietary drivetrain simulation.
+// Climbing-assist gearing: gears 1–8 intentionally reduce trainer torque
+// beyond standard Zwift Mixed Terrain ratios. Virtual route physics remains
+// based on the actual gradient and measured rider watts.
+const CLIMB_ASSIST=[0.10,0.15,0.21,0.28,0.36,0.45,0.56,0.70] as const;
+function climbingAssist():number{return gear<=8?CLIMB_ASSIST[gear-1]:1;}
+function simRequestedGrade():number{
+ const routeGrade=at(distance).grade*num('difficulty')/100;
+ if(drivetrainMode==='traditional')return Math.max(-12,Math.min(12,routeGrade));
+ const ratio=zwiftGearMultiplier();
+ const effectiveLoad=4+Math.max(0,speed*speed*0.08);
+ const shifted=routeGrade+(ratio-1)*effectiveLoad;
+ // Scale down BOTH grade and baseline load for low climbing gears.
+ // Negative effective grades are intentional: they lower trainer resistance
+ // and make 16%+ climbs pedalable at a comfortable cadence.
+ const assist=climbingAssist();
+ const requested=gear<=8 ? -5+(shifted+5)*assist : shifted;
+ // Do not feed delayed power readings back into SIM grade; that oscillates.
+ return Math.max(-12,Math.min(12,requested));
+}
+function resetSimController(){simAppliedGrade=NaN;simLastTime=0;simLastCommandTime=0;trainerGrade=NaN;}
+async function updateSimResistance(now:number,immediate=false){
+ if(trainerMode!=='sim'||!running||!connected||!controlGranted||!realTelemetry||simBusy)return;
+ if(!immediate&&now-simLastCommandTime<SIM_COMMAND_INTERVAL_MS)return;
+ const target=simRequestedGrade();
+ const elapsed=simLastTime?Math.min(2,Math.max(0,(now-simLastTime)/1000)):0;
+ simLastTime=now;
+ if(!Number.isFinite(simAppliedGrade))simAppliedGrade=target;
+ const step=Math.max(0.15,elapsed*(drivetrainMode==='virtual'&&gear<=8?0.65:SIM_GRADE_SLEW_PERCENT_PER_SECOND));
+ simAppliedGrade+=Math.max(-step,Math.min(step,target-simAppliedGrade));
+ if(Number.isFinite(trainerGrade)&&Math.abs(simAppliedGrade-trainerGrade)<0.15)return;
+ simBusy=true;simLastCommandTime=now;
+ try{if(await setGrade(simAppliedGrade))trainerGrade=simAppliedGrade;}
+ finally{simBusy=false;}
+}
+// Experimental fixed-Cog shifting approximation: use ERG target watts computed
+// from cadence, gear and slope. NOT Zwift's proprietary gear/torque algorithm.
+// Standard FTMS ERG commands are supported on many trainers but may feel unlike SIM.
+async function setVirtualGearResistance(){
+ if(drivetrainMode!=='virtual'||!connected||!controlGranted||!running||!realTelemetry||trainerMode!=='erg')return;
+ const slope=at(distance).grade*num('difficulty')/100;
+ const rpm=Math.max(40,cadence);
+ const ratio=zwiftGearMultiplier();
+ const base=1.5*(90+Math.max(-12,slope)*11)*ratio*rpm/85;
+ // Low gears must also be easier in experimental virtual-gear ERG.
+ const watts=Math.round(Math.max(30,Math.min(32767,gear<=8?base*climbingAssist():base)));
+ if(Math.abs(watts-lastTarget)<5)return;
+ if(await command([0x05,watts&255,watts>>8]))lastTarget=watts;
+}
+// True constant-wattage ERG: direct FTMS Set Target Power (0x05).
+// Route elevation and virtual gears have no effect on the requested power.
+async function setFixedErgPower(force=false){
+ if(!connected||!controlGranted||!running||!realTelemetry||trainerMode!=='target')return;
+ const now=performance.now();
+ if(!force&&now-lastFixedErgCommand<1500)return;
+ const watts=Math.round(Math.max(30,Math.min(1000,targetErgWatts)));
+ if(!force&&watts===lastTarget)return;
+ lastFixedErgCommand=now;
+ if(await command([0x05,watts&255,(watts>>8)&255])){lastTarget=watts;status(`ERG target: ${watts} W (elevation ignored)`);}
+}
+function parseBikeData(v:DataView){
+ if(v.byteLength<2)return;
+ const flags=v.getUint16(0,true);let o=2;
+ const has=(n:number)=>!!(flags&(1<<n));
+ // Speed is present when bit 0 is 0. Cadence and power are optional.
+ if(!has(0)&&o+2<=v.byteLength){/* speed available but virtual route uses modeled speed */o+=2;}
+ if(has(1))o+=2; // average speed
+ if(has(2)&&o+2<=v.byteLength){cadence=v.getUint16(o,true)/2;o+=2;}
+ if(has(3))o+=2; // average cadence
+ if(has(4))o+=3; // total distance
+ if(has(5))o+=2; // resistance level
+ if(has(6)&&o+2<=v.byteLength){power=v.getInt16(o,true);o+=2;}
+ if(has(7))o+=2; // average power
+ if(has(8))o+=5; // expended energy
+ if(has(9))o+=1; // heart rate
+ if(has(10))o+=1; // MET
+ if(has(11))o+=2; // elapsed time
+ if(has(12))o+=2; // remaining time
+ realTelemetry=true;
+ const sampleTime=performance.now();
+ powerHistory.push({time:sampleTime,watts:Math.max(0,power)});
+ powerHistory=powerHistory.filter(sample=>sampleTime-sample.time<=POWER_WINDOW_MS+2000);
+ // Advance distance from actual trainer notifications even when Chrome throttles background animation frames.
+ advanceRide(performance.now());
+ // Require sustained pedaling to avoid starting from a single noisy cadence packet.
+ if(false&&!running&&points.length&&connected&&controlGranted&&cadence>=35&&power>=15){if(!pedalSince)pedalSince=Date.now();if(Date.now()-pedalSince>=1200)beginRide();}else if(!running)pedalSince=0;
+ update();
+}
+function shift(delta:number){if(drivetrainMode!=='virtual')return;gear=Math.max(1,Math.min(24,gear+delta));update();if(trainerMode==='erg')void setVirtualGearResistance();else if(trainerMode==='sim'&&running)void updateSimResistance(performance.now(),true);}
+let lastChartUpdate=0;let lastGearUpdate=0;
+function advanceRide(now:number){
+ const dt=Math.max(0,Math.min(3,(now-last)/1000||0));last=now;
+ if(running&&points.length&&connected&&controlGranted&&realTelemetry){
+  activeRideMs+=dt*1000;
+  // Power measured in joules per second; estimate metabolic calories using
+  // a fixed cycling efficiency. Do not accrue calories while coasting at 0 W.
+  energyKcal+=Math.max(0,power)*dt/(GROSS_EFFICIENCY*4184);
+  if(realTelemetry){avgPowerEnergy+=Math.max(0,power)*dt;avgPowerDuration+=dt;}
+  // Time-stepped road dynamics: pedaling force, gravity, rolling friction,
+  // and aerodynamic drag. Coasting works at zero watts on flats and descents.
+  const mass=Math.max(35,weightKg('weight')+weightKg('bikeWeight'));
+  const airDensity=1.225,cdA=0.38,g=9.80665;
+  const crr=Math.max(0,num('crr'));
+  const watts=Math.max(0,power)*0.975;
+  const steps=Math.max(1,Math.ceil(dt/0.05));
+  const step=dt/steps;
+  if(procedural)ensureTerrain();
+  for(let i=0;i<steps;i++){
+   const grade=at(distance).grade/100;
+   const angle=Math.atan(grade);
+   const gravityForce=mass*g*Math.sin(angle);
+   const rollingForce=mass*g*Math.cos(angle)*crr;
+   const aeroForce=0.5*airDensity*cdA*speed*speed;
+   // At low speed, cap the driving force to avoid infinite force at launch.
+   const driveForce=Math.min(700,watts/Math.max(speed,1.5));
+   const acceleration=(driveForce-gravityForce-rollingForce-aeroForce)/mass;
+   const oldSpeed=speed;
+   speed=Math.max(0,Math.min(35,speed+acceleration*step));
+   if(watts>=35&&cadence>=30)speed=Math.max(speed,0.25);
+   const limit=procedural?routeLimit:points.at(-1)!.distance;
+   distance=Math.min(limit,distance+(oldSpeed+speed)*0.5*step);
+   if(distance>=limit)break;
+  }
+  if(procedural&&now-lastChartUpdate>5000){lastChartUpdate=now;ensureTerrain();svg();}
+
+  checkStationaryRide(now);
+  if(!endless&&distance>=(procedural?routeLimit:points.at(-1)!.distance)){finishRide();status('Route complete');}
+  if(trainerMode==='sim')void updateSimResistance(now);
+  if(trainerMode==='erg'&&now-lastGearUpdate>1100){lastGearUpdate=now;void setVirtualGearResistance();}
+  if(trainerMode==='target'&&now-lastGearUpdate>1500){lastGearUpdate=now;void setFixedErgPower();}
+  recordRideSample();
+  update();
+ }
+}
+function tick(now:number){
+ // Animation frames are a foreground fallback; Bluetooth notifications drive progress in the background.
+ advanceRide(now);
+ requestAnimationFrame(tick);
+}
+$('gpx').addEventListener('change',async e=>{try{const file=(e.target as HTMLInputElement).files?.[0];if(!file)return;if(rideStart&&!rideEnd)finishRide();procedural=false;endless=false;zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;routeLimit=0;plannedGainFeet=null;gainScale=1;resetClimbingTotals();clearElevationEditor();points=parseGPX(await file.text());routeName=file.name;rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();svg();update();status(`Loaded ${file.name}: ${(points.at(-1)!.distance/METERS_PER_MILE).toFixed(1)} mi`);}catch(err){status(String(err));}});
+async function connectTrainerDevice(selected:any){try{
+ if(connected&&device?.id===selected.id)return;
+ if(device?.gatt?.connected&&device.id!==selected.id)device.gatt.disconnect();
+ const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Use desktop Chrome or Edge over localhost/HTTPS.');
+ device=selected;
+ device.addEventListener('gattserverdisconnected',()=>{if(rideStart&&!rideEnd){pauseRide();saveRideRecovery();}connected=false;controlGranted=false;realTelemetry=false;running=false;setRideFocus(false);resetSimController();speed=0;power=0;cadence=0;$('start').textContent='Let’s Ride!';update();status('Trainer disconnected — ride paused and saved. Reconnect to resume.');});
+ const server=await device.gatt.connect(),service=await server.getPrimaryService(FTMS);
+ control=await service.getCharacteristic(CONTROL);
+ await control.startNotifications();
+ control.addEventListener('characteristicvaluechanged',(event:any)=>{
+  const v:DataView=event.target.value;
+  if(v.byteLength>=3&&v.getUint8(0)===0x80)controlResponseWaiter?.(v);
+ });
+ const bike=await service.getCharacteristic(BIKE);
+ await bike.startNotifications();
+ bike.addEventListener('characteristicvaluechanged',(event:any)=>parseBikeData(event.target.value));
+ connected=true;controlGranted=await command([0x00]);
+ status(controlGranted?'Direto XR-T connected; waiting for live trainer power/cadence':'Connected, but FTMS control not granted');
+ }catch(err){status('Direto connection error: '+String(err));throw err;}
+}
+$('connect').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({filters:[{services:[FTMS]}],optionalServices:[FTMS]});pausedBleRoles.delete('trainer');rememberDevice('trainer',selected);await connectTrainerDevice(selected);}catch(err){status('Direto connection error: '+String(err));}});
+
+// v3.8.7 — persist rider and trainer preferences on this browser.
+// Restore values before the existing trainer-mode event listeners are installed.
+const RIDE_SETTINGS_KEY='breakaway-rider-trainer-settings-v1';
+const savedSettingIds=['weight','bikeWeight','crr','difficulty','trainerMode','fixedErgWatts','drivetrainMode'] as const;
+try{
+ const saved=JSON.parse(localStorage.getItem(RIDE_SETTINGS_KEY)||'{}') as Record<string,string>;
+ for(const id of savedSettingIds){
+  const el=document.getElementById(id) as HTMLInputElement|HTMLSelectElement|null;
+  if(!el||typeof saved[id]!=='string')continue;
+  const candidate=saved[id];
+  if(id==='trainerMode'||id==='drivetrainMode'){
+   if((id==='trainerMode'&&['sim','erg','target'].includes(candidate))||(id==='drivetrainMode'&&['traditional','virtual'].includes(candidate)))el.value=candidate;
+  }else{
+   const n=Number(candidate);
+   const input=el instanceof HTMLInputElement ? el : null;
+   const min=input && input.min!=='' ? Number(input.min) : -Infinity;
+   const max=input && input.max!=='' ? Number(input.max) : Infinity;
+   if(candidate.trim()!==''&&Number.isFinite(n)&&n>=min&&n<=max)el.value=candidate;
+  }
+ }
+}catch{}
+drivetrainMode=($('drivetrainMode') as HTMLSelectElement).value as 'traditional'|'virtual';
+function applyDrivetrainMode(){
+ const virtual=drivetrainMode==='virtual';
+ ($('virtualShiftingSettings') as HTMLElement).hidden=!virtual;
+ ($('connectClick') as HTMLButtonElement).disabled=!virtual;
+ ($('drivetrainHelp') as HTMLElement).textContent=virtual
+  ?'Virtual gear controls adjust resistance in supported modes. Zwift Click is optional; on-screen and keyboard shifting are also available.'
+  :'Use your physical cassette and chainrings. In SIM mode, Breakaway sends the route gradient directly to the trainer without virtual gear adjustments. ERG target mode ignores elevation.';
+ if(!virtual&&trainerMode==='erg'){
+  trainerMode='sim';($('trainerMode') as HTMLSelectElement).value='sim';
+  ($('fixedErgSettings') as HTMLElement).hidden=true;
+ }
+ const experimental=($('trainerMode') as HTMLSelectElement).querySelector('option[value="erg"]') as HTMLOptionElement|null;
+ if(experimental)experimental.disabled=!virtual;
+ resetSimController();lastTarget=0;update();
+ if(connected&&controlGranted&&running&&trainerMode==='sim')void updateSimResistance(performance.now(),true);
+}
+$('drivetrainMode').addEventListener('change',()=>{
+ drivetrainMode=($('drivetrainMode') as HTMLSelectElement).value as 'traditional'|'virtual';
+ applyDrivetrainMode();saveRideSettings();
+});
+trainerMode=($('trainerMode') as HTMLSelectElement).value as 'sim'|'erg'|'target';
+targetErgWatts=Number(($('fixedErgWatts') as HTMLInputElement).value)||180;
+($('fixedErgSettings') as HTMLElement).hidden=trainerMode!=='target';
+function saveRideSettings(){
+ try{
+  const values:Record<string,string>={};
+  for(const id of savedSettingIds)values[id]=(document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value;
+  localStorage.setItem(RIDE_SETTINGS_KEY,JSON.stringify(values));
+ }catch{}
+}
+for(const id of savedSettingIds){
+ const el=document.getElementById(id);
+ el?.addEventListener('change',saveRideSettings);
+}
+
+$('trainerMode').addEventListener('change',async()=>{
+ trainerMode=($('trainerMode') as HTMLSelectElement).value as 'sim'|'erg'|'target';
+ ($('fixedErgSettings') as HTMLElement).hidden=trainerMode!=='target';
+ resetSimController();lastTarget=0;
+ if(connected&&controlGranted&&running){if(trainerMode==='sim')void updateSimResistance(performance.now(),true);else if(trainerMode==='erg')await setVirtualGearResistance();else await setFixedErgPower(true);}
+});
+$('fixedErgWatts').addEventListener('change',()=>{
+ const input=$('fixedErgWatts') as HTMLInputElement;
+ const requested=Number(input.value);
+ if(!Number.isFinite(requested)||requested<30||requested>1000){input.value=String(targetErgWatts);status('Enter an ERG target between 30 and 1000 watts');return;}
+ targetErgWatts=Math.round(requested);input.value=String(targetErgWatts);
+ lastTarget=0;
+ if(trainerMode==='target')void setFixedErgPower(true);
+});
+$('applyErgWatts').addEventListener('click',()=>{
+ ($('fixedErgWatts') as HTMLInputElement).dispatchEvent(new Event('change'));
+});
+$('rideFinishNow').addEventListener('click',confirmManualFinish);
+syncManualFinishButton();
+$('start').addEventListener('click',()=>{if(running)pauseRide();else if(rideEnd){const summary=$('rideSummary');summary.hidden=false;summary.classList.add('ride-summary-fullscreen');summary.style.display='block';document.body.append(summary);status('Finish the summary to start another ride');}else if(!points.length)status('Import a GPX route or generate one first');else if(!connected||!controlGranted||!realTelemetry)status('Connect trainer first');else beginRide();});
+$('reset').addEventListener('click',()=>{if(rideStart&&!rideEnd){finishRide();return;}if(rideEnd){$('rideSummary').scrollIntoView({behavior:'smooth'});return;}distance=0;speed=0;resetRideMetrics();resetSimController();update();});
+$('finishRide').addEventListener('click',()=>finishRide());
+$('up').addEventListener('click',()=>shift(1));$('down').addEventListener('click',()=>shift(-1));
+window.addEventListener('keydown',e=>{if(e.key==='ArrowUp'){shift(1);e.preventDefault();}if(e.key==='ArrowDown'){shift(-1);e.preventDefault();}});
+// Zwift Click adapter integration point: a verified BLE decoder should call shift(+1/-1).
+// Do not assume Zwift Click exposes standard HID keys or a public BLE characteristic.
+// Start rendering only after the floating profile and overlay bridge are initialized.
+
+
+// Standard Bluetooth Heart Rate Service (0x180D) and Measurement (0x2A37).
+let hrDevice:any=null;
+let hrCharacteristic:any=null;
+let hrHandler:((event:any)=>void)|null=null;
+const HR_SERVICE='heart_rate';
+const HR_MEASUREMENT='heart_rate_measurement';
+function hrMessage(message:string){$('hrStatus').textContent=message;}
+function readHeartRate(value:DataView):number{
+ if(value.byteLength<2)throw Error('Short heart-rate packet');
+ const flags=value.getUint8(0);
+ if(flags&1){if(value.byteLength<3)throw Error('Short 16-bit HR packet');return value.getUint16(1,true);}
+ return value.getUint8(1);
+}
+async function connectHrDevice(selected:any){
+ try{
+  const bluetooth=(navigator as any).bluetooth;
+  if(!bluetooth)throw Error('Web Bluetooth requires Chrome/Edge on localhost or HTTPS');
+  hrMessage('Choose your heart rate monitor…');
+  if(hrDevice?.id===selected.id&&hrDevice.gatt?.connected)return;
+  if(hrDevice?.gatt?.connected)hrDevice.gatt.disconnect();
+  hrDevice=selected;
+  selected.addEventListener('gattserverdisconnected',()=>{if(hrDevice===selected){$('heartRate').textContent='—';hrMessage('Heart rate monitor disconnected');}});
+  const server=await selected.gatt.connect();
+  const service=await server.getPrimaryService(HR_SERVICE);
+  hrCharacteristic=await service.getCharacteristic(HR_MEASUREMENT);
+  hrHandler=(event:any)=>{try{const bpm=readHeartRate(event.target.value);$('heartRate').textContent=String(bpm);hrMessage(`Connected: ${selected.name||'Heart rate monitor'} · ${bpm} BPM`);}catch(err){hrMessage(String(err));}};
+  hrCharacteristic.addEventListener('characteristicvaluechanged',hrHandler);
+  await hrCharacteristic.startNotifications();
+  hrMessage(`Connected: ${selected.name||'Heart rate monitor'} · waiting for BPM`);
+ }catch(err){hrMessage('Heart rate connection: '+String(err));throw err;}
+}
+$('connectHr').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({filters:[{services:[HR_SERVICE]}]});pausedBleRoles.delete('hr');rememberDevice('hr',selected);await connectHrDevice(selected);}catch(err){hrMessage('Heart rate connection: '+String(err));}});
+$('disconnectHr').addEventListener('click',()=>{pausedBleRoles.add('hr');
+ if(hrCharacteristic&&hrHandler)hrCharacteristic.removeEventListener('characteristicvaluechanged',hrHandler);
+ hrDevice?.gatt?.disconnect();hrDevice=null;hrCharacteristic=null;hrHandler=null;
+ $('heartRate').textContent='—';hrMessage('Heart rate monitor disconnected');
+});
+
+// Original Zwift Click (BC1) protocol: RC1 service, unencrypted RideOn activation.
+// Reference: jat255/Zwift_click_handling and Makinolo's RC1 protocol notes.
+const CLICK_SERVICE='00000001-19ca-4651-86e5-fa29dcdd09d1';
+const CLICK_NOTIFY='00000002-19ca-4651-86e5-fa29dcdd09d1';
+const CLICK_WRITE='00000003-19ca-4651-86e5-fa29dcdd09d1';
+let clickDevice:any=null;
+let clickCharacteristic:any=null;
+let clickHandler:((event:any)=>void)|null=null;
+let plusPressed=false,minusPressed=false;
+let clickPackets=0;
+let clickButtonEvents=0;
+// The original Click may go idle without periodic RC1 activation traffic.
+// Keepalive is best-effort; no automatic Bluetooth chooser or silent re-pairing.
+let clickKeepaliveTimer:ReturnType<typeof setInterval>|null=null;
+let clickWriteCharacteristic:any=null;
+let clickKeepaliveBusy=false;
+let clickSession=0;
+const CLICK_KEEPALIVE_MS=15000;
+function stopClickKeepalive(){
+ if(clickKeepaliveTimer!==null){clearInterval(clickKeepaliveTimer);clickKeepaliveTimer=null;}
+ clickWriteCharacteristic=null;
+}
+async function sendClickRideOn(session:number){
+ if(session!==clickSession||clickKeepaliveBusy||!clickDevice?.gatt?.connected||!clickWriteCharacteristic)return;
+ clickKeepaliveBusy=true;
+ try{
+  const payload=new TextEncoder().encode('RideOn');
+  if(clickWriteCharacteristic.properties.writeWithoutResponse)await clickWriteCharacteristic.writeValueWithoutResponse(payload);
+  else if(clickWriteCharacteristic.properties.write)await clickWriteCharacteristic.writeValueWithResponse(payload);
+  else throw Error('Click activation characteristic is not writable');
+ }catch(err){
+  if(session===clickSession)clickMessage('Zwift Click keepalive failed: '+String(err));
+ }finally{clickKeepaliveBusy=false;}
+}
+function clickMessage(message:string){$('clickStatus').textContent=message;}
+function packetHex(view:DataView):string{
+ return Array.from(new Uint8Array(view.buffer,view.byteOffset,view.byteLength)).map(b=>b.toString(16).padStart(2,'0')).join(' ');
+}
+// Click message 0x37 carries two protobuf varint fields: field 1 = plus,
+// field 2 = minus; zero means pressed, one means released.
+function decodeClickState(bytes:Uint8Array):{plus:boolean;minus:boolean}|null{
+ if(bytes.length<2||bytes[0]!==0x37)return null;
+ const fields=new Map<number,number>();let i=1;
+ while(i<bytes.length){
+  let tag=0,shiftBits=0,b=0;
+  do{if(i>=bytes.length||shiftBits>28)return null;b=bytes[i++];tag|=(b&127)<<shiftBits;shiftBits+=7;}while(b&128);
+  const field=tag>>>3,wire=tag&7;
+  if(wire===0){let value=0;shiftBits=0;
+   do{if(i>=bytes.length||shiftBits>28)return null;b=bytes[i++];value|=(b&127)<<shiftBits;shiftBits+=7;}while(b&128);
+   fields.set(field,value);
+  }else if(wire===2){let length=0;shiftBits=0;
+   do{if(i>=bytes.length||shiftBits>28)return null;b=bytes[i++];length|=(b&127)<<shiftBits;shiftBits+=7;}while(b&128);
+   if(i+length>bytes.length)return null;i+=length;
+  }else return null;
+ }
+ if(!fields.has(1)||!fields.has(2))return null;
+ return {plus:fields.get(1)===0,minus:fields.get(2)===0};
+}
+async function connectClickDevice(selected:any){
+ try{
+  const bluetooth=(navigator as any).bluetooth;
+  if(!bluetooth)throw Error('Use desktop Chrome or Edge on localhost or HTTPS.');
+  clickMessage('Press a Click button to wake it, then select Zwift Click…');
+  if(clickDevice?.id===selected.id&&clickDevice.gatt?.connected)return;
+  stopClickKeepalive();clickSession++;
+  if(clickCharacteristic&&clickHandler)clickCharacteristic.removeEventListener('characteristicvaluechanged',clickHandler);
+  if(clickDevice?.gatt?.connected)clickDevice.gatt.disconnect();
+  clickDevice=selected;plusPressed=false;minusPressed=false;clickPackets=0;clickButtonEvents=0;
+  selected.addEventListener('gattserverdisconnected',()=>{if(clickDevice===selected){stopClickKeepalive();clickSession++;plusPressed=false;minusPressed=false;clickMessage('Zwift Click disconnected — press a button to wake it, then reconnect');}});
+  const server=await selected.gatt.connect();
+  const service=await server.getPrimaryService(CLICK_SERVICE);
+  clickCharacteristic=await service.getCharacteristic(CLICK_NOTIFY);
+  clickHandler=(event:any)=>{
+   const view:DataView=event.target.value;
+   clickPackets++;
+   $('clickPacket').textContent=`Packets: ${clickPackets} | Last: ${packetHex(view)}`;
+   const bytes=new Uint8Array(view.buffer,view.byteOffset,view.byteLength);
+   const state=decodeClickState(bytes);
+   if(!state)return;
+   clickButtonEvents++;
+   $('clickDecoded').textContent=`Decoded button packets: ${clickButtonEvents} | Plus: ${state.plus?'PRESSED':'released'} | Minus: ${state.minus?'PRESSED':'released'}`;
+   // Edge detection: one gear change per press, not per notification.
+   if(drivetrainMode==='virtual'&&state.plus&&!plusPressed)shift(1);
+   if(drivetrainMode==='virtual'&&state.minus&&!minusPressed)shift(-1);
+   plusPressed=state.plus;minusPressed=state.minus;
+   clickMessage(`Zwift Click connected · + ${plusPressed?'pressed':'ready'} / − ${minusPressed?'pressed':'ready'} · ${clickPackets} packets`);
+  };
+  clickCharacteristic.addEventListener('characteristicvaluechanged',clickHandler);
+  await clickCharacteristic.startNotifications();
+  // Crucial: notifications stay silent until the original Click is activated.
+  clickWriteCharacteristic=await service.getCharacteristic(CLICK_WRITE);
+  const session=clickSession;
+  await sendClickRideOn(session);
+  clickKeepaliveTimer=setInterval(()=>{void sendClickRideOn(session);},CLICK_KEEPALIVE_MS);
+  clickMessage('Zwift Click activated · idle keepalive every 15s · press + or − to shift');
+ }catch(err){clickMessage('Zwift Click: '+String(err));throw err;}
+}
+$('connectClick').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({filters:[{namePrefix:'Zwift Click'}],optionalServices:[CLICK_SERVICE]});pausedBleRoles.delete('click');rememberDevice('click',selected);await connectClickDevice(selected);}catch(err){clickMessage('Zwift Click: '+String(err));}});
+$('disconnectClick').addEventListener('click',()=>{pausedBleRoles.add('click');
+ stopClickKeepalive();clickSession++;
+ if(clickCharacteristic&&clickHandler)clickCharacteristic.removeEventListener('characteristicvaluechanged',clickHandler);
+ clickDevice?.gatt?.disconnect();clickDevice=null;clickCharacteristic=null;clickHandler=null;
+ plusPressed=false;minusPressed=false;
+ clickMessage('Zwift Click disconnected');
+});
+
+
+// Browser-approved Bluetooth device recovery. Never calls requestDevice outside a user click.
+// The browser retains permissions; localStorage only records device role/ID, not pairing secrets.
+type DeviceRole='trainer'|'hr'|'click';
+const REMEMBERED_BLE_KEY='breakaway-remembered-ble-v1';
+const pausedBleRoles=new Set<DeviceRole>();
+const AUTO_BLE_KEY='breakaway-auto-bluetooth-v1';
+const rememberedBle:Partial<Record<DeviceRole,string>>=(()=>{
+ try{return JSON.parse(localStorage.getItem(REMEMBERED_BLE_KEY)||'{}');}catch{return {};}
+})();
+let autoBluetoothEnabled=localStorage.getItem(AUTO_BLE_KEY)!=='false';
+let autoBluetoothBusy=false;
+let lastAutoAttempt=0;
+const autoBleStatus=$('autoBleStatus');
+const autoBleToggle=$('autoBluetooth') as HTMLInputElement;
+autoBleToggle.checked=autoBluetoothEnabled;
+function rememberDevice(role:DeviceRole,selected:any){
+ if(!selected?.id)return;
+ rememberedBle[role]=selected.id;
+ try{localStorage.setItem(REMEMBERED_BLE_KEY,JSON.stringify(rememberedBle));}catch{}
+ autoBleStatus.textContent=`Remembered ${selected.name||role}. Automatic reconnect ${autoBluetoothEnabled?'enabled':'disabled'}.`;
+}
+function roleConnected(role:DeviceRole){
+ return role==='trainer'?connected&&!!device?.gatt?.connected:role==='hr'?!!hrDevice?.gatt?.connected:!!clickDevice?.gatt?.connected;
+}
+async function reconnectRememberedBluetooth(){
+ if(!autoBluetoothEnabled||autoBluetoothBusy||document.hidden)return;
+ const bluetooth=(navigator as any).bluetooth;
+ if(typeof bluetooth?.getDevices!=='function'){
+  autoBleStatus.textContent='Automatic reconnection requires a Chrome/Edge version supporting previously approved Bluetooth devices.';
+  return;
+ }
+ autoBluetoothBusy=true;
+ try{
+  const devices:any[]=await bluetooth.getDevices();
+  const roles:DeviceRole[]=['trainer','hr','click'];
+  let count=0;
+  for(const role of roles){
+   if(!autoBluetoothEnabled||pausedBleRoles.has(role)||roleConnected(role)||!rememberedBle[role])continue;
+   const selected=devices.find(d=>d.id===rememberedBle[role]);
+   if(!selected)continue;
+   try{
+    if(role==='trainer')await connectTrainerDevice(selected);
+    else if(role==='hr')await connectHrDevice(selected);
+    else await connectClickDevice(selected);
+    count++;
+   }catch{/* Device may be powered off or out of range; retry later. */}
+  }
+  if(count)autoBleStatus.textContent=`Automatically reconnected ${count} remembered device${count===1?'':'s'}.`;
+  else if(!roles.some(role=>rememberedBle[role]))autoBleStatus.textContent='Connect each device once to remember it for future sessions.';
+ }catch(err){autoBleStatus.textContent='Bluetooth recovery unavailable: '+String(err);}
+ finally{autoBluetoothBusy=false;}
+}
+autoBleToggle.addEventListener('change',()=>{
+ autoBluetoothEnabled=autoBleToggle.checked;
+ localStorage.setItem(AUTO_BLE_KEY,String(autoBluetoothEnabled));
+ autoBleStatus.textContent=autoBluetoothEnabled?'Automatic reconnection enabled.':'Automatic reconnection paused.';
+ if(autoBluetoothEnabled)void reconnectRememberedBluetooth();
+});
+$('forgetBluetooth').addEventListener('click',()=>{
+ for(const role of ['trainer','hr','click'] as DeviceRole[]){delete rememberedBle[role];pausedBleRoles.add(role);}
+ localStorage.removeItem(REMEMBERED_BLE_KEY);
+ autoBleStatus.textContent='Remembered device assignments cleared. Browser Bluetooth permissions can be removed in site settings.';
+});
+window.addEventListener('focus',()=>void reconnectRememberedBluetooth());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void reconnectRememberedBluetooth();});
+setInterval(()=>{
+ if(Date.now()-lastAutoAttempt<12000)return;
+ lastAutoAttempt=Date.now();
+ void reconnectRememberedBluetooth();
+},12000);
+void reconnectRememberedBluetooth();
+
+
+// Floating overlay is a movable, resizable panel over the ride dashboard.
+// Pop-out window is a separate browser window; it stays synced via postMessage.
+const floatPanel=$('floatingProfile') as HTMLElement;
+const floatChart=$('floatChart') as HTMLElement;
+let popout:Window|null=null;
+function syncProfileCharts(){
+ const original=$('chart').querySelector('svg');
+ if(original)floatChart.innerHTML='<div id="floatLiveGrade" class="profile-live-grade" aria-label="Current gradient"></div>'+original.outerHTML.replace('id="marker"','id="floatMarker"');
+ publishProfile();
+}
+function profileSnapshot(){
+ const p=at(distance),max=points.at(-1)?.distance||0;
+ return {kind:'gpx-profile',chart:$('chart').innerHTML,distance:(distance/METERS_PER_MILE).toFixed(2)+' mi',grade:displayGrade().toFixed(1)+'%',elevation:Math.round(p.elevation*FEET_PER_METER)+' ft',progress:endless?0:(max?distance/max:0)};
+}
+function publishProfile(){
+ if(popout&&!popout.closed)popout.postMessage(profileSnapshot(),location.origin);
+}
+function updateFloatingProfile(){
+ const p=at(distance),max=points.at(-1)?.distance||0;
+ $('floatDistance').textContent=(distance/METERS_PER_MILE).toFixed(2)+' mi';
+ $('floatGrade').textContent=displayGrade().toFixed(1)+'%';
+ const floatingHud=$('floatLiveGrade');if(floatingHud){const hud=gradeHud(displayGrade());floatingHud.textContent=hud.label;floatingHud.style.color=hud.color;floatingHud.style.fontSize=hud.size+'px';floatingHud.innerHTML=hud.label+climbHud(climbNow());}
+ $('floatElevation').textContent=Math.round(p.elevation*FEET_PER_METER)+' ft';
+ if(Date.now()<climbAwardUntil){const ch=$('floatChart');ch.innerHTML='<div style="min-height:180px;display:grid;place-items:center;font:900 36px system-ui;color:#6cf5c9;text-align:center">⛰ CLIMB COMPLETE!</div>'; }else if(!$('floatMarker'))syncProfileCharts();
+ const marker=$('floatMarker');if(marker){const {start,max}=profileBounds();const x=12+(Math.max(start,Math.min(max,distance))-start)/Math.max(1,max-start)*876;marker.setAttribute('x1',String(x));marker.setAttribute('x2',String(x));}
+ publishProfile();
+}
+$('floatProfile').addEventListener('click',()=>{
+ floatPanel.hidden=false;
+ if(!floatChart.querySelector('svg'))syncProfileCharts();
+ updateFloatingProfile();
+});
+$('dockProfile').addEventListener('click',()=>{floatPanel.hidden=true;});
+$('closeFloat').addEventListener('click',()=>{floatPanel.hidden=true;});
+// Pointer-based dragging works with a mouse or touch. Position remains on-screen.
+const handle=$('floatingProfileHandle') as HTMLElement;
+let drag:{x:number;y:number;left:number;top:number}|null=null;
+handle.addEventListener('pointerdown',e=>{
+ if((e.target as HTMLElement).closest('button'))return;
+ const rect=floatPanel.getBoundingClientRect();
+ floatPanel.style.left=rect.left+'px';floatPanel.style.top=rect.top+'px';floatPanel.style.right='auto';floatPanel.style.bottom='auto';
+ drag={x:e.clientX,y:e.clientY,left:rect.left,top:rect.top};handle.setPointerCapture(e.pointerId);
+});
+handle.addEventListener('pointermove',e=>{
+ if(!drag)return;
+ const left=Math.max(0,Math.min(window.innerWidth-80,drag.left+e.clientX-drag.x));
+ const top=Math.max(0,Math.min(window.innerHeight-55,drag.top+e.clientY-drag.y));
+ floatPanel.style.left=left+'px';floatPanel.style.top=top+'px';
+});
+const stopDragging=()=>{drag=null;};
+handle.addEventListener('pointerup',stopDragging);
+handle.addEventListener('pointercancel',stopDragging);
+// The native companion starts hidden. A user click reveals it above other apps.
+$('nativeProfile').addEventListener('click',async()=>{
+ if(window.breakawayDesktop){
+  try{await window.breakawayDesktop.openOverlay();lastOverlayPush=0;publishDesktopOverlay();status('Native always-on-top overlay opened. Adjust true window opacity in its header.');}
+  catch(e){status('Unable to open native overlay: '+String(e));}
+  return;
+ }
+ if(!('documentPictureInPicture' in window)){status('Always-on-top requires a recent desktop Chrome or Edge. Use Pop out window as a fallback.');return;}
+ try{
+  const pip=await (window as any).documentPictureInPicture.requestWindow({width:Math.max(760,Math.min(1800,window.screen.availWidth-24)),height:260});
+  const savedOverlayOpacity=Math.max(20,Math.min(100,Number(localStorage.getItem('breakaway-overlay-opacity')||'100')||100));
+  pip.document.head.innerHTML=`<title>Breakaway Cycling Overlay</title><style>
+   *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1520;color:#f4f8ff;font:12px system-ui,sans-serif}
+   body{padding:5px 9px 6px}#overlayControls{display:flex;align-items:center;gap:8px;height:22px;font-size:10px;color:#c7d5e4}
+   #overlayOpacity{width:100px;accent-color:#45d6aa}#overlayContent{display:grid;grid-template-columns:minmax(125px,17%) minmax(0,1fr) minmax(125px,17%);grid-template-rows:18px repeat(5,minmax(0,1fr));column-gap:8px;row-gap:2px;height:calc(100% - 23px);min-height:0}
+   #overlayContent>strong{grid-column:1;grid-row:1;white-space:nowrap;font-size:11px}
+   #overlayLabel{grid-column:2;grid-row:1;text-align:center;font-size:11px;color:#c7d5e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+   #overlayChart{grid-column:2;grid-row:2 / span 5;min-height:0;overflow:hidden;border-radius:4px;background:#0d1d2b}
+   #overlayChart .overlay-profile-graphic{height:100%!important}
+   #overlayChart svg{width:100%!important;height:100%!important;display:block}
+   #overlayMetrics{display:contents}.tile{background:#1b3246;border-radius:5px;padding:3px 7px;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;cursor:grab}
+   .tile b{display:block;color:#45d6aa;font-size:clamp(15px,1.65vw,25px);line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+   .tile small{display:block;color:#c7d5e4;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+   @media(max-width:800px){#overlayContent{grid-template-columns:minmax(92px,19%) minmax(0,1fr) minmax(92px,19%);column-gap:4px}.tile{padding:2px 4px}.tile small{font-size:9px}}
+  </style>`;
+  pip.document.body.innerHTML='<div id="overlayControls"><label for="overlayOpacity">Overlay opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100" aria-label="Overlay content opacity"><output id="overlayOpacityValue">100%</output></div><div id="overlayContent"><strong>BREAKAWAY CYCLING</strong><div id="overlayLabel"></div><div id="overlayChart"></div><div id="overlayMetrics"></div></div>';
+  const opacityInput=pip.document.getElementById('overlayOpacity') as HTMLInputElement;
+  const opacityValue=pip.document.getElementById('overlayOpacityValue') as HTMLOutputElement;
+  const opacityContent=pip.document.getElementById('overlayContent') as HTMLElement;
+  const applyOpacity=()=>{
+   const pct=Math.max(20,Math.min(100,Number(opacityInput.value)||100));
+   opacityContent.style.opacity=String(pct/100);
+   opacityValue.textContent=pct+'%';
+   try{localStorage.setItem('breakaway-overlay-opacity',String(pct));}catch{}
+  };
+  opacityInput.value=String(savedOverlayOpacity);
+  opacityInput.addEventListener('input',applyOpacity);
+  applyOpacity();
+  overlayWindow=pip;applyReadoutSize();
+  const pipMetrics=pip.document.getElementById('overlayMetrics') as HTMLElement;
+  wireReadoutSorting(pipMetrics,'.tile',keys=>{overlayOrder=keys;localStorage.setItem(OVERLAY_ORDER_KEY,JSON.stringify(keys));});
+  lastOverlayPush=0;publishDesktopOverlay();
+  pip.addEventListener('pagehide',()=>{if(overlayWindow===pip)overlayWindow=null;});
+  status('Floating ride overlay opened.');
+ }catch(e){status('Unable to open floating overlay: '+String(e));}
+});
+$('popProfile').addEventListener('click',()=>{
+ const w=window.open('','gpxElevationProfile','width=850,height=360,resizable=yes');
+ if(!w){status('Pop-up blocked: allow pop-ups for this site.');return;}
+ popout=w;
+ // This window displays only route data sent by its opener, not Bluetooth controls.
+ w.document.open();
+ w.document.write(`<!doctype html><html><head><title>GPX Elevation Profile</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:15px system-ui;background:#0b1520;color:#e9f0f2;margin:14px}header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}b{color:#45d6aa}#plot svg{width:100%;height:240px;background:#0c1c2b;border-radius:10px}</style></head><body><header><strong>GPX Elevation Profile</strong><span id="stats">Waiting for route…</span></header><div id="plot"></div><script>window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==window.opener||e.data?.kind!=='gpx-profile')return;document.getElementById('plot').innerHTML=e.data.chart;document.getElementById('stats').textContent=e.data.distance+'  ·  '+e.data.grade+'  ·  '+e.data.elevation;const marker=document.getElementById('marker');if(marker){const x=12+e.data.progress*876;marker.setAttribute('x1',x);marker.setAttribute('x2',x);}});window.opener?.postMessage({kind:'profile-ready'},location.origin);<\/script></body></html>`);
+ w.document.close();
+ publishProfile();
+});
+window.addEventListener('message',e=>{if(e.origin===location.origin&&e.source===popout&&e.data?.kind==='profile-ready')publishProfile();});
+
+// Render a rider-centered profile independently of the route inspector.
+// The overlay must not inherit the main chart's manually scrubbed position.
+// The overlay uses its own terrain windows, independent of the main inspector.
+// Hysteresis avoids flickering at the 6% threshold; brief terrain spikes are ignored.
+let steepOverlay=false, steepSince=0, gentleSince=0;
+function updateSteepOverlay(now:number){
+ const grade=at(distance).grade;
+ if(grade>=6){gentleSince=0;if(!steepSince)steepSince=now;if(!steepOverlay&&now-steepSince>=1200)steepOverlay=true;}
+ else if(grade<5){steepSince=0;if(!gentleSince)gentleSince=now;if(steepOverlay&&now-gentleSince>=2500)steepOverlay=false;}
+ else{steepSince=0;gentleSince=0;}
+ return steepOverlay;
+}
+// Display the selected route's opening slope before the ride begins.
+function displayGrade(){
+ if(distance<=0&&!running&&points.length>1){
+  const first=points[0],next=points.find(p=>p.distance>first.distance+0.1);
+  if(next)return (next.elevation-first.elevation)/Math.max(.1,next.distance-first.distance)*100;
+ }
+ return at(distance).grade;
+}
+// Shared grade HUD: identical thresholds, colors, and sizing on dashboard and overlay.
+function gradeHud(grade:number){
+ const color=grade>18?'#a65cf5':grade>12?'#f04452':grade>6?'#ff9b31':'#35c96b';
+ const size=Math.abs(grade)>18?44:Math.abs(grade)>12?38:Math.abs(grade)>6?32:26;
+ return {color,size,label:grade.toFixed(1)+'%'};
+}
+function overlayChart(start:number,stop:number,markerDistance:number){
+ const w=900,h=190,pad=12;
+ const all=overviewPoints();
+ const samples=[overviewAt(start),...all.filter(p=>p.distance>start&&p.distance<stop),overviewAt(stop)];
+ const min=Math.min(...samples.map(p=>p.elevation));
+ const range=Math.max(1,Math.max(...samples.map(p=>p.elevation))-min);
+ const stride=Math.max(1,Math.ceil(samples.length/650));
+ const reduced=samples.filter((_,i)=>i%stride===0);
+ if(reduced.at(-1)!==samples.at(-1))reduced.push(samples.at(-1)!);
+ // Each colored vertical strip represents the grade of the segment ahead.
+ // Downhills and gradients <= 6% are green by design.
+ const x=(d:number)=>pad+(d-start)/Math.max(1,stop-start)*(w-2*pad);
+ const y=(e:number)=>h-pad-(e-min)/range*(h-2*pad);
+ const gradeColor=(g:number)=>g>18?'#a65cf5':g>12?'#f04452':g>6?'#ff9b31':'#35c96b';
+ const clipId='breakaway-terrain-clip';
+ const terrain=reduced.map(p=>`${x(p.distance)},${y(p.elevation)}`).join(' ');
+ const fillPath=`M ${x(start)} ${h-pad} L ${terrain.replaceAll(' ', ' L ')} L ${x(stop)} ${h-pad} Z`;
+ // Fixed-width sampling keeps color changes visible on long routes.
+ const strips=240;
+ const segments=Array.from({length:strips},(_,i)=>{
+  const d0=start+(stop-start)*i/strips;
+  const d1=start+(stop-start)*(i+1)/strips;
+  const e0=overviewAt(d0).elevation;
+  const e1=overviewAt(d1).elevation;
+  const grade=(e1-e0)/Math.max(0.001,d1-d0)*100;
+  return `<rect x="${x(d0).toFixed(2)}" y="0" width="${(x(d1)-x(d0)+0.3).toFixed(2)}" height="${h}" fill="${gradeColor(grade)}"/>`;
+ }).join('');
+ const markerX=x(Math.max(start,Math.min(stop,markerDistance)));
+ const hud=gradeHud(markerDistance<=0?displayGrade():at(markerDistance).grade);
+ return `<div class="overlay-profile-graphic" style="position:relative;width:100%;overflow:hidden"><div class="overlay-profile-grade" aria-label="Current gradient" style="position:absolute;z-index:3;top:12px;left:16px;pointer-events:none;font-weight:850;line-height:1;letter-spacing:-.045em;text-shadow:0 2px 6px #061019,0 0 3px #061019;color:${hud.color};font-size:${hud.size}px">${hud.label}${climbHud(climbNow())}</div><svg viewBox="0 0 ${w} ${h}" style="display:block;width:100%;height:210px" preserveAspectRatio="none"><defs><clipPath id="${clipId}"><path d="${fillPath}"/></clipPath></defs><g clip-path="url(#${clipId})">${segments}</g><polyline points="${terrain}" fill="none" stroke="#e9f0f2" stroke-width="1.6" opacity=".85"/><line x1="${markerX}" x2="${markerX}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg></div>`;
+}
+function desktopOverlayProfiles(){
+ const routeEnd=Math.max(1,routeEndForProfile());
+ const steep=updateSteepOverlay(Date.now());
+ const climb=selectedClimbIndex>=0?climbs[selectedClimbIndex]??null:null;
+ // Fixed/GPX routes show the complete route by default.
+ // Endless routes show the surrounding 5-mile terrain because no complete future route exists.
+ const span=steep&&!climb?Math.min(routeEnd,1*METERS_PER_MILE):(endless?Math.min(routeEnd,5*METERS_PER_MILE):routeEnd);
+ const start=climb?Math.max(0,climb.start-150):span>=routeEnd?0:Math.max(0,Math.min(routeEnd-span,distance-span/2));
+ const stop=climb?Math.min(routeEnd,climb.end+150):Math.min(routeEnd,start+span);
+ const label=climb?`${climb.category} · ${((climb.end-climb.start)/1000).toFixed(1)} KM · ${climb.meanGrade.toFixed(1)}% AVG`:steep?'STEEP CLIMB · 1 MI':endless?'TERRAIN AHEAD · 5 MI':'ENTIRE ROUTE · '+(routeEnd/METERS_PER_MILE).toFixed(1)+' MI';
+ return {
+  detailChart:overlayChart(start,stop,distance),
+  detailLabel:label,
+  endless
+ };
+}
+
+
+// Custom readout layout for dashboard and Chrome Picture-in-Picture.
+// Drag cards to reorder; use the size slider for all readouts.
+// Layout is stored only in this browser.
+const READOUT_LAYOUT_KEY='breakaway-readout-layout-v404';
+const READOUT_SIZE_KEY='breakaway-readout-size-v404';
+let readoutSize=Math.max(24,Math.min(56,Number(localStorage.getItem(READOUT_SIZE_KEY)||40)||40));
+function wireReadoutSorting(container:HTMLElement,selector:string,onSorted:(keys:string[])=>void){
+ let dragged:HTMLElement|null=null;
+ container.addEventListener('dragstart',event=>{
+  const card=(event.target as HTMLElement).closest<HTMLElement>(selector);
+  if(!card)return;dragged=card;event.dataTransfer?.setData('text/plain',card.dataset.metricKey||'');
+  if(event.dataTransfer)event.dataTransfer.effectAllowed='move';
+ });
+ container.addEventListener('dragover',event=>{
+  if(!dragged)return;event.preventDefault();
+  const over=(event.target as HTMLElement).closest<HTMLElement>(selector);
+  if(!over||over===dragged)return;
+  const r=over.getBoundingClientRect();
+  container.insertBefore(dragged,event.clientY<r.top+r.height/2?over:over.nextSibling);
+ });
+ container.addEventListener('drop',event=>{
+  if(!dragged)return;event.preventDefault();
+  onSorted(Array.from(container.querySelectorAll<HTMLElement>(selector)).map(el=>el.dataset.metricKey||''));
+  dragged=null;
+ });
+ container.addEventListener('dragend',()=>{dragged=null;});
+}
+const dashboardContainer=document.querySelector<HTMLElement>('.metrics');
+const dashboardCards=Array.from(dashboardContainer?.querySelectorAll<HTMLElement>('.metric')||[]);
+const dashboardKeys=dashboardCards.map(card=>card.querySelector('b')?.id||'');
+dashboardCards.forEach((card,i)=>{card.dataset.metricKey=dashboardKeys[i];card.draggable=true;card.title='Drag to rearrange';});
+let dashboardOrder:string[]=dashboardKeys;
+try{const stored=JSON.parse(localStorage.getItem(READOUT_LAYOUT_KEY)||'null');if(Array.isArray(stored))dashboardOrder=[...stored.filter((k:unknown)=>typeof k==='string'&&dashboardKeys.includes(k)),...dashboardKeys.filter(k=>!stored.includes(k))];}catch{}
+dashboardOrder.forEach(key=>{const card=dashboardCards.find(c=>c.dataset.metricKey===key);if(card)dashboardContainer?.append(card);});
+if(dashboardContainer)wireReadoutSorting(dashboardContainer,'.metric',keys=>{dashboardOrder=keys;localStorage.setItem(READOUT_LAYOUT_KEY,JSON.stringify(keys));});
+let selectedReadout:HTMLElement|null=null;
+dashboardContainer?.addEventListener('click',event=>{const card=(event.target as HTMLElement).closest<HTMLElement>('.metric');if(!card)return;if(!selectedReadout){selectedReadout=card;card.classList.add('readout-selected');return;}if(selectedReadout===card){card.classList.remove('readout-selected');selectedReadout=null;return;}const a=selectedReadout,b=card,marker=document.createElement('span');a.before(marker);b.before(a);marker.replaceWith(b);a.classList.remove('readout-selected');selectedReadout=null;dashboardOrder=Array.from(dashboardContainer!.querySelectorAll<HTMLElement>('.metric')).map(el=>el.dataset.metricKey||'');localStorage.setItem(READOUT_LAYOUT_KEY,JSON.stringify(dashboardOrder));});
+const readoutControls=document.createElement('div');
+readoutControls.className='readout-controls';
+readoutControls.innerHTML='<label>Readout text size <input id="readoutSize" type="range" min="24" max="56" step="2"></label><output id="readoutSizeValue"></output><span class="note">Drag tiles or select two to swap. Changes save automatically.</span>';
+dashboardContainer?.before(readoutControls);
+const sizeInput=readoutControls.querySelector<HTMLInputElement>('#readoutSize')!;
+const sizeOutput=readoutControls.querySelector<HTMLOutputElement>('#readoutSizeValue')!;
+function applyReadoutSize(){
+ dashboardContainer?.style.setProperty('--readout-size',readoutSize+'px');
+ sizeOutput.textContent=readoutSize+'px';
+ if(overlayWindow&&!overlayWindow.closed)overlayWindow.document.documentElement.style.setProperty('--readout-size',Math.round(readoutSize*.78)+'px');
+}
+sizeInput.value=String(readoutSize);
+sizeInput.addEventListener('input',()=>{readoutSize=Number(sizeInput.value);localStorage.setItem(READOUT_SIZE_KEY,String(readoutSize));applyReadoutSize();});
+
+// Overlay metric selection is independent of the main Ride Dashboard.
+// The ordered registry is shared by the selection UI and the telemetry payload.
+const OVERLAY_METRICS=[
+ ['distance','Distance (mi)'],['totalGain','Total ascent (ft)'],
+ ['remaining','Remaining (mi)'],['grade','Gradient (%)'],
+ ['elapsedTime','Elapsed time'],['speed','Virtual speed (mph)'],
+ ['power','3-second power (W)'],['beersEarned','Beers earned'],
+ ['caloriesBurned','Calories (kcal)'],['cadence','Cadence (RPM)'],
+ ['heartRate','Heart rate (BPM)'],['gear','Virtual gear']
+] as const;
+type OverlayMetricKey=typeof OVERLAY_METRICS[number][0];
+const OVERLAY_PREF_KEY='breakaway-overlay-metrics-v346';
+const OVERLAY_ORDER_KEY='breakaway-overlay-order-v368';
+let overlayOrder:string[]=[];
+try{const value=JSON.parse(localStorage.getItem(OVERLAY_ORDER_KEY)||'null');if(Array.isArray(value))overlayOrder=value.filter((v:unknown)=>typeof v==='string');}catch{}
+const OVERLAY_DEFAULT:OverlayMetricKey[]=['power','cadence','heartRate','gear','speed','distance','grade','elapsedTime'];
+const OVERLAY_KEYS=new Set<string>(OVERLAY_METRICS.map(([key])=>key));
+function loadOverlayMetrics():OverlayMetricKey[]{
+ try{const raw=localStorage.getItem(OVERLAY_PREF_KEY);if(raw===null)return [...OVERLAY_DEFAULT];const data:unknown=JSON.parse(raw);
+  if(Array.isArray(data))return [...new Set(data.filter((key):key is OverlayMetricKey=>typeof key==='string'&&OVERLAY_KEYS.has(key)))];
+ }catch{}return [...OVERLAY_DEFAULT];
+}
+let selectedOverlayMetrics=loadOverlayMetrics();
+function setOverlayMetrics(keys:OverlayMetricKey[]){
+ selectedOverlayMetrics=[...new Set(keys)].filter(k=>OVERLAY_KEYS.has(k));
+ try{localStorage.setItem(OVERLAY_PREF_KEY,JSON.stringify(selectedOverlayMetrics));}catch{}
+ document.querySelectorAll<HTMLInputElement>('[data-overlay-metric]').forEach(input=>{input.checked=selectedOverlayMetrics.includes(input.dataset.overlayMetric as OverlayMetricKey);});
+ lastOverlayPush=0;publishDesktopOverlay();
+}
+function initOverlayMetricChoices(){
+ const container=$('overlayMetricChoices');
+ for(const [key,label] of OVERLAY_METRICS){
+  const wrapper=document.createElement('label');const input=document.createElement('input');
+  input.type='checkbox';input.dataset.overlayMetric=key;input.checked=selectedOverlayMetrics.includes(key);
+  input.addEventListener('change',()=>setOverlayMetrics(input.checked?[...selectedOverlayMetrics,key]:selectedOverlayMetrics.filter(k=>k!==key)));
+  wrapper.append(input,document.createTextNode(label));container.append(wrapper);
+ }
+ $('overlaySelectAll').addEventListener('click',()=>setOverlayMetrics(OVERLAY_METRICS.map(([key])=>key)));
+ $('overlaySelectNone').addEventListener('click',()=>setOverlayMetrics([]));
+}
+initOverlayMetricChoices();
+
+// One-way, local-only telemetry bridge. No Bluetooth access from overlay.
+let overlayWindow:Window|null=null;
+applyReadoutSize();
+let lastOverlayPush=0;
+function publishDesktopOverlay(){
+ const now=Date.now();if(now-lastOverlayPush<350)return;lastOverlayPush=now;
+ const p=at(distance),max=points.at(-1)?.distance||0;
+ const overlayProfiles=points.length?desktopOverlayProfiles():null;
+ const snapshot={
+  running, connected, trainerMode, gear,
+  power:threeSecondWatts()?.toFixed(0)??null,
+  cadence:realTelemetry?Math.round(cadence):null,
+  heartRate:($('heartRate').textContent||'').trim(),
+  speed:(speed*MPH_PER_MPS).toFixed(1),
+  distance:(distance/METERS_PER_MILE).toFixed(2),
+  remaining:(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2)),
+  grade:p.grade.toFixed(1),elevation:Math.round(p.elevation*FEET_PER_METER),
+  totalGain:Math.round(points.length?gainLossThrough(distance).gain*FEET_PER_METER:0).toLocaleString(),
+  elapsedTime:rideClock(),beersEarned:(energyKcal/BEER_KCAL).toFixed(2),
+  caloriesBurned:Math.round(energyKcal).toLocaleString(),
+  selectedMetrics:selectedOverlayMetrics,
+  progress:endless?0:(max?Math.min(1,distance/max):0),
+  detailChart:overlayProfiles?.detailChart||'',
+  detailLabel:overlayProfiles?.detailLabel||'',
+  climbComplete:Date.now()<climbAwardUntil,
+  endless,
+  timestamp:now
+ };
+ window.breakawayDesktop?.updateOverlay(snapshot);
+ if(overlayWindow&&!overlayWindow.closed){
+  const doc=overlayWindow.document;
+  const chart=doc.getElementById('overlayChart');if(chart)chart.innerHTML=snapshot.climbComplete?'<div style="height:210px;display:grid;place-items:center;font:900 45px system-ui;color:#6cf5c9;text-align:center;text-shadow:0 3px 18px #000">⛰ CLIMB COMPLETE!</div>':snapshot.detailChart;
+  const label=doc.getElementById('overlayLabel');if(label)label.textContent=snapshot.detailLabel;
+  const metrics=doc.getElementById('overlayMetrics');if(metrics){
+   const oldTiles=new Map(Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(el=>[el.dataset.metricKey,el]));
+   const values:Record<string,string>={distance:snapshot.distance,totalGain:snapshot.totalGain,remaining:snapshot.remaining,grade:snapshot.grade,elapsedTime:snapshot.elapsedTime,speed:snapshot.speed,power:snapshot.power??'—',beersEarned:snapshot.beersEarned,caloriesBurned:snapshot.caloriesBurned,cadence:snapshot.cadence===null?'—':String(snapshot.cadence),heartRate:snapshot.heartRate,gear:drivetrainMode==='virtual'?String(snapshot.gear):'—'};
+   for(const key of [...Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(t=>t.dataset.metricKey||''),...overlayOrder,...OVERLAY_METRICS.map(([k])=>k)].filter((k,i,a)=>a.indexOf(k)===i)){const metric=OVERLAY_METRICS.find(([k])=>k===key);if(!metric||!selectedOverlayMetrics.includes(key as OverlayMetricKey))continue;const name=metric[1];const tile=oldTiles.get(key)||doc.createElement('div');tile.replaceChildren();tile.draggable=true;tile.dataset.metricKey=key;tile.className='tile';const val=doc.createElement('b');val.textContent=values[key];const title=doc.createElement('small');title.textContent=name;tile.append(val,title);metrics.append(tile);}
+   Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).forEach(tile=>{if(!selectedOverlayMetrics.includes(tile.dataset.metricKey as OverlayMetricKey))tile.remove();});
+   // Side-stack readouts around the centered elevation profile. Keep the chart dominant.
+   const visible=Array.from(metrics.querySelectorAll<HTMLElement>('.tile'));
+   const perSide=Math.ceil(visible.length/2);
+   const content=doc.getElementById('overlayContent') as HTMLElement|null;
+   if(content)content.style.gridTemplateRows=`18px repeat(${Math.max(1,perSide)},minmax(0,1fr))`;
+   if(chart)chart.style.gridRow=`2 / span ${Math.max(1,perSide)}`;
+   visible.forEach((tile,i)=>{
+    const right=i>=perSide;
+    tile.style.gridColumn=right?'3':'1';
+    tile.style.gridRow=String(2+(right?i-perSide:i));
+    tile.style.display='flex';
+   });
+
+  }
+ }
+
+}
+
+// All overlay variables and event handlers are initialized before the first render.
+last=performance.now();requestAnimationFrame(tick);update(); // profile HUD is optional until initial route generation completes
+// Start each visit with a ready-to-ride randomized 5–20 mile route.
+// Reuse Surprise Me so initial and button-generated routes behave identically.
+setTimeout(() => {
+  try {
+    if (!points.length && !rideStart) {
+      $('surpriseRoute').click();
+      if (!points.length) status('Automatic route could not be generated. Choose Surprise Me to retry.');
+    }
+  } catch (error) {
+    console.error('Initial route generation failed:', error);
+    status('Automatic route generation failed. Choose Surprise Me to retry.');
+  }
+}, 0);
+
+
+// OAuth navigation reloads the page. Restore only a completed ride from sessionStorage
+// in the same browser tab, without cloud storage or permanent ride history.
+
+
+void renderRideHistory();
+
+// Restore drivetrain UI after all DOM event handlers are registered.
+applyDrivetrainMode();
+
+// v3.9.2: browser-specific riding guidance. This does not block route planning.
+(() => {
+ const panel=document.getElementById('browserCompatibility');
+ if(!panel)return;
+ const ua=navigator.userAgent;
+ const safari=/Safari\//.test(ua)&&!/Chrome\/|Chromium\/|CriOS\/|Edg\/|EdgiOS\/|OPR\/|FxiOS\//.test(ua);
+ const webBluetooth='bluetooth' in navigator;
+ const documentPip='documentPictureInPicture' in window;
+ const isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ const message=document.getElementById('browserCompatibilityMessage');
+ const title=document.getElementById('browserCompatibilityTitle');
+ const chrome=document.getElementById('browserCompatibilityChrome');
+ const dismiss=document.getElementById('browserCompatibilityDismiss');
+ if(!message||!title||!chrome||!dismiss)return;
+ if(safari){
+  title.textContent='Safari: route planning available; riding requires a compatible browser';
+  message.textContent=isIOS
+   ?'You can build and edit routes here. Bluetooth trainer connections and the always-on-top ride overlay are not available in this browser. For riding, use desktop Chrome or Edge on a supported computer; Chrome on iPhone/iPad does not enable Web Bluetooth.'
+   :'You can build and edit routes here. Safari does not support this app’s Web Bluetooth trainer connections or Chrome’s always-on-top ride overlay. For riding, open Breakaway in desktop Chrome or Edge.';
+ }else if(!webBluetooth){
+  title.textContent='Bluetooth trainer connections unavailable in this browser';
+  message.textContent='Route planning remains available. To connect a Bluetooth trainer or heart-rate monitor, use a compatible desktop browser such as Chrome or Edge over HTTPS.';
+ }else if(!documentPip){
+  title.textContent='Floating ride overlay may be unavailable';
+  message.textContent='Bluetooth connections may work, but this browser does not support Breakaway’s Chrome always-on-top overlay. Desktop Chrome is recommended for the complete riding experience.';
+ }else return;
+ if(isIOS)chrome.hidden=true;
+ try{if(sessionStorage.getItem('breakaway-browser-notice-dismissed-v392')==='1')return;}catch{}
+ panel.hidden=false;
+ dismiss.addEventListener('click',()=>{panel.hidden=true;try{sessionStorage.setItem('breakaway-browser-notice-dismissed-v392','1');}catch{}});
+})();
+
+
+// v3.9.5: three-screen ride flow. Existing device and chart elements are moved,
+// not cloned, so Bluetooth listeners and elevation rendering stay intact.
+type BreakawayScreen='route'|'setup'|'ride';
+let breakawayScreen:BreakawayScreen='route';
+let rideCountdownTimer:number|null=null;
+let rideCountdownRemaining=0;
+const originalRouteStudio=document.getElementById('routeStudio')!;
+const originalProfile=document.getElementById('profileSection')!;
+const originalDashboard=document.querySelector<HTMLElement>('.ride-dashboard')!;
+const originalConnections=document.querySelector<HTMLElement>('.connection-strip')!;
+const workspace=document.getElementById('rideWorkspace')!;
+const screenRoute=document.createElement('section');screenRoute.id='screenRoute';screenRoute.className='breakaway-screen';
+const screenSetup=document.createElement('section');screenSetup.id='screenSetup';screenSetup.className='breakaway-screen';
+const screenRide=document.createElement('section');screenRide.id='screenRide';screenRide.className='breakaway-screen';
+const rideHeading=document.createElement('div');rideHeading.className='ride-screen-header';rideHeading.innerHTML='<strong>YOUR RIDE</strong><div class="ride-screen-actions"><button id="backToSetup" class="secondary" type="button">← Devices</button><button id="backToStudio" class="secondary" type="button">Route Studio</button></div>';
+const rideView=document.createElement('div');rideView.className='ride-screen-content';
+rideView.append(originalProfile,originalDashboard);
+screenRide.append(rideHeading,rideView);
+// Route Studio needs its own live profile: the interactive original belongs to the ride screen.
+const routePreviewPanel=document.createElement('section');
+routePreviewPanel.className='route-studio-live-preview';
+routePreviewPanel.innerHTML='<div class="route-studio-live-heading"><div><span class="route-step">02</span><h2>Your route preview</h2></div><span class="note">Updates when you generate or edit your route</span></div><div id="studioLiveChart" class="studio-live-chart" role="img" aria-label="Generated route elevation profile"></div><div class="studio-live-stats"><span>Distance <b id="studioPreviewMiles">—</b></span><span>Elevation gain <b id="studioPreviewGain">—</b></span></div>';
+originalRouteStudio.querySelector('.route-studio-grid')!.append(routePreviewPanel);
+const studioLiveChart=routePreviewPanel.querySelector<HTMLElement>('#studioLiveChart')!;
+const liveChartSource=originalProfile.querySelector<HTMLElement>('#chart')!;
+let studioPreviewQueued=false;
+function syncStudioRoutePreview(){
+ studioPreviewQueued=false;
+ const svg=liveChartSource.querySelector('svg');
+ if(svg){
+  const copy=svg.cloneNode(true) as SVGSVGElement;
+  // SVG clip-path references must survive cloning. Rename the mask and its
+  // reference together to avoid collisions with the authoritative ride chart.
+  const previewClipId='breakaway-studio-grade-clip';
+  const clip=copy.querySelector('clipPath');
+  const oldClipId=clip?.getAttribute('id');
+  if(clip&&oldClipId){
+   clip.setAttribute('id',previewClipId);
+   copy.querySelectorAll('[clip-path]').forEach(el=>{
+    if(el.getAttribute('clip-path')===`url(#${oldClipId})`)
+     el.setAttribute('clip-path',`url(#${previewClipId})`);
+   });
+  }
+  copy.querySelectorAll('[id]').forEach(el=>{
+   if(el!==clip)el.removeAttribute('id');
+  });
+  copy.removeAttribute('id');
+  copy.style.width='100%';copy.style.height='100%';
+  studioLiveChart.replaceChildren(copy);
+ }else if(!studioLiveChart.children.length){
+  studioLiveChart.textContent='Generate a route to see its elevation profile.';
+ }
+ const miles=document.getElementById('profileRouteMiles');
+ const gain=document.getElementById('profileRouteGain');
+ routePreviewPanel.querySelector('#studioPreviewMiles')!.textContent=miles?.textContent||'—';
+ routePreviewPanel.querySelector('#studioPreviewGain')!.textContent=gain?.textContent||'—';
+}
+const studioChartObserver=new MutationObserver(()=>{
+ if(studioPreviewQueued)return;
+ studioPreviewQueued=true;
+ requestAnimationFrame(syncStudioRoutePreview);
+});
+studioChartObserver.observe(liveChartSource,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['d','points','transform','viewBox']});
+requestAnimationFrame(syncStudioRoutePreview);
+screenRoute.append(originalRouteStudio);
+screenSetup.append(originalConnections);
+workspace.prepend(screenRide);
+workspace.prepend(screenSetup);
+workspace.prepend(screenRoute);
+function stopRideCountdown(){if(rideCountdownTimer!==null){window.clearInterval(rideCountdownTimer);rideCountdownTimer=null;}rideCountdownRemaining=0;}
+function trainerReadyForRide(){return connected&&controlGranted&&realTelemetry;}
+function clickReadyForRide(){return !!(typeof clickDevice!=='undefined'&&clickDevice?.gatt?.connected);}
+function hrReadyForRide(){return !!(typeof hrDevice!=='undefined'&&hrDevice?.gatt?.connected);}
+function updateSetupReadiness(){
+ const ready=trainerReadyForRide();
+ const button=document.getElementById('goToRide') as HTMLButtonElement;
+ button.disabled=!ready;
+ const label=document.getElementById('setupReadiness')!;
+ if(rideCountdownTimer===null)label.textContent=ready?'Trainer ready — heart rate and Zwift Click are optional.':'Connect and initialize your trainer to continue.';
+}
+function showBreakawayScreen(screen:BreakawayScreen){
+ breakawayScreen=screen;
+ document.body.dataset.breakawayScreen=screen;
+ screenRoute.hidden=screen!=='route';
+ screenSetup.hidden=screen!=='setup';
+ screenRide.hidden=screen!=='ride';
+ for(const [id,name] of [['stepRoute','route'],['stepSetup','setup'],['stepRide','ride']]){
+  document.getElementById(id)!.classList.toggle('active',screen===name);
+  document.getElementById(id)!.setAttribute('aria-current',screen===name?'step':'false');
+ }
+ document.body.classList.toggle('ride-focus-active',screen==='ride');
+ if(screen==='setup')updateSetupReadiness();
+ window.scrollTo(0,0);
+ if(screen==='ride')requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));
+}
+function enterRideScreen(){
+ stopRideCountdown();
+ if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
+ showBreakawayScreen('ride');
+}
+function checkAutomaticRideCountdown(){
+ if(breakawayScreen!=='setup'){stopRideCountdown();return;}
+ updateSetupReadiness();
+ const allReady=trainerReadyForRide()&&hrReadyForRide()&&clickReadyForRide();
+ if(!allReady){if(rideCountdownTimer!==null){stopRideCountdown();updateSetupReadiness();}return;}
+ if(rideCountdownTimer!==null)return;
+ rideCountdownRemaining=5;
+ const label=document.getElementById('setupReadiness')!;
+ label.textContent='All three devices connected — riding screen in 5 seconds…';
+ rideCountdownTimer=window.setInterval(()=>{
+  if(breakawayScreen!=='setup'||!trainerReadyForRide()||!hrReadyForRide()||!clickReadyForRide()){
+   stopRideCountdown();updateSetupReadiness();return;
+  }
+  rideCountdownRemaining--;
+  if(rideCountdownRemaining<=0){enterRideScreen();return;}
+  label.textContent=`All three devices connected — riding screen in ${rideCountdownRemaining} seconds…`;
+ },1000);
+}
+(document.getElementById('enjoyRide') as HTMLButtonElement).addEventListener('click',()=>{
+ if(!points.length){status('Generate a route first');return;}
+ showBreakawayScreen('setup');
+ checkAutomaticRideCountdown();
+});
+document.getElementById('goToRide')!.addEventListener('click',enterRideScreen);
+// Navigation is free between planning and devices; entering the active ride requires a trainer.
+document.getElementById('stepRoute')!.addEventListener('click',()=>{stopRideCountdown();if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
+document.getElementById('stepSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');checkAutomaticRideCountdown();});
+document.getElementById('stepRide')!.addEventListener('click',()=>{if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
+document.getElementById('backToRoute')!.addEventListener('click',()=>{stopRideCountdown();showBreakawayScreen('route');});
+document.getElementById('backToSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');});
+document.getElementById('backToStudio')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
+window.setInterval(checkAutomaticRideCountdown,500);
+showBreakawayScreen('route');
+
+// Real-time stationary detection continues when browser animation frames are throttled.
+window.setInterval(()=>checkStationaryRide(performance.now()),500);
+
+// Autosave every five seconds, plus when the page is hidden or navigated away.
+window.setInterval(saveRideRecovery,5000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveRideRecovery();});
+window.addEventListener('pagehide',saveRideRecovery);
+// All ride UI and handlers are initialized by this point.
+offerRideRecovery();
