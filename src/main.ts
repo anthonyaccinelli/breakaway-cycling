@@ -413,10 +413,18 @@ const POUNDS_PER_KG=2.2046226218;
 
 function parseGPX(xml:string):Point[]{
  const doc=new DOMParser().parseFromString(xml,'application/xml');
- if(doc.querySelector('parsererror'))throw Error('Invalid GPX XML');
- const nodes=Array.from(doc.getElementsByTagName('*')).filter(e=>['trkpt','rtept'].includes(e.localName));
- const raw=nodes.map(e=>({lat:Number(e.getAttribute('lat')),lon:Number(e.getAttribute('lon')),ele:Number(Array.from(e.children).find(c=>c.localName==='ele')?.textContent)})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Number.isFinite(p.ele));
- if(raw.length<2)throw Error('GPX must contain at least two points with elevation');
+ if(doc.querySelector('parsererror'))throw Error('Invalid route XML');
+ const all=Array.from(doc.getElementsByTagName('*'));
+ const tcx=all.some(e=>e.localName==='TrainingCenterDatabase');
+ const nodes=all.filter(e=>tcx?e.localName==='Trackpoint':['trkpt','rtept'].includes(e.localName));
+ const childText=(node:Element,name:string)=>Array.from(node.getElementsByTagName('*')).find(e=>e.localName===name)?.textContent?.trim()||'';
+ const raw=nodes.map(e=>{
+  const lat=tcx?Number(childText(e,'LatitudeDegrees')):Number(e.getAttribute('lat'));
+  const lon=tcx?Number(childText(e,'LongitudeDegrees')):Number(e.getAttribute('lon'));
+  const elevationText=tcx?childText(e,'AltitudeMeters'):childText(e,'ele');
+  return {lat,lon,ele:elevationText===''?NaN:Number(elevationText)};
+ }).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Number.isFinite(p.ele)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180);
+ if(raw.length<2)throw Error('Route must contain at least two GPS points with elevation');
  let d=0;const result:Point[]=[{distance:0,elevation:raw[0].ele,grade:0}];
  for(let i=1;i<raw.length;i++){
   const a=raw[i-1],b=raw[i];const dl=rad(b.lat-a.lat),dn=rad(b.lon-a.lon);
