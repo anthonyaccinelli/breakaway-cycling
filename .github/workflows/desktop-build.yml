@@ -16,6 +16,8 @@ jobs:
           node-version: '22'
       - run: npm install
       - run: npm run desktop:build
+      - name: Offline route smoke test
+        run: npm run desktop:smoke
       - run: npm run desktop:package
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
