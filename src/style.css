@@ -734,3 +734,15 @@ body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{overscr
 #screenRoute .quick-preset-button{font-size:12px!important;font-weight:750!important;min-height:30px!important;padding:5px 10px!important;margin:0!important;border-radius:7px!important;background:#e8efff!important;color:#243b73!important;border:1px solid #b7c8e9!important;}
 #screenRoute .quick-preset-button:hover{background:#d7e4ff!important;}
 @media(max-height:730px){#screenRoute .quick-preset-bar{gap:5px;margin-bottom:3px;}#screenRoute .quick-preset-button{min-height:27px!important;padding:3px 8px!important;}}
+
+/* Keep quick starts on the existing action line, never add a new vertical row. */
+#screenRoute .route-quick-action-row{display:flex!important;align-items:stretch!important;gap:9px!important;width:100%!important;margin-top:6px!important;min-width:0!important;}
+#screenRoute .route-quick-action-row .quick-preset-bar{display:flex!important;flex:1 1 auto!important;align-items:center!important;flex-wrap:nowrap!important;min-width:0!important;gap:6px!important;padding:0!important;margin:0!important;}
+#screenRoute .route-quick-action-row .quick-preset-label{white-space:nowrap!important;flex:0 0 auto!important;margin-right:3px!important;}
+#screenRoute .route-quick-action-row .quick-preset-button{flex:1 1 0!important;min-width:0!important;white-space:nowrap!important;margin:0!important;min-height:38px!important;}
+#screenRoute .route-quick-action-row #enjoyRide{flex:0 1 38%!important;width:auto!important;min-width:240px!important;margin:0!important;min-height:38px!important;padding:7px 12px!important;font-size:14px!important;white-space:nowrap!important;}
+@media(max-width:900px){
+ #screenRoute .route-quick-action-row{flex-wrap:wrap!important;}
+ #screenRoute .route-quick-action-row .quick-preset-bar{flex-basis:100%!important;}
+ #screenRoute .route-quick-action-row #enjoyRide{flex:1 1 100%!important;min-width:0!important;}
+}
