@@ -603,3 +603,10 @@ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .readout-controls
 .studio-elevation-controls .note{flex:1;min-width:180px}
 .studio-live-chart.editing{cursor:ns-resize;touch-action:none;user-select:none;outline:2px solid #45d6aa;outline-offset:-2px}
 .studio-live-chart.editing svg{touch-action:none;pointer-events:none}
+
+/* Interactive route exploration on Create Route; elevation editing remains separate. */
+.studio-live-chart:not(.editing){cursor:ew-resize;touch-action:pan-y;}
+.studio-live-chart:not(.editing) svg{pointer-events:none;}
+.studio-scrub-readout{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:10px 14px;border-radius:10px;background:rgba(10,24,35,.55);font-size:14px;}
+.studio-scrub-readout b{color:#ffc85c;font-variant-numeric:tabular-nums;}
+.studio-scrub-readout .note{margin-left:auto;font-size:12px;}
