@@ -97,8 +97,21 @@ function terrainGradeRaw(m:number){
  // A different crest position and shape on every climb or descent.
  const crest=t<h.skew?t/h.skew:(1-t)/(1-h.skew);
  const envelope=Math.pow(Math.max(0,Math.sin(Math.PI*crest/2)),0.65+1.2*h.rough);
- const micro=1+0.13*Math.sin((2.5+3*h.rough)*Math.PI*t+Math.PI*h.rough)*Math.sin(Math.PI*t);
- return h.sign*h.peak*envelope*micro;
+ // Seeded, spatially coherent grade variation at three road-scale wavelengths.
+ // Unlike periodic sine waves, this creates uneven ramps, false flats, and
+ // short pitches without introducing discontinuities at sample boundaries.
+ const noise=(distance:number,spacing:number,salt:number)=>{
+  const cell=Math.floor(distance/spacing),fraction=(distance/spacing)-cell;
+  const smooth=fraction*fraction*(3-2*fraction);
+  return (2*(random01(cell,salt)*(1-smooth)+random01(cell+1,salt)*smooth)-1);
+ };
+ const undulation=0.40*noise(m,920,21)+0.34*noise(m,310,22)+0.26*noise(m,95,23);
+ const roughness=proceduralTerrain==='flat'?0.45:proceduralTerrain==='mountain'?1.45:1.1;
+ const base=h.sign*h.peak*envelope;
+ const variation=undulation*roughness*proceduralIntensity;
+ // Keep the same seeded route reproducible, while making the gradient
+ // irregular instead of perfectly smooth at the crest of each hill.
+ return base+variation;
 }
 function terrainGrade(m:number){return Math.max(-12,Math.min(12,terrainGradeRaw(m)*gainScale));}
 function appendTerrain(target:number){
