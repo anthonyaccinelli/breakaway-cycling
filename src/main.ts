@@ -1932,10 +1932,7 @@ for(const preset of quickPresets){
  });
  quickPresetBar.append(button);
 }
-const quickRideBar=document.createElement('div');
-quickRideBar.className='quick-ride-bar';
-quickRideBar.innerHTML='<span class="quick-ride-label">PICK UP WHERE YOU LEFT OFF</span><button id="quickRideResume" type="button">Ride last route →</button><span id="quickRideSummary"></span>';
-// Put quick starts alongside the existing primary CTA, not above the route form.
+// Quick presets sit beside the main CTA; no extra resume bar or row.
 const routePrimaryCta=originalRouteStudio.querySelector<HTMLElement>('#enjoyRide');
 if(routePrimaryCta?.parentElement){
  const actionRow=document.createElement('div');
@@ -1943,27 +1940,7 @@ if(routePrimaryCta?.parentElement){
  routePrimaryCta.before(actionRow);
  actionRow.append(quickPresetBar,routePrimaryCta);
 }
-const routeBuilder=screenRoute.querySelector('.route-builder')||originalRouteStudio.querySelector('.route-builder');
-if(routeBuilder)routeBuilder.prepend(quickRideBar);
-const quickResume=quickRideBar.querySelector<HTMLButtonElement>('#quickRideResume')!;
-const quickSummary=quickRideBar.querySelector<HTMLElement>('#quickRideSummary')!;
-function refreshQuickRide(){
- const saved=readQuickRide();
- quickRideBar.hidden=!saved;
- if(saved)quickSummary.textContent=saved.miles+' mi · '+saved.terrain+' · '+(saved.difficulty==='0.55'?'easy':saved.difficulty==='1.35'?'hard':'moderate');
-}
-quickResume.addEventListener('click',()=>{
- const saved=readQuickRide();
- if(!saved)return;
- for(const [key,id] of Object.entries(quickRideIds)) (document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value=saved[key as keyof QuickRideSettings];
- (document.getElementById('generateRoute') as HTMLButtonElement).click();
- if(points.length){
-  showBreakawayScreen('setup');
-  // The browser can reconnect previously approved devices without showing
-  // a new permission prompt. New devices still require a deliberate click.
-  if(autoBluetoothEnabled)void reconnectRememberedBluetooth();
- }
-});
+function refreshQuickRide(){/* preferences persist silently; no additional UI */ }
 for(const id of Object.values(quickRideIds))document.getElementById(id)?.addEventListener('change',saveQuickRide);
 for(const id of ['generateRoute','endlessRoute','surpriseRoute'])document.getElementById(id)?.addEventListener('click',()=>{window.setTimeout(()=>{saveQuickRide();refreshQuickRide();},0);});
 refreshQuickRide();
