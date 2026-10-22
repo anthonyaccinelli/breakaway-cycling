@@ -1631,6 +1631,47 @@ routePreviewPanel.className='route-studio-live-preview';
 routePreviewPanel.innerHTML='<div class="route-studio-live-heading"><div><span class="route-step">02</span><h2>Your route preview</h2></div><span class="note">Updates when you generate or edit your route</span></div><div id="studioLiveChart" class="studio-live-chart" role="img" aria-label="Generated route elevation profile"></div><div class="studio-live-stats"><span>Distance <b id="studioPreviewMiles">—</b></span><span>Elevation gain <b id="studioPreviewGain">—</b></span></div>';
 originalRouteStudio.querySelector('.route-studio-grid')!.append(routePreviewPanel);
 const studioLiveChart=routePreviewPanel.querySelector<HTMLElement>('#studioLiveChart')!;
+
+// The studio preview is a cloned SVG. Restore the original terrain editor here,
+// where users actually create routes, while keeping the ride chart unchanged.
+const studioEditControls=document.createElement('div');
+studioEditControls.className='studio-elevation-controls';
+studioEditControls.innerHTML='<button type="button" id="studioEditElevation">Edit elevation</button><button type="button" id="studioUndoElevation" class="secondary">Undo</button><button type="button" id="studioResetElevation" class="secondary">Reset</button><span class="note">Drag the profile up or down to shape your route.</span>';
+studioLiveChart.before(studioEditControls);
+const studioEditButton=studioEditControls.querySelector<HTMLButtonElement>('#studioEditElevation')!;
+studioEditButton.addEventListener('click',()=>{$('editElevation').click();studioEditButton.textContent=editElevation?'Done editing':'Edit elevation';studioLiveChart.classList.toggle('editing',editElevation);});
+studioEditControls.querySelector<HTMLButtonElement>('#studioUndoElevation')!.addEventListener('click',()=>{$('undoElevation').click();});
+studioEditControls.querySelector<HTMLButtonElement>('#studioResetElevation')!.addEventListener('click',()=>{$('resetElevation').click();});
+studioLiveChart.addEventListener('pointerdown',e=>{
+ if(!editElevation||!editingAllowed()||e.button!==0)return;
+ const rect=studioLiveChart.querySelector('svg')?.getBoundingClientRect();if(!rect||!rect.width)return;
+ const {start,max,range}=editWindow();
+ const center=start+Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width))*(max-start);
+ const radius=Math.max(150,Math.min(3000,(max-start)*.15));
+ if(!editOriginal)editOriginal=copyPoints();
+ editHistory.push(copyPoints());if(editHistory.length>20)editHistory.shift();
+ dragEdit={pointer:e.pointerId,startY:e.clientY,center,base:points.map(p=>p.elevation),metersPerPixel:Math.max(60,range*1.6)/Math.max(1,rect.height),radius};
+ studioLiveChart.setPointerCapture(e.pointerId);e.preventDefault();
+});
+studioLiveChart.addEventListener('pointermove',e=>{
+ if(!editElevation||!dragEdit||dragEdit.pointer!==e.pointerId)return;
+ const {startY,center,base,metersPerPixel,radius}=dragEdit;
+ const change=Math.max(-300,Math.min(300,(startY-e.clientY)*metersPerPixel));
+ for(let i=0;i<points.length;i++){
+  const t=(points[i].distance-center)/radius;
+  const weight=Math.abs(t)<1?Math.pow((1+Math.cos(Math.PI*t))/2,2):0;
+  points[i].elevation=base[i]+change*weight;
+ }
+ recomputeGrades();svg();update();e.preventDefault();
+});
+function finishStudioElevationDrag(e:PointerEvent){
+ if(dragEdit?.pointer!==e.pointerId)return;
+ dragEdit=null;
+ if(studioLiveChart.hasPointerCapture(e.pointerId))studioLiveChart.releasePointerCapture(e.pointerId);
+}
+studioLiveChart.addEventListener('pointerup',finishStudioElevationDrag);
+studioLiveChart.addEventListener('pointercancel',finishStudioElevationDrag);
+
 const liveChartSource=originalProfile.querySelector<HTMLElement>('#chart')!;
 let studioPreviewQueued=false;
 function syncStudioRoutePreview(){
