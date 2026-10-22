@@ -1918,7 +1918,12 @@ quickResume.addEventListener('click',()=>{
  if(!saved)return;
  for(const [key,id] of Object.entries(quickRideIds)) (document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value=saved[key as keyof QuickRideSettings];
  (document.getElementById('generateRoute') as HTMLButtonElement).click();
- if(points.length)showBreakawayScreen('setup');
+ if(points.length){
+  showBreakawayScreen('setup');
+  // The browser can reconnect previously approved devices without showing
+  // a new permission prompt. New devices still require a deliberate click.
+  if(autoBluetoothEnabled)void reconnectRememberedBluetooth();
+ }
 });
 for(const id of Object.values(quickRideIds))document.getElementById(id)?.addEventListener('change',saveQuickRide);
 for(const id of ['generateRoute','endlessRoute','surpriseRoute'])document.getElementById(id)?.addEventListener('click',()=>{window.setTimeout(()=>{saveQuickRide();refreshQuickRide();},0);});
