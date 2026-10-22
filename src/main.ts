@@ -1669,6 +1669,59 @@ routePreviewPanel.className='route-studio-live-preview';
 routePreviewPanel.innerHTML='<div class="route-studio-live-heading"><div><span class="route-step">02</span><h2>Your route preview</h2></div><span class="note">Updates when you generate or edit your route</span></div><div id="studioLiveChart" class="studio-live-chart" role="img" aria-label="Generated route elevation profile"></div><div class="studio-live-stats"><span>Distance <b id="studioPreviewMiles">—</b></span><span>Elevation gain <b id="studioPreviewGain">—</b></span></div>';
 originalRouteStudio.querySelector('.route-studio-grid')!.append(routePreviewPanel);
 const studioLiveChart=routePreviewPanel.querySelector<HTMLElement>('#studioLiveChart')!;
+const routeScrubReadout=document.createElement('div');
+routeScrubReadout.className='studio-scrub-readout';
+routeScrubReadout.innerHTML='<span>At mile <b id="studioScrubMiles">0.00 mi</b></span><span>Elevation <b id="studioScrubElevation">—</b></span><span>Gradient <b id="studioScrubGrade">—</b></span><span class="note">Drag the yellow line to explore your route</span>';
+studioLiveChart.after(routeScrubReadout);
+let studioScrubDistance:number|null=null;
+let studioScrubPointer:number|null=null;
+function paintStudioScrubber(){
+ const svg=studioLiveChart.querySelector('svg');
+ if(!svg||!points.length)return;
+ const {start,max}=profileBounds();
+ const d=Math.max(start,Math.min(max,studioScrubDistance??distance));
+ const x=12+(d-start)/Math.max(1,max-start)*876;
+ let marker=svg.querySelector<SVGLineElement>('.studio-scrub-marker');
+ if(!marker){
+  marker=document.createElementNS('http://www.w3.org/2000/svg','line');
+  marker.classList.add('studio-scrub-marker');
+  marker.setAttribute('y1','0');marker.setAttribute('y2','210');
+  marker.setAttribute('stroke','#ffc85c');marker.setAttribute('stroke-width','4');
+  marker.setAttribute('vector-effect','non-scaling-stroke');
+  marker.setAttribute('pointer-events','none');
+  svg.append(marker);
+ }
+ marker.setAttribute('x1',String(x));marker.setAttribute('x2',String(x));
+ const p=overviewAt(d);
+ routeScrubReadout.querySelector('#studioScrubMiles')!.textContent=(d/METERS_PER_MILE).toFixed(2)+' mi';
+ routeScrubReadout.querySelector('#studioScrubElevation')!.textContent=Math.round(p.elevation*FEET_PER_METER).toLocaleString()+' ft';
+ routeScrubReadout.querySelector('#studioScrubGrade')!.textContent=p.grade.toFixed(1)+'%';
+}
+function moveStudioScrubber(clientX:number){
+ const rect=studioLiveChart.querySelector('svg')?.getBoundingClientRect();
+ if(!rect||!rect.width||!points.length)return;
+ const {start,max}=profileBounds();
+ studioScrubDistance=start+Math.max(0,Math.min(1,(clientX-rect.left)/rect.width))*(max-start);
+ paintStudioScrubber();
+}
+studioLiveChart.addEventListener('pointerdown',e=>{
+ if(editElevation||e.button!==0||!points.length)return;
+ studioScrubPointer=e.pointerId;
+ studioLiveChart.setPointerCapture(e.pointerId);
+ moveStudioScrubber(e.clientX);e.preventDefault();
+});
+studioLiveChart.addEventListener('pointermove',e=>{
+ if(studioScrubPointer!==e.pointerId||editElevation)return;
+ moveStudioScrubber(e.clientX);e.preventDefault();
+});
+function stopStudioScrub(e:PointerEvent){
+ if(studioScrubPointer!==e.pointerId)return;
+ studioScrubPointer=null;
+ if(studioLiveChart.hasPointerCapture(e.pointerId))studioLiveChart.releasePointerCapture(e.pointerId);
+}
+studioLiveChart.addEventListener('pointerup',stopStudioScrub);
+studioLiveChart.addEventListener('pointercancel',stopStudioScrub);
+
 
 // The studio preview is a cloned SVG. Restore the original terrain editor here,
 // where users actually create routes, while keeping the ride chart unchanged.
@@ -1735,6 +1788,7 @@ function syncStudioRoutePreview(){
   copy.removeAttribute('id');
   copy.style.width='100%';copy.style.height='100%';
   studioLiveChart.replaceChildren(copy);
+  paintStudioScrubber();
  }else if(!studioLiveChart.children.length){
   studioLiveChart.textContent='Generate a route to see its elevation profile.';
  }
