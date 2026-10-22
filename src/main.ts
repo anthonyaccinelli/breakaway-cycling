@@ -1935,8 +1935,16 @@ for(const preset of quickPresets){
 const quickRideBar=document.createElement('div');
 quickRideBar.className='quick-ride-bar';
 quickRideBar.innerHTML='<span class="quick-ride-label">PICK UP WHERE YOU LEFT OFF</span><button id="quickRideResume" type="button">Ride last route →</button><span id="quickRideSummary"></span>';
+// Put quick starts alongside the existing primary CTA, not above the route form.
+const routePrimaryCta=originalRouteStudio.querySelector<HTMLElement>('#enjoyRide');
+if(routePrimaryCta?.parentElement){
+ const actionRow=document.createElement('div');
+ actionRow.className='route-quick-action-row';
+ routePrimaryCta.before(actionRow);
+ actionRow.append(quickPresetBar,routePrimaryCta);
+}
 const routeBuilder=screenRoute.querySelector('.route-builder')||originalRouteStudio.querySelector('.route-builder');
-if(routeBuilder){routeBuilder.prepend(quickPresetBar);routeBuilder.prepend(quickRideBar);}
+if(routeBuilder)routeBuilder.prepend(quickRideBar);
 const quickResume=quickRideBar.querySelector<HTMLButtonElement>('#quickRideResume')!;
 const quickSummary=quickRideBar.querySelector<HTMLElement>('#quickRideSummary')!;
 function refreshQuickRide(){
