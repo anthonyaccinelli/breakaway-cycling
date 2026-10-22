@@ -1812,7 +1812,9 @@ const riderSettingsSection=Array.from(document.querySelectorAll<HTMLElement>('se
 if(riderSettingsSection){
  riderSettingsSection.id='riderSettingsSection';
  riderSettingsSection.classList.add('setup-rider-settings');
- screenSetup.append(riderSettingsSection);
+ const bluetoothAutoPanel=originalConnections.querySelector<HTMLElement>('.bluetooth-auto');
+ if(bluetoothAutoPanel)bluetoothAutoPanel.insertAdjacentElement('afterend',riderSettingsSection);
+ else screenSetup.append(riderSettingsSection);
 }
 
 workspace.prepend(screenRide);
