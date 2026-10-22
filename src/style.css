@@ -618,3 +618,11 @@ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .readout-controls
 #screenSetup .setup-rider-settings input{width:100%;box-sizing:border-box;min-width:0;}
 #screenSetup .setup-rider-settings>.note,#screenSetup .setup-rider-settings>p{grid-column:1/-1;margin:0;}
 @media(max-width:760px){#screenSetup .setup-rider-settings{grid-template-columns:1fr;padding:18px;}}
+
+/* Settings must live inside the scrollable device column, not below the clipped connection panel. */
+body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rider-settings{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px 12px!important;margin:12px 0 8px!important;padding:14px 16px!important;min-height:0!important;height:auto!important;overflow:visible!important;}
+body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rider-settings h2{font-size:18px!important;grid-column:1/-1!important;}
+body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rider-settings label{font-size:13px!important;min-width:0!important;}
+body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rider-settings input{font-size:15px!important;padding:7px 9px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rider-settings p{font-size:11px!important;line-height:1.4!important;}
+@media(max-width:760px){body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rider-settings{grid-template-columns:1fr!important;}}
