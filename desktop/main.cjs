@@ -1,4 +1,4 @@
-const {app,BrowserWindow,session,shell,protocol,net}=require('electron');
+const {app,BrowserWindow,session,shell,protocol,net,dialog}=require('electron');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const fs=require('node:fs');
@@ -12,41 +12,45 @@ function createWindow(){
  // Electron's Chromium Bluetooth chooser is implemented by the main process.
  // Keep the existing renderer Web Bluetooth requestDevice()/GATT/FTMS code unchanged.
  let chooser=null;
+ const bleLog=(message)=>console.log('[Breakaway Bluetooth]',message);
  win.webContents.on('select-bluetooth-device',(event,deviceList,callback)=>{
    event.preventDefault();
-   // Chromium can emit an empty list before scanning discovers any devices.
-   // Never treat an empty discovery update as a user cancellation.
+   bleLog('Chooser event, discovered: '+deviceList.map(d=>d.deviceName||d.deviceId).join(', '));
    if(smoke){callback('');return;}
    if(!chooser){
-     chooser={callback,devices:new Map(),timer:null,menu:null,settled:false};
-     const active=chooser;
-     active.timer=setTimeout(()=>{if(chooser===active&&!active.settled){active.settled=true;active.callback('');chooser=null;}},30000);
+     chooser={callback,devices:new Map(),settled:false,timer:null,prompting:false};
+     const current=chooser;
+     current.timer=setTimeout(()=>finishChooser(current,''),45000);
    }
-   const active=chooser;
-   for(const device of deviceList){
-     if(device.deviceId)active.devices.set(device.deviceId,device.deviceName||device.deviceId);
+   const current=chooser;
+   for(const device of deviceList)if(device.deviceId)current.devices.set(device.deviceId,device.deviceName||device.deviceId);
+   if(!current.prompting){
+     current.prompting=true;
+     // Use a native dialog rather than a transient popup menu, which macOS can
+     // dismiss before the rider gets a chance to select the trainer.
+     setTimeout(async()=>{
+       if(chooser!==current||current.settled)return;
+       const devices=[...current.devices.entries()];
+       if(!devices.length){
+         bleLog('No BLE devices discovered after scan window');
+         await dialog.showMessageBox(win,{type:'warning',title:'Bluetooth scan',message:'No compatible Bluetooth devices found yet.',detail:'Check that Bluetooth is enabled in macOS, Breakaway Cycling has Bluetooth permission, and your trainer is powered on. Then try Connect FTMS trainer again.',buttons:['OK']});
+         finishChooser(current,'');
+         return;
+       }
+       const labels=devices.map(([,name])=>name);
+       const result=await dialog.showMessageBox(win,{type:'question',title:'Connect Bluetooth device',message:'Select your cycling device',detail:labels.map((name,i)=>`${i+1}. ${name}`).join('\\n'),buttons:[...labels,'Cancel'],cancelId:labels.length,noLink:true});
+       finishChooser(current,result.response<devices.length?devices[result.response][0]:'');
+     },3500);
    }
-   if(!active.devices.size||active.menu||active.settled)return;
-   // Allow a short scan window before displaying available trainers.
-   setTimeout(()=>{
-     if(chooser!==active||active.settled||active.menu||!active.devices.size)return;
-     const {Menu}=require('electron');
-     const choose=id=>{
-       if(active.settled)return;
-       active.settled=true;
-       clearTimeout(active.timer);
-       chooser=null;
-       active.callback(id);
-     };
-     active.menu=Menu.buildFromTemplate([
-       ...[...active.devices].map(([id,name])=>({label:name,click:()=>choose(id)})),
-       {type:'separator'},
-       {label:'Cancel',click:()=>choose('')}
-     ]);
-     active.menu.popup({window:win,callback:()=>{if(!active.settled)choose('');}});
-   },1200);
  });
- win.on('closed',()=>{if(chooser&&!chooser.settled){clearTimeout(chooser.timer);chooser.callback('');chooser=null;}});
+ function finishChooser(current,id){
+   if(current.settled)return;
+   current.settled=true;clearTimeout(current.timer);
+   if(chooser===current)chooser=null;
+   bleLog(id?'Selected device '+id:'Device selection cancelled or timed out');
+   current.callback(id);
+ }
+ win.on('closed',()=>{if(chooser)finishChooser(chooser,'');});
  win.webContents.setWindowOpenHandler(({url})=>{if(/^https:\/\//.test(url)&&!smoke)shell.openExternal(url);return {action:'deny'};});
  win.webContents.on('will-navigate',(event,url)=>{if(!isDev&&!url.startsWith('breakaway://'))event.preventDefault();});
  if(smoke){
@@ -80,12 +84,12 @@ function createWindow(){
 app.whenReady().then(()=>{
  if(!isDev){
    session.defaultSession.setPermissionCheckHandler((_webContents,permission,requestingOrigin)=>{
-     if(allowedBluetoothPermissions.has(permission))return String(requestingOrigin||'').startsWith('breakaway://');
+     if(allowedBluetoothPermissions.has(permission))return true;
      return false;
    });
    session.defaultSession.setPermissionRequestHandler((_webContents,permission,callback,details)=>{
      const origin=details.requestingUrl||'';
-     callback(allowedBluetoothPermissions.has(permission)&&origin.startsWith('breakaway://'));
+     callback(allowedBluetoothPermissions.has(permission));
    });
    protocol.handle('breakaway',request=>{
      const url=new URL(request.url);
