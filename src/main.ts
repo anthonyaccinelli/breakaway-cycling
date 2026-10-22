@@ -1285,7 +1285,7 @@ function syncProfileCharts(){
 }
 function profileSnapshot(){
  const p=at(distance),max=points.at(-1)?.distance||0;
- return {kind:'gpx-profile',chart:$('chart').innerHTML,distance:(distance/METERS_PER_MILE).toFixed(2)+' mi',grade:displayGrade().toFixed(1)+'%',elevation:Math.round(p.elevation*FEET_PER_METER)+' ft',progress:endless?0:(max?distance/max:0)};
+ const chartCopy=$('chart').cloneNode(true) as HTMLElement;const live=chartCopy.querySelector<HTMLElement>('#profileLiveGrade');if(live){const hud=gradeHud(displayGrade());live.textContent=hud.label;live.style.color=hud.color;live.style.fontSize=hud.size+'px';}\n return {kind:'gpx-profile',chart:chartCopy.innerHTML,distance:(distance/METERS_PER_MILE).toFixed(2)+' mi',grade:displayGrade().toFixed(1)+'%',elevation:Math.round(p.elevation*FEET_PER_METER)+' ft',progress:endless?0:(max?distance/max:0)};
 }
 function publishProfile(){
  if(popout&&!popout.closed)popout.postMessage(profileSnapshot(),location.origin);
