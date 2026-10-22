@@ -1806,6 +1806,15 @@ studioChartObserver.observe(liveChartSource,{subtree:true,childList:true,charact
 requestAnimationFrame(syncStudioRoutePreview);
 screenRoute.append(originalRouteStudio);
 screenSetup.append(originalConnections);
+// Keep the original input elements (and their persistence/physics listeners)
+// while relocating rider statistics beneath Bluetooth auto-reconnect.
+const riderSettingsSection=Array.from(document.querySelectorAll<HTMLElement>('section')).find(section=>section.querySelector('h2')?.textContent?.trim()==='Rider and trainer settings');
+if(riderSettingsSection){
+ riderSettingsSection.id='riderSettingsSection';
+ riderSettingsSection.classList.add('setup-rider-settings');
+ screenSetup.append(riderSettingsSection);
+}
+
 workspace.prepend(screenRide);
 workspace.prepend(screenSetup);
 workspace.prepend(screenRoute);
