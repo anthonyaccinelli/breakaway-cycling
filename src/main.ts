@@ -1817,6 +1817,47 @@ if(riderSettingsSection){
  else screenSetup.append(riderSettingsSection);
 }
 
+
+const deviceColumn=originalConnections.querySelector<HTMLElement>('.ride-devices-column');
+const shiftingColumn=originalConnections.querySelector<HTMLElement>('.ride-shifting-column');
+if(deviceColumn&&shiftingColumn){
+ const title=originalConnections.querySelector('h2');
+ if(title)title.textContent='Connect your devices';
+ const instructions=originalConnections.querySelector<HTMLElement>('#setupInstructions');
+ if(instructions)instructions.textContent='Connect your trainer to ride. Heart rate and Zwift Click are optional.';
+ const cards=Array.from(deviceColumn.querySelectorAll<HTMLElement>('.device-connect-card'));
+ cards[0]?.classList.add('setup-primary-device');
+ const accessories=document.createElement('div');
+ accessories.className='setup-accessories';
+ accessories.innerHTML='<h3>Optional accessories</h3>';
+ cards.slice(1).forEach(card=>accessories.append(card));
+ cards[0]?.after(accessories);
+ const advanced=document.createElement('details');
+ advanced.className='setup-advanced';
+ advanced.innerHTML='<summary>Advanced trainer & Bluetooth options</summary>';
+ const shifting=shiftingColumn.querySelector<HTMLElement>('#drivetrainSection');
+ if(shifting)advanced.append(shifting);
+ for(const selector of ['.bluetooth-auto','.ride-session-actions']){
+  const item=originalConnections.querySelector<HTMLElement>(selector);
+  if(item)advanced.append(item);
+ }
+ shiftingColumn.append(advanced);
+ if(riderSettingsSection){
+  riderSettingsSection.classList.add('setup-profile-card');
+  const heading=riderSettingsSection.querySelector('h2');
+  if(heading)heading.textContent='Rider settings';
+  shiftingColumn.prepend(riderSettingsSection);
+ }
+ const importLabel=originalConnections.querySelector<HTMLInputElement>('#gpx')?.closest('label');
+ if(importLabel){
+  const importDetails=document.createElement('details');
+  importDetails.className='setup-import';
+  importDetails.innerHTML='<summary>Import a GPX route</summary>';
+  importDetails.append(importLabel);
+  title?.after(importDetails);
+ }
+}
+
 workspace.prepend(screenRide);
 workspace.prepend(screenSetup);
 workspace.prepend(screenRoute);
