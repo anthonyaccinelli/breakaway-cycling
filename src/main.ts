@@ -1,4 +1,5 @@
 import './style.css';
+import {renderAdvancedRideCharts} from './ride-analysis';
 
 type Point = {distance:number; elevation:number; grade:number};
 type BLEDevice = any;
@@ -314,6 +315,7 @@ function showRideSummary(){
  const grid=document.createElement('div');grid.className='ride-summary-grid';
  for(const [label,value] of values){const item=document.createElement('div');item.className='ride-summary-stat';const small=document.createElement('small');small.textContent=label;const strong=document.createElement('strong');strong.textContent=value;item.append(small,strong);grid.append(item);}
  root.append(grid);
+ renderAdvancedRideCharts(root,rideSamples,Number((document.getElementById('ftp') as HTMLInputElement|null)?.value)||250);
  const saveTcx=document.createElement('button');saveTcx.type='button';saveTcx.className='secondary';saveTcx.textContent='Download TCX';saveTcx.onclick=()=>{try{downloadTcx({id:rideStart||'',start:rideStart||'',end:rideEnd||'',name:routeName,meters:distance,elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:null,tcx:buildRideTcx()});}catch(e){status(String(e));}};root.append(saveTcx);
  const note=document.createElement('p');note.className='note';note.textContent='Ride history and TCX files are stored in this browser, not the Breakaway cloud. Export TCX backups regularly.';root.append(note);
  const done=document.createElement('button');done.type='button';done.textContent='Done — new ride';done.addEventListener('click',()=>{root.hidden=true;root.style.removeProperty('display');root.classList.remove('ride-summary-fullscreen');setRideFocus(false);distance=0;speed=0;rideStart=null;rideEnd=null;resetRideMetrics();resetSimController();$('start').textContent='Let’s Ride!';syncManualFinishButton();update();});root.append(done);
