@@ -727,3 +727,10 @@ body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{overscr
 #screenRoute #quickRideResume{background:#455da7!important;color:white!important;border:0!important;padding:7px 12px!important;font-size:13px!important;min-height:32px!important;margin:0!important;}
 #screenRoute #quickRideSummary{font-size:12px;font-weight:650;}
 @media(max-height:730px){#screenRoute .quick-ride-bar{padding:4px 8px;margin-bottom:3px;gap:6px;}#screenRoute .quick-ride-label{font-size:10px;}#screenRoute #quickRideResume{min-height:28px!important;padding:4px 9px!important;}}
+
+/* Compact preset row: three quick starts, no extra screen. */
+#screenRoute .quick-preset-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 6px;padding:2px 0;}
+#screenRoute .quick-preset-label{font-size:11px;font-weight:900;letter-spacing:.06em;color:#253b7a;margin-right:3px;}
+#screenRoute .quick-preset-button{font-size:12px!important;font-weight:750!important;min-height:30px!important;padding:5px 10px!important;margin:0!important;border-radius:7px!important;background:#e8efff!important;color:#243b73!important;border:1px solid #b7c8e9!important;}
+#screenRoute .quick-preset-button:hover{background:#d7e4ff!important;}
+@media(max-height:730px){#screenRoute .quick-preset-bar{gap:5px;margin-bottom:3px;}#screenRoute .quick-preset-button{min-height:27px!important;padding:3px 8px!important;}}
