@@ -647,3 +647,8 @@ body[data-breakaway-screen="route"] #screenRoute .route-import .note{display:non
 body[data-breakaway-screen="route"] #screenRoute .route-import-divider{font-size:15px!important;line-height:1!important;margin:7px 0!important;gap:12px!important;}
 body[data-breakaway-screen="route"] #screenRoute .route-panel-heading{margin-bottom:3px!important;}
 @media(max-width:650px){body[data-breakaway-screen="route"] #screenRoute .route-import{flex-wrap:wrap!important;}body[data-breakaway-screen="route"] #screenRoute .route-import input[type="file"]{flex-basis:100%!important;}}
+
+/* Keep live grade visible in the upper-left of every elevation chart. */
+#routeStudio #chart,#floatChart{position:relative!important;isolation:isolate;}
+#routeStudio #chart .profile-live-grade,#floatChart .profile-live-grade{display:block!important;position:absolute!important;top:12px!important;left:16px!important;z-index:12!important;pointer-events:none!important;font-weight:900!important;line-height:1!important;text-shadow:0 2px 5px #061019,0 0 8px #061019!important;}
+#floatChart .profile-live-grade{top:10px!important;left:12px!important;}
