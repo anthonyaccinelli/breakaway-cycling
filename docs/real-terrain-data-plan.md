@@ -22,3 +22,15 @@ The currently deployed generator is **procedural** and has **not** been trained 
 ## First milestone
 
 Collect 1,000 geographically varied, licensed OSM road/trail segments with 3DEP elevation samples. Produce aggregate statistics (not rider traces), validation plots and a versioned JSON terrain-parameter set before replacing the procedural terrain model.
+
+## Calibration implementation (added October 2026)
+
+The executable pipeline is at `scripts/calibrate_terrain.py`. It is **not yet a collected dataset**.
+
+1. Obtain an Oregon OpenStreetMap extract from https://download.geofabrik.de/north-america/us/oregon.html (ODbL). Convert selected rideable highway/track geometries to a GeoJSON FeatureCollection with LineString geometries; exclude private/inaccessible routes and preserve OSM attribution.
+2. Download an overlapping USGS 3DEP GeoTIFF using https://apps.nationalmap.gov/downloader/ (public domain). The GeoTIFF and GeoJSON must cover the same area.
+3. Install dependencies: `python -m pip install numpy rasterio`.
+4. Run: `python scripts/calibrate_terrain.py --roads data/roads.geojson --dem data/3dep.tif --samples 1000 --out public/terrain-calibration.json`.
+5. Check `sample_count`. The tool explicitly warns if fewer than 1,000 valid segments are available. Do not deploy model coefficients until samples are independently reviewed, geographically stratified, and compared against held-out routes.
+
+**Limitations:** This initial pipeline measures *road/trail segments*, not complete cyclist-recorded routes. It does not yet automatically download or convert OSM extracts or DEMs, and it does not automatically update the generator. USGS elevations are ground DEM measurements, not GPS recordings; bridges and tunnels require special handling. Never claim a 1,000-route-trained model from this script alone.
