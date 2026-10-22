@@ -32,6 +32,8 @@ function createWindow(){
          const endless=document.getElementById('endlessRoute');
          const profile=document.getElementById('studioLiveChart');
          if(!generate||!endless||!profile)throw new Error('Missing route UI');
+         const miles=document.getElementById('generatedMiles');
+         if(miles)miles.value='10';
          generate.click();
          await new Promise(resolve=>setTimeout(resolve,300));
          const finite=!!profile.querySelector('svg');
@@ -53,7 +55,7 @@ function createWindow(){
 app.whenReady().then(()=>{
  if(!isDev){
    session.defaultSession.setPermissionCheckHandler((_webContents,permission,requestingOrigin)=>{
-     if(allowedBluetoothPermissions.has(permission))return requestingOrigin.startsWith('breakaway://');
+     if(allowedBluetoothPermissions.has(permission))return String(requestingOrigin||'').startsWith('breakaway://');
      return false;
    });
    session.defaultSession.setPermissionRequestHandler((_webContents,permission,callback,details)=>{
