@@ -6,10 +6,11 @@ This branch packages the existing Vite application with Electron for macOS and W
 
 ```bash
 npm install
-npm run desktop:dev
+npm run desktop:build
+npm run desktop:start
 ```
 
-In a separate terminal, run `npm run dev` before `desktop:dev`. Or build and launch offline:
+First build the local assets with `npm run desktop:build`, then launch them with `npm run desktop:start`. For Vite hot reload, set `BREAKAWAY_DEV_URL=http://localhost:5173` when launching Electron while the Vite dev server is running. Offline packaged mode never uses this URL.
 
 ```bash
 npm run desktop:build
