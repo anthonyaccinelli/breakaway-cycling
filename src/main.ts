@@ -1836,6 +1836,14 @@ if(riderSettingsSection){
  const bluetoothAutoPanel=originalConnections.querySelector<HTMLElement>('.bluetooth-auto');
  if(bluetoothAutoPanel)bluetoothAutoPanel.insertAdjacentElement('afterend',riderSettingsSection);
  else screenSetup.append(riderSettingsSection);
+ // Keep the existing live settings and listeners, but make infrequent
+ // calibration inputs optional instead of consuming the pairing screen.
+ const advanced=document.createElement('details');
+ advanced.className='setup-advanced-settings';
+ const summary=document.createElement('summary');
+ summary.textContent='Rider & trainer settings';
+ riderSettingsSection.before(advanced);
+ advanced.append(summary,riderSettingsSection);
 }
 
 workspace.prepend(screenRide);
