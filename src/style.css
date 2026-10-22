@@ -657,3 +657,12 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-action-footer{flex:none!
 body[data-breakaway-screen="setup"] #screenSetup #goToRide{font-size:16px!important;padding:11px 23px!important;}
 body[data-breakaway-screen="setup"] #screenSetup .connection-help{flex:none!important;}
 @media(max-width:900px){body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{grid-template-columns:1fr!important;}body[data-breakaway-screen="setup"] #screenSetup .setup-accessories{grid-template-columns:1fr!important;}}
+
+/* Clear, persistent shifting-mode selection on Connect Trainer. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-shift-choice{background:#f9fbff;border:1px solid #d5dff0;border-radius:12px;padding:14px 16px;color:#293d78;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shift-choice h3{font-size:16px;margin:0 0 11px;color:#293d78;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shift-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shift-buttons button{width:100%;min-height:48px!important;padding:10px 14px!important;border:2px solid #a6b9e4!important;border-radius:10px!important;background:#fff!important;color:#2c468b!important;font-size:15px!important;font-weight:750!important;cursor:pointer;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shift-buttons button.selected{background:#475fa9!important;border-color:#475fa9!important;color:#fff!important;box-shadow:0 0 0 3px rgba(255,200,92,.5);}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shift-description{margin:10px 0 0!important;font-size:12px!important;line-height:1.45;color:#536b95;}
+@media(max-width:520px){body[data-breakaway-screen="setup"] #screenSetup .setup-shift-buttons{grid-template-columns:1fr;}}
