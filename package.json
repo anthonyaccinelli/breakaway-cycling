@@ -6,13 +6,47 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc && vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "desktop:build": "tsc && vite build --mode desktop",
+    "desktop:start": "electron .",
+    "desktop:dev": "electron .",
+    "desktop:package": "npm run desktop:build && electron-builder --publish never",
+    "desktop:package:mac": "npm run desktop:build && electron-builder --mac --publish never",
+    "desktop:package:win": "npm run desktop:build && electron-builder --win --publish never"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0"
   },
   "devDependencies": {
     "vite": "^6.0.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  },
+  "main": "desktop/main.cjs",
+  "build": {
+    "appId": "com.breakawaycycling.desktop",
+    "productName": "Breakaway Cycling",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "desktop/main.cjs",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.sports"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "Breakaway-Cycling-${version}-${os}-${arch}.${ext}"
+    }
   }
 }
