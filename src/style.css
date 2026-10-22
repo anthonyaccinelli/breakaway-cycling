@@ -635,3 +635,15 @@ body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rid
 #routeStudio .route-import .note{flex-basis:100%;margin:0!important;color:#e2eaff!important;font-size:12px!important;}
 #routeStudio .route-import-divider{display:flex;align-items:center;gap:16px;justify-content:center;margin:13px 0;color:#fff!important;font-size:22px;font-weight:900;letter-spacing:.15em;}
 #routeStudio .route-import-divider::before,#routeStudio .route-import-divider::after{content:"";height:1px;flex:1;background:rgba(255,255,255,.45);}
+
+/* Compact import choice so it fits above the generator in the fixed-height route studio. */
+body[data-breakaway-screen="route"] #screenRoute .route-studio-heading{position:relative!important;z-index:2!important;}
+body[data-breakaway-screen="route"] #screenRoute .route-builder{overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:thin;}
+body[data-breakaway-screen="route"] #screenRoute .route-import{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:12px!important;padding:7px 12px!important;min-height:38px!important;margin:0!important;box-sizing:border-box!important;}
+body[data-breakaway-screen="route"] #screenRoute .route-import label{font-size:13px!important;white-space:nowrap!important;margin:0!important;}
+body[data-breakaway-screen="route"] #screenRoute .route-import input[type="file"]{font-size:12px!important;min-width:0!important;flex:1!important;}
+body[data-breakaway-screen="route"] #screenRoute .route-import input[type="file"]::file-selector-button{padding:5px 9px!important;font-size:12px!important;}
+body[data-breakaway-screen="route"] #screenRoute .route-import .note{display:none!important;}
+body[data-breakaway-screen="route"] #screenRoute .route-import-divider{font-size:15px!important;line-height:1!important;margin:7px 0!important;gap:12px!important;}
+body[data-breakaway-screen="route"] #screenRoute .route-panel-heading{margin-bottom:3px!important;}
+@media(max-width:650px){body[data-breakaway-screen="route"] #screenRoute .route-import{flex-wrap:wrap!important;}body[data-breakaway-screen="route"] #screenRoute .route-import input[type="file"]{flex-basis:100%!important;}}
