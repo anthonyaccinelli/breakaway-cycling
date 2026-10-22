@@ -38,10 +38,21 @@
     ],
     "mac": {
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ],
-      "category": "public.app-category.sports"
+      "category": "public.app-category.sports",
+      "extendInfo": {
+        "NSBluetoothAlwaysUsageDescription": "Breakaway Cycling connects to your smart trainer, heart rate monitor, and shifting controls over Bluetooth.",
+        "NSBluetoothPeripheralUsageDescription": "Breakaway Cycling uses Bluetooth to connect to cycling devices."
+      },
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
     },
     "win": {
       "target": [
