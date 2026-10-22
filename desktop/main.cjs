@@ -4,10 +4,24 @@ const {pathToFileURL}=require('node:url');
 const fs=require('node:fs');
 const isDev=process.env.BREAKAWAY_DEV_URL;
 const smoke=process.argv.includes('--smoke-test');
+const allowedBluetoothPermissions=new Set(['bluetooth','bluetoothScanning']);
 const root=path.resolve(__dirname,'../dist');
 protocol.registerSchemesAsPrivileged([{scheme:'breakaway',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true}}]);
 function createWindow(){
  const win=new BrowserWindow({width:1440,height:940,minWidth:960,minHeight:680,show:!smoke,backgroundColor:'#0b1520',webPreferences:{contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
+ // Electron's Chromium Bluetooth chooser is implemented by the main process.
+ // Keep the existing renderer Web Bluetooth requestDevice()/GATT/FTMS code unchanged.
+ win.webContents.on('select-bluetooth-device',(event,deviceList,callback)=>{
+   event.preventDefault();
+   const devices=deviceList.filter(device=>device.deviceId);
+   if(smoke||!devices.length){callback('');return;}
+   const menu=require('electron').Menu.buildFromTemplate([
+     ...devices.map(device=>({label:device.deviceName||device.deviceId,click:()=>callback(device.deviceId)})),
+     {type:'separator'},
+     {label:'Cancel',click:()=>callback('')}
+   ]);
+   menu.popup({window:win,callback:()=>{}});
+ });
  win.webContents.setWindowOpenHandler(({url})=>{if(/^https:\/\//.test(url)&&!smoke)shell.openExternal(url);return {action:'deny'};});
  win.webContents.on('will-navigate',(event,url)=>{if(!isDev&&!url.startsWith('breakaway://'))event.preventDefault();});
  if(smoke){
@@ -38,6 +52,14 @@ function createWindow(){
 }
 app.whenReady().then(()=>{
  if(!isDev){
+   session.defaultSession.setPermissionCheckHandler((_webContents,permission,requestingOrigin)=>{
+     if(allowedBluetoothPermissions.has(permission))return requestingOrigin.startsWith('breakaway://');
+     return false;
+   });
+   session.defaultSession.setPermissionRequestHandler((_webContents,permission,callback,details)=>{
+     const origin=details.requestingUrl||'';
+     callback(allowedBluetoothPermissions.has(permission)&&origin.startsWith('breakaway://'));
+   });
    protocol.handle('breakaway',request=>{
      const url=new URL(request.url);
      const relative=decodeURIComponent(url.pathname).replace(/^\/+/, '')||'index.html';
