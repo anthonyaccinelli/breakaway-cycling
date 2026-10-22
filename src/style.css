@@ -704,3 +704,18 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-next{margin:5px 0!import
  body[data-breakaway-screen="setup"] #screenSetup .setup-next{padding:2px 0!important;margin:2px 0!important;}
  body[data-breakaway-screen="setup"] #screenSetup #goToRide{padding:6px 12px!important;font-size:14px!important;}
 }
+
+/* v4.0.6 — visible primary setup, optional explanations on demand. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-help{border-top:1px solid #dbe3f4!important;margin-top:8px!important;padding-top:6px!important;font-size:12px!important;color:#253b7a!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-help>summary{cursor:pointer!important;font-weight:700!important;list-style:revert!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-help>p.note{display:block!important;margin:7px 0!important;font-size:12px!important;line-height:1.4!important;}
+body[data-breakaway-screen="setup"] #screenSetup .bluetooth-auto .setup-ble-info{font-size:11px!important;padding:3px 7px!important;min-height:25px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .bluetooth-auto .setup-ble-help:not([hidden]){display:block!important;font-size:11px!important;margin:5px 0!important;}
+body[data-breakaway-screen="setup"] #screenSetup .bluetooth-auto .setup-ble-help[hidden]{display:none!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings[open]{overflow:auto!important;}
+body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{overscroll-behavior:contain!important;}
+@media(min-width:851px) and (min-height:651px){
+ body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column{overflow-y:auto!important;scrollbar-width:thin!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .ride-shifting-column{overflow-y:auto!important;scrollbar-width:thin!important;}
+ body[data-breakaway-screen="setup"] #screenSetup #drivetrainSection{overflow:visible!important;max-height:none!important;}
+}
