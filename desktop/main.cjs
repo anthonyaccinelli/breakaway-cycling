@@ -11,17 +11,42 @@ function createWindow(){
  const win=new BrowserWindow({width:1440,height:940,minWidth:960,minHeight:680,show:!smoke,backgroundColor:'#0b1520',webPreferences:{contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
  // Electron's Chromium Bluetooth chooser is implemented by the main process.
  // Keep the existing renderer Web Bluetooth requestDevice()/GATT/FTMS code unchanged.
+ let chooser=null;
  win.webContents.on('select-bluetooth-device',(event,deviceList,callback)=>{
    event.preventDefault();
-   const devices=deviceList.filter(device=>device.deviceId);
-   if(smoke||!devices.length){callback('');return;}
-   const menu=require('electron').Menu.buildFromTemplate([
-     ...devices.map(device=>({label:device.deviceName||device.deviceId,click:()=>callback(device.deviceId)})),
-     {type:'separator'},
-     {label:'Cancel',click:()=>callback('')}
-   ]);
-   menu.popup({window:win,callback:()=>{}});
+   // Chromium can emit an empty list before scanning discovers any devices.
+   // Never treat an empty discovery update as a user cancellation.
+   if(smoke){callback('');return;}
+   if(!chooser){
+     chooser={callback,devices:new Map(),timer:null,menu:null,settled:false};
+     const active=chooser;
+     active.timer=setTimeout(()=>{if(chooser===active&&!active.settled){active.settled=true;active.callback('');chooser=null;}},30000);
+   }
+   const active=chooser;
+   for(const device of deviceList){
+     if(device.deviceId)active.devices.set(device.deviceId,device.deviceName||device.deviceId);
+   }
+   if(!active.devices.size||active.menu||active.settled)return;
+   // Allow a short scan window before displaying available trainers.
+   setTimeout(()=>{
+     if(chooser!==active||active.settled||active.menu||!active.devices.size)return;
+     const {Menu}=require('electron');
+     const choose=id=>{
+       if(active.settled)return;
+       active.settled=true;
+       clearTimeout(active.timer);
+       chooser=null;
+       active.callback(id);
+     };
+     active.menu=Menu.buildFromTemplate([
+       ...[...active.devices].map(([id,name])=>({label:name,click:()=>choose(id)})),
+       {type:'separator'},
+       {label:'Cancel',click:()=>choose('')}
+     ]);
+     active.menu.popup({window:win,callback:()=>{if(!active.settled)choose('');}});
+   },1200);
  });
+ win.on('closed',()=>{if(chooser&&!chooser.settled){clearTimeout(chooser.timer);chooser.callback('');chooser=null;}});
  win.webContents.setWindowOpenHandler(({url})=>{if(/^https:\/\//.test(url)&&!smoke)shell.openExternal(url);return {action:'deny'};});
  win.webContents.on('will-navigate',(event,url)=>{if(!isDev&&!url.startsWith('breakaway://'))event.preventDefault();});
  if(smoke){
