@@ -626,3 +626,34 @@ body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rid
 body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rider-settings input{font-size:15px!important;padding:7px 9px!important;}
 body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rider-settings p{font-size:11px!important;line-height:1.4!important;}
 @media(max-width:760px){body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column>.setup-rider-settings{grid-template-columns:1fr!important;}}
+
+/* v410 — concise Connect Trainer experience. Overrides legacy dense setup layout. */
+body[data-breakaway-screen="setup"] #screenSetup .connection-strip{display:flex!important;flex-direction:column!important;gap:8px!important;padding:16px 20px!important;overflow:auto!important;}
+body[data-breakaway-screen="setup"] #screenSetup .connection-strip>h2{font-size:23px!important;margin:0!important;color:#fff!important;}
+body[data-breakaway-screen="setup"] #screenSetup .connection-strip>#setupInstructions{font-size:13px!important;color:#b9c9db!important;margin:0 0 4px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;align-content:start!important;align-items:start!important;gap:14px!important;overflow:visible!important;flex:0 0 auto!important;margin:4px 0!important;min-height:0!important;}
+body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column,
+body[data-breakaway-screen="setup"] #screenSetup .ride-shifting-column{display:flex!important;flex-direction:column!important;gap:10px!important;min-height:0!important;overflow:visible!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-primary-device{border:2px solid #6a89d7!important;padding:17px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-primary-device h3{font-size:17px!important;margin:0 0 9px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-primary-device #connect{font-size:15px!important;padding:11px 18px!important;min-height:42px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-accessories{background:#f9fbff;border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-accessories>h3{grid-column:1/-1;color:#293d78;font-size:15px;margin:0;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-accessories .device-connect-card{margin:0!important;padding:11px!important;border:1px solid #d5dff0!important;min-width:0!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-accessories .device-connect-card h3{font-size:14px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-accessories button{font-size:12px!important;padding:7px 9px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-profile-card{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px 12px!important;margin:0!important;padding:15px 17px!important;min-height:0!important;height:auto!important;overflow:visible!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-profile-card h2{font-size:18px!important;grid-column:1/-1!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-profile-card label{font-size:13px!important;gap:4px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-profile-card input{font-size:15px!important;padding:7px 9px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced{background:#f9fbff;border-radius:12px;color:#293d78;padding:12px 15px;font-size:13px;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced summary,
+body[data-breakaway-screen="setup"] #screenSetup .setup-import summary{cursor:pointer;font-weight:750;color:#3e5baa;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced #drivetrainSection{margin:12px 0!important;padding:0!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced .bluetooth-auto{padding:12px!important;margin-top:10px!important;border:1px solid #d8e1ef;border-radius:9px;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-import{font-size:12px!important;align-self:flex-start!important;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-import label{display:block;margin:8px 0;color:#e4eaf5;}
+body[data-breakaway-screen="setup"] #screenSetup .setup-action-footer{flex:none!important;margin:6px 0!important;padding:12px 0 4px!important;gap:12px!important;}
+body[data-breakaway-screen="setup"] #screenSetup #goToRide{font-size:16px!important;padding:11px 23px!important;}
+body[data-breakaway-screen="setup"] #screenSetup .connection-help{flex:none!important;}
+@media(max-width:900px){body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{grid-template-columns:1fr!important;}body[data-breakaway-screen="setup"] #screenSetup .setup-accessories{grid-template-columns:1fr!important;}}
