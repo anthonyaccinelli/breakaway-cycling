@@ -1847,6 +1847,38 @@ if(riderSettingsSection){
  advanced.append(summary,riderSettingsSection);
 }
 
+// Progressive disclosure: keep setup instructions available without occupying
+// the primary pairing viewport or silently clipping important help text.
+const drivetrainSection=originalConnections.querySelector<HTMLElement>('#drivetrainSection');
+if(drivetrainSection){
+ const detailedHelp=drivetrainSection.querySelector<HTMLElement>('#virtualShiftingSettings > p.note');
+ if(detailedHelp){
+  const helpDetails=document.createElement('details');
+  helpDetails.className='setup-shifting-help';
+  const helpSummary=document.createElement('summary');
+  helpSummary.textContent='How virtual shifting works';
+  detailedHelp.before(helpDetails);
+  helpDetails.append(helpSummary,detailedHelp);
+ }
+}
+const bluetoothPanel=originalConnections.querySelector<HTMLElement>('.bluetooth-auto');
+if(bluetoothPanel){
+ const autoHelp=bluetoothPanel.querySelector<HTMLElement>('#autoBleStatus');
+ if(autoHelp){
+  autoHelp.classList.add('setup-ble-help');
+  autoHelp.hidden=true;
+  const autoToggle=document.createElement('button');
+  autoToggle.type='button';
+  autoToggle.className='secondary setup-ble-info';
+  autoToggle.textContent='Connection info';
+  autoToggle.setAttribute('aria-expanded','false');
+  autoToggle.addEventListener('click',()=>{
+   autoHelp.hidden=!autoHelp.hidden;
+   autoToggle.setAttribute('aria-expanded',String(!autoHelp.hidden));
+  });
+  autoHelp.before(autoToggle);
+ }
+}
 workspace.prepend(screenRide);
 workspace.prepend(screenSetup);
 workspace.prepend(screenRoute);
