@@ -1832,6 +1832,29 @@ if(deviceColumn&&shiftingColumn){
  accessories.innerHTML='<h3>Optional accessories</h3>';
  cards.slice(1).forEach(card=>accessories.append(card));
  cards[0]?.after(accessories);
+ const shiftChoice=document.createElement('div');
+ shiftChoice.className='setup-shift-choice';
+ shiftChoice.innerHTML='<h3>How will you shift?</h3><div class="setup-shift-buttons" role="group" aria-label="Shifting mode"><button type="button" data-shift="traditional" aria-pressed="false">Cassette</button><button type="button" data-shift="virtual" aria-pressed="false">Virtual shifting</button></div><p class="setup-shift-description" aria-live="polite"></p>';
+ accessories.after(shiftChoice);
+ const modeSelect=$('drivetrainMode') as HTMLSelectElement;
+ const renderShiftChoice=()=>{
+  const mode=modeSelect.value;
+  shiftChoice.querySelectorAll<HTMLButtonElement>('button[data-shift]').forEach(button=>{
+   const active=button.dataset.shift===mode;
+   button.setAttribute('aria-pressed',String(active));
+   button.classList.toggle('selected',active);
+  });
+  shiftChoice.querySelector<HTMLElement>('.setup-shift-description')!.textContent=mode==='virtual'?'Shift with Zwift Click, on-screen controls, or keyboard.':'Shift using your bike’s physical cassette and shifters.';
+ };
+ shiftChoice.querySelectorAll<HTMLButtonElement>('button[data-shift]').forEach(button=>{
+  button.addEventListener('click',()=>{
+   modeSelect.value=button.dataset.shift!;
+   modeSelect.dispatchEvent(new Event('change',{bubbles:true}));
+   renderShiftChoice();
+  });
+ });
+ modeSelect.addEventListener('change',renderShiftChoice);
+ renderShiftChoice();
  const advanced=document.createElement('details');
  advanced.className='setup-advanced';
  advanced.innerHTML='<summary>Advanced trainer & Bluetooth options</summary>';
