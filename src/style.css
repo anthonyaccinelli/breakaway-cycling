@@ -719,3 +719,11 @@ body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{overscr
  body[data-breakaway-screen="setup"] #screenSetup .ride-shifting-column{overflow-y:auto!important;scrollbar-width:thin!important;}
  body[data-breakaway-screen="setup"] #screenSetup #drivetrainSection{overflow:visible!important;max-height:none!important;}
 }
+
+/* Instant Ride: compact return-to-route action, visible only when saved. */
+#screenRoute .quick-ride-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 10px;margin:0 0 6px;border:1px solid #a8b7dd;border-radius:9px;background:#e9efff;color:#243b73;}
+#screenRoute .quick-ride-bar[hidden]{display:none!important;}
+#screenRoute .quick-ride-label{font-size:11px;font-weight:900;letter-spacing:.06em;}
+#screenRoute #quickRideResume{background:#455da7!important;color:white!important;border:0!important;padding:7px 12px!important;font-size:13px!important;min-height:32px!important;margin:0!important;}
+#screenRoute #quickRideSummary{font-size:12px;font-weight:650;}
+@media(max-height:730px){#screenRoute .quick-ride-bar{padding:4px 8px;margin-bottom:3px;gap:6px;}#screenRoute .quick-ride-label{font-size:10px;}#screenRoute #quickRideResume{min-height:28px!important;padding:4px 9px!important;}}
