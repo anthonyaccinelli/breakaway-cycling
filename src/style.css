@@ -681,3 +681,26 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-next{margin:5px 0!import
 @media(max-width:680px){
  body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{grid-template-columns:1fr!important;}
 }
+
+/* Trainer setup: prioritize a complete, non-scrolling desktop viewport.
+   Collapse secondary settings and keep pairing + ride CTA in view. */
+@media (min-width:851px) and (min-height:651px){
+ body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{overflow:hidden!important;align-content:stretch!important;grid-template-rows:minmax(0,1fr)!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .ride-devices-column,
+ body[data-breakaway-screen="setup"] #screenSetup .ride-shifting-column{height:100%!important;min-height:0!important;overflow:hidden!important;gap:6px!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .device-connect-card{padding:6px 10px!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .device-connect-card .note{display:none!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .device-connect-card h3{font-size:13px!important;margin:0 0 2px!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .connection-strip button{min-height:28px!important;padding:5px 9px!important;font-size:12px!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .bluetooth-auto{padding:6px 10px!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings{flex:none!important;max-height:32vh!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>summary{padding:7px 10px!important;}
+ body[data-breakaway-screen="setup"] #screenSetup #drivetrainSection{padding:10px 12px!important;max-height:100%!important;overflow:auto!important;}
+ body[data-breakaway-screen="setup"] #screenSetup #drivetrainSection h2{font-size:16px!important;margin:0 0 5px!important;}
+ body[data-breakaway-screen="setup"] #screenSetup #drivetrainSection h3{font-size:14px!important;margin:7px 0 4px!important;}
+ body[data-breakaway-screen="setup"] #screenSetup #drivetrainSection select{min-height:32px!important;padding:4px 7px!important;margin:3px 0!important;}
+ body[data-breakaway-screen="setup"] #screenSetup #drivetrainHelp{margin:3px 0!important;}
+ body[data-breakaway-screen="setup"] #screenSetup #virtualShiftingSettings>p.note{display:none!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .setup-next{padding:2px 0!important;margin:2px 0!important;}
+ body[data-breakaway-screen="setup"] #screenSetup #goToRide{padding:6px 12px!important;font-size:14px!important;}
+}
