@@ -683,27 +683,42 @@ chartEl.addEventListener('pointercancel',endElevationDrag);
 $('undoElevation').addEventListener('click',()=>{if(!editingAllowed())return;const prev=editHistory.pop();if(!prev)return;points=prev;svg();update();status('Undid last elevation edit.');});
 $('resetElevation').addEventListener('click',()=>{if(!editingAllowed()||!editOriginal)return;points=editOriginal;clearElevationEditor();svg();update();status('Elevation edits reset.');});
 // Live heart-rate trace over the elevation profile, aligned to ride distance.
+const ftpSetting=$('ftp') as HTMLInputElement;
+try{const stored=localStorage.getItem('breakaway-rider-ftp');if(stored&&Number(stored)>=50&&Number(stored)<=1000)ftpSetting.value=stored;}catch{}
+ftpSetting.addEventListener('change',()=>{const value=Math.max(50,Math.min(1000,Math.round(Number(ftpSetting.value)||250)));ftpSetting.value=String(value);try{localStorage.setItem('breakaway-rider-ftp',String(value));}catch{}refreshHeartRateProfile();});
 function refreshHeartRateProfile(){
  const {start,max}=profileBounds();
- const samples=rideSamples.filter(sample=>sample.heartRate!==null&&sample.distance>=start&&sample.distance<=max);
- const recent=samples.length>700?samples.filter((_,i)=>i%Math.ceil(samples.length/700)===0||i===samples.length-1):samples;
- const values=recent.map(sample=>sample.heartRate as number);
+ const samples=rideSamples.filter(sample=>sample.distance>=start&&sample.distance<=max);
+ const downsample=(arr:RideSample[])=>arr.length>700?arr.filter((_,i)=>i%Math.ceil(arr.length/700)===0||i===arr.length-1):arr;
+ const heart=downsample(samples.filter(sample=>sample.heartRate!==null));
+ const values=heart.map(sample=>sample.heartRate as number);
  const low=values.length?Math.max(45,Math.floor((Math.min(...values)-12)/10)*10):60;
  const high=values.length?Math.max(low+50,Math.ceil((Math.max(...values)+12)/10)*10):180;
- const polyline=recent.map(sample=>{
-  const x=12+(sample.distance-start)/Math.max(1,max-start)*876;
-  const y=9+(1-((sample.heartRate as number)-low)/(high-low))*53;
-  return x.toFixed(1)+','+Math.max(8,Math.min(64,y)).toFixed(1);
- }).join(' ');
- const latest=recent.at(-1)?.heartRate;
+ const x=(d:number)=>12+(d-start)/Math.max(1,max-start)*876;
+ const hrLine=heart.map(sample=>x(sample.distance).toFixed(1)+','+Math.max(8,Math.min(64,9+(1-((sample.heartRate as number)-low)/(high-low))*53)).toFixed(1)).join(' ');
+ const ftp=Math.max(50,Math.min(1000,Number(($('ftp') as HTMLInputElement).value)||250));
+ const watts=downsample(samples.filter(sample=>Number.isFinite(sample.power)));
+ const segments=watts.slice(1).map((sample,i)=>{
+  const prev=watts[i],pct=sample.power/ftp;
+  const color=pct>=1.2?'#aa65f5':pct>=1?'#f05252':pct>=.75?'#f4d44c':'#38d877';
+  const y=(w:number)=>Math.max(76,Math.min(127,127-Math.max(0,w)/(ftp*1.6)*51));
+  return '<line x1="'+x(prev.distance).toFixed(1)+'" y1="'+y(prev.power).toFixed(1)+'" x2="'+x(sample.distance).toFixed(1)+'" y2="'+y(sample.power).toFixed(1)+'" stroke="'+color+'" stroke-width="2.6" vector-effect="non-scaling-stroke" stroke-linecap="round"/>';
+ }).join('');
+ const latestHr=heart.at(-1)?.heartRate;
+ const latestPower=watts.at(-1)?.power;
  for(const root of [$('chart'),document.getElementById('floatChart')]){
   if(!root)continue;
   const trace=root.querySelector<SVGPolylineElement>('.ride-hr-trace');
-  const label=root.querySelector<SVGTextElement>('.ride-hr-label');
-  if(trace){trace.setAttribute('points',polyline);trace.style.display=recent.length>1?'':'none';}
-  if(label){label.textContent=latest?latest+' bpm':'';label.style.display=recent.length>1?'':'none';}
+  const hrLabel=root.querySelector<SVGTextElement>('.ride-hr-label');
+  const powerTrace=root.querySelector<SVGGElement>('.ride-power-trace');
+  const powerLabel=root.querySelector<SVGTextElement>('.ride-power-label');
+  if(trace){trace.setAttribute('points',hrLine);trace.style.display=heart.length>1?'':'none';}
+  if(hrLabel){hrLabel.textContent=latestHr?latestHr+' bpm':'';hrLabel.style.display=heart.length>1?'':'none';}
+  if(powerTrace){powerTrace.innerHTML=segments;powerTrace.style.display=watts.length>1?'':'none';}
+  if(powerLabel){powerLabel.textContent=latestPower!==undefined?latestPower+' W · '+Math.round(latestPower/ftp*100)+'% FTP':'';powerLabel.style.display=watts.length>1?'':'none';}
  }
 }
+
 function svg(){
  const w=900,h=210,pad=12;
  const {start,max}=profileBounds();
@@ -728,7 +743,7 @@ function svg(){
   return `<rect x="${x(d0).toFixed(2)}" y="0" width="${(x(d1)-x(d0)+0.3).toFixed(2)}" height="${h}" fill="${gradeColor(grade)}"/>`;
  }).join('');
  const terrainPath=`M ${x(start)} ${h-pad} L ${line.replaceAll(' ',' L ')} L ${x(max)} ${h-pad} Z`;
- $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><polyline class="ride-hr-trace" points="" fill="none" stroke="#ff5c69" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/><text class="ride-hr-label" x="884" y="13" text-anchor="end" fill="#ff6571" font-size="11" font-weight="800" pointer-events="none" style="display:none"></text><line id="marker" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg>`;
+ $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><g class="ride-power-trace" pointer-events="none" style="display:none"></g><text class="ride-power-label" x="884" y="78" text-anchor="end" fill="#f2f4f6" font-size="10" font-weight="800" pointer-events="none" style="display:none"></text><polyline class="ride-hr-trace" points="" fill="none" stroke="#ff5c69" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/><text class="ride-hr-label" x="884" y="13" text-anchor="end" fill="#ff6571" font-size="11" font-weight="800" pointer-events="none" style="display:none"></text><line id="marker" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg>`;
  zoomDisplay();syncProfileCharts();refreshHeartRateProfile();refreshInspection();
 }
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
