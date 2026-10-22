@@ -610,3 +610,11 @@ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .readout-controls
 .studio-scrub-readout{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:10px 14px;border-radius:10px;background:rgba(10,24,35,.55);font-size:14px;}
 .studio-scrub-readout b{color:#ffc85c;font-variant-numeric:tabular-nums;}
 .studio-scrub-readout .note{margin-left:auto;font-size:12px;}
+
+/* Rider statistics belong immediately below the device reconnect panel. */
+#screenSetup .setup-rider-settings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 20px;margin-top:18px;padding:22px 24px;background:#fff;border:2px solid #c7d4ee;border-radius:18px;color:#293d78;box-sizing:border-box;width:100%;}
+#screenSetup .setup-rider-settings h2{grid-column:1/-1;margin:0 0 2px;color:#293d78;}
+#screenSetup .setup-rider-settings label{display:flex;flex-direction:column;gap:7px;font-weight:650;color:#293d78;}
+#screenSetup .setup-rider-settings input{width:100%;box-sizing:border-box;min-width:0;}
+#screenSetup .setup-rider-settings>.note,#screenSetup .setup-rider-settings>p{grid-column:1/-1;margin:0;}
+@media(max-width:760px){#screenSetup .setup-rider-settings{grid-template-columns:1fr;padding:18px;}}
