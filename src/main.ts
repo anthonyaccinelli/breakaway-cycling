@@ -969,8 +969,9 @@ function advanceRide(now:number){
  }
 }
 function tick(now:number){
- // Animation frames are a foreground fallback; Bluetooth notifications drive progress in the background.
+ // Advance the ride and SURVIVE timers together; the chase countdown must be ticked every frame.
  advanceRide(now);
+ surviveTick(now);
  requestAnimationFrame(tick);
 }
 $('gpx').addEventListener('change',async e=>{try{const file=(e.target as HTMLInputElement).files?.[0];if(!file)return;if(rideStart&&!rideEnd)finishRide();procedural=false;endless=false;zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;routeLimit=0;plannedGainFeet=null;gainScale=1;resetClimbingTotals();clearElevationEditor();points=parseGPX(await file.text());routeName=file.name;rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();svg();update();requestAnimationFrame(()=>syncStudioRoutePreview());status(`Loaded ${file.name}: ${(points.at(-1)!.distance/METERS_PER_MILE).toFixed(1)} mi`);}catch(err){status(String(err));}});
