@@ -1129,3 +1129,36 @@ body[data-breakaway-screen="setup"] #screenSetup .connection-strip{
  overflow-y:auto!important;
  overflow-x:hidden!important;
 }
+
+/* Device pairing: clear, accessible connection feedback without changing tile layout. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile{
+ transition:border-color .18s ease,box-shadow .18s ease!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="connected"]{
+ border:2px solid #22a65a!important;
+ box-shadow:inset 0 0 0 1px #22a65a22!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="connecting"],
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="initializing"]{
+ border:2px solid #455da7!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="error"]{
+ border:2px solid #c74a4a!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-connection-indicator{
+ text-align:center!important;
+ font-size:12px!important;
+ line-height:1.2!important;
+ font-weight:700!important;
+ color:#64748b!important;
+ margin:-3px 0 7px!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+ max-width:100%!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="connected"] .setup-connection-indicator{color:#168348!important}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="connecting"] .setup-connection-indicator,
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="initializing"] .setup-connection-indicator{color:#455da7!important}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="error"] .setup-connection-indicator{color:#b42330!important}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile .device-button-row button[aria-busy="true"]{opacity:.75!important;cursor:wait!important}
