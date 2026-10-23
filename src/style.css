@@ -1575,3 +1575,19 @@ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{
 body[data-breakaway-screen="ride"] #screenRide .ride-dashboard{
  padding-bottom:12px!important;
 }
+
+/* 25% shorter readout cards, same four-column width. The metric grid no longer
+   stretches vertically to fill the dashboard's available space. */
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{
+ flex:0 0 auto!important;
+ height:calc((100% - 38px)*.75)!important;
+ max-height:calc((100% - 38px)*.75)!important;
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;
+ align-content:start!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{
+ height:100%!important;
+ max-height:100%!important;
+ min-height:0!important;
+}
