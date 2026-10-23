@@ -1854,3 +1854,48 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading .route-st
  body[data-breakaway-screen="route"] #screenRoute .route-studio-heading .route-studio-hint{display:none!important;}
  body[data-breakaway-screen="route"] #screenRoute .route-studio-heading .screen-step{padding:7px 9px!important;font-size:12px!important;}
 }
+
+/* Unified three-step navigation inside every screen header. */
+body[data-breakaway-screen="setup"] #screenSetup .breakaway-integrated-step-header,
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-header{
+ display:grid!important;grid-template-columns:minmax(180px,1fr) auto minmax(180px,1fr)!important;
+ align-items:center!important;gap:12px!important;
+ background:#172d3d!important;color:#f2f8fa!important;
+ border:1px solid #31556a!important;border-radius:12px!important;
+ padding:8px 14px!important;min-height:62px!important;box-sizing:border-box!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .breakaway-integrated-step-header .screen-progress,
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-header .screen-progress{
+ grid-column:2!important;grid-row:1!important;display:flex!important;position:static!important;
+ width:auto!important;max-width:none!important;margin:0!important;padding:4px!important;
+ background:#203c50!important;border:1px solid #35566a!important;
+ border-radius:12px!important;box-shadow:none!important;gap:5px!important;transform:none!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .screen-progress .screen-step,
+body[data-breakaway-screen="ride"] #screenRide .screen-progress .screen-step{
+ background:transparent!important;color:#c9dae6!important;border:1px solid transparent!important;
+ border-radius:9px!important;padding:9px 13px!important;margin:0!important;
+ font-size:14px!important;font-weight:750!important;white-space:nowrap!important;
+ box-shadow:none!important;min-height:38px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .screen-progress .screen-step.active,
+body[data-breakaway-screen="ride"] #screenRide .screen-progress .screen-step.active{
+ background:#45d6aa!important;color:#102d39!important;border-color:#45d6aa!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .screen-progress .screen-step:not(.active):hover,
+body[data-breakaway-screen="ride"] #screenRide .screen-progress .screen-step:not(.active):hover{
+ background:#30556b!important;color:#fff!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .integrated-step-title{grid-column:1!important;grid-row:1!important;}
+body[data-breakaway-screen="setup"] #screenSetup .integrated-step-title h2{font-size:17px!important;color:#fff!important;margin:3px 0 0!important;}
+body[data-breakaway-screen="setup"] #screenSetup .integrated-step-hint{grid-column:3!important;grid-row:1!important;justify-self:end!important;color:#a9c2d1!important;font-size:12px!important;}
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-header>strong{grid-column:1!important;grid-row:1!important;color:#fff!important;}
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-header .ride-screen-actions{grid-column:3!important;grid-row:1!important;justify-self:end!important;}
+@media(max-width:1100px){
+ body[data-breakaway-screen="setup"] #screenSetup .breakaway-integrated-step-header,
+ body[data-breakaway-screen="ride"] #screenRide .ride-screen-header{grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .integrated-step-hint{display:none!important;}
+ body[data-breakaway-screen="ride"] #screenRide .ride-screen-header .ride-screen-actions{display:none!important;}
+ body[data-breakaway-screen="setup"] #screenSetup .screen-progress .screen-step,
+ body[data-breakaway-screen="ride"] #screenRide .screen-progress .screen-step{padding:7px 9px!important;font-size:12px!important;}
+}
