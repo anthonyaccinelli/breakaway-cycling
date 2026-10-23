@@ -1353,7 +1353,7 @@ $('nativeProfile').addEventListener('click',async()=>{
    #overlayTop strong{font-size:10px;letter-spacing:.05em;white-space:nowrap;color:#b8c9dc}
    #overlayLabel{font-size:10px;color:#c7d5e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
    #overlayActions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
-   #overlayActions select{background:#20374c;color:#e8f4ff;border:1px solid #446079;border-radius:5px;font:600 10px system-ui;padding:2px 4px;max-width:85px}#overlayActions button{background:#20374c;color:#e8f4ff;border:1px solid #446079;border-radius:5px;font:600 10px system-ui;padding:2px 7px;cursor:pointer}
+   #overlayZoomControls{display:flex;gap:3px;align-items:center}#overlayZoomControls button{min-width:27px;padding:2px 4px!important}#overlayZoomControls button.active{background:#8db6ff!important;color:#0b1520!important;border-color:#8db6ff!important}#overlayActions button{background:#20374c;color:#e8f4ff;border:1px solid #446079;border-radius:5px;font:600 10px system-ui;padding:2px 7px;cursor:pointer}
    #overlaySettings{display:none;position:absolute;right:9px;top:26px;z-index:5;background:#20374c;padding:9px;border:1px solid #537087;border-radius:8px;box-shadow:0 6px 18px #0008}
    #overlaySettings.open{display:flex;align-items:center;gap:6px}
    #overlayOpacity{width:100px;accent-color:#45d6aa}
@@ -1369,13 +1369,14 @@ $('nativeProfile').addEventListener('click',async()=>{
    body.expanded .tile b{font-size:clamp(16px,1.8vw,26px)}
    @media(max-width:800px){.tile b{font-size:17px}.tile small{font-size:9px}#overlayTop strong{font-size:9px}}
   </style>`;
-  pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><select id="overlayZoom" aria-label="Elevation zoom"><option value="1">Full route</option><option value="2">2×</option><option value="5">5×</option><option value="10">10×</option></select><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
+  pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><div id="overlayZoomControls" role="group" aria-label="Elevation zoom"><button type="button" data-zoom="1">1×</button><button type="button" data-zoom="2">2×</button><button type="button" data-zoom="5">5×</button><button type="button" data-zoom="10">10×</button></div><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
   const modeButton=pip.document.getElementById('overlayMode') as HTMLButtonElement;
   const settingsButton=pip.document.getElementById('overlaySettingsToggle') as HTMLButtonElement;
   const settingsPanel=pip.document.getElementById('overlaySettings') as HTMLElement;
-  const zoomSelect=pip.document.getElementById('overlayZoom') as HTMLSelectElement;
-  zoomSelect.value=String(overlayZoomFactor);
-  zoomSelect.addEventListener('change',()=>{overlayZoomFactor=Number(zoomSelect.value)||1;try{localStorage.setItem('breakaway-overlay-zoom',String(overlayZoomFactor));}catch{}lastOverlayPush=0;publishDesktopOverlay();});
+  const zoomControls=pip.document.getElementById('overlayZoomControls') as HTMLElement;
+  const refreshZoomButtons=()=>{zoomControls.querySelectorAll<HTMLButtonElement>('button').forEach(button=>{const active=Number(button.dataset.zoom)===overlayZoomFactor;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});};
+  zoomControls.addEventListener('click',event=>{const button=(event.target as HTMLElement).closest<HTMLButtonElement>('button[data-zoom]');if(!button)return;overlayZoomFactor=Number(button.dataset.zoom)||1;try{localStorage.setItem('breakaway-overlay-zoom',String(overlayZoomFactor));}catch{}refreshZoomButtons();lastOverlayPush=0;publishDesktopOverlay();});
+  refreshZoomButtons();
   const savedMode=localStorage.getItem('breakaway-overlay-mode')==='expanded'?'expanded':'compact';
   const setMode=(mode:'compact'|'expanded')=>{
    pip.document.body.classList.toggle('expanded',mode==='expanded');
