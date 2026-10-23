@@ -773,7 +773,7 @@ function svg(){
   return `<rect x="${x(d0).toFixed(2)}" y="0" width="${(x(d1)-x(d0)+0.3).toFixed(2)}" height="${h}" fill="${gradeColor(grade)}"/>`;
  }).join('');
  const terrainPath=`M ${x(start)} ${h-pad} L ${line.replaceAll(' ',' L ')} L ${x(max)} ${h-pad} Z`;
- $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><g class="ride-power-trace" pointer-events="none" style="display:none"></g><polyline class="ride-hr-trace" points="" fill="none" stroke="#ff5c69" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/><text class="ride-hr-label" x="884" y="13" text-anchor="end" fill="#ff6571" font-size="11" font-weight="800" pointer-events="none">— bpm</text><text class="ride-gear-label" x="788" y="13" text-anchor="end" fill="#8db6ff" font-size="11" font-weight="800" pointer-events="none" style="display:none"></text><circle id="marker" cx="${pad}" cy="${h-pad}" r="6" fill="#ffc85c" stroke="#fff1b8" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none"/></svg>`;
+ $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><text class="ride-hr-label" x="884" y="13" text-anchor="end" fill="#ff6571" font-size="11" font-weight="800" pointer-events="none">— bpm</text><text class="ride-gear-label" x="788" y="13" text-anchor="end" fill="#8db6ff" font-size="11" font-weight="800" pointer-events="none" style="display:none"></text><circle id="marker" cx="${pad}" cy="${h-pad}" r="6" fill="#ffc85c" stroke="#fff1b8" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none"/></svg>`;
  zoomDisplay();syncProfileCharts();refreshHeartRateProfile();refreshInspection();
 }
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
@@ -1693,6 +1693,19 @@ const screenRide=document.createElement('section');screenRide.id='screenRide';sc
 const rideHeading=document.createElement('div');rideHeading.className='ride-screen-header';rideHeading.innerHTML='<strong>YOUR RIDE</strong><div class="ride-screen-actions"><button id="backToSetup" class="secondary" type="button">← Devices</button><button id="backToStudio" class="secondary" type="button">Route Studio</button></div>';
 const rideView=document.createElement('div');rideView.className='ride-screen-content';
 rideView.append(originalProfile,originalDashboard);
+const rideStateBadge=document.createElement('span');
+rideStateBadge.id='rideStateBadge';
+rideStateBadge.className='ride-state-badge';
+rideStateBadge.setAttribute('role','status');
+rideStateBadge.setAttribute('aria-live','polite');
+rideHeading.querySelector('strong')?.insertAdjacentElement('afterend',rideStateBadge);
+function refreshRideStateBadge(){
+ const label=rideEnd?'Finished':running?'Riding':rideStart?'Paused':'Ready';
+ rideStateBadge.textContent=label;
+ rideStateBadge.dataset.state=label.toLowerCase();
+}
+setInterval(refreshRideStateBadge,500);
+refreshRideStateBadge();
 screenRide.append(rideHeading,rideView);
 // Route Studio needs its own live profile: the interactive original belongs to the ride screen.
 const routePreviewPanel=document.createElement('section');
