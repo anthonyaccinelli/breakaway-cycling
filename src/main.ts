@@ -1424,6 +1424,42 @@ $('nativeProfile').addEventListener('click',async()=>{
   applyOpacity();
   overlayWindow=pip;applyReadoutSize();
   const pipMetrics=pip.document.getElementById('overlayMetrics') as HTMLElement;
+  // Compact slots are independently customizable: drag/drop or click two tiles to swap.
+  // The wide elapsed-time slot stays reserved to prevent its clock from being clipped.
+  const compactStorageKey='breakaway-overlay-compact-slots-v1';
+  const defaultCompact=['gear','speed','power','cadence','heartRate','totalGain','elapsedTime'];
+  const loadCompact=()=>{try{const v=JSON.parse(localStorage.getItem(compactStorageKey)||'null');return Array.isArray(v)&&v.length===7&&new Set(v).size===7&&defaultCompact.every(k=>v.includes(k))?v as string[]:defaultCompact.slice();}catch{return defaultCompact.slice();}};
+  let swapSelection:string|null=null,dragKey:string|null=null;
+  const swapCompact=(first:string,second:string)=>{
+   if(first===second)return;
+   const slots=loadCompact(),a=slots.indexOf(first),b=slots.indexOf(second);
+   if(a<0||b<0||a===6||b===6)return; // Keep elapsed time in the full-width slot.
+   [slots[a],slots[b]]=[slots[b],slots[a]];
+   localStorage.setItem(compactStorageKey,JSON.stringify(slots));
+   swapSelection=null;lastOverlayPush=0;publishDesktopOverlay();
+  };
+  pipMetrics.addEventListener('click',event=>{
+   if(pip.document.body.classList.contains('expanded'))return;
+   const tile=(event.target as HTMLElement).closest<HTMLElement>('.tile'),key=tile?.dataset.metricKey;
+   if(!key||key==='elapsedTime')return;
+   if(swapSelection){swapCompact(swapSelection,key);swapSelection=null;}
+   else swapSelection=key;
+   pipMetrics.querySelectorAll<HTMLElement>('.tile').forEach(t=>t.style.outline=t.dataset.metricKey===swapSelection?'2px solid #45d6aa':'');
+  });
+  pipMetrics.addEventListener('dragstart',event=>{
+   if(pip.document.body.classList.contains('expanded'))return;
+   dragKey=(event.target as HTMLElement).closest<HTMLElement>('.tile')?.dataset.metricKey||null;
+   if(event.dataTransfer)event.dataTransfer.effectAllowed='move';
+  });
+  pipMetrics.addEventListener('dragover',event=>{if(dragKey&&!pip.document.body.classList.contains('expanded'))event.preventDefault();});
+  pipMetrics.addEventListener('drop',event=>{
+   if(!dragKey||pip.document.body.classList.contains('expanded'))return;
+   event.preventDefault();
+   const target=(event.target as HTMLElement).closest<HTMLElement>('.tile')?.dataset.metricKey;
+   if(target)swapCompact(dragKey,target);
+   dragKey=null;
+  });
+  pipMetrics.addEventListener('dragend',()=>{dragKey=null;});
   wireReadoutSorting(pipMetrics,'.tile',keys=>{overlayOrder=keys;localStorage.setItem(OVERLAY_ORDER_KEY,JSON.stringify(keys));});
   lastOverlayPush=0;publishDesktopOverlay();
   pip.addEventListener('pagehide',()=>{if(overlayWindow===pip)overlayWindow=null;});
@@ -1661,10 +1697,10 @@ function publishDesktopOverlay(){
    // Compact: four tiles left, three right, and an uninterrupted central profile.
    // Elapsed time spans both right columns so its digits never clip.
    const compactKeys=['gear','speed','power','cadence','heartRate','totalGain','elapsedTime'];
-   const compactPositions:Record<string,[string,string]>={
-    gear:['1','2'],speed:['2','2'],power:['1','3'],cadence:['2','3'],
-    heartRate:['4','2'],totalGain:['5','2'],elapsedTime:['4 / span 2','3']
-   };
+   const compactSlots:[string,string][]=[['1','2'],['2','2'],['1','3'],['2','3'],['4','2'],['5','2'],['4 / span 2','3']];
+   const storedSlots=(()=>{try{const v=JSON.parse(localStorage.getItem('breakaway-overlay-compact-slots-v1')||'null');return Array.isArray(v)&&v.length===7&&new Set(v).size===7&&compactKeys.every(k=>v.includes(k))?v as string[]:compactKeys.slice();}catch{return compactKeys.slice();}})();
+   const compactPositions:Record<string,[string,string]>={};
+   storedSlots.forEach((key,i)=>{compactPositions[key]=compactSlots[i];});
    const expanded=doc.body.classList.contains('expanded');
    for(const key of compactKeys){
     if(metrics.querySelector('[data-metric-key="'+key+'"]'))continue;
