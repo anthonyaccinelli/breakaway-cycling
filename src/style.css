@@ -806,3 +806,25 @@ body[data-breakaway-screen="route"] #screenRoute .route-quick-action-row .quick-
  height:38px!important;
  box-sizing:border-box!important;
 }
+
+/* Phase 1: allocate route-builder height from its actual controls, not
+   a fixed 43% row that clips the bottom CTA at some viewport sizes. */
+@media(min-width:901px) and (min-height:701px){
+ body[data-breakaway-screen="route"] #screenRoute .route-studio-grid{
+  grid-template-rows:max-content minmax(0,1fr)!important;
+  min-height:0!important;
+ }
+ body[data-breakaway-screen="route"] #screenRoute .route-builder{
+  justify-content:flex-start!important;
+  min-height:0!important;
+  overflow:visible!important;
+ }
+ body[data-breakaway-screen="route"] #screenRoute .route-studio-live-preview{
+  min-height:0!important;
+  overflow:hidden!important;
+ }
+ body[data-breakaway-screen="route"] #screenRoute .route-quick-action-row{
+  flex-shrink:0!important;
+  align-items:flex-start!important;
+ }
+}
