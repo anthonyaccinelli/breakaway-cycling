@@ -1778,3 +1778,20 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-live-heading .stu
 body[data-breakaway-screen="route"] #screenRoute .route-studio-live-heading .studio-live-stats b{
  font-size:14px!important;font-weight:800!important;
 }
+
+/* Keep the entire route preview, including the gradient scrub readout, within the
+   no-scroll Create Route viewport after moving route metrics into the header. */
+body[data-breakaway-screen="route"] #screenRoute .route-studio-live-preview{
+ display:flex!important;flex-direction:column!important;min-height:0!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .studio-live-chart{
+ flex:1 1 auto!important;min-height:0!important;height:0!important;
+ margin:4px 0!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .studio-scrub-readout{
+ flex:0 0 auto!important;padding:4px 9px!important;gap:5px 14px!important;
+ font-size:12px!important;line-height:1.2!important;border-radius:6px!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .route-studio-live-heading{
+ flex:0 0 auto!important;margin-bottom:2px!important;
+}
