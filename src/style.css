@@ -1034,3 +1034,17 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details[open]{
   aspect-ratio:1/1!important;
  }
 }
+
+/* Breakaway yellow: primary device connection actions. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row button:not(.secondary){
+ background:#ffe600!important;
+ background-image:none!important;
+ border:1px solid #e6cb00!important;
+ color:#293e82!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row button:not(.secondary):hover,
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row button:not(.secondary):focus-visible{
+ background:#ffef57!important;
+ border-color:#d4bb00!important;
+ color:#293e82!important;
+}
