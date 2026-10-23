@@ -1847,6 +1847,40 @@ if(riderSettingsSection){
  advanced.append(summary,riderSettingsSection);
 }
 
+// Three prominent device tiles above two settings panels. Move the existing
+// elements rather than cloning them so Bluetooth handlers and state stay intact.
+const setupLayout=originalConnections.querySelector<HTMLElement>('.ride-connection-layout');
+const setupDevices=originalConnections.querySelector<HTMLElement>('.ride-devices-column');
+const setupShifting=originalConnections.querySelector<HTMLElement>('.ride-shifting-column');
+if(setupLayout&&setupDevices&&setupShifting){
+ const tiles=document.createElement('div');
+ tiles.className='setup-device-tiles';
+ const deviceCards=Array.from(setupDevices.querySelectorAll<HTMLElement>(':scope > .device-connect-card'));
+ for(const [index,card] of deviceCards.entries()){
+  card.classList.add('setup-device-tile');
+  const heading=card.querySelector('h3');
+  if(heading)heading.textContent=['Connect Trainer','HRM','Zwift Click'][index]||heading.textContent;
+  const connect=card.querySelector<HTMLButtonElement>('.device-button-row button:not(.secondary)');
+  if(connect)connect.textContent=['Connect Trainer','Connect HRM','Connect Zwift Click'][index]||connect.textContent;
+  tiles.append(card);
+ }
+ setupLayout.before(tiles);
+ const settings=document.createElement('div');
+ settings.className='setup-settings-row';
+ const advanced=setupDevices.querySelector<HTMLElement>('.setup-advanced-settings');
+ if(advanced)settings.append(advanced);
+ settings.append(setupShifting);
+ setupLayout.before(settings);
+ setupLayout.classList.add('setup-utilities');
+ // Reconnection and session utilities remain available, but secondary.
+ const utilityDetails=document.createElement('details');
+ utilityDetails.className='setup-utility-details';
+ const utilitySummary=document.createElement('summary');
+ utilitySummary.textContent='Bluetooth & session options';
+ utilityDetails.append(utilitySummary);
+ while(setupDevices.firstChild)utilityDetails.append(setupDevices.firstChild);
+ setupLayout.replaceWith(utilityDetails);
+}
 // Progressive disclosure: keep setup instructions available without occupying
 // the primary pairing viewport or silently clipping important help text.
 const drivetrainSection=originalConnections.querySelector<HTMLElement>('#drivetrainSection');
