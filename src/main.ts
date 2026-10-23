@@ -1859,7 +1859,7 @@ if(setupLayout&&setupDevices&&setupShifting){
  for(const [index,card] of deviceCards.entries()){
   card.classList.add('setup-device-tile');
   const heading=card.querySelector('h3');
-  if(heading)heading.textContent=['Connect Trainer','HRM','Zwift Click'][index]||heading.textContent;
+  if(heading)heading.textContent=['Connect Trainer','HRM (optional)','Zwift Click (optional)'][index]||heading.textContent;
   const connect=card.querySelector<HTMLButtonElement>('.device-button-row button:not(.secondary)');
   if(connect)connect.textContent=['Connect Trainer','Connect HRM','Connect Zwift Click'][index]||connect.textContent;
   tiles.append(card);
