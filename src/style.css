@@ -781,3 +781,10 @@ body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{overscr
 
 /* Keep Quick Start label readable on the dark Route Studio background. */
 #screenRoute .route-quick-action-row .quick-preset-label{color:#ffffff!important;}
+
+/* Align the Quick Start label, preset buttons and green ride CTA at the top. */
+#screenRoute .route-quick-action-row{align-items:flex-start!important;}
+#screenRoute .route-quick-action-row .quick-preset-bar{align-items:flex-start!important;align-self:flex-start!important;}
+#screenRoute .route-quick-action-row .quick-preset-label{align-self:flex-start!important;display:flex!important;align-items:center!important;height:38px!important;line-height:1!important;}
+#screenRoute .route-quick-action-row .quick-preset-button,
+#screenRoute .route-quick-action-row #enjoyRide{align-self:flex-start!important;margin-top:0!important;vertical-align:top!important;}
