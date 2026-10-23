@@ -2064,3 +2064,14 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 .survive-game-bottom span{font-size:11px;font-weight:800;color:#b7cbd7;white-space:nowrap}
 .survive-game-bottom b{color:#fff;font-size:15px;font-variant-numeric:tabular-nums}
 @media(max-width:680px){#screenRide .survive-game-hud{padding:10px;gap:7px}.survive-game-metrics{gap:5px}.survive-game-metrics strong{font-size:clamp(22px,5vw,34px)}.survive-game-metrics small{font-size:9px}.survive-game-clock{gap:8px;padding:7px}.survive-game-bottom{justify-content:center;gap:8px 15px}}
+
+/* GAP trend: closing red, steady yellow, extending green. */
+#screenRide .survive-game-hud[data-gap-trend="closing"] .survive-game-gap{background:#42232d;border-color:#f04452}
+#screenRide .survive-game-hud[data-gap-trend="closing"] .survive-game-gap strong{color:#ff6571!important}
+#screenRide .survive-game-hud[data-gap-trend="closing"] .survive-game-gap small{color:#ffb1b8}
+#screenRide .survive-game-hud[data-gap-trend="extending"] .survive-game-gap{background:#193d35;border-color:#46d69a}
+#screenRide .survive-game-hud[data-gap-trend="extending"] .survive-game-gap strong{color:#5ce5a1!important}
+#screenRide .survive-game-hud[data-gap-trend="extending"] .survive-game-gap small{color:#91efc6}
+#screenRide .survive-game-hud[data-gap-trend="steady"] .survive-game-gap{background:#343329;border-color:#c2a844}
+#screenRide .survive-game-hud[data-gap-trend="steady"] .survive-game-gap strong{color:#ffd43b!important}
+#screenRide .survive-game-hud[data-gap-trend="steady"] .survive-game-gap small{color:#ffe28b}
