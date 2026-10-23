@@ -2131,3 +2131,26 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
  #screenRide:not(.survive-playing)>.survive-beta.setup-warning>header{flex:1 1 auto!important;min-width:0!important}
  #screenRide:not(.survive-playing)>.survive-beta.setup-warning>header #surviveStatus{margin-left:12px!important}
 }
+
+/* Step 2: single right-aligned ride action group under the elevation profile. */
+#screenRide #profileInspector .profile-ride-actions{
+ display:flex!important;align-items:center!important;justify-content:flex-end!important;
+ gap:9px!important;margin-left:auto!important;flex:0 0 auto!important;white-space:nowrap!important;
+}
+#screenRide #profileInspector .profile-ride-actions button{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:39px!important;padding:7px 14px!important;font-size:13px!important;
+ font-weight:850!important;line-height:1.15!important;border-radius:8px!important;
+ white-space:nowrap!important;
+}
+#screenRide #profileInspector .profile-ride-actions button[hidden]{display:none!important}
+#screenRide #profileInspector .profile-ride-actions #start{order:1}
+#screenRide #profileInspector .profile-ride-actions #rideFinishNow{order:2}
+#screenRide #profileInspector .profile-ride-actions #inspectReset{order:3}
+@media(max-width:1100px){
+ #screenRide #profileInspector .profile-ride-actions{width:100%!important;justify-content:flex-end!important;margin-top:4px!important}
+}
+@media(max-width:550px){
+ #screenRide #profileInspector .profile-ride-actions{gap:5px!important;flex-wrap:wrap!important}
+ #screenRide #profileInspector .profile-ride-actions button{font-size:11px!important;padding:6px 9px!important}
+}
