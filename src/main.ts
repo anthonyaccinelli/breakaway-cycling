@@ -1348,7 +1348,7 @@ $('nativeProfile').addEventListener('click',async()=>{
   const savedOverlayOpacity=Math.max(20,Math.min(100,Number(localStorage.getItem('breakaway-overlay-opacity')||'100')||100));
   pip.document.head.innerHTML=`<title>Breakaway Cycling Overlay</title><style>
    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1520;color:#f4f8ff;font:12px system-ui,sans-serif}
-   body{padding:5px 9px 7px}#overlayContent{height:100%;min-height:0;display:grid;grid-template-columns:minmax(120px,18%) minmax(0,1fr) minmax(120px,18%);grid-template-rows:19px repeat(4,minmax(0,1fr));gap:4px 7px}
+   body{padding:5px 9px 7px}#overlayContent{height:100%;min-height:0;display:grid;grid-template-columns:minmax(140px,18%) minmax(0,1fr) minmax(140px,18%);grid-template-rows:19px repeat(4,minmax(0,1fr));gap:4px 7px}
    #overlayTop{grid-column:1 / -1;grid-row:1;display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
    #overlayTop strong{font-size:10px;letter-spacing:.05em;white-space:nowrap;color:#b8c9dc}
    #overlayLabel{font-size:10px;color:#c7d5e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1619,19 +1619,19 @@ function publishDesktopOverlay(){
   const metrics=doc.getElementById('overlayMetrics');if(metrics){
    const oldTiles=new Map(Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(el=>[el.dataset.metricKey,el]));
    const values:Record<string,string>={distance:snapshot.distance,totalGain:snapshot.totalGain,remaining:snapshot.remaining,grade:snapshot.grade,elapsedTime:snapshot.elapsedTime,speed:snapshot.speed,power:snapshot.power??'—',beersEarned:snapshot.beersEarned,caloriesBurned:snapshot.caloriesBurned,cadence:snapshot.cadence===null?'—':String(snapshot.cadence),heartRate:snapshot.heartRate,gear:drivetrainMode==='virtual'?String(snapshot.gear):'—'};
-   for(const key of [...Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(t=>t.dataset.metricKey||''),...overlayOrder,...OVERLAY_METRICS.map(([k])=>k)].filter((k,i,a)=>a.indexOf(k)===i)){const metric=OVERLAY_METRICS.find(([k])=>k===key);if(!metric||(!selectedOverlayMetrics.includes(key as OverlayMetricKey)&&!['distance','grade','elapsedTime','speed','power','cadence','heartRate','gear'].includes(key)))continue;const name=metric[1];const tile=oldTiles.get(key)||doc.createElement('div');tile.replaceChildren();tile.draggable=true;tile.dataset.metricKey=key;tile.className='tile';const val=doc.createElement('b');val.textContent=values[key];const title=doc.createElement('small');title.textContent=name;tile.append(val,title);metrics.append(tile);}
-   Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).forEach(tile=>{if(!selectedOverlayMetrics.includes(tile.dataset.metricKey as OverlayMetricKey)&&!['distance','grade','elapsedTime','speed','power','cadence','heartRate','gear'].includes(tile.dataset.metricKey||''))tile.remove();});
-   // Compact: six prioritized live metrics across one row. Expanded: retain
+   for(const key of [...Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(t=>t.dataset.metricKey||''),...overlayOrder,...OVERLAY_METRICS.map(([k])=>k)].filter((k,i,a)=>a.indexOf(k)===i)){const metric=OVERLAY_METRICS.find(([k])=>k===key);if(!metric||(!selectedOverlayMetrics.includes(key as OverlayMetricKey)&&!['power','heartRate','elapsedTime','distance'].includes(key)))continue;const name=metric[1];const tile=oldTiles.get(key)||doc.createElement('div');tile.replaceChildren();tile.draggable=true;tile.dataset.metricKey=key;tile.className='tile';const val=doc.createElement('b');val.textContent=values[key];const title=doc.createElement('small');title.textContent=name;tile.append(val,title);metrics.append(tile);}
+   Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).forEach(tile=>{if(!selectedOverlayMetrics.includes(tile.dataset.metricKey as OverlayMetricKey)&&!['power','heartRate','elapsedTime','distance'].includes(tile.dataset.metricKey||''))tile.remove();});
+   // Compact: two legible metrics per side of the central elevation profile. Expanded: retain
    // the rider's existing metric selection, with up to eight visible.
-   const compactKeys=['distance','grade','elapsedTime','speed','power','cadence','heartRate','gear'];
+   const compactKeys=['power','heartRate','elapsedTime','distance'];
    const expanded=doc.body.classList.contains('expanded');
    const tiles=Array.from(metrics.querySelectorAll<HTMLElement>('.tile'));
    for(const tile of tiles){
     const key=tile.dataset.metricKey||'';
     const index=compactKeys.indexOf(key);
     tile.style.display=expanded?(tiles.indexOf(tile)<8?'flex':'none'):(index>=0?'flex':'none');
-    tile.style.gridColumn=expanded?String(1+tiles.indexOf(tile)%4):(index<4?'1':'3');
-    tile.style.gridRow=expanded?String(2+Math.floor(tiles.indexOf(tile)/4)):String(2+(index<4?index:index-4));
+    tile.style.gridColumn=expanded?String(1+tiles.indexOf(tile)%4):(index<2?'1':'3');
+    tile.style.gridRow=expanded?String(2+Math.floor(tiles.indexOf(tile)/4)):String(2+(index<2?index:index-2)*2);if(!expanded)tile.style.gridRow+=' / span 2';
     tile.style.removeProperty('order');
    }
    // Compact metrics must be present even if older overlay preferences excluded them.
@@ -1641,7 +1641,7 @@ function publishDesktopOverlay(){
      const tile=doc.createElement('div');tile.className='tile';tile.dataset.metricKey=key;
      const val=doc.createElement('b');val.textContent=values[key];
      const title=doc.createElement('small');title.textContent=({distance:'DISTANCE',grade:'GRADE',elapsedTime:'TIME',speed:'MPH',power:'WATTS',cadence:'RPM',heartRate:'BPM',gear:'GEAR'} as Record<string,string>)[key];
-     tile.append(val,title);tile.style.gridColumn=compactKeys.indexOf(key)<4?'1':'3';tile.style.gridRow=String(2+(compactKeys.indexOf(key)%4));metrics.append(tile);
+     tile.append(val,title);tile.style.gridColumn=compactKeys.indexOf(key)<2?'1':'3';tile.style.gridRow=String(2+(compactKeys.indexOf(key)%2)*2)+' / span 2';metrics.append(tile);
     }
    }
 
