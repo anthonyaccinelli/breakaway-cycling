@@ -1879,6 +1879,19 @@ if(setupLayout&&setupDevices&&setupShifting){
  utilityHeading.textContent='Bluetooth & session options';
  utilityDetails.append(utilityHeading);
  while(setupDevices.firstChild)utilityDetails.append(setupDevices.firstChild);
+ const bluetoothPanel=utilityDetails.querySelector<HTMLElement>('.bluetooth-auto');
+ const sessionPanel=utilityDetails.querySelector<HTMLElement>('.ride-session-actions');
+ if(bluetoothPanel){
+  const secondary=document.createElement('details');
+  secondary.className='setup-secondary-options';
+  const secondaryHeading=document.createElement('summary');
+  secondaryHeading.textContent='Device management & session actions';
+  secondary.append(secondaryHeading);
+  const forget=bluetoothPanel.querySelector<HTMLElement>('#forgetBluetooth');
+  if(forget)secondary.append(forget);
+  if(sessionPanel)secondary.append(sessionPanel);
+  utilityDetails.append(secondary);
+ }
  setupLayout.replaceWith(utilityDetails);
 }
 // Progressive disclosure: keep setup instructions available without occupying
@@ -2060,8 +2073,9 @@ function updateSetupReadiness(){
  const ready=trainerReadyForRide();
  const button=document.getElementById('goToRide') as HTMLButtonElement;
  button.disabled=!ready;
+ button.textContent=ready?'Start Riding →':'Connect Trainer to Continue';
  const label=document.getElementById('setupReadiness')!;
- if(rideCountdownTimer===null)label.textContent=ready?'Trainer ready — heart rate and Zwift Click are optional.':'Connect and initialize your trainer to continue.';
+ label.textContent=ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.';
  refreshSetupDeviceCards();
 }
 function showBreakawayScreen(screen:BreakawayScreen){
@@ -2084,24 +2098,8 @@ function enterRideScreen(){
  if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
  showBreakawayScreen('ride');
 }
-function checkAutomaticRideCountdown(){
- if(breakawayScreen!=='setup'){stopRideCountdown();return;}
- updateSetupReadiness();
- const allReady=trainerReadyForRide()&&hrReadyForRide()&&clickReadyForRide();
- if(!allReady){if(rideCountdownTimer!==null){stopRideCountdown();updateSetupReadiness();}return;}
- if(rideCountdownTimer!==null)return;
- rideCountdownRemaining=5;
- const label=document.getElementById('setupReadiness')!;
- label.textContent='All three devices connected — riding screen in 5 seconds…';
- rideCountdownTimer=window.setInterval(()=>{
-  if(breakawayScreen!=='setup'||!trainerReadyForRide()||!hrReadyForRide()||!clickReadyForRide()){
-   stopRideCountdown();updateSetupReadiness();return;
-  }
-  rideCountdownRemaining--;
-  if(rideCountdownRemaining<=0){enterRideScreen();return;}
-  label.textContent=`All three devices connected — riding screen in ${rideCountdownRemaining} seconds…`;
- },1000);
-}
+// Pairing never navigates away automatically; the rider chooses when to start.
+function checkAutomaticRideCountdown(){updateSetupReadiness();}
 (document.getElementById('enjoyRide') as HTMLButtonElement).addEventListener('click',()=>{
  if(!points.length){status('Generate a route first');return;}
  showBreakawayScreen('setup');
