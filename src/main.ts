@@ -1985,12 +1985,47 @@ function stopRideCountdown(){if(rideCountdownTimer!==null){window.clearInterval(
 function trainerReadyForRide(){return connected&&controlGranted&&realTelemetry;}
 function clickReadyForRide(){return !!(typeof clickDevice!=='undefined'&&clickDevice?.gatt?.connected);}
 function hrReadyForRide(){return !!(typeof hrDevice!=='undefined'&&hrDevice?.gatt?.connected);}
+const setupPairingPending:Record<string,boolean>={connect:false,connectHr:false,connectClick:false};
+const setupDeviceDefinitions=[
+ {id:'connect',name:'Trainer',ready:()=>trainerReadyForRide(),connected:()=>connected,device:()=>device,detail:()=>($('status').textContent||'')},
+ {id:'connectHr',name:'HRM',ready:()=>hrReadyForRide(),connected:()=>hrReadyForRide(),device:()=>hrDevice,detail:()=>($('hrStatus').textContent||'')},
+ {id:'connectClick',name:'Zwift Click',ready:()=>clickReadyForRide(),connected:()=>clickReadyForRide(),device:()=>clickDevice,detail:()=>($('clickStatus').textContent||'')}
+];
+function refreshSetupDeviceCards(){
+ if(breakawayScreen!=='setup')return;
+ for(const entry of setupDeviceDefinitions){
+  const button=document.getElementById(entry.id) as HTMLButtonElement|null;
+  const card=button?.closest<HTMLElement>('.setup-device-tile');
+  if(!button||!card)continue;
+  const connectedNow=entry.connected();
+  const ready=entry.ready();
+  const detail=entry.detail();
+  if(setupPairingPending[entry.id]&&(connectedNow||/error|fail|cancel|not found|denied|unable|disconnected/i.test(detail)))setupPairingPending[entry.id]=false;
+  const pairing=setupPairingPending[entry.id]&&!connectedNow;
+  const error=!connectedNow&&!pairing&&/error|fail|not found|denied|unable/i.test(detail);
+  const state=ready?'connected':connectedNow?'initializing':pairing?'connecting':error?'error':'disconnected';
+  card.dataset.connectionState=state;
+  let indicator=card.querySelector<HTMLElement>('.setup-connection-indicator');
+  if(!indicator){indicator=document.createElement('div');indicator.className='setup-connection-indicator';indicator.setAttribute('role','status');indicator.setAttribute('aria-live','polite');card.querySelector('h3')?.insertAdjacentElement('afterend',indicator);}
+  const name=entry.device()?.name||entry.name;
+  indicator.textContent=state==='connected'?'✓ Connected · '+name:state==='initializing'?'◌ Initializing · '+name:state==='connecting'?'◌ Connecting…':state==='error'?'! Connection failed':'○ Not connected';
+  if(state==='connected')button.textContent='Change '+entry.name;
+  else if(state==='connecting')button.textContent='Connecting…';
+  else button.textContent='Connect '+entry.name;
+  button.disabled=pairing;
+  button.setAttribute('aria-busy',String(pairing));
+ }
+}
+for(const entry of setupDeviceDefinitions){
+ document.getElementById(entry.id)?.addEventListener('click',()=>{setupPairingPending[entry.id]=true;refreshSetupDeviceCards();});
+}
 function updateSetupReadiness(){
  const ready=trainerReadyForRide();
  const button=document.getElementById('goToRide') as HTMLButtonElement;
  button.disabled=!ready;
  const label=document.getElementById('setupReadiness')!;
  if(rideCountdownTimer===null)label.textContent=ready?'Trainer ready — heart rate and Zwift Click are optional.':'Connect and initialize your trainer to continue.';
+ refreshSetupDeviceCards();
 }
 function showBreakawayScreen(screen:BreakawayScreen){
  breakawayScreen=screen;
