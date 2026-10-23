@@ -1761,6 +1761,10 @@ const screenRoute=document.createElement('section');screenRoute.id='screenRoute'
 const screenSetup=document.createElement('section');screenSetup.id='screenSetup';screenSetup.className='breakaway-screen';
 const screenRide=document.createElement('section');screenRide.id='screenRide';screenRide.className='breakaway-screen';
 const rideHeading=document.createElement('div');rideHeading.className='ride-screen-header';rideHeading.innerHTML='<strong>YOUR RIDE</strong><div class="ride-screen-actions"><button id="backToSetup" class="secondary" type="button">← Devices</button><button id="backToStudio" class="secondary" type="button">Route Studio</button></div>';
+const setupStepHeader=document.createElement('header');
+setupStepHeader.className='breakaway-integrated-step-header';
+setupStepHeader.innerHTML='<div class="integrated-step-title"><span class="route-kicker">TRAINER SETUP</span><h2>Connect your trainer</h2></div><span class="integrated-step-hint">Smart trainer and sensors</span>';
+screenSetup.append(setupStepHeader);
 const rideView=document.createElement('div');rideView.className='ride-screen-content';
 rideView.append(originalProfile,originalDashboard);
 screenRide.append(rideHeading,rideView);
@@ -2180,7 +2184,10 @@ function updateSetupReadiness(){
 }
 function showBreakawayScreen(screen:BreakawayScreen){
  breakawayScreen=screen;
+ // One shared navigation component, mounted inside the active screen's header.
  if(screen==='route'&&routeStudioHeader)routeStudioHeader.append(rideStepNav);
+ else if(screen==='setup')setupStepHeader.append(rideStepNav);
+ else if(screen==='ride')rideHeading.append(rideStepNav);
  else rideStepNavHome.parentNode?.insertBefore(rideStepNav,rideStepNavHome.nextSibling);
  document.body.dataset.breakawayScreen=screen;
  screenRoute.hidden=screen!=='route';
