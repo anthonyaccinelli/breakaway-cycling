@@ -1344,23 +1344,45 @@ $('nativeProfile').addEventListener('click',async()=>{
  }
  if(!('documentPictureInPicture' in window)){status('Always-on-top requires a recent desktop Chrome or Edge. Use Pop out window as a fallback.');return;}
  try{
-  const pip=await (window as any).documentPictureInPicture.requestWindow({width:Math.max(760,Math.min(1800,window.screen.availWidth-24)),height:260});
+  const pip=await (window as any).documentPictureInPicture.requestWindow({width:Math.max(760,Math.min(1800,window.screen.availWidth-24)),height:155});
   const savedOverlayOpacity=Math.max(20,Math.min(100,Number(localStorage.getItem('breakaway-overlay-opacity')||'100')||100));
   pip.document.head.innerHTML=`<title>Breakaway Cycling Overlay</title><style>
    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1520;color:#f4f8ff;font:12px system-ui,sans-serif}
-   body{padding:5px 9px 6px}#overlayControls{display:flex;align-items:center;gap:8px;height:22px;font-size:10px;color:#c7d5e4}
-   #overlayOpacity{width:100px;accent-color:#45d6aa}#overlayContent{display:grid;grid-template-columns:minmax(125px,17%) minmax(0,1fr) minmax(125px,17%);grid-template-rows:18px repeat(5,minmax(0,1fr));column-gap:8px;row-gap:2px;height:calc(100% - 23px);min-height:0}
-   #overlayContent>strong{grid-column:1;grid-row:1;white-space:nowrap;font-size:11px}
-   #overlayLabel{grid-column:2;grid-row:1;text-align:center;font-size:11px;color:#c7d5e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-   #overlayChart{grid-column:2;grid-row:2 / span 5;min-height:0;overflow:hidden;border-radius:4px;background:#0d1d2b}
+   body{padding:5px 9px 7px}#overlayContent{height:100%;min-height:0;display:grid;grid-template-rows:19px minmax(0,1fr) 34px;gap:3px}
+   #overlayTop{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+   #overlayTop strong{font-size:10px;letter-spacing:.05em;white-space:nowrap;color:#b8c9dc}
+   #overlayLabel{font-size:10px;color:#c7d5e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+   #overlayActions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+   #overlayActions button{background:#20374c;color:#e8f4ff;border:1px solid #446079;border-radius:5px;font:600 10px system-ui;padding:2px 7px;cursor:pointer}
+   #overlaySettings{display:none;position:absolute;right:9px;top:26px;z-index:5;background:#20374c;padding:9px;border:1px solid #537087;border-radius:8px;box-shadow:0 6px 18px #0008}
+   #overlaySettings.open{display:flex;align-items:center;gap:6px}
+   #overlayOpacity{width:100px;accent-color:#45d6aa}
+   #overlayMetrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;min-height:0}
+   .tile{min-width:0;min-height:0;background:#1b3246;border-radius:5px;padding:3px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:grab}
+   .tile b{font-size:clamp(17px,2vw,29px);line-height:1.1;font-weight:800;color:#f4f8ff;white-space:nowrap;font-variant-numeric:tabular-nums}
+   .tile small{font-size:10px;line-height:1.2;color:#c7d5e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+   #overlayChart{min-height:0;overflow:hidden;border-radius:4px;background:#0d1d2b}
    #overlayChart .overlay-profile-graphic{height:100%!important}
    #overlayChart svg{width:100%!important;height:100%!important;display:block}
-   #overlayMetrics{display:contents}.tile{background:#1b3246;border-radius:5px;padding:3px 7px;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;cursor:grab}
-   .tile b{display:block;color:#45d6aa;font-size:clamp(15px,1.65vw,25px);line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
-   .tile small{display:block;color:#c7d5e4;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-   @media(max-width:800px){#overlayContent{grid-template-columns:minmax(92px,19%) minmax(0,1fr) minmax(92px,19%);column-gap:4px}.tile{padding:2px 4px}.tile small{font-size:9px}}
+   body.expanded #overlayContent{grid-template-rows:19px minmax(0,1fr) minmax(0,2fr)}
+   body.expanded #overlayMetrics{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+   body.expanded .tile b{font-size:clamp(16px,1.8vw,26px)}
+   @media(max-width:800px){.tile b{font-size:17px}.tile small{font-size:9px}#overlayTop strong{font-size:9px}}
   </style>`;
-  pip.document.body.innerHTML='<div id="overlayControls"><label for="overlayOpacity">Overlay opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100" aria-label="Overlay content opacity"><output id="overlayOpacityValue">100%</output></div><div id="overlayContent"><strong>BREAKAWAY CYCLING</strong><div id="overlayLabel"></div><div id="overlayChart"></div><div id="overlayMetrics"></div></div>';
+  pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
+  const modeButton=pip.document.getElementById('overlayMode') as HTMLButtonElement;
+  const settingsButton=pip.document.getElementById('overlaySettingsToggle') as HTMLButtonElement;
+  const settingsPanel=pip.document.getElementById('overlaySettings') as HTMLElement;
+  const savedMode=localStorage.getItem('breakaway-overlay-mode')==='expanded'?'expanded':'compact';
+  const setMode=(mode:'compact'|'expanded')=>{
+   pip.document.body.classList.toggle('expanded',mode==='expanded');
+   modeButton.textContent=mode==='expanded'?'Compact':'Expand';
+   try{localStorage.setItem('breakaway-overlay-mode',mode);}catch{}
+   try{pip.resizeTo(pip.outerWidth,mode==='expanded'?285:155);}catch{}
+  };
+  modeButton.addEventListener('click',()=>setMode(pip.document.body.classList.contains('expanded')?'compact':'expanded'));
+  settingsButton.addEventListener('click',()=>settingsPanel.classList.toggle('open'));
+  setMode(savedMode);
   const opacityInput=pip.document.getElementById('overlayOpacity') as HTMLInputElement;
   const opacityValue=pip.document.getElementById('overlayOpacityValue') as HTMLOutputElement;
   const opacityContent=pip.document.getElementById('overlayContent') as HTMLElement;
