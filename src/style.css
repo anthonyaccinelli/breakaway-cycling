@@ -2015,3 +2015,16 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 .survive-fail-actions button{flex:1 1 160px;min-height:46px;font-weight:900}
 #surviveFailRetry{background:#f04452;color:#fff;border:0}
 #surviveFailContinue{background:#25394a;color:#fff;border:1px solid #71899b}
+
+/* Full-viewport SURVIVE defeat takeover. */
+.survive-fail-screen{padding:0!important;background:radial-gradient(ellipse at center,#5c1423 0%,#1c0a12 48%,#05070d 100%)!important}
+.survive-fail-card{box-sizing:border-box;width:100%!important;max-width:none!important;min-height:100dvh;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:clamp(20px,5vw,64px)!important}
+.survive-fail-icon{font-size:clamp(60px,12vw,150px)!important;line-height:1}
+.survive-fail-card h2{font-size:clamp(52px,11vw,150px)!important;letter-spacing:-.065em;line-height:.95!important;margin:18px 0!important;text-shadow:0 4px 28px #000b}
+.survive-fail-results{width:min(100%,600px)}
+.survive-fail-note{font-size:clamp(16px,2vw,25px);color:#fff!important}
+.survive-fail-timer{font-size:clamp(15px,1.8vw,22px);color:#ffc6c6!important}
+.survive-fail-timer strong{color:#fff;font-variant-numeric:tabular-nums;font-size:1.4em}
+.survive-fail-actions{width:min(100%,600px)}
+.survive-fail-actions button{min-height:56px;font-size:15px}
+#surviveFailFinish{background:#f04452;color:#fff;border:0}
