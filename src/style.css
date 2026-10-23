@@ -1162,3 +1162,33 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connect
 body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="initializing"] .setup-connection-indicator{color:#455da7!important}
 body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="error"] .setup-connection-indicator{color:#b42330!important}
 body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile .device-button-row button[aria-busy="true"]{opacity:.75!important;cursor:wait!important}
+
+/* Align device card headings, status rows, and primary pairing actions. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile{
+ display:grid!important;
+ grid-template-rows:38px 22px 1fr!important;
+ align-content:start!important;
+ align-items:start!important;
+ justify-items:stretch!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile>h3{
+ grid-row:1!important;
+ align-self:center!important;
+ margin:0!important;
+ text-align:center!important;
+ line-height:1.1!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile>.setup-connection-indicator{
+ grid-row:2!important;
+ margin:0!important;
+ align-self:center!important;
+ min-height:18px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile>.device-button-row{
+ grid-row:3!important;
+ align-self:start!important;
+ margin:0!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row button:not(.secondary){
+ min-height:54px!important;
+}
