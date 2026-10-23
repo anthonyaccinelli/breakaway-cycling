@@ -1714,3 +1714,28 @@ body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
  min-height:0!important;
  overflow:hidden!important;
 }
+
+/* Profile telemetry is HTML, not stretched SVG text. Keep letter proportions
+   identical regardless of elevation chart width or height. */
+#chart,#floatChart{position:relative!important}
+#chart .profile-telemetry,#floatChart .profile-telemetry{
+ position:absolute;
+ top:6px;
+ right:14px;
+ z-index:3;
+ display:flex;
+ align-items:center;
+ justify-content:flex-end;
+ gap:clamp(18px,5vw,80px);
+ pointer-events:none;
+ white-space:nowrap;
+ font-family:Inter,system-ui,sans-serif;
+ font-size:clamp(15px,1.45vw,24px);
+ font-weight:800;
+ line-height:1.25;
+ letter-spacing:0;
+ font-variant-numeric:tabular-nums;
+}
+#chart .profile-gear-readout,#floatChart .profile-gear-readout{color:#8db6ff}
+#chart .profile-hr-readout,#floatChart .profile-hr-readout{color:#ff6571}
+#floatChart .profile-telemetry{font-size:clamp(12px,1.2vw,18px);gap:16px;right:10px}
