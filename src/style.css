@@ -1019,3 +1019,18 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details[open]{
   overflow:auto!important;
  }
 }
+
+/* Square device buttons, centered evenly across the full top row. */
+@media(min-width:851px){
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  justify-items:center!important;
+ }
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile{
+  box-sizing:border-box!important;
+  width:min(100%,clamp(130px,11.5vw,170px))!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:1/1!important;
+ }
+}
