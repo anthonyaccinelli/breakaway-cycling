@@ -1839,12 +1839,12 @@ if(riderSettingsSection){
  else screenSetup.append(riderSettingsSection);
  // Keep the existing live settings and listeners, but make infrequent
  // calibration inputs optional instead of consuming the pairing screen.
- const advanced=document.createElement('details');
+ const advanced=document.createElement('section');
  advanced.className='setup-advanced-settings';
- const summary=document.createElement('summary');
- summary.textContent='Rider & trainer settings';
+ const heading=document.createElement('h3');
+ heading.textContent='Rider & trainer settings';
  riderSettingsSection.before(advanced);
- advanced.append(summary,riderSettingsSection);
+ advanced.append(heading,riderSettingsSection);
 }
 
 // Three prominent device tiles above two settings panels. Move the existing
@@ -1873,11 +1873,11 @@ if(setupLayout&&setupDevices&&setupShifting){
  setupLayout.before(settings);
  setupLayout.classList.add('setup-utilities');
  // Reconnection and session utilities remain available, but secondary.
- const utilityDetails=document.createElement('details');
+ const utilityDetails=document.createElement('section');
  utilityDetails.className='setup-utility-details';
- const utilitySummary=document.createElement('summary');
- utilitySummary.textContent='Bluetooth & session options';
- utilityDetails.append(utilitySummary);
+ const utilityHeading=document.createElement('h3');
+ utilityHeading.textContent='Bluetooth & session options';
+ utilityDetails.append(utilityHeading);
  while(setupDevices.firstChild)utilityDetails.append(setupDevices.firstChild);
  setupLayout.replaceWith(utilityDetails);
 }
