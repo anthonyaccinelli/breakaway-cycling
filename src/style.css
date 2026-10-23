@@ -1739,3 +1739,16 @@ body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
 #chart .profile-gear-readout,#floatChart .profile-gear-readout{color:#8db6ff}
 #chart .profile-hr-readout,#floatChart .profile-hr-readout{color:#ff6571}
 #floatChart .profile-telemetry{font-size:clamp(12px,1.2vw,18px);gap:16px;right:10px}
+
+/* Route planning glanceable summary, without introducing another row of panels. */
+body[data-breakaway-screen="route"] .studio-live-stats{
+ display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ gap:6px 15px!important;
+}
+body[data-breakaway-screen="route"] .studio-live-stats span{
+ white-space:nowrap!important;font-variant-numeric:tabular-nums;
+}
+/* Compact ride configuration stays accessible without stealing profile height. */
+#rideReadoutSettings[hidden]{display:none!important}
+.ride-readout-toggle{align-self:flex-start;font-size:12px!important;padding:5px 10px!important;line-height:1.2!important}
+body[data-breakaway-screen="ride"] .ride-readout-toggle{margin:2px 0!important}
