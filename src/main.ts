@@ -1769,6 +1769,9 @@ const routeQuickFacts=document.createElement('div');routeQuickFacts.className='r
 routeQuickFacts.setAttribute('aria-live','polite');
 routeQuickFacts.textContent='Generate a route to see terrain, estimated time and steepest grade';
 routePreviewPanel.querySelector('.route-studio-live-heading')!.append(routeQuickFacts);
+// Keep route metrics in the visible header instead of below the chart, where the no-scroll layout clips them.
+const studioSummary=routePreviewPanel.querySelector<HTMLElement>('.studio-live-stats')!;
+routePreviewPanel.querySelector('.route-studio-live-heading')!.append(studioSummary);
 const studioLiveChart=routePreviewPanel.querySelector<HTMLElement>('#studioLiveChart')!;
 const routeScrubReadout=document.createElement('div');
 routeScrubReadout.className='studio-scrub-readout';
