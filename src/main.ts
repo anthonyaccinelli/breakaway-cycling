@@ -1366,7 +1366,7 @@ $('nativeProfile').addEventListener('click',async()=>{
   const savedOverlayOpacity=Math.max(20,Math.min(100,Number(localStorage.getItem('breakaway-overlay-opacity')||'100')||100));
   pip.document.head.innerHTML=`<title>Breakaway Cycling Overlay</title><style>
    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1520;color:#f4f8ff;font:12px system-ui,sans-serif}
-   body{padding:5px 9px 7px}#overlayContent{height:100%;min-height:0;display:grid;grid-template-columns:minmax(140px,18%) minmax(0,1fr) minmax(140px,18%);grid-template-rows:19px repeat(4,minmax(0,1fr));gap:4px 7px}
+   body{padding:5px 9px 7px}#overlayContent{height:100%;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,12%)) minmax(0,1fr) repeat(2,minmax(0,12%));grid-template-rows:19px repeat(2,minmax(0,1fr));gap:4px 7px}
    #overlayTop{grid-column:1 / -1;grid-row:1;display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
    #overlayTop strong{font-size:10px;letter-spacing:.05em;white-space:nowrap;color:#b8c9dc}
    #overlayLabel{font-size:10px;color:#c7d5e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1379,12 +1379,16 @@ $('nativeProfile').addEventListener('click',async()=>{
    .tile{min-width:0;min-height:0;background:#1b3246;border-radius:5px;padding:3px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:grab}
    .tile b{font-size:clamp(17px,2vw,29px);line-height:1.1;font-weight:800;color:#f4f8ff;white-space:nowrap;font-variant-numeric:tabular-nums}
    .tile small{font-size:10px;line-height:1.2;color:#c7d5e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-   #overlayChart{grid-column:2;grid-row:2 / span 4;min-height:0;overflow:hidden;border-radius:4px;background:#0d1d2b}
+   #overlayChart{grid-column:3;grid-row:2 / span 2;min-height:0;overflow:hidden;border-radius:4px;background:#0d1d2b}
    #overlayChart .overlay-profile-graphic{height:100%!important}
    #overlayChart svg{width:100%!important;height:100%!important;display:block}
    body.expanded #overlayContent{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:19px repeat(2,minmax(0,1fr)) minmax(0,2fr)}
    body.expanded #overlayChart{grid-column:1 / -1;grid-row:4}
    body.expanded .tile b{font-size:clamp(16px,1.8vw,26px)}
+   #overlayContent:not(.survive-overlay) .tile{padding:2px 3px}
+   #overlayContent:not(.survive-overlay) .tile b{font-size:clamp(13px,1.5vw,24px);max-width:100%;letter-spacing:-.035em}
+   #overlayContent:not(.survive-overlay) .tile small{font-size:clamp(8px,.7vw,10px)}
+   #overlayContent:not(.survive-overlay) .tile[data-metric-key="elapsedTime"] b{font-size:clamp(14px,1.65vw,25px)}
    #overlayContent.survive-overlay{display:block!important;box-sizing:border-box;background:#102a2d!important;border:2px solid #35c96b;border-radius:8px;padding:10px 16px!important}#overlayContent.survive-overlay.survive-danger{background:#493221!important;border-color:#ff9b31}#overlayContent.survive-overlay.survive-critical{background:#541d2a!important;border-color:#f04452}#overlayContent.survive-overlay #overlayTop,#overlayContent.survive-overlay #overlayMetrics,#overlayContent.survive-overlay #overlayChart{display:none!important}#surviveHud{height:100%;display:flex;flex-direction:column;justify-content:space-around;gap:5px;color:white;font-family:system-ui}.survive-hud-head,.survive-hud-main,.survive-hud-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px}.survive-hud-head{font-size:12px;color:#a8e9cb}.survive-hud-main strong{font-size:clamp(15px,2.4vw,26px)}.survive-hud-main b{font-size:clamp(25px,4vw,42px);color:#ffb09c;white-space:nowrap}.survive-hud-track{height:13px;border-radius:9px;background:#15202d;overflow:hidden}.survive-hud-track i{display:block;height:100%;background:#35c96b}.survive-hud-bottom{font-size:11px;font-weight:800;flex-wrap:wrap}#overlayContent.survive-overlay.survive-critical .survive-hud-track i{background:#f04452}
    @media(max-width:800px){.tile b{font-size:17px}.tile small{font-size:9px}#overlayTop strong{font-size:9px}}
   </style>`;
@@ -1654,28 +1658,30 @@ function publishDesktopOverlay(){
    const values:Record<string,string>={distance:snapshot.distance,totalGain:snapshot.totalGain,remaining:snapshot.remaining,grade:snapshot.grade,elapsedTime:snapshot.elapsedTime,speed:snapshot.speed,power:snapshot.power??'—',beersEarned:snapshot.beersEarned,caloriesBurned:snapshot.caloriesBurned,cadence:snapshot.cadence===null?'—':String(snapshot.cadence),heartRate:snapshot.heartRate,gear:drivetrainMode==='virtual'?String(snapshot.gear):'—'};
    for(const key of [...Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(t=>t.dataset.metricKey||''),...overlayOrder,...OVERLAY_METRICS.map(([k])=>k)].filter((k,i,a)=>a.indexOf(k)===i)){const metric=OVERLAY_METRICS.find(([k])=>k===key);if(!metric||(!selectedOverlayMetrics.includes(key as OverlayMetricKey)&&!['power','heartRate','elapsedTime','distance'].includes(key)))continue;const name=metric[1];const tile=oldTiles.get(key)||doc.createElement('div');tile.replaceChildren();tile.draggable=true;tile.dataset.metricKey=key;tile.className='tile';const val=doc.createElement('b');val.textContent=values[key];const title=doc.createElement('small');title.textContent=name;tile.append(val,title);metrics.append(tile);}
    Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).forEach(tile=>{if(!selectedOverlayMetrics.includes(tile.dataset.metricKey as OverlayMetricKey)&&!['power','heartRate','elapsedTime','distance'].includes(tile.dataset.metricKey||''))tile.remove();});
-   // Compact: two legible metrics per side of the central elevation profile. Expanded: retain
-   // the rider's existing metric selection, with up to eight visible.
-   const compactKeys=['power','heartRate','elapsedTime','distance'];
+   // Compact: four tiles left, three right, and an uninterrupted central profile.
+   // Elapsed time spans both right columns so its digits never clip.
+   const compactKeys=['gear','speed','power','cadence','heartRate','totalGain','elapsedTime'];
+   const compactPositions:Record<string,[string,string]>={
+    gear:['1','2'],speed:['2','2'],power:['1','3'],cadence:['2','3'],
+    heartRate:['4','2'],totalGain:['5','2'],elapsedTime:['4 / span 2','3']
+   };
    const expanded=doc.body.classList.contains('expanded');
+   for(const key of compactKeys){
+    if(metrics.querySelector('[data-metric-key="'+key+'"]'))continue;
+    const metric=OVERLAY_METRICS.find(([k])=>k===key);
+    if(!metric)continue;
+    const tile=doc.createElement('div');tile.className='tile';tile.dataset.metricKey=key;
+    const val=doc.createElement('b');val.textContent=values[key]??'—';
+    const title=doc.createElement('small');title.textContent=metric[1];
+    tile.append(val,title);metrics.append(tile);
+   }
    const tiles=Array.from(metrics.querySelectorAll<HTMLElement>('.tile'));
    for(const tile of tiles){
-    const key=tile.dataset.metricKey||'';
-    const index=compactKeys.indexOf(key);
-    tile.style.display=expanded?(tiles.indexOf(tile)<8?'flex':'none'):(index>=0?'flex':'none');
-    tile.style.gridColumn=expanded?String(1+tiles.indexOf(tile)%4):(index<2?'1':'3');
-    tile.style.gridRow=expanded?String(2+Math.floor(tiles.indexOf(tile)/4)):String(2+(index<2?index:index-2)*2);if(!expanded)tile.style.gridRow+=' / span 2';
+    const key=tile.dataset.metricKey||'',position=compactPositions[key],index=tiles.indexOf(tile);
+    tile.style.display=expanded?(index<8?'flex':'none'):(position?'flex':'none');
+    tile.style.gridColumn=expanded?String(1+index%4):(position?.[0]||'auto');
+    tile.style.gridRow=expanded?String(2+Math.floor(index/4)):(position?.[1]||'auto');
     tile.style.removeProperty('order');
-   }
-   // Compact metrics must be present even if older overlay preferences excluded them.
-   if(!expanded){
-    for(const key of compactKeys){
-     if(metrics.querySelector('[data-metric-key="'+key+'"]'))continue;
-     const tile=doc.createElement('div');tile.className='tile';tile.dataset.metricKey=key;
-     const val=doc.createElement('b');val.textContent=values[key];
-     const title=doc.createElement('small');title.textContent=({distance:'DISTANCE',grade:'GRADE',elapsedTime:'TIME',speed:'MPH',power:'WATTS',cadence:'RPM',heartRate:'BPM',gear:'GEAR'} as Record<string,string>)[key];
-     tile.append(val,title);tile.style.gridColumn=compactKeys.indexOf(key)<2?'1':'3';tile.style.gridRow=String(2+(compactKeys.indexOf(key)%2)*2)+' / span 2';metrics.append(tile);
-    }
    }
 
   }
