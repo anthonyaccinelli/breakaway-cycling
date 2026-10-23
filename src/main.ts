@@ -1700,6 +1700,8 @@ function publishDesktopOverlay(){
   selectedMetrics:selectedOverlayMetrics,
   progress:endless?0:(max?Math.min(1,distance/max):0),
   detailChart:overlayProfiles?.detailChart||'',
+  profileStart:overlayProfiles?.profileStart??0,
+  profileStop:overlayProfiles?.profileStop??1,
   detailLabel:overlayProfiles?.detailLabel||'',
   climbComplete:Date.now()<climbAwardUntil,
   endless,
