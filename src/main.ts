@@ -1754,7 +1754,7 @@ const surviveGameHud=document.createElement('section');
 surviveGameHud.id='surviveGameHud';
 surviveGameHud.className='survive-game-hud';
 surviveGameHud.hidden=true;
-surviveGameHud.innerHTML='<div class="survive-game-top"><strong>☣ SURVIVE</strong><span id="surviveGameState">PREPARE</span><span id="surviveGameTheme">ZOMBIES · WAVE 1</span><button id="surviveGameEnd" type="button">END SURVIVE</button></div><div class="survive-game-metrics"><div><small>YOU MPH</small><strong id="surviveGameYou">—</strong></div><div class="survive-game-gap"><small>GAP</small><strong id="surviveGameGap">100 m</strong></div><div><small>THREAT MPH</small><strong id="surviveGameThreat">—</strong></div></div><div class="survive-game-clock"><span id="surviveGameClockLabel">CHASE BEGINS IN</span><strong id="surviveGameClock">2:00</strong><span id="surviveGameMessage">GET READY</span></div><div class="survive-game-bottom"><span>POWER <b id="surviveGamePower">—</b> W</span><span>GEAR <b id="surviveGameGear">—</b></span><span>HEART RATE <b id="surviveGameHR">—</b> BPM</span><span>DISTANCE <b id="surviveGameDistance">0.00</b> MI</span><span>ASCENT <b id="surviveGameAscent">0</b> FT</span></div>';
+surviveGameHud.innerHTML='<div class="survive-game-top"><strong>☣ SURVIVE</strong><span id="surviveGameState">PREPARE</span><span id="surviveGameTheme">ZOMBIES · WAVE 1</span><button id="surviveGameEnd" type="button">END SURVIVE</button></div><div class="survive-game-metrics"><div><small>YOU MPH</small><strong id="surviveGameYou">—</strong></div><div class="survive-game-gap"><small id="surviveGameGapLabel">GAP · STEADY</small><strong id="surviveGameGap">100 m</strong></div><div><small>THREAT MPH</small><strong id="surviveGameThreat">—</strong></div></div><div class="survive-game-clock"><span id="surviveGameClockLabel">CHASE BEGINS IN</span><strong id="surviveGameClock">2:00</strong><span id="surviveGameMessage">GET READY</span></div><div class="survive-game-bottom"><span>POWER <b id="surviveGamePower">—</b> W</span><span>GEAR <b id="surviveGameGear">—</b></span><span>HEART RATE <b id="surviveGameHR">—</b> BPM</span><span>DISTANCE <b id="surviveGameDistance">0.00</b> MI</span><span>ASCENT <b id="surviveGameAscent">0</b> FT</span></div>';
 surviveGameHud.querySelector('#surviveGameEnd')!.addEventListener('click',()=>surviveEnd());
 const gameSet=(id:string,value:string)=>{const el=surviveGameHud.querySelector('#'+id);if(el&&el.textContent!==value)el.textContent=value;};
 const surviveFailScreen=document.createElement('div');
@@ -1825,6 +1825,30 @@ function surviveUpdateProfileThreat(){
  marker.setAttribute('cy',String(h-pad-(overviewAt(pos).elevation-min)/range*(h-2*pad)));
  marker.setAttribute('opacity',surviveEnemyDistance<start?'0.55':'1');
 }
+let surviveGapHistory:{t:number;gap:number}[]=[];
+let surviveGapTrend:'steady'|'closing'|'extending'='steady';
+function surviveGapDirection(now:number){
+ if(!surviveOn||survivePrepRemaining>0){surviveGapHistory=[];surviveGapTrend='steady';return surviveGapTrend;}
+ if(!surviveGapHistory.length||now-surviveGapHistory[surviveGapHistory.length-1].t>=200){
+  surviveGapHistory.push({t:now,gap:surviveGap});
+  while(surviveGapHistory.length>2&&now-surviveGapHistory[0].t>5000)surviveGapHistory.shift();
+ }
+ const first=surviveGapHistory[0];
+ const elapsed=(now-first.t)/1000;
+ if(elapsed<2)return surviveGapTrend;
+ const rate=(surviveGap-first.gap)/elapsed;
+ if(surviveGapTrend==='steady'){
+  if(rate>0.7)surviveGapTrend='extending';
+  else if(rate< -0.7)surviveGapTrend='closing';
+ }else if(surviveGapTrend==='extending'){
+  if(rate< -0.7)surviveGapTrend='closing';
+  else if(rate<0.3)surviveGapTrend='steady';
+ }else{
+  if(rate>0.7)surviveGapTrend='extending';
+  else if(rate> -0.3)surviveGapTrend='steady';
+ }
+ return surviveGapTrend;
+}
 function surviveRender(){const c=surviveData();
  const gameActive=surviveOn;
  const rideScreen=document.getElementById('screenRide');
@@ -1833,6 +1857,9 @@ function surviveRender(){const c=surviveData();
  if(gameActive){
   surviveGameHud.classList.toggle('is-chase',c.phase==='CHASE');
   surviveGameHud.classList.toggle('is-critical',c.gap<25&&!c.warming);
+  const gapDirection=surviveGapDirection(performance.now());
+  surviveGameHud.dataset.gapTrend=gapDirection;
+  gameSet('surviveGameGapLabel',gapDirection==='closing'?'GAP · CLOSING':gapDirection==='extending'?'GAP · PULLING AWAY':'GAP · STEADY');
   gameSet('surviveGameState',c.phase==='RECOVER'?'RECOVER & PREPARE':c.phase);
   gameSet('surviveGameTheme',c.theme+' · WAVE '+c.wave);
   gameSet('surviveGameYou',c.you.toFixed(1));
