@@ -287,22 +287,18 @@ let stationarySince=0;let stationaryPromptShown=false;
 const STOP_SPEED_MPS=0.15; // About 0.34 mph; power alone must never trigger a stop.
 function closeStationaryPrompt(){document.getElementById('stationaryRidePrompt')?.remove();}
 function showStationaryPrompt(){
- if(!running||!rideStart||rideEnd||stationaryPromptShown)return;
- stationaryPromptShown=true;pauseRide();
- const overlay=document.createElement('div');overlay.id='stationaryRidePrompt';overlay.className='stationary-ride-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','stationaryRideTitle');
- overlay.innerHTML='<div class="stationary-ride-dialog"><h2 id="stationaryRideTitle">Ride paused</h2><p>You have been stationary for 10 seconds. Would you like to continue riding or finish your ride?</p><div class="stationary-ride-actions"><button type="button" id="stationaryContinue">Continue riding</button><button type="button" class="secondary" id="stationaryFinish">Finish ride</button></div></div>';
- document.body.append(overlay);
- overlay.querySelector<HTMLButtonElement>('#stationaryContinue')!.onclick=()=>{closeStationaryPrompt();stationarySince=0;stationaryPromptShown=false;beginRide();};
- overlay.querySelector<HTMLButtonElement>('#stationaryFinish')!.onclick=()=>{closeStationaryPrompt();finishRide();};
- overlay.querySelector<HTMLButtonElement>('#stationaryContinue')!.focus();
+ if(!running||!rideStart||rideEnd)return;
+ // Pausing is non-modal: rider can resume with the button or by pedaling.
+ stationaryPromptShown=true;
+ pauseRide();
+ status('Ride paused after 30 seconds stationary. Pedal for 3 seconds or select Resume ride.');
 }
 function checkStationaryRide(now:number){
  if(!running||!connected||!realTelemetry||!rideStart||rideEnd){stationarySince=0;return;}
- if(speed>STOP_SPEED_MPS){stationarySince=0;return;}
+ if(speed>STOP_SPEED_MPS||cadence>=20||power>=15){stationarySince=0;return;}
  if(!stationarySince)stationarySince=now;
- if(now-stationarySince>=10000)showStationaryPrompt();
+ if(now-stationarySince>=30000)showStationaryPrompt();
 }
-
 
 let avgPowerEnergy=0, avgPowerDuration=0;
 function showRideSummary(){
@@ -907,7 +903,7 @@ function parseBikeData(v:DataView){
  // Advance distance from actual trainer notifications even when Chrome throttles background animation frames.
  advanceRide(performance.now());
  // Require sustained pedaling to avoid starting from a single noisy cadence packet.
- if(rideAwaitingPedaling&&!running&&!rideEnd&&!document.getElementById('stationaryRidePrompt')&&breakawayScreen==='ride'&&points.length&&connected&&controlGranted&&(cadence>=20||power>=15)){if(!pedalSince)pedalSince=Date.now();if(Date.now()-pedalSince>=500){pedalSince=0;beginRide();}}else if(!running)pedalSince=0;
+ if(rideAwaitingPedaling&&!running&&!rideEnd&&!document.getElementById('stationaryRidePrompt')&&breakawayScreen==='ride'&&points.length&&connected&&controlGranted&&(cadence>=20||power>=15)){if(!pedalSince)pedalSince=Date.now();if(Date.now()-pedalSince>=3000){pedalSince=0;beginRide();}}else if(!running)pedalSince=0;
  update();
 }
 function shift(delta:number){if(drivetrainMode!=='virtual')return;gear=Math.max(1,Math.min(24,gear+delta));update();if(trainerMode==='erg')void setVirtualGearResistance();else if(trainerMode==='sim'&&running)void updateSimResistance(performance.now(),true);}
