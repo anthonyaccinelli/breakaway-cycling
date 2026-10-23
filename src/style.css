@@ -909,3 +909,113 @@ body[data-breakaway-screen="route"] #screenRoute #endlessRoute .endless-symbol{
   font-weight:800!important;
  }
 }
+
+/* Phase 1: three equal device tiles on top; two settings panels below. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles{
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:12px!important;
+ flex:none!important;
+ margin:6px 0 10px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile{
+ display:flex!important;
+ flex-direction:column!important;
+ align-items:stretch!important;
+ justify-content:center!important;
+ text-align:center!important;
+ aspect-ratio:1.8/1!important;
+ min-height:120px!important;
+ margin:0!important;
+ padding:12px!important;
+ background:#fff!important;
+ border:1px solid #cbd4ef!important;
+ border-radius:12px!important;
+ color:#253b7a!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile h3{
+ font-size:clamp(17px,1.5vw,23px)!important;
+ margin:0 0 10px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile .device-button-row{
+ display:flex!important;
+ justify-content:center!important;
+ flex-wrap:wrap!important;
+ gap:5px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile .device-button-row button:not(.secondary){
+ background:#455da7!important;
+ color:#fff!important;
+ min-height:40px!important;
+ font-size:15px!important;
+ font-weight:700!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile p.note{
+ font-size:12px!important;
+ margin:6px 0 0!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row{
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:start!important;
+ gap:12px!important;
+ min-height:0!important;
+ flex:1 1 auto!important;
+ overflow:hidden!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings,
+body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.ride-shifting-column{
+ min-width:0!important;
+ min-height:0!important;
+ max-height:100%!important;
+ overflow:auto!important;
+ scrollbar-width:thin!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings{
+ background:#fff!important;
+ border:1px solid #cbd4ef!important;
+ border-radius:10px!important;
+ color:#253b7a!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings>summary{
+ padding:12px!important;
+ font-weight:800!important;
+ cursor:pointer!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row #drivetrainSection{
+ margin:0!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details{
+ flex:none!important;
+ margin:4px 0!important;
+ color:#fff!important;
+ font-size:12px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>summary{
+ cursor:pointer!important;
+ font-weight:600!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details[open]{
+ max-height:25vh!important;
+ overflow-y:auto!important;
+}
+@media(max-width:850px){
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles{
+  gap:6px!important;
+ }
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile{
+  min-height:100px!important;
+  padding:6px!important;
+ }
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile h3{
+  font-size:13px!important;
+ }
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile .device-button-row button{
+  font-size:11px!important;
+  padding:5px!important;
+ }
+ body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row{
+  grid-template-columns:1fr!important;
+  overflow:auto!important;
+ }
+}
