@@ -1669,3 +1669,48 @@ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard{
   padding-bottom:12px!important;
  }
 }
+
+/* Viewport containment fix: size the ride workspace from remaining flex space,
+   not a guessed viewport offset. Includes header, navigation and bottom border. */
+body[data-breakaway-screen="ride"] main{
+ display:flex!important;
+ flex-direction:column!important;
+ height:100dvh!important;
+ max-height:100dvh!important;
+ min-height:0!important;
+ box-sizing:border-box!important;
+ overflow:hidden!important;
+ padding-bottom:16px!important;
+}
+body[data-breakaway-screen="ride"] main>h1,
+body[data-breakaway-screen="ride"] main>.screen-progress{
+ flex:0 0 auto!important;
+}
+body[data-breakaway-screen="ride"] main>.ride-workspace{
+ flex:1 1 0!important;
+ height:auto!important;
+ max-height:none!important;
+ min-height:0!important;
+ margin:0!important;
+ padding:0!important;
+ overflow:hidden!important;
+ box-sizing:border-box!important;
+}
+body[data-breakaway-screen="ride"] #screenRide{
+ display:flex!important;
+ flex-direction:column!important;
+ flex:1 1 auto!important;
+ height:100%!important;
+ max-height:100%!important;
+ min-height:0!important;
+ margin:0!important;
+ padding:12px!important;
+ box-sizing:border-box!important;
+ overflow:hidden!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
+ flex:1 1 0!important;
+ height:auto!important;
+ min-height:0!important;
+ overflow:hidden!important;
+}
