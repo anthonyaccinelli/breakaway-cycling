@@ -2231,6 +2231,9 @@ function initClassicUi(){
  const toggle=document.getElementById('classicToggle') as HTMLInputElement|null;
  if(!toggle)return;
  toggle.addEventListener('change',()=>setClassicMode(toggle.checked));
+ // Keep the checkbox and sensor panel synchronized after browser form restoration.
+ toggle.checked=classicMode;
+ (document.getElementById('classicPanel') as HTMLElement).hidden=!classicMode;
  (document.getElementById('classicSensor') as HTMLSelectElement).addEventListener('change',e=>{
   if(running){(e.target as HTMLSelectElement).value=classicSensorMode;classicMessage('Pause or finish the ride before changing sensors.');return;}
   classicSensorMode=(e.target as HTMLSelectElement).value as ClassicMode;
