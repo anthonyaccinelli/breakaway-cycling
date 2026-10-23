@@ -763,3 +763,18 @@ body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{overscr
  body[data-breakaway-screen="route"] #screenRoute .route-quick-action-row .quick-preset-button{min-height:36px!important;padding-top:5px!important;padding-bottom:5px!important;}
  body[data-breakaway-screen="route"] #screenRoute .route-tip{display:none!important;}
 }
+
+/* Primary ride action: green signals go / ready to ride. */
+#screenRoute .route-quick-action-row #enjoyRide{
+ background:#22a65a!important;
+ background-image:none!important;
+ border:1px solid #168247!important;
+ color:#ffffff!important;
+ box-shadow:0 2px 0 rgba(7,74,39,.22)!important;
+}
+#screenRoute .route-quick-action-row #enjoyRide:hover,
+#screenRoute .route-quick-action-row #enjoyRide:focus-visible{
+ background:#18894a!important;
+ border-color:#116b3a!important;
+ color:#ffffff!important;
+}
