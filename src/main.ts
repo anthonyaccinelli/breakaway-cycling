@@ -1751,6 +1751,12 @@ const originalProfile=document.getElementById('profileSection')!;
 const originalDashboard=document.querySelector<HTMLElement>('.ride-dashboard')!;
 const originalConnections=document.querySelector<HTMLElement>('.connection-strip')!;
 const workspace=document.getElementById('rideWorkspace')!;
+// Keep navigation inside Route Studio on Create Route, and restore it on other screens.
+const rideStepNav=document.querySelector<HTMLElement>('.screen-progress')!;
+const rideStepNavHome=document.createComment('ride-step-navigation-home');
+rideStepNav.before(rideStepNavHome);
+const routeStudioHeader=originalRouteStudio.querySelector<HTMLElement>('.route-studio-header') || originalRouteStudio.querySelector<HTMLElement>('.route-studio-heading') || originalRouteStudio.querySelector<HTMLElement>('.route-panel-heading');
+if(routeStudioHeader)routeStudioHeader.append(rideStepNav);
 const screenRoute=document.createElement('section');screenRoute.id='screenRoute';screenRoute.className='breakaway-screen';
 const screenSetup=document.createElement('section');screenSetup.id='screenSetup';screenSetup.className='breakaway-screen';
 const screenRide=document.createElement('section');screenRide.id='screenRide';screenRide.className='breakaway-screen';
@@ -2174,6 +2180,8 @@ function updateSetupReadiness(){
 }
 function showBreakawayScreen(screen:BreakawayScreen){
  breakawayScreen=screen;
+ if(screen==='route'&&routeStudioHeader)routeStudioHeader.append(rideStepNav);
+ else rideStepNavHome.parentNode?.insertBefore(rideStepNav,rideStepNavHome.nextSibling);
  document.body.dataset.breakawayScreen=screen;
  screenRoute.hidden=screen!=='route';
  screenSetup.hidden=screen!=='setup';
