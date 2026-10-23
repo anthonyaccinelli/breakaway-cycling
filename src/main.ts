@@ -1856,17 +1856,12 @@ if(setupLayout&&setupDevices&&setupShifting){
  const tiles=document.createElement('div');
  tiles.className='setup-device-tiles';
  const deviceCards=Array.from(setupDevices.querySelectorAll<HTMLElement>(':scope > .device-connect-card'));
- const deviceExtras=document.createElement('div');
- deviceExtras.className='setup-device-extras';
  for(const [index,card] of deviceCards.entries()){
   card.classList.add('setup-device-tile');
   const heading=card.querySelector('h3');
-  if(heading)heading.remove();
+  if(heading)heading.textContent=['Connect Trainer','HRM','Zwift Click'][index]||heading.textContent;
   const connect=card.querySelector<HTMLButtonElement>('.device-button-row button:not(.secondary)');
-  if(connect)connect.textContent=['Connect Trainer','HRM','Zwift Click'][index]||connect.textContent;
-  // Keep the entire square as the action. Secondary controls live below.
-  for(const secondary of Array.from(card.querySelectorAll<HTMLButtonElement>('button.secondary')))deviceExtras.append(secondary);
-  for(const statusLine of Array.from(card.querySelectorAll<HTMLElement>('p.note')))deviceExtras.append(statusLine);
+  if(connect)connect.textContent=['Connect Trainer','Connect HRM','Connect Zwift Click'][index]||connect.textContent;
   tiles.append(card);
  }
  setupLayout.before(tiles);
@@ -1882,7 +1877,7 @@ if(setupLayout&&setupDevices&&setupShifting){
  utilityDetails.className='setup-utility-details';
  const utilitySummary=document.createElement('summary');
  utilitySummary.textContent='Bluetooth & session options';
- utilityDetails.append(utilitySummary,deviceExtras);
+ utilityDetails.append(utilitySummary);
  while(setupDevices.firstChild)utilityDetails.append(setupDevices.firstChild);
  setupLayout.replaceWith(utilityDetails);
 }
