@@ -1370,3 +1370,17 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-secondary-options .ride-
  flex-wrap:wrap!important;
  margin:6px 0 0!important;
 }
+
+/* Shifting mode: filled blue selected, blue outline unselected. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-choices .setup-shifting-choice:not(.active){
+ background:#fff!important;
+ color:#455da7!important;
+ border:2px solid #455da7!important;
+ box-shadow:none!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-choices .setup-shifting-choice.active{
+ background:#455da7!important;
+ color:#fff!important;
+ border:2px solid #455da7!important;
+ box-shadow:none!important;
+}
