@@ -1795,3 +1795,25 @@ body[data-breakaway-screen="route"] #screenRoute .studio-scrub-readout{
 body[data-breakaway-screen="route"] #screenRoute .route-studio-live-heading{
  flex:0 0 auto!important;margin-bottom:2px!important;
 }
+
+/* Route preview viewport: allow the profile to shrink and reserve a bottom
+   readout line, rather than clipping it at shorter desktop window heights. */
+body[data-breakaway-screen="route"] #screenRoute .route-studio-grid{
+ grid-template-rows:max-content minmax(0,1fr)!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .route-studio-live-preview{
+ height:auto!important;max-height:100%!important;min-height:0!important;
+ display:grid!important;grid-template-rows:auto auto minmax(0,1fr) auto!important;
+ overflow:hidden!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .route-studio-live-heading{
+ grid-row:1!important;min-height:0!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .studio-live-chart{
+ grid-row:3!important;min-height:0!important;height:auto!important;
+ max-height:100%!important;overflow:hidden!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .studio-scrub-readout{
+ grid-row:4!important;min-height:24px!important;overflow:visible!important;
+ margin:0!important;
+}
