@@ -746,3 +746,20 @@ body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{overscr
  #screenRoute .route-quick-action-row .quick-preset-bar{flex-basis:100%!important;}
  #screenRoute .route-quick-action-row #enjoyRide{flex:1 1 100%!important;min-width:0!important;}
 }
+
+/* Route Studio fit pass: the primary CTA and presets must never be cut off.
+   Reclaim vertical space from decoration, not from accessible controls. */
+@media(min-width:901px) and (min-height:650px){
+ body[data-breakaway-screen="route"] #screenRoute .route-builder{padding-top:7px!important;padding-bottom:7px!important;overflow-y:auto!important;}
+ body[data-breakaway-screen="route"] #screenRoute .route-panel-heading{margin-top:0!important;margin-bottom:2px!important;}
+ body[data-breakaway-screen="route"] #screenRoute .route-fields{margin-top:5px!important;margin-bottom:7px!important;gap:9px!important;}
+ body[data-breakaway-screen="route"] #screenRoute .route-fields label{margin-bottom:0!important;}
+ body[data-breakaway-screen="route"] #screenRoute .route-fields input,
+ body[data-breakaway-screen="route"] #screenRoute .route-fields select{min-height:36px!important;padding-top:5px!important;padding-bottom:5px!important;}
+ body[data-breakaway-screen="route"] #screenRoute .route-actions{margin-top:5px!important;margin-bottom:5px!important;gap:9px!important;}
+ body[data-breakaway-screen="route"] #screenRoute .route-actions button{min-height:36px!important;padding:6px 10px!important;}
+ body[data-breakaway-screen="route"] #screenRoute .route-quick-action-row{margin-top:3px!important;min-height:36px!important;}
+ body[data-breakaway-screen="route"] #screenRoute .route-quick-action-row #enjoyRide,
+ body[data-breakaway-screen="route"] #screenRoute .route-quick-action-row .quick-preset-button{min-height:36px!important;padding-top:5px!important;padding-bottom:5px!important;}
+ body[data-breakaway-screen="route"] #screenRoute .route-tip{display:none!important;}
+}
