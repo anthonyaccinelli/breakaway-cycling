@@ -2098,13 +2098,12 @@ function showBreakawayScreen(screen:BreakawayScreen){
 function enterRideScreen(){
  stopRideCountdown();
  if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
+ // Start the ride from the Connect Trainer action itself. FTMS power and
+ // cadence notifications will advance the ride when the rider pedals.
  showBreakawayScreen('ride');
- rideAwaitingPedaling=!running&&!rideEnd;
+ rideAwaitingPedaling=false;
  pedalSince=0;
- if(rideAwaitingPedaling){
-  $('start').textContent='Waiting for pedaling…';
-  status('Start pedaling to begin your ride automatically.');
- }
+ if(!running&&!rideEnd)beginRide();
 }
 // Pairing never navigates away automatically; the rider chooses when to start.
 function checkAutomaticRideCountdown(){updateSetupReadiness();}
