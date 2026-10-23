@@ -1684,6 +1684,19 @@ const screenRide=document.createElement('section');screenRide.id='screenRide';sc
 const rideHeading=document.createElement('div');rideHeading.className='ride-screen-header';rideHeading.innerHTML='<strong>YOUR RIDE</strong><div class="ride-screen-actions"><button id="backToSetup" class="secondary" type="button">← Devices</button><button id="backToStudio" class="secondary" type="button">Route Studio</button></div>';
 const rideView=document.createElement('div');rideView.className='ride-screen-content';
 rideView.append(originalProfile,originalDashboard);
+// Surface the existing live gear readout directly beneath heart rate.
+const liveHeartRate=originalDashboard.querySelector<HTMLElement>('#heartRate');
+const existingGear=originalDashboard.querySelector<HTMLElement>('#gear');
+const heartRateMetric=liveHeartRate?.closest<HTMLElement>('.metric');
+if(heartRateMetric&&existingGear){
+ const gearMetric=document.createElement('div');
+ gearMetric.className='metric ride-virtual-gear-metric';
+ const gearLabel=document.createElement('small');
+ gearLabel.textContent='Virtual gear';
+ gearMetric.append(existingGear,gearLabel);
+ heartRateMetric.insertAdjacentElement('afterend',gearMetric);
+}
+
 screenRide.append(rideHeading,rideView);
 // Route Studio needs its own live profile: the interactive original belongs to the ride screen.
 const routePreviewPanel=document.createElement('section');
