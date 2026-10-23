@@ -1628,28 +1628,6 @@ body[data-breakaway-screen="ride"] #screenRide .ride-screen-header{
 body[data-breakaway-screen="ride"] #screenRide .ride-screen-header>strong{
  margin-right:0!important;
 }
-body[data-breakaway-screen="ride"] #screenRide .ride-state-badge{
- display:inline-flex;
- align-items:center;
- justify-content:center;
- min-width:62px;
- padding:4px 10px;
- border-radius:999px;
- font-size:12px;
- font-weight:800;
- line-height:1.2;
- color:#2d447c;
- background:#e6ecfa;
-}
-body[data-breakaway-screen="ride"] #screenRide .ride-state-badge[data-state="riding"]{
- background:#d8f4e3;color:#146c3b;
-}
-body[data-breakaway-screen="ride"] #screenRide .ride-state-badge[data-state="paused"]{
- background:#fff0c7;color:#8b5800;
-}
-body[data-breakaway-screen="ride"] #screenRide .ride-state-badge[data-state="finished"]{
- background:#e8e9f0;color:#525d78;
-}
 @media(max-height:780px){
  body[data-breakaway-screen="ride"] main>.ride-workspace{
   height:calc(100dvh - 130px)!important;
@@ -1658,5 +1636,36 @@ body[data-breakaway-screen="ride"] #screenRide .ride-state-badge[data-state="fin
  }
  body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
   grid-template-rows:minmax(0,60fr) minmax(0,40fr)!important;
+ }
+}
+
+/* Fit the complete white dashboard panel and its rounded lower border on screen.
+   The dashboard's existing eight compact readouts keep their width and height. */
+body[data-breakaway-screen="ride"] main>.ride-workspace{
+ height:calc(100dvh - 165px)!important;
+ max-height:calc(100dvh - 165px)!important;
+ padding-bottom:16px!important;
+ box-sizing:border-box!important;
+}
+body[data-breakaway-screen="ride"] #screenRide{
+ height:100%!important;
+ min-height:0!important;
+ overflow:hidden!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
+ grid-template-rows:minmax(0,60fr) minmax(0,40fr)!important;
+ min-height:0!important;
+ overflow:hidden!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard{
+ min-height:0!important;
+ overflow:hidden!important;
+ box-sizing:border-box!important;
+}
+@media(max-height:780px){
+ body[data-breakaway-screen="ride"] main>.ride-workspace{
+  height:calc(100dvh - 158px)!important;
+  max-height:calc(100dvh - 158px)!important;
+  padding-bottom:12px!important;
  }
 }
