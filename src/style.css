@@ -1104,3 +1104,28 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>h3{
  color:#fff!important;
  font-size:14px!important;
 }
+
+/* Rider settings must grow to fit their contents, never scroll in a nested pane. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row{
+ flex:0 0 auto!important;
+ min-height:min-content!important;
+ height:auto!important;
+ overflow:visible!important;
+ align-items:start!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings,
+body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.ride-shifting-column{
+ height:auto!important;
+ max-height:none!important;
+ min-height:0!important;
+ overflow:visible!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row .setup-rider-settings{
+ height:auto!important;
+ max-height:none!important;
+ overflow:visible!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .connection-strip{
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+}
