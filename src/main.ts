@@ -1,6 +1,9 @@
 import './style.css';
+import {createClient} from '@supabase/supabase-js';
+import {startRiderPresence, type RiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
 
+const riderPresence: RiderPresence|null=startRiderPresence(createClient, document.getElementById('liveRidersCount'), document.getElementById('liveRiders'));
 type Point = {distance:number; elevation:number; grade:number};
 type BLEDevice = any;
 const FTMS='00001826-0000-1000-8000-00805f9b34fb';
@@ -354,8 +357,8 @@ function confirmManualFinish(){
  overlay.querySelector<HTMLButtonElement>('#manualConfirmFinish')!.onclick=()=>{overlay.remove();finishRide();};
  overlay.querySelector<HTMLButtonElement>('#manualKeepRiding')!.focus();
 }
-function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!connected||!controlGranted||!realTelemetry)return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();void command([0x07]);if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
-function pauseRide(){if(!running)return;rideAwaitingPedaling=breakawayScreen==='ride'&&!rideEnd;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
+function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!connected||!controlGranted||!realTelemetry)return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;void riderPresence?.setRiding(true);setRideFocus(true);showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();void command([0x07]);if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
+function pauseRide(){if(!running)return;rideAwaitingPedaling=breakawayScreen==='ride'&&!rideEnd;running=false;void riderPresence?.setRiding(false);lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
 function finishRide(){
  closeStationaryPrompt();stationarySince=0;
  if(!rideStart||rideEnd)return;
@@ -2201,3 +2204,4 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('pagehide',saveRideRecovery);
 // All ride UI and handlers are initialized by this point.
 offerRideRecovery();
+
