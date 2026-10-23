@@ -972,6 +972,7 @@ function tick(now:number){
  // Advance the ride and SURVIVE timers together; the chase countdown must be ticked every frame.
  advanceRide(now);
  surviveTick(now);
+ surviveFailTick(now);
  requestAnimationFrame(tick);
 }
 $('gpx').addEventListener('change',async e=>{try{const file=(e.target as HTMLInputElement).files?.[0];if(!file)return;if(rideStart&&!rideEnd)finishRide();procedural=false;endless=false;zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;routeLimit=0;plannedGainFeet=null;gainScale=1;resetClimbingTotals();clearElevationEditor();points=parseGPX(await file.text());routeName=file.name;rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();svg();update();requestAnimationFrame(()=>syncStudioRoutePreview());status(`Loaded ${file.name}: ${(points.at(-1)!.distance/METERS_PER_MILE).toFixed(1)} mi`);}catch(err){status(String(err));}});
@@ -1755,11 +1756,26 @@ surviveFailScreen.hidden=true;
 surviveFailScreen.setAttribute('role','dialog');
 surviveFailScreen.setAttribute('aria-modal','true');
 surviveFailScreen.setAttribute('aria-labelledby','surviveFailTitle');
-surviveFailScreen.innerHTML='<div class="survive-fail-card"><div class="survive-fail-icon">☣</div><h2 id="surviveFailTitle">YOU WERE CAUGHT</h2><p id="surviveFailTheme">THE THREAT CAUGHT YOU</p><div class="survive-fail-results"><span>WAVES SURVIVED<strong id="surviveFailWaves">0</strong></span><span>TIME SURVIVED<strong id="surviveFailTime">0:00</strong></span></div><p class="survive-fail-note">Your regular ride is still available.</p><div class="survive-fail-actions"><button type="button" id="surviveFailRetry">TRY AGAIN</button><button type="button" id="surviveFailContinue">CONTINUE RIDING</button></div></div>';
+surviveFailScreen.innerHTML='<div class="survive-fail-card"><div class="survive-fail-icon">☠</div><h2 id="surviveFailTitle">OH YOU DEAD</h2><p id="surviveFailTheme">THE THREAT CAUGHT YOU</p><div class="survive-fail-results"><span>WAVES SURVIVED<strong id="surviveFailWaves">0</strong></span><span>TIME SURVIVED<strong id="surviveFailTime">0:00</strong></span></div><p class="survive-fail-note">START PEDALING TO CONTINUE YOUR RIDE</p><p class="survive-fail-timer">Finishing ride in <strong id="surviveFailCountdown">30</strong> seconds</p><div class="survive-fail-actions"><button type="button" id="surviveFailContinue">CONTINUE RIDING</button><button type="button" id="surviveFailFinish">FINISH RIDE NOW</button></div></div>';
 document.body.append(surviveFailScreen);
-const dismissSurviveFail=()=>{surviveFailScreen.hidden=true;};
-surviveFailScreen.querySelector('#surviveFailContinue')!.addEventListener('click',dismissSurviveFail);
-surviveFailScreen.querySelector('#surviveFailRetry')!.addEventListener('click',()=>{dismissSurviveFail();(survivePanel.querySelector('#surviveStart') as HTMLButtonElement).click();});
+let surviveFailDeadline=0;
+let surviveFailPedalSince=0;
+const dismissSurviveFail=()=>{surviveFailScreen.hidden=true;surviveFailDeadline=0;surviveFailPedalSince=0;};
+const continueSurviveRide=()=>{dismissSurviveFail();if(!running&&connected&&controlGranted&&realTelemetry&&rideStart&&!rideEnd)beginRide();};
+const finishSurviveRide=()=>{dismissSurviveFail();if(rideStart&&!rideEnd)finishRide();};
+surviveFailScreen.querySelector('#surviveFailContinue')!.addEventListener('click',continueSurviveRide);
+surviveFailScreen.querySelector('#surviveFailFinish')!.addEventListener('click',finishSurviveRide);
+function surviveFailTick(now:number){
+ if(surviveFailScreen.hidden||!surviveFailDeadline)return;
+ // Require sustained live pedaling to prevent stale trainer readings from dismissing the screen.
+ const pedaling=connected&&realTelemetry&&(cadence>=20||power>=25);
+ if(pedaling){if(!surviveFailPedalSince)surviveFailPedalSince=now;if(now-surviveFailPedalSince>=1200){continueSurviveRide();return;}}
+ else surviveFailPedalSince=0;
+ const remaining=Math.max(0,Math.ceil((surviveFailDeadline-now)/1000));
+ const countdown=surviveFailScreen.querySelector('#surviveFailCountdown');
+ if(countdown)countdown.textContent=String(remaining);
+ if(now>=surviveFailDeadline)finishSurviveRide();
+}
 // The ride screen is created later; mount SURVIVE after its DOM exists.
 const se=(id:string)=>survivePanel.querySelector<HTMLElement>('#'+id)!;
 // A pursuer follows its own route position and obeys the same forces as the rider.
@@ -1802,7 +1818,7 @@ function surviveUpdateProfileThreat(){
  marker.setAttribute('opacity',surviveEnemyDistance<start?'0.55':'1');
 }
 function surviveRender(){const c=surviveData();surviveUpdateProfileThreat();survivePanel.classList.toggle('danger',surviveOn&&surviveGap<65);survivePanel.classList.toggle('critical',surviveOn&&surviveGap<25);se('surviveHudMain').hidden=!(surviveOn||surviveCaught);se('surviveStatus').textContent=surviveCaught?'CAUGHT':surviveOn?(c.warming?'WARM-UP':surviveTheme):'READY';se('surviveWave').textContent=String(c.wave);se('surviveGap').textContent=c.warming?'—':c.gap+' m';se('surviveYouMph').textContent=c.you.toFixed(1);se('surviveThreatMph').textContent=c.enemy.toFixed(1);se('survivePhase').textContent=c.phase==='RECOVER'?'RECOVER & PREPARE':c.phase;se('surviveCountdown').textContent=Math.floor(c.remaining/60)+':'+String(c.remaining%60).padStart(2,'0');se('surviveMessage').textContent=c.message;se('surviveRiderDot').style.left='calc(100% - 13px)';se('surviveThreatDot').style.left='calc('+Math.max(2,96-94*c.gap/(c.gap+100))+'% - 5px)';(se('surviveStart') as HTMLButtonElement).disabled=surviveOn;(se('surviveStop') as HTMLButtonElement).disabled=!surviveOn;}
-function surviveEnd(caught=false){if(!surviveOn)return;surviveOn=false;surviveCaught=caught;if(caught){const waves=Math.max(0,surviveWave-1);try{const k='breakaway-survive-beta-records',old=JSON.parse(localStorage.getItem(k)||'[]');localStorage.setItem(k,JSON.stringify([...(Array.isArray(old)?old:[]),{theme:surviveTheme,waves,duration:survivePeriod,date:new Date().toISOString()}].slice(-100)));}catch{}se('surviveRecord').textContent='CAUGHT · '+waves+' completed waves. Local record saved. Keep riding!';surviveFailScreen.querySelector('#surviveFailTheme')!.textContent=surviveTheme+' CAUGHT YOU';surviveFailScreen.querySelector('#surviveFailWaves')!.textContent=String(waves);const survivedSeconds=Math.floor(survivePeriod-60+surviveElapsed);surviveFailScreen.querySelector('#surviveFailTime')!.textContent=Math.floor(survivedSeconds/60)+':'+String(survivedSeconds%60).padStart(2,'0');surviveFailScreen.hidden=false;}else se('surviveRecord').textContent='Chase ended. Normal riding continues.';surviveRender();lastOverlayPush=0;publishDesktopOverlay();}
+function surviveEnd(caught=false){if(!surviveOn)return;surviveOn=false;surviveCaught=caught;if(caught){const waves=Math.max(0,surviveWave-1);try{const k='breakaway-survive-beta-records',old=JSON.parse(localStorage.getItem(k)||'[]');localStorage.setItem(k,JSON.stringify([...(Array.isArray(old)?old:[]),{theme:surviveTheme,waves,duration:survivePeriod,date:new Date().toISOString()}].slice(-100)));}catch{}se('surviveRecord').textContent='CAUGHT · '+waves+' completed waves. Local record saved. Keep riding!';surviveFailScreen.querySelector('#surviveFailTheme')!.textContent=surviveTheme+' CAUGHT YOU';surviveFailScreen.querySelector('#surviveFailWaves')!.textContent=String(waves);const survivedSeconds=Math.floor(survivePeriod-60+surviveElapsed);surviveFailScreen.querySelector('#surviveFailTime')!.textContent=Math.floor(survivedSeconds/60)+':'+String(survivedSeconds%60).padStart(2,'0');surviveFailScreen.hidden=false;surviveFailDeadline=performance.now()+30000;surviveFailPedalSince=0;}else se('surviveRecord').textContent='Chase ended. Normal riding continues.';surviveRender();lastOverlayPush=0;publishDesktopOverlay();}
 function surviveTick(now:number){const dt=surviveLast?Math.max(0,Math.min(1,(now-surviveLast)/1000)):0;surviveLast=now;// SURVIVE is independent of the rider's pause state: the pursuer never stops.
  if(!surviveOn)return;if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;surviveWave=1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(surviveGap<=0)surviveEnd(true);surviveRender();}
 se('surviveStart').addEventListener('click',()=>{if(!connected||!controlGranted||!realTelemetry){status('SURVIVE requires a connected smart trainer reporting live power.');return;}surviveOn=true;surviveCaught=false;surviveWarmupRemaining=0;surviveElapsed=0;surviveGap=100;surviveWave=1;surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveLast=performance.now();surviveTheme=(se('surviveTheme') as HTMLSelectElement).value;survivePeriod=Number((se('survivePeriod') as HTMLSelectElement).value)||180;survivePrepRemaining=survivePeriod-60;if(!running)beginRide();surviveRender();lastOverlayPush=0;publishDesktopOverlay();});
