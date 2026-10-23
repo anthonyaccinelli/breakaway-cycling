@@ -1843,7 +1843,7 @@ function surviveRender(){const c=surviveData();
   gameSet('surviveGameMessage',c.message);
   gameSet('surviveGamePower',threeSecondWatts()?.toFixed(0)??'—');
   gameSet('surviveGameGear',drivetrainMode==='virtual'?String(gear):'—');
-  gameSet('surviveGameHR',heartRate===null?'—':String(Math.round(heartRate)));
+  gameSet('surviveGameHR',document.getElementById('heartRate')?.textContent?.trim()||'—');
   gameSet('surviveGameDistance',(distance/METERS_PER_MILE).toFixed(2));
   gameSet('surviveGameAscent',String(Math.round(gainLossThrough(distance).gain*FEET_PER_METER)));
  }
