@@ -1,0 +1,25 @@
+name: Classic trainer beta validation
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/classic-trainer.ts'
+      - 'src/main.ts'
+      - 'index.html'
+      - 'src/style.css'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/classic-trainer-validation.yml'
+jobs:
+  web-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
