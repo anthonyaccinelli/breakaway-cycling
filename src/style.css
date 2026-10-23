@@ -1899,3 +1899,28 @@ body[data-breakaway-screen="ride"] #screenRide .ride-screen-header .ride-screen-
  body[data-breakaway-screen="setup"] #screenSetup .screen-progress .screen-step,
  body[data-breakaway-screen="ride"] #screenRide .screen-progress .screen-step{padding:7px 9px!important;font-size:12px!important;}
 }
+
+/* Align the top edge of all three screens to the same workspace baseline.
+   Route Studio's heading is a direct child of its framed studio; setup's
+   integrated heading should not introduce a different top inset. */
+body[data-breakaway-screen="route"] #screenRoute,
+body[data-breakaway-screen="setup"] #screenSetup,
+body[data-breakaway-screen="ride"] #screenRide{
+ margin-top:0!important;padding-top:0!important;transform:none!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .route-studio,
+body[data-breakaway-screen="setup"] #screenSetup .connection-strip{
+ margin-top:0!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .breakaway-integrated-step-header{
+ margin:0!important;border-radius:12px 12px 0 0!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .connection-strip{
+ border-top:0!important;border-radius:0 0 12px 12px!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .route-studio-heading,
+body[data-breakaway-screen="setup"] #screenSetup .breakaway-integrated-step-header,
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-header{
+ min-height:62px!important;height:62px!important;max-height:62px!important;
+ box-sizing:border-box!important;align-content:center!important;
+}
