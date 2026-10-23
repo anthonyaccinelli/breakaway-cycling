@@ -1192,3 +1192,17 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-devi
 body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row button:not(.secondary){
  min-height:54px!important;
 }
+
+/* Keep connection cards single-height: disconnect controls are hidden from setup. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row button.secondary{
+ display:none!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile{
+ overflow:visible!important;
+ height:auto!important;
+ min-height:146px!important;
+ max-height:none!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row{
+ overflow:visible!important;
+}
