@@ -1969,3 +1969,16 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 .survive-beta .survive-stats{margin-top:7px;font-size:11px}.survive-beta .survive-stats b{font-size:15px;color:#fff}
 .survive-beta .survive-track{margin:6px 0;background:#314657;border-radius:8px;height:9px;overflow:hidden}.survive-beta .survive-track i{display:block;background:#35c96b;height:100%}.survive-beta.critical .survive-track i{background:#f04452}
 .survive-beta #surviveMessage{font-size:12px;color:#ffcfbd}.survive-beta #surviveRecord{font-size:10px;color:#b8cbd9;margin:5px 0 0}
+
+/* SURVIVE: legible chase/recovery clocks, large speed readings and pursuit markers. */
+#screenRide .survive-beta .survive-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) auto auto;gap:9px;align-items:stretch}
+#screenRide .survive-beta .survive-speed-box{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px;background:#1b3445;border-radius:7px;color:#b6cddd;font-size:11px;font-weight:800;white-space:nowrap}
+#screenRide .survive-beta .survive-speed-box b{font-size:clamp(22px,2.6vw,34px);font-variant-numeric:tabular-nums;line-height:1.1;color:#fff}
+#screenRide .survive-beta .survive-countdown{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:95px;padding:6px 9px;background:#23394a;border-radius:7px}
+#screenRide .survive-beta .survive-countdown b{font-size:10px;color:#ffd6ad;white-space:nowrap}
+#screenRide .survive-beta .survive-countdown strong{font-size:clamp(24px,2.6vw,34px);color:#fff;line-height:1.1;font-variant-numeric:tabular-nums}
+#screenRide .survive-beta .survive-track{position:relative;min-height:18px;background:#172536;border-radius:12px;margin:11px 8px 7px;overflow:visible;border-top:2px solid #7894a5}
+#screenRide .survive-beta .survive-track span{position:absolute;top:-7px;width:14px;height:14px;border-radius:50%;box-shadow:0 0 0 2px #101e2e}
+#screenRide .survive-beta .survive-threat-dot{background:#f04452;transition:left .3s linear}
+#screenRide .survive-beta .survive-rider-dot{background:#ffd43b}
+@media(max-width:650px){#screenRide .survive-beta .survive-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#screenRide .survive-beta .survive-countdown{grid-column:1 / -1}}
