@@ -1619,20 +1619,30 @@ function publishDesktopOverlay(){
   const metrics=doc.getElementById('overlayMetrics');if(metrics){
    const oldTiles=new Map(Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(el=>[el.dataset.metricKey,el]));
    const values:Record<string,string>={distance:snapshot.distance,totalGain:snapshot.totalGain,remaining:snapshot.remaining,grade:snapshot.grade,elapsedTime:snapshot.elapsedTime,speed:snapshot.speed,power:snapshot.power??'—',beersEarned:snapshot.beersEarned,caloriesBurned:snapshot.caloriesBurned,cadence:snapshot.cadence===null?'—':String(snapshot.cadence),heartRate:snapshot.heartRate,gear:drivetrainMode==='virtual'?String(snapshot.gear):'—'};
-   for(const key of [...Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(t=>t.dataset.metricKey||''),...overlayOrder,...OVERLAY_METRICS.map(([k])=>k)].filter((k,i,a)=>a.indexOf(k)===i)){const metric=OVERLAY_METRICS.find(([k])=>k===key);if(!metric||!selectedOverlayMetrics.includes(key as OverlayMetricKey))continue;const name=metric[1];const tile=oldTiles.get(key)||doc.createElement('div');tile.replaceChildren();tile.draggable=true;tile.dataset.metricKey=key;tile.className='tile';const val=doc.createElement('b');val.textContent=values[key];const title=doc.createElement('small');title.textContent=name;tile.append(val,title);metrics.append(tile);}
-   Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).forEach(tile=>{if(!selectedOverlayMetrics.includes(tile.dataset.metricKey as OverlayMetricKey))tile.remove();});
-   // Side-stack readouts around the centered elevation profile. Keep the chart dominant.
-   const visible=Array.from(metrics.querySelectorAll<HTMLElement>('.tile'));
-   const perSide=Math.ceil(visible.length/2);
-   const content=doc.getElementById('overlayContent') as HTMLElement|null;
-   if(content)content.style.gridTemplateRows=`18px repeat(${Math.max(1,perSide)},minmax(0,1fr))`;
-   if(chart)chart.style.gridRow=`2 / span ${Math.max(1,perSide)}`;
-   visible.forEach((tile,i)=>{
-    const right=i>=perSide;
-    tile.style.gridColumn=right?'3':'1';
-    tile.style.gridRow=String(2+(right?i-perSide:i));
-    tile.style.display='flex';
-   });
+   for(const key of [...Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(t=>t.dataset.metricKey||''),...overlayOrder,...OVERLAY_METRICS.map(([k])=>k)].filter((k,i,a)=>a.indexOf(k)===i)){const metric=OVERLAY_METRICS.find(([k])=>k===key);if(!metric||(!selectedOverlayMetrics.includes(key as OverlayMetricKey)&&!['power','cadence','speed','heartRate','grade','gear'].includes(key)))continue;const name=metric[1];const tile=oldTiles.get(key)||doc.createElement('div');tile.replaceChildren();tile.draggable=true;tile.dataset.metricKey=key;tile.className='tile';const val=doc.createElement('b');val.textContent=values[key];const title=doc.createElement('small');title.textContent=name;tile.append(val,title);metrics.append(tile);}
+   Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).forEach(tile=>{if(!selectedOverlayMetrics.includes(tile.dataset.metricKey as OverlayMetricKey)&&!['power','cadence','speed','heartRate','grade','gear'].includes(tile.dataset.metricKey||''))tile.remove();});
+   // Compact: six prioritized live metrics across one row. Expanded: retain
+   // the rider's existing metric selection, with up to eight visible.
+   const compactKeys=['power','cadence','speed','heartRate','grade','gear'];
+   const expanded=doc.body.classList.contains('expanded');
+   const tiles=Array.from(metrics.querySelectorAll<HTMLElement>('.tile'));
+   for(const tile of tiles){
+    tile.style.removeProperty('grid-column');
+    tile.style.removeProperty('grid-row');
+    tile.style.display=expanded?(tiles.indexOf(tile)<8?'flex':'none'):(compactKeys.includes(tile.dataset.metricKey||'')?'flex':'none');
+    if(!expanded)tile.style.order=String(compactKeys.indexOf(tile.dataset.metricKey||''));
+    else tile.style.removeProperty('order');
+   }
+   // Compact metrics must be present even if older overlay preferences excluded them.
+   if(!expanded){
+    for(const key of compactKeys){
+     if(metrics.querySelector('[data-metric-key="'+key+'"]'))continue;
+     const tile=doc.createElement('div');tile.className='tile';tile.dataset.metricKey=key;
+     const val=doc.createElement('b');val.textContent=values[key];
+     const title=doc.createElement('small');title.textContent=({power:'WATTS',cadence:'RPM',speed:'MPH',heartRate:'BPM',grade:'GRADE',gear:'GEAR'} as Record<string,string>)[key];
+     tile.append(val,title);tile.style.order=String(compactKeys.indexOf(key));metrics.append(tile);
+    }
+   }
 
   }
  }
