@@ -1539,7 +1539,8 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  const clipId='breakaway-terrain-clip-'+Math.random().toString(36).slice(2,10);
  const terrain=reduced.map(p=>`${x(p.distance)},${y(p.elevation)}`).join(' ');
  const fillPath=`M ${x(start)} ${h-pad} L ${terrain.replaceAll(' ', ' L ')} L ${x(stop)} ${h-pad} Z`;
- // Fixed-width sampling keeps color changes visible on long routes.
+ // Draw each grade-colored segment as a terrain-bounded polygon rather than
+ // relying on SVG clipPath (which can fail in Document Picture-in-Picture).
  const strips=240;
  const segments=Array.from({length:strips},(_,i)=>{
   const d0=start+(stop-start)*i/strips;
@@ -1547,11 +1548,11 @@ function overlayChart(start:number,stop:number,markerDistance:number){
   const e0=overviewAt(d0).elevation;
   const e1=overviewAt(d1).elevation;
   const grade=(e1-e0)/Math.max(0.001,d1-d0)*100;
-  return `<rect x="${x(d0).toFixed(2)}" y="0" width="${(x(d1)-x(d0)+0.3).toFixed(2)}" height="${h}" fill="${gradeColor(grade)}"/>`;
+  return `<polygon points="${x(d0).toFixed(2)},${h-pad} ${x(d0).toFixed(2)},${y(e0).toFixed(2)} ${x(d1).toFixed(2)},${y(e1).toFixed(2)} ${x(d1).toFixed(2)},${h-pad}" fill="${gradeColor(grade)}"/>`;
  }).join('');
  const markerX=x(Math.max(start,Math.min(stop,markerDistance)));
  const hud=gradeHud(markerDistance<=0?displayGrade():at(markerDistance).grade);
- return `<div class="overlay-profile-graphic" style="position:relative;width:100%;overflow:hidden"><div class="overlay-profile-grade" aria-label="Current gradient" style="position:absolute;z-index:3;top:12px;left:16px;pointer-events:none;font-weight:850;line-height:1;letter-spacing:-.045em;text-shadow:0 2px 6px #061019,0 0 3px #061019;color:${hud.color};font-size:${hud.size}px">${hud.label}${climbHud(climbNow())}</div><svg viewBox="0 0 ${w} ${h}" style="display:block;width:100%;height:210px" preserveAspectRatio="none"><defs><clipPath id="${clipId}" clipPathUnits="userSpaceOnUse"><path d="${fillPath}"/></clipPath></defs><g clip-path="url(#${clipId})">${segments}</g><polyline points="${terrain}" fill="none" stroke="#e9f0f2" stroke-width="1.6" opacity=".85"/><line x1="${markerX}" x2="${markerX}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg></div>`;
+ return `<div class="overlay-profile-graphic" style="position:relative;width:100%;overflow:hidden"><div class="overlay-profile-grade" aria-label="Current gradient" style="position:absolute;z-index:3;top:12px;left:16px;pointer-events:none;font-weight:850;line-height:1;letter-spacing:-.045em;text-shadow:0 2px 6px #061019,0 0 3px #061019;color:${hud.color};font-size:${hud.size}px">${hud.label}${climbHud(climbNow())}</div><svg viewBox="0 0 ${w} ${h}" style="display:block;width:100%;height:210px" preserveAspectRatio="none">${segments}<polyline points="${terrain}" fill="none" stroke="#e9f0f2" stroke-width="1.6" opacity=".85"/><line x1="${markerX}" x2="${markerX}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg></div>`;
 }
 let overlayZoomFactor=[1,2,5,10].includes(Number(localStorage.getItem('breakaway-overlay-zoom')))?Number(localStorage.getItem('breakaway-overlay-zoom')):1;
 function desktopOverlayProfiles(){
