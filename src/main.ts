@@ -282,7 +282,7 @@ function rideClock(){
  return `${String(Math.floor(seconds/3600)).padStart(2,'0')}:${String(Math.floor(seconds/60)%60).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
 }
 
-let rideStart:string|null=null;let rideEnd:string|null=null;let pedalSince=0;let routeName='Virtual Ride';
+let rideStart:string|null=null;let rideEnd:string|null=null;let pedalSince=0;let rideAwaitingPedaling=false;let routeName='Virtual Ride';
 let stationarySince=0;let stationaryPromptShown=false;
 const STOP_SPEED_MPS=0.15; // About 0.34 mph; power alone must never trigger a stop.
 function closeStationaryPrompt(){document.getElementById('stationaryRidePrompt')?.remove();}
@@ -358,8 +358,8 @@ function confirmManualFinish(){
  overlay.querySelector<HTMLButtonElement>('#manualConfirmFinish')!.onclick=()=>{overlay.remove();finishRide();};
  overlay.querySelector<HTMLButtonElement>('#manualKeepRiding')!.focus();
 }
-function beginRide(){stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!connected||!controlGranted||!realTelemetry)return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();void command([0x07]);if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
-function pauseRide(){if(!running)return;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
+function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!connected||!controlGranted||!realTelemetry)return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();void command([0x07]);if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
+function pauseRide(){if(!running)return;rideAwaitingPedaling=false;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
 function finishRide(){
  closeStationaryPrompt();stationarySince=0;
  if(!rideStart||rideEnd)return;
@@ -894,7 +894,7 @@ function parseBikeData(v:DataView){
  // Advance distance from actual trainer notifications even when Chrome throttles background animation frames.
  advanceRide(performance.now());
  // Require sustained pedaling to avoid starting from a single noisy cadence packet.
- if(false&&!running&&points.length&&connected&&controlGranted&&cadence>=35&&power>=15){if(!pedalSince)pedalSince=Date.now();if(Date.now()-pedalSince>=1200)beginRide();}else if(!running)pedalSince=0;
+ if(rideAwaitingPedaling&&!running&&breakawayScreen==='ride'&&points.length&&connected&&controlGranted&&cadence>=35&&power>=15){if(!pedalSince)pedalSince=Date.now();if(Date.now()-pedalSince>=1200){rideAwaitingPedaling=false;pedalSince=0;beginRide();}}else if(!running)pedalSince=0;
  update();
 }
 function shift(delta:number){if(drivetrainMode!=='virtual')return;gear=Math.max(1,Math.min(24,gear+delta));update();if(trainerMode==='erg')void setVirtualGearResistance();else if(trainerMode==='sim'&&running)void updateSimResistance(performance.now(),true);}
@@ -2099,6 +2099,12 @@ function enterRideScreen(){
  stopRideCountdown();
  if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
  showBreakawayScreen('ride');
+ rideAwaitingPedaling=!running&&!rideEnd;
+ pedalSince=0;
+ if(rideAwaitingPedaling){
+  $('start').textContent='Waiting for pedaling…';
+  status('Start pedaling to begin your ride automatically.');
+ }
 }
 // Pairing never navigates away automatically; the rider chooses when to start.
 function checkAutomaticRideCountdown(){updateSetupReadiness();}
