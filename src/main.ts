@@ -1621,7 +1621,7 @@ function publishDesktopOverlay(){
  if(overlayWindow&&!overlayWindow.closed){
   const doc=overlayWindow.document;
   const chart=doc.getElementById('overlayChart');if(chart)chart.innerHTML=snapshot.climbComplete?'<div style="height:210px;display:grid;place-items:center;font:900 45px system-ui;color:#6cf5c9;text-align:center;text-shadow:0 3px 18px #000">⛰ CLIMB COMPLETE!</div>':snapshot.detailChart;
-  const label=doc.getElementById('overlayLabel');if(label)label.textContent=snapshot.detailLabel;
+  const label=doc.getElementById('overlayLabel');if(label)label.textContent=(running?'● RIDING · ':rideStart&&!rideEnd?'Ⅱ PAUSED · ':'')+snapshot.detailLabel;
   const metrics=doc.getElementById('overlayMetrics');if(metrics){
    const oldTiles=new Map(Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(el=>[el.dataset.metricKey,el]));
    const values:Record<string,string>={distance:snapshot.distance,totalGain:snapshot.totalGain,remaining:snapshot.remaining,grade:snapshot.grade,elapsedTime:snapshot.elapsedTime,speed:snapshot.speed,power:snapshot.power??'—',beersEarned:snapshot.beersEarned,caloriesBurned:snapshot.caloriesBurned,cadence:snapshot.cadence===null?'—':String(snapshot.cadence),heartRate:snapshot.heartRate,gear:drivetrainMode==='virtual'?String(snapshot.gear):'—'};
@@ -1873,7 +1873,7 @@ function syncStudioRoutePreview(){
  routePreviewPanel.querySelector('#studioDifficulty')!.textContent=routeMiles>0?difficulty:'—';
  const minutes=routeMiles>0?Math.round(routeMiles/15*60):0;
  routePreviewPanel.querySelector('#studioEstimatedTime')!.textContent=routeMiles>0?Math.floor(minutes/60)+'h '+String(minutes%60).padStart(2,'0')+'m @ 15 mph':'—';
- const steepest=points.length?Math.max(0,...points.map(p=>p.grade)):0;
+ let steepest=0;for(const point of points)if(point.grade>steepest)steepest=point.grade;
  routePreviewPanel.querySelector('#studioSteepestGrade')!.textContent=points.length?steepest.toFixed(1)+'%':'—';
 }
 const studioChartObserver=new MutationObserver(()=>{
