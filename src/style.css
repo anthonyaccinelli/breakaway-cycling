@@ -1305,3 +1305,68 @@ body[data-breakaway-screen="setup"] #screenSetup #drivetrainHelp{
 body[data-breakaway-screen="setup"] #screenSetup #virtualShiftingSettings[hidden]{
  display:none!important;
 }
+
+/* Ready-to-ride CTA and minimal Bluetooth controls. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-next{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:12px!important;
+ flex-wrap:wrap!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup #goToRide:not(:disabled){
+ background:#22a65a!important;
+ border-color:#22a65a!important;
+ color:#fff!important;
+ font-weight:800!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup #goToRide:disabled{
+ opacity:.75!important;
+ cursor:not-allowed!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup #setupReadiness{
+ font-size:13px!important;
+ font-weight:600!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details{
+ display:flex!important;
+ flex-direction:column!important;
+ gap:5px!important;
+ overflow:visible!important;
+ max-height:none!important;
+ padding:8px 12px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>.bluetooth-auto{
+ display:flex!important;
+ align-items:center!important;
+ flex-wrap:wrap!important;
+ gap:8px!important;
+ margin:0!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>.bluetooth-auto label{
+ display:flex!important;
+ align-items:center!important;
+ gap:7px!important;
+ margin:0!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>.bluetooth-auto #autoBleStatus{
+ margin:0!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-secondary-options{
+ margin:2px 0 0!important;
+ font-size:12px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-secondary-options>summary{
+ cursor:pointer!important;
+ font-weight:650!important;
+ color:#d3ddf1!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-secondary-options[open]{
+ padding:4px 0!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-secondary-options .ride-session-actions{
+ display:flex!important;
+ gap:8px!important;
+ flex-wrap:wrap!important;
+ margin:6px 0 0!important;
+}
