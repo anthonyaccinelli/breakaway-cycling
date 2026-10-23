@@ -7,6 +7,7 @@ const FTMS='00001826-0000-1000-8000-00805f9b34fb';
 const CONTROL='00002ad9-0000-1000-8000-00805f9b34fb';
 const STATUS='00002ada-0000-1000-8000-00805f9b34fb';
 const BIKE='00002ad2-0000-1000-8000-00805f9b34fb';
+import {parseCyclingPowerMeasurement, parseWheelRevolution, wheelSpeedMps, stepPowerSpeed, type WheelRevolution} from './classic-trainer';
 let drivetrainMode:'traditional'|'virtual'='traditional';let realTelemetry=false;let trainerMode:'sim'|'erg'|'target'='sim';let lastTarget=0;let targetErgWatts=180;let lastFixedErgCommand=0;let controlResponseWaiter:((v:DataView)=>void)|null=null;let controlQueue=Promise.resolve();let points:Point[]=[];let distance=0;let speed=0;let power=0;let cadence=0;let gear=12;let running=false;let last=0;let device:BLEDevice;let control:any;let connected=false;let controlGranted=false;let pending=false;let trainerGrade=NaN;
 // Procedural routes: deterministic, streaming terrain; never allocate the entire endless route.
 type Terrain = 'flat'|'rolling'|'mountain'|'punchy';
@@ -354,8 +355,8 @@ function confirmManualFinish(){
  overlay.querySelector<HTMLButtonElement>('#manualConfirmFinish')!.onclick=()=>{overlay.remove();finishRide();};
  overlay.querySelector<HTMLButtonElement>('#manualKeepRiding')!.focus();
 }
-function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!connected||!controlGranted||!realTelemetry)return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();void command([0x07]);if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
-function pauseRide(){if(!running)return;rideAwaitingPedaling=breakawayScreen==='ride'&&!rideEnd;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
+function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!trainerReadyForRide())return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();if(!classicMode)void command([0x07]);if(!classicMode&&trainerMode==='target')void setFixedErgPower(true);else if(!classicMode&&trainerMode==='erg')void setVirtualGearResistance();else if(!classicMode){resetSimController();void updateSimResistance(performance.now(),true);}status(classicMode?'Classic trainer ride started · estimated data':'Ride started');}
+function pauseRide(){if(!running)return;rideAwaitingPedaling=breakawayScreen==='ride'&&!rideEnd;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(!classicMode&&connected&&controlGranted)void command([0x08,0x02]);}
 function finishRide(){
  closeStationaryPrompt();stationarySince=0;
  if(!rideStart||rideEnd)return;
@@ -776,11 +777,11 @@ function svg(){
  $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><div class="profile-telemetry"><span class="profile-gear-readout"></span><span class="profile-hr-readout">— bpm</span></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><circle id="marker" cx="${pad}" cy="${h-pad}" r="6" fill="#ffc85c" stroke="#fff1b8" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none"/></svg>`;
  zoomDisplay();syncProfileCharts();refreshHeartRateProfile();refreshInspection();
 }
-function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
+function update(){if(classicMode){$('power').title='Estimated or sensor-measured power · classic trainer beta';$('speed').title='Virtual speed · classic trainer beta';}else{$('power').title='';$('speed').title='';}const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
  zoomDisplay();
  const liveGrade=$('profileLiveGrade');const hud=gradeHud(displayGrade());if(liveGrade){liveGrade.textContent=hud.label;liveGrade.style.color=hud.color;liveGrade.style.fontSize=hud.size+'px';liveGrade.innerHTML=hud.label+climbHud(currentClimb);}
  $('totalGain').textContent=Math.round(points.length?gainLossThrough(distance).gain*FEET_PER_METER:0).toLocaleString();
- $('distance').textContent=(distance/METERS_PER_MILE).toFixed(2);$('remaining').textContent=(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2));$('grade').textContent=p.grade.toFixed(1);$('elapsedTime').textContent=rideClock();$('beersEarned').textContent=(energyKcal/BEER_KCAL).toFixed(2);$('caloriesBurned').textContent=Math.round(energyKcal).toLocaleString();$('speed').textContent=(speed*MPH_PER_MPS).toFixed(1);$('power').textContent=threeSecondWatts()?.toFixed(0)??'—';$('cadence').textContent=realTelemetry?cadence.toFixed(0):'—';$('gear').textContent=drivetrainMode==='virtual'?String(gear):'—';
+ $('distance').textContent=(distance/METERS_PER_MILE).toFixed(2);$('remaining').textContent=(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2));$('grade').textContent=p.grade.toFixed(1);$('elapsedTime').textContent=rideClock();$('beersEarned').textContent=(energyKcal/BEER_KCAL).toFixed(2);$('caloriesBurned').textContent=Math.round(energyKcal).toLocaleString();$('speed').textContent=(speed*MPH_PER_MPS).toFixed(1);$('power').textContent=threeSecondWatts()?.toFixed(0)??'—';$('cadence').textContent=realTelemetry?cadence.toFixed(0):'—';$('gear').textContent=classicMode?'—':drivetrainMode==='virtual'?String(gear):'—';
  refreshInspection();
  updateFloatingProfile();
  refreshHeartRateProfile();
@@ -908,7 +909,8 @@ function shift(delta:number){if(drivetrainMode!=='virtual')return;gear=Math.max(
 let lastChartUpdate=0;let lastGearUpdate=0;
 function advanceRide(now:number){
  const dt=Math.max(0,Math.min(3,(now-last)/1000||0));last=now;
- if(running&&points.length&&connected&&controlGranted&&realTelemetry){
+ if(running&&points.length&&trainerReadyForRide()){
+  if(classicMode){advanceClassicRide(now,dt);return;}
   activeRideMs+=dt*1000;
   // Power measured in joules per second; estimate metabolic calories using
   // a fixed cycling efficiency. Do not accrue calories while coasting at 0 W.
@@ -1054,7 +1056,7 @@ $('applyErgWatts').addEventListener('click',()=>{
 });
 $('rideFinishNow').addEventListener('click',confirmManualFinish);
 syncManualFinishButton();
-$('start').addEventListener('click',()=>{if(running)pauseRide();else if(rideEnd){const summary=$('rideSummary');summary.hidden=false;summary.classList.add('ride-summary-fullscreen');summary.style.display='block';document.body.append(summary);status('Finish the summary to start another ride');}else if(!points.length)status('Import a GPX route or generate one first');else if(!connected||!controlGranted||!realTelemetry)status('Connect trainer first');else beginRide();});
+$('start').addEventListener('click',()=>{if(running)pauseRide();else if(rideEnd){const summary=$('rideSummary');summary.hidden=false;summary.classList.add('ride-summary-fullscreen');summary.style.display='block';document.body.append(summary);status('Finish the summary to start another ride');}else if(!points.length)status('Import a GPX route or generate one first');else if(!trainerReadyForRide())status('Connect your selected equipment first');else beginRide();});
 $('reset').addEventListener('click',()=>{if(rideStart&&!rideEnd){finishRide();return;}if(rideEnd){$('rideSummary').scrollIntoView({behavior:'smooth'});return;}distance=0;speed=0;resetRideMetrics();resetSimController();update();});
 $('finishRide').addEventListener('click',()=>finishRide());
 $('up').addEventListener('click',()=>shift(1));$('down').addEventListener('click',()=>shift(-1));
@@ -2103,7 +2105,146 @@ workspace.prepend(screenRide);
 workspace.prepend(screenSetup);
 workspace.prepend(screenRoute);
 function stopRideCountdown(){if(rideCountdownTimer!==null){window.clearInterval(rideCountdownTimer);rideCountdownTimer=null;}rideCountdownRemaining=0;}
-function trainerReadyForRide(){return connected&&controlGranted&&realTelemetry;}
+
+type ClassicMode = 'power'|'wheel'|'cadence'|'hr';
+let classicMode=false;
+let classicSensorMode:ClassicMode='cadence';
+let classicDevice:any=null,classicCharacteristic:any=null,classicLastPacket=0;
+let classicMeasuredWatts=0,classicWheelMps=0,classicRpm=0,classicHeartBpm=0;
+let classicWheelPrevious:WheelRevolution|null=null;
+let classicCrankPrevious:{revolutions:number;time:number}|null=null;
+let classicEffortWatts=150;
+let classicLastAdvance=0;
+function classicConnected(){
+ if(!classicMode)return false;
+ if(classicSensorMode==='hr')return !!hrDevice?.gatt?.connected&&classicLastPacket>0;
+ return !!classicDevice?.gatt?.connected&&classicLastPacket>0;
+}
+function classicMessage(message:string){const el=document.getElementById('classicStatus');if(el)el.textContent=message;updateSetupReadiness();}
+function setClassicMode(enabled:boolean){
+ if(running){classicMessage('Finish or pause the current ride before switching equipment.');(document.getElementById('classicToggle') as HTMLInputElement).checked=classicMode;return;}
+ if(connected&&enabled){classicMessage('Disconnect the smart trainer before enabling Classic Trainer.');(document.getElementById('classicToggle') as HTMLInputElement).checked=false;return;}
+ classicMode=enabled;
+ const panel=document.getElementById('classicPanel')!;
+ panel.hidden=!enabled;
+ document.querySelectorAll<HTMLElement>('.device-connect-card').forEach(card=>{if(card.querySelector('#connect'))card.hidden=enabled;});
+ const shift=document.getElementById('drivetrainSection');if(shift)shift.hidden=enabled;
+ if(!enabled&&classicDevice?.gatt?.connected)classicDevice.gatt.disconnect();
+ if(!enabled){classicDevice=null;classicLastPacket=0;}
+ updateSetupReadiness();
+}
+function readClassicCsc(value:DataView){
+ const now=performance.now();
+ const wheel=parseWheelRevolution(value);
+ if(wheel){
+  if(classicWheelPrevious){const v=wheelSpeedMps(classicWheelPrevious,wheel,Number((document.getElementById('classicWheelMm') as HTMLInputElement).value));if(v!==null)classicWheelMps=v;}
+  classicWheelPrevious=wheel;
+ }
+ if(value.getUint8(0)&2){
+  const o=(value.getUint8(0)&1)?7:1;
+  if(value.byteLength>=o+4){
+   const revolutions=value.getUint16(o,true),time=value.getUint16(o+2,true);
+   if(classicCrankPrevious){
+    const turns=(revolutions-classicCrankPrevious.revolutions+65536)%65536;
+    const ticks=(time-classicCrankPrevious.time+65536)%65536;
+    if(ticks>0&&turns<30)classicRpm=Math.min(200,turns*60*1024/ticks);
+   }
+   classicCrankPrevious={revolutions,time};
+  }
+ }
+ classicLastPacket=now;
+}
+async function connectClassic(){
+ const bluetooth=(navigator as any).bluetooth;
+ if(!bluetooth){classicMessage('Bluetooth requires desktop Chrome or Edge over HTTPS.');return;}
+ if(classicSensorMode==='hr'){
+  if(hrDevice?.gatt?.connected){classicLastPacket=performance.now();classicMessage('Heart rate connected · ready to ride');return;}
+  classicMessage('Use Connect heart rate monitor above, then click this button again.');return;
+ }
+ const service=classicSensorMode==='power'?'cycling_power':'cycling_speed_and_cadence';
+ const measurement=classicSensorMode==='power'?'cycling_power_measurement':'csc_measurement';
+ try{
+  const selected=await bluetooth.requestDevice({filters:[{services:[service]}]});
+  if(classicDevice?.gatt?.connected)classicDevice.gatt.disconnect();
+  classicDevice=selected;classicLastPacket=0;classicWheelPrevious=null;classicCrankPrevious=null;
+  selected.addEventListener('gattserverdisconnected',()=>{
+   if(classicDevice!==selected)return;
+   if(running){pauseRide();saveRideRecovery();}
+   classicLastPacket=0;classicMessage('Sensor disconnected · ride paused. Reconnect to resume.');
+  });
+  const server=await selected.gatt.connect();
+  const svc=await server.getPrimaryService(service);
+  classicCharacteristic=await svc.getCharacteristic(measurement);
+  classicCharacteristic.addEventListener('characteristicvaluechanged',(event:any)=>{
+   try{
+    const value=event.target.value as DataView;
+    if(classicSensorMode==='power'){classicMeasuredWatts=Math.max(0,parseCyclingPowerMeasurement(value));classicLastPacket=performance.now();}
+    else readClassicCsc(value);
+    classicMessage('Connected: '+(selected.name||'Bluetooth sensor')+' · '+(classicSensorMode==='power'?classicMeasuredWatts+' W':classicSensorMode==='wheel'?classicWheelMps.toFixed(1)+' m/s':classicRpm.toFixed(0)+' RPM'));
+   }catch(error){classicMessage('Sensor packet error: '+String(error));}
+  });
+  await classicCharacteristic.startNotifications();
+  classicMessage('Connected: '+(selected.name||'Bluetooth sensor')+' · waiting for measurements');
+ }catch(error){classicMessage('Classic sensor connection: '+String(error));}
+}
+function advanceClassicRide(now:number,dt:number){
+ const stale=now-classicLastPacket>6000;
+ if(stale&&classicSensorMode!=='hr'){pauseRide();classicMessage('No sensor readings for 6 seconds · ride paused.');return;}
+ if(classicSensorMode==='hr'){
+  const bpm=Number(($('heartRate').textContent||'').trim());
+  if(!hrDevice?.gatt?.connected||!Number.isFinite(bpm)||bpm<35){pauseRide();classicMessage('Heart rate unavailable · ride paused.');return;}
+  classicHeartBpm=bpm;
+ }
+ activeRideMs+=dt*1000;
+ if(procedural)ensureTerrain();
+ const effort=Number((document.getElementById('classicEffort') as HTMLInputElement).value)||150;
+ const previous=speed;
+ if(classicSensorMode==='power')power=stale?0:classicMeasuredWatts;
+ else if(classicSensorMode==='wheel')power=0;
+ else if(classicSensorMode==='cadence'){
+  if(stale)classicRpm=0;
+  cadence=classicRpm;
+  power=classicRpm<10?0:Math.min(350,effort*Math.max(0.3,Math.min(1.4,classicRpm/85)));
+ }else{
+  const target=Math.max(0,Math.min(350,effort*(classicHeartBpm-65)/75));
+  power+=Math.max(-15,Math.min(15,(target-power)*Math.min(1,dt/12)));
+ }
+ if(classicSensorMode==='wheel'){
+  speed=stale?0:classicWheelMps;
+ }else{
+  const steps=Math.max(1,Math.ceil(dt/0.05));
+  for(let i=0;i<steps;i++)speed=stepPowerSpeed(speed,power,at(distance).grade,dt/steps,{riderKg:weightKg('weight'),bikeKg:weightKg('bikeWeight'),crr:num('crr'),cdA:0.38,wheelCircumferenceMm:2105});
+ }
+ const limit=procedural?routeLimit:points.at(-1)!.distance;
+ distance=Math.min(limit,distance+(previous+speed)*0.5*dt);
+ if(classicSensorMode!=='wheel'){
+  const sampleTime=performance.now();
+  powerHistory.push({time:sampleTime,watts:Math.max(0,power)});
+  powerHistory=powerHistory.filter(sample=>sampleTime-sample.time<=POWER_WINDOW_MS+2000);
+  energyKcal+=Math.max(0,power)*dt/(GROSS_EFFICIENCY*4184);
+  avgPowerEnergy+=Math.max(0,power)*dt;avgPowerDuration+=dt;
+ }
+ if(procedural&&now-lastChartUpdate>5000){lastChartUpdate=now;ensureTerrain();svg();}
+ recordRideSample();update();
+ if(!endless&&distance>=limit){finishRide();status('Route complete');}
+}
+function initClassicUi(){
+ const toggle=document.getElementById('classicToggle') as HTMLInputElement|null;
+ if(!toggle)return;
+ toggle.addEventListener('change',()=>setClassicMode(toggle.checked));
+ (document.getElementById('classicSensor') as HTMLSelectElement).addEventListener('change',e=>{
+  if(running){classicMessage('Pause or finish the ride before changing sensors.');return;}
+  classicSensorMode=(e.target as HTMLSelectElement).value as ClassicMode;
+  classicLastPacket=0;
+  if(classicDevice?.gatt?.connected)classicDevice.gatt.disconnect();
+  classicDevice=null;
+  classicMessage('Choose Connect Classic Sensor to pair your device.');
+ });
+ document.getElementById('connectClassic')!.addEventListener('click',()=>void connectClassic());
+}
+initClassicUi();
+
+function trainerReadyForRide(){return classicMode?classicConnected():connected&&controlGranted&&realTelemetry;}
 function clickReadyForRide(){return !!(typeof clickDevice!=='undefined'&&clickDevice?.gatt?.connected);}
 function hrReadyForRide(){return !!(typeof hrDevice!=='undefined'&&hrDevice?.gatt?.connected);}
 const setupPairingPending:Record<string,boolean>={connect:false,connectHr:false,connectClick:false};
@@ -2144,9 +2285,9 @@ function updateSetupReadiness(){
  const ready=trainerReadyForRide();
  const button=document.getElementById('goToRide') as HTMLButtonElement;
  button.disabled=!ready;
- button.textContent=ready?'Start Riding →':'Connect Trainer to Continue';
+ button.textContent=ready?'Start Riding →':(classicMode?'Connect Classic Sensor to Continue':'Connect Trainer to Continue');
  const label=document.getElementById('setupReadiness')!;
- label.textContent=ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.';
+ label.textContent=classicMode?(ready?'✓ Classic sensor ready · virtual speed is experimental.':'Connect your selected classic sensor to continue.'):(ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.');
  refreshSetupDeviceCards();
 }
 function showBreakawayScreen(screen:BreakawayScreen){
@@ -2166,7 +2307,7 @@ function showBreakawayScreen(screen:BreakawayScreen){
 }
 function enterRideScreen(){
  stopRideCountdown();
- if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
+ if(!trainerReadyForRide()){updateSetupReadiness();status('Connect your selected equipment first');return;}
  // Start the ride from the Connect Trainer action itself. FTMS power and
  // cadence notifications will advance the ride when the rider pedals.
  showBreakawayScreen('ride');
