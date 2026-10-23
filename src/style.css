@@ -1560,3 +1560,18 @@ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric small{
   font-size:clamp(16px,3.6vw,29px)!important;
  }
 }
+
+/* Give the compact eight-card dashboard breathing room at the viewport bottom. */
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{
+ flex:0 1 auto!important;
+ height:calc(100% - 38px)!important;
+ max-height:calc(100% - 38px)!important;
+ align-content:stretch!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{
+ padding-top:1px!important;
+ padding-bottom:1px!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard{
+ padding-bottom:12px!important;
+}
