@@ -781,7 +781,7 @@ function update(){if(classicMode){$('power').title='Estimated or sensor-measured
  zoomDisplay();
  const liveGrade=$('profileLiveGrade');const hud=gradeHud(displayGrade());if(liveGrade){liveGrade.textContent=hud.label;liveGrade.style.color=hud.color;liveGrade.style.fontSize=hud.size+'px';liveGrade.innerHTML=hud.label+climbHud(currentClimb);}
  $('totalGain').textContent=Math.round(points.length?gainLossThrough(distance).gain*FEET_PER_METER:0).toLocaleString();
- $('distance').textContent=(distance/METERS_PER_MILE).toFixed(2);$('remaining').textContent=(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2));$('grade').textContent=p.grade.toFixed(1);$('elapsedTime').textContent=rideClock();$('beersEarned').textContent=(energyKcal/BEER_KCAL).toFixed(2);$('caloriesBurned').textContent=Math.round(energyKcal).toLocaleString();$('speed').textContent=(speed*MPH_PER_MPS).toFixed(1);$('power').textContent=threeSecondWatts()?.toFixed(0)??'—';$('cadence').textContent=realTelemetry?cadence.toFixed(0):'—';$('gear').textContent=classicMode?'—':drivetrainMode==='virtual'?String(gear):'—';
+ $('distance').textContent=(distance/METERS_PER_MILE).toFixed(2);$('remaining').textContent=(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2));$('grade').textContent=p.grade.toFixed(1);$('elapsedTime').textContent=rideClock();$('beersEarned').textContent=(energyKcal/BEER_KCAL).toFixed(2);$('caloriesBurned').textContent=Math.round(energyKcal).toLocaleString();$('speed').textContent=(speed*MPH_PER_MPS).toFixed(1);$('power').textContent=classicMode?(classicSensorMode==='wheel'?'—':Math.round(power).toString()):threeSecondWatts()?.toFixed(0)??'—';$('cadence').textContent=classicMode?(classicSensorMode==='cadence'?classicRpm.toFixed(0):'—'):realTelemetry?cadence.toFixed(0):'—';$('gear').textContent=classicMode?'—':drivetrainMode==='virtual'?String(gear):'—';
  refreshInspection();
  updateFloatingProfile();
  refreshHeartRateProfile();
@@ -2114,7 +2114,6 @@ let classicMeasuredWatts=0,classicWheelMps=0,classicRpm=0,classicHeartBpm=0;
 let classicWheelPrevious:WheelRevolution|null=null;
 let classicCrankPrevious:{revolutions:number;time:number}|null=null;
 let classicEffortWatts=150;
-let classicLastAdvance=0;
 function classicConnected(){
  if(!classicMode)return false;
  if(classicSensorMode==='hr')return !!hrDevice?.gatt?.connected&&classicLastPacket>0;
@@ -2233,7 +2232,7 @@ function initClassicUi(){
  if(!toggle)return;
  toggle.addEventListener('change',()=>setClassicMode(toggle.checked));
  (document.getElementById('classicSensor') as HTMLSelectElement).addEventListener('change',e=>{
-  if(running){classicMessage('Pause or finish the ride before changing sensors.');return;}
+  if(running){(e.target as HTMLSelectElement).value=classicSensorMode;classicMessage('Pause or finish the ride before changing sensors.');return;}
   classicSensorMode=(e.target as HTMLSelectElement).value as ClassicMode;
   classicLastPacket=0;
   if(classicDevice?.gatt?.connected)classicDevice.gatt.disconnect();
