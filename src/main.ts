@@ -359,13 +359,14 @@ function confirmManualFinish(){
  overlay.querySelector<HTMLButtonElement>('#manualKeepRiding')!.focus();
 }
 function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!connected||!controlGranted||!realTelemetry)return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();void command([0x07]);if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
-function pauseRide(){if(!running)return;rideAwaitingPedaling=false;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
+function pauseRide(){if(!running)return;rideAwaitingPedaling=breakawayScreen==='ride'&&!rideEnd;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
 function finishRide(){
  closeStationaryPrompt();stationarySince=0;
  if(!rideStart||rideEnd)return;
  try{recordRideSample();}catch(error){console.warn('Could not record final ride sample',error);}
  pauseRide();setRideFocus(false);
  rideEnd=new Date().toISOString();
+ rideAwaitingPedaling=false;
  saveRideRecovery(); // Preserve final stats until archival succeeds.
  $('start').textContent='Let’s Ride!';syncManualFinishButton();
  try{showRideSummary();}
@@ -906,7 +907,7 @@ function parseBikeData(v:DataView){
  // Advance distance from actual trainer notifications even when Chrome throttles background animation frames.
  advanceRide(performance.now());
  // Require sustained pedaling to avoid starting from a single noisy cadence packet.
- if(rideAwaitingPedaling&&!running&&breakawayScreen==='ride'&&points.length&&connected&&controlGranted&&cadence>=35&&power>=15){if(!pedalSince)pedalSince=Date.now();if(Date.now()-pedalSince>=1200){rideAwaitingPedaling=false;pedalSince=0;beginRide();}}else if(!running)pedalSince=0;
+ if(rideAwaitingPedaling&&!running&&!rideEnd&&!document.getElementById('stationaryRidePrompt')&&breakawayScreen==='ride'&&points.length&&connected&&controlGranted&&(cadence>=20||power>=15)){if(!pedalSince)pedalSince=Date.now();if(Date.now()-pedalSince>=500){pedalSince=0;beginRide();}}else if(!running)pedalSince=0;
  update();
 }
 function shift(delta:number){if(drivetrainMode!=='virtual')return;gear=Math.max(1,Math.min(24,gear+delta));update();if(trainerMode==='erg')void setVirtualGearResistance();else if(trainerMode==='sim'&&running)void updateSimResistance(performance.now(),true);}
