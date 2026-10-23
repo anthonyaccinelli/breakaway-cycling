@@ -752,20 +752,6 @@ function refreshHeartRateProfile(){
  }
 }
 
-function svg(){
- const w=900,h=210,pad=12;
- const {start,max}=profileBounds();
- // Include interpolated endpoints so zoomed segments start and finish at their true elevation.
- const visible=[overviewAt(start),...overviewPoints().filter(p=>p.distance>start&&p.distance<max),overviewAt(max)];
- const elevations=visible.map(p=>p.elevation),min=Math.min(...elevations),range=Math.max(1,Math.max(...elevations)-min);
- const stride=Math.max(1,Math.ceil(visible.length/650));
- const reduced=visible.filter((_,i)=>i%stride===0);if(reduced.at(-1)!==visible.at(-1))reduced.push(visible.at(-1)!);
- const x=(d:number)=>pad+(d-start)/Math.max(1,max-start)*(w-2*pad);
- const y=(e:number)=>h-pad-(e-min)/range*(h-2*pad);
- const line=reduced.map(p=>`${x(p.distance)},${y(p.elevation)}`).join(' ');
- // Use the same grade colors in Chrome and in the floating Electron overlay.
- // A segment's grade is measured from its two endpoints, not the entire hill.
- // Smooth six-stop grade scale shared by the ride profile, HUD and floating overlay.
 const GRADE_STOPS:[number,string][]=[[-3,'#4b9be9'],[0,'#35c96b'],[3,'#d4d94b'],[6,'#ff9b31'],[9,'#f04452'],[12,'#a65cf5']];
 function gradeColor(g:number){
  if(!Number.isFinite(g))return GRADE_STOPS[1][1];
@@ -780,6 +766,21 @@ function gradeColor(g:number){
  }
  return GRADE_STOPS[GRADE_STOPS.length-1][1];
 }
+
+function svg(){
+ const w=900,h=210,pad=12;
+ const {start,max}=profileBounds();
+ // Include interpolated endpoints so zoomed segments start and finish at their true elevation.
+ const visible=[overviewAt(start),...overviewPoints().filter(p=>p.distance>start&&p.distance<max),overviewAt(max)];
+ const elevations=visible.map(p=>p.elevation),min=Math.min(...elevations),range=Math.max(1,Math.max(...elevations)-min);
+ const stride=Math.max(1,Math.ceil(visible.length/650));
+ const reduced=visible.filter((_,i)=>i%stride===0);if(reduced.at(-1)!==visible.at(-1))reduced.push(visible.at(-1)!);
+ const x=(d:number)=>pad+(d-start)/Math.max(1,max-start)*(w-2*pad);
+ const y=(e:number)=>h-pad-(e-min)/range*(h-2*pad);
+ const line=reduced.map(p=>`${x(p.distance)},${y(p.elevation)}`).join(' ');
+ // Use the same grade colors in Chrome and in the floating Electron overlay.
+ // A segment's grade is measured from its two endpoints, not the entire hill.
+
  const strips=240;
  const colored=Array.from({length:strips},(_,i)=>{
   const d0=start+(max-start)*i/strips;
