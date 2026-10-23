@@ -2085,3 +2085,40 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 #profileInspector .profile-inline-metric b{font-size:19px;line-height:1.15;color:#fff;font-weight:900;font-variant-numeric:tabular-nums}
 #profileInspector #profileBarHR{color:#ff8190}
 @media(max-width:1050px){#profileInspector .profile-inline-telemetry{flex-wrap:wrap;margin-right:0}#profileInspector .profile-inline-metric{min-width:65px;padding:4px 7px}}
+
+/* Compact the inactive SURVIVE setup into one line, giving the ride profile more room. */
+@media(min-width:900px){
+ #screenRide:not(.survive-playing)>.survive-beta:not(:has(#surviveHudMain:not([hidden]))){
+  display:flex!important;align-items:center!important;gap:18px!important;
+  min-height:0!important;max-height:none!important;height:auto!important;
+  padding:7px 14px!important;overflow:visible!important;flex-wrap:nowrap!important;
+ }
+ #screenRide:not(.survive-playing)>.survive-beta:not(:has(#surviveHudMain:not([hidden])))>header{
+  display:flex!important;flex:0 0 auto!important;gap:12px!important;align-items:center!important;
+  margin:0!important;white-space:nowrap!important
+ }
+ #screenRide:not(.survive-playing)>.survive-beta:not(:has(#surviveHudMain:not([hidden])))>.survive-controls{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  gap:12px!important;flex:1 1 auto!important;flex-wrap:nowrap!important;margin:0!important
+ }
+ #screenRide:not(.survive-playing)>.survive-beta:not(:has(#surviveHudMain:not([hidden])))>.survive-controls label{
+  white-space:nowrap!important;flex-direction:row!important;align-items:center!important
+ }
+ #screenRide:not(.survive-playing)>.survive-beta:not(:has(#surviveHudMain:not([hidden])))>#surviveRecord{display:none!important}
+ #screenRide:not(.survive-playing)>.survive-beta:not(:has(#surviveHudMain:not([hidden]))) #surviveStatus{order:10}
+ #screenRide:not(.survive-playing)>.survive-beta:not(:has(#surviveHudMain:not([hidden]))) .survive-controls button{white-space:nowrap!important}
+}
+/* Grow the riding terrain into the vertical space saved above it. */
+@media(min-width:900px){
+ body[data-breakaway-screen="ride"] #screenRide:not(.survive-playing) #profileSection{
+  flex:1.35 1 0!important;min-height:320px!important
+ }
+ body[data-breakaway-screen="ride"] #screenRide:not(.survive-playing) .ride-dashboard{
+  flex:0.85 1 0!important;min-height:155px!important
+ }
+}
+#screenRide #profileInspector .profile-inline-metric{min-width:92px!important;padding:5px 13px!important}
+#screenRide #profileInspector .profile-inline-metric small{font-size:12px!important}
+#screenRide #profileInspector .profile-inline-metric b{font-size:clamp(23px,2vw,30px)!important;line-height:1.1!important}
+#screenRide #profileInspector .profile-inline-telemetry{gap:10px!important}
+@media(max-width:899px){#screenRide #profileInspector .profile-inline-metric{min-width:65px!important;padding:4px 8px!important}}
