@@ -1510,3 +1510,53 @@ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .readout-controls
   grid-template-rows:minmax(0,48fr) minmax(0,52fr)!important;
  }
 }
+
+/* Compact eight-readout dashboard: preserve four-column widths while
+   shortening each tile and returning vertical room to the profile. */
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
+ grid-template-rows:minmax(0,63fr) minmax(0,37fr)!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard{
+ padding:5px 10px!important;
+ gap:0!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard>h2{
+ margin:0 0 2px!important;
+ line-height:1.1!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .readout-controls{
+ margin:0 0 3px!important;
+ line-height:1!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;
+ gap:4px 7px!important;
+ flex:1 1 auto!important;
+ min-height:0!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{
+ height:100%!important;
+ max-height:100%!important;
+ min-height:0!important;
+ padding:2px 7px!important;
+ gap:0!important;
+ justify-content:center!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric b{
+ font-size:clamp(18px,min(2.5vw,3.6vh),34px)!important;
+ line-height:1!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric small{
+ font-size:clamp(9px,.75vw,11px)!important;
+ line-height:1.1!important;
+ margin-top:2px!important;
+}
+@media(max-width:800px){
+ body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
+  grid-template-rows:minmax(0,58fr) minmax(0,42fr)!important;
+ }
+ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric b{
+  font-size:clamp(16px,3.6vw,29px)!important;
+ }
+}
