@@ -1087,14 +1087,14 @@ async function connectHrDevice(selected:any){
   if(hrDevice?.id===selected.id&&hrDevice.gatt?.connected)return;
   if(hrDevice?.gatt?.connected)hrDevice.gatt.disconnect();
   hrDevice=selected;
-  selected.addEventListener('gattserverdisconnected',()=>{if(hrDevice===selected){$('heartRate').textContent='—';hrMessage('Heart rate monitor disconnected');}});
+  selected.addEventListener('gattserverdisconnected',()=>{if(hrDevice===selected){$('heartRate').textContent='—';hrMessage('Heart rate monitor disconnected');if(classicMode&&classicSensorMode==='hr')updateSetupReadiness();}});
   const server=await selected.gatt.connect();
   const service=await server.getPrimaryService(HR_SERVICE);
   hrCharacteristic=await service.getCharacteristic(HR_MEASUREMENT);
-  hrHandler=(event:any)=>{try{const bpm=readHeartRate(event.target.value);$('heartRate').textContent=String(bpm);hrMessage(`Connected: ${selected.name||'Heart rate monitor'} · ${bpm} BPM`);}catch(err){hrMessage(String(err));}};
+  hrHandler=(event:any)=>{try{const bpm=readHeartRate(event.target.value);$('heartRate').textContent=String(bpm);hrMessage(`Connected: ${selected.name||'Heart rate monitor'} · ${bpm} BPM`);if(classicMode&&classicSensorMode==='hr')updateSetupReadiness();}catch(err){hrMessage(String(err));}};
   hrCharacteristic.addEventListener('characteristicvaluechanged',hrHandler);
   await hrCharacteristic.startNotifications();
-  hrMessage(`Connected: ${selected.name||'Heart rate monitor'} · waiting for BPM`);
+  hrMessage(`Connected: ${selected.name||'Heart rate monitor'} · waiting for BPM`);if(classicMode&&classicSensorMode==='hr')updateSetupReadiness();
  }catch(err){hrMessage('Heart rate connection: '+String(err));throw err;}
 }
 $('connectHr').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({filters:[{services:[HR_SERVICE]}]});pausedBleRoles.delete('hr');rememberDevice('hr',selected);await connectHrDevice(selected);}catch(err){hrMessage('Heart rate connection: '+String(err));}});
@@ -2116,7 +2116,7 @@ let classicCrankPrevious:{revolutions:number;time:number}|null=null;
 let classicEffortWatts=150;
 function classicConnected(){
  if(!classicMode)return false;
- if(classicSensorMode==='hr')return !!hrDevice?.gatt?.connected&&classicLastPacket>0;
+ if(classicSensorMode==='hr')return !!hrDevice?.gatt?.connected && Number(document.getElementById('heartRate')?.textContent)>0;
  return !!classicDevice?.gatt?.connected&&classicLastPacket>0;
 }
 function classicMessage(message:string){const el=document.getElementById('classicStatus');if(el)el.textContent=message;updateSetupReadiness();}
@@ -2130,6 +2130,7 @@ function setClassicMode(enabled:boolean){
  const shift=document.getElementById('drivetrainSection');if(shift)shift.hidden=enabled;
  if(!enabled&&classicDevice?.gatt?.connected)classicDevice.gatt.disconnect();
  if(!enabled){classicDevice=null;classicLastPacket=0;}
+ if(enabled&&classicSensorMode==='hr'&&hrDevice?.gatt?.connected)classicMessage('Heart-rate monitor connected · waiting for live BPM');
  updateSetupReadiness();
 }
 function readClassicCsc(value:DataView){
@@ -2240,7 +2241,7 @@ function initClassicUi(){
   classicLastPacket=0;
   if(classicDevice?.gatt?.connected)classicDevice.gatt.disconnect();
   classicDevice=null;
-  classicMessage('Choose Connect Classic Sensor to pair your device.');
+  classicMessage(classicSensorMode==='hr'&&hrDevice?.gatt?.connected?'Heart-rate monitor connected · ready when live BPM arrives':'Choose Connect Classic Sensor to pair your device.');
  });
  document.getElementById('connectClassic')!.addEventListener('click',()=>void connectClassic());
 }
