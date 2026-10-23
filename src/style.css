@@ -1591,3 +1591,72 @@ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{
  max-height:100%!important;
  min-height:0!important;
 }
+
+/* Ride polish: header badge clearance, fully contained viewport, and live state. */
+body[data-breakaway-screen="ride"] main>.ride-workspace{
+ height:calc(100dvh - 135px)!important;
+ max-height:calc(100dvh - 135px)!important;
+ padding-bottom:12px!important;
+ overflow:hidden!important;
+}
+body[data-breakaway-screen="ride"] #screenRide{
+ height:100%!important;
+ max-height:100%!important;
+ min-height:0!important;
+ overflow:hidden!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
+ flex:1 1 auto!important;
+ min-height:0!important;
+ overflow:hidden!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .profile-heading{
+ display:flex!important;
+ align-items:center!important;
+ min-height:34px!important;
+ margin-bottom:7px!important;
+ padding-bottom:3px!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .profile-heading .route-step{
+ align-self:center!important;
+ margin-right:9px!important;
+ flex-shrink:0!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-header{
+ gap:10px!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-header>strong{
+ margin-right:0!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-state-badge{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ min-width:62px;
+ padding:4px 10px;
+ border-radius:999px;
+ font-size:12px;
+ font-weight:800;
+ line-height:1.2;
+ color:#2d447c;
+ background:#e6ecfa;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-state-badge[data-state="riding"]{
+ background:#d8f4e3;color:#146c3b;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-state-badge[data-state="paused"]{
+ background:#fff0c7;color:#8b5800;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-state-badge[data-state="finished"]{
+ background:#e8e9f0;color:#525d78;
+}
+@media(max-height:780px){
+ body[data-breakaway-screen="ride"] main>.ride-workspace{
+  height:calc(100dvh - 130px)!important;
+  max-height:calc(100dvh - 130px)!important;
+  padding-bottom:8px!important;
+ }
+ body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
+  grid-template-rows:minmax(0,60fr) minmax(0,40fr)!important;
+ }
+}
