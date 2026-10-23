@@ -639,6 +639,18 @@ function gainLossThrough(target:number){
  }
  return {gain,loss};
 }
+function updateRiderDot(marker:Element|null,position:number){
+ if(!marker)return;
+ const {start,max}=profileBounds();
+ const visible=[overviewAt(start),...overviewPoints().filter(p=>p.distance>start&&p.distance<max),overviewAt(max)];
+ const elevations=visible.map(p=>p.elevation);
+ const min=Math.min(...elevations),range=Math.max(1,Math.max(...elevations)-min);
+ const d=Math.max(start,Math.min(max,position));
+ const x=12+(d-start)/Math.max(1,max-start)*876;
+ const y=210-12-(overviewAt(d).elevation-min)/range*(210-24);
+ marker.setAttribute('cx',x.toFixed(2));
+ marker.setAttribute('cy',y.toFixed(2));
+}
 function refreshInspection(){
  if(!points.length)return;
  const {start,max}=inspectionBounds();
@@ -654,7 +666,7 @@ function refreshInspection(){
  $('profileRouteGain').textContent=Math.round(gainLossThrough(fullLength).gain*FEET_PER_METER)+' feet';
  // During editing, the dashboard elevation readout follows the inspected terrain.
  // Dashboard shows elapsed time; elevation remains available in the profile inspector.
- const marker=$('marker');if(marker){const x=12+((d-start)/Math.max(1,max-start))*876;marker.setAttribute('x1',String(x));marker.setAttribute('x2',String(x));}
+ updateRiderDot($('marker'),distance);
 }
 $('inspectReset').addEventListener('click',()=>{inspectDistance=null;update();refreshInspection();});
 
@@ -766,7 +778,7 @@ function svg(){
   return `<rect x="${x(d0).toFixed(2)}" y="0" width="${(x(d1)-x(d0)+0.3).toFixed(2)}" height="${h}" fill="${gradeColor(grade)}"/>`;
  }).join('');
  const terrainPath=`M ${x(start)} ${h-pad} L ${line.replaceAll(' ',' L ')} L ${x(max)} ${h-pad} Z`;
- $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><g class="ride-power-trace" pointer-events="none" style="display:none"></g><text class="ride-power-label" x="884" y="78" text-anchor="end" fill="#f2f4f6" font-size="10" font-weight="800" pointer-events="none" style="display:none"></text><polyline class="ride-hr-trace" points="" fill="none" stroke="#ff5c69" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/><text class="ride-hr-label" x="884" y="13" text-anchor="end" fill="#ff6571" font-size="11" font-weight="800" pointer-events="none">— bpm</text><text class="ride-gear-label" x="884" y="29" text-anchor="end" fill="#8db6ff" font-size="11" font-weight="800" pointer-events="none" style="display:none"></text><line id="marker" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg>`;
+ $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><g class="ride-power-trace" pointer-events="none" style="display:none"></g><text class="ride-power-label" x="884" y="78" text-anchor="end" fill="#f2f4f6" font-size="10" font-weight="800" pointer-events="none" style="display:none"></text><polyline class="ride-hr-trace" points="" fill="none" stroke="#ff5c69" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/><text class="ride-hr-label" x="884" y="13" text-anchor="end" fill="#ff6571" font-size="11" font-weight="800" pointer-events="none">— bpm</text><text class="ride-gear-label" x="788" y="13" text-anchor="end" fill="#8db6ff" font-size="11" font-weight="800" pointer-events="none" style="display:none"></text><circle id="marker" cx="${pad}" cy="${h-pad}" r="6" fill="#ffc85c" stroke="#fff1b8" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none"/></svg>`;
  zoomDisplay();syncProfileCharts();refreshHeartRateProfile();refreshInspection();
 }
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
@@ -1300,7 +1312,7 @@ function updateFloatingProfile(){
  const floatingHud=$('floatLiveGrade');if(floatingHud){const hud=gradeHud(displayGrade());floatingHud.textContent=hud.label;floatingHud.style.color=hud.color;floatingHud.style.fontSize=hud.size+'px';floatingHud.innerHTML=hud.label+climbHud(climbNow());}
  $('floatElevation').textContent=Math.round(p.elevation*FEET_PER_METER)+' ft';
  if(Date.now()<climbAwardUntil){const ch=$('floatChart');ch.innerHTML='<div style="min-height:180px;display:grid;place-items:center;font:900 36px system-ui;color:#6cf5c9;text-align:center">⛰ CLIMB COMPLETE!</div>'; }else if(!$('floatMarker'))syncProfileCharts();
- const marker=$('floatMarker');if(marker){const {start,max}=profileBounds();const x=12+(Math.max(start,Math.min(max,distance))-start)/Math.max(1,max-start)*876;marker.setAttribute('x1',String(x));marker.setAttribute('x2',String(x));}
+ updateRiderDot($('floatMarker'),distance);
  publishProfile();
 }
 $('floatProfile').addEventListener('click',()=>{
@@ -1380,7 +1392,7 @@ $('popProfile').addEventListener('click',()=>{
  popout=w;
  // This window displays only route data sent by its opener, not Bluetooth controls.
  w.document.open();
- w.document.write(`<!doctype html><html><head><title>GPX Elevation Profile</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:15px system-ui;background:#0b1520;color:#e9f0f2;margin:14px}header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}b{color:#45d6aa}#plot svg{width:100%;height:240px;background:#0c1c2b;border-radius:10px}</style></head><body><header><strong>GPX Elevation Profile</strong><span id="stats">Waiting for route…</span></header><div id="plot"></div><script>window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==window.opener||e.data?.kind!=='gpx-profile')return;document.getElementById('plot').innerHTML=e.data.chart;document.getElementById('stats').textContent=e.data.distance+'  ·  '+e.data.grade+'  ·  '+e.data.elevation;const marker=document.getElementById('marker');if(marker){const x=12+e.data.progress*876;marker.setAttribute('x1',x);marker.setAttribute('x2',x);}});window.opener?.postMessage({kind:'profile-ready'},location.origin);<\/script></body></html>`);
+ w.document.write(`<!doctype html><html><head><title>GPX Elevation Profile</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:15px system-ui;background:#0b1520;color:#e9f0f2;margin:14px}header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}b{color:#45d6aa}#plot svg{width:100%;height:240px;background:#0c1c2b;border-radius:10px}</style></head><body><header><strong>GPX Elevation Profile</strong><span id="stats">Waiting for route…</span></header><div id="plot"></div><script>window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==window.opener||e.data?.kind!=='gpx-profile')return;document.getElementById('plot').innerHTML=e.data.chart;document.getElementById('stats').textContent=e.data.distance+'  ·  '+e.data.grade+'  ·  '+e.data.elevation;/* Rider dot position is included in the live profile snapshot. */});window.opener?.postMessage({kind:'profile-ready'},location.origin);<\/script></body></html>`);
  w.document.close();
  publishProfile();
 });
