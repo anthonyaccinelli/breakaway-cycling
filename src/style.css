@@ -1955,3 +1955,17 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
   grid-column:2!important;grid-row:1!important;
  }
 }
+
+
+/* SURVIVE beta – opt-in chase dashboard */
+#screenRide .survive-beta{flex:0 0 auto;box-sizing:border-box;padding:9px 14px;border-radius:10px;background:#101e2e;color:#fff;border:2px solid #35c96b;max-height:200px;overflow:auto}
+#screenRide .survive-beta.danger{background:#463020;border-color:#ff9b31}
+#screenRide .survive-beta.critical{background:#4c1c2a;border-color:#f04452}
+.survive-beta header,.survive-beta .survive-controls,.survive-beta .survive-stats{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.survive-beta header strong{font-size:15px;color:#6ce6bb;letter-spacing:.06em}.survive-beta header span{font-size:11px;font-weight:800;color:#ffc4a8}
+.survive-beta .survive-controls{justify-content:flex-start;margin-top:6px}.survive-beta label{display:flex;align-items:center;gap:6px;font-size:11px;color:#d9e6f0}
+.survive-beta select{background:#26394b;color:#fff;border:1px solid #5b7183;border-radius:5px;padding:4px}
+.survive-beta button{font-size:11px!important;padding:5px 10px!important;min-height:26px!important}
+.survive-beta .survive-stats{margin-top:7px;font-size:11px}.survive-beta .survive-stats b{font-size:15px;color:#fff}
+.survive-beta .survive-track{margin:6px 0;background:#314657;border-radius:8px;height:9px;overflow:hidden}.survive-beta .survive-track i{display:block;background:#35c96b;height:100%}.survive-beta.critical .survive-track i{background:#f04452}
+.survive-beta #surviveMessage{font-size:12px;color:#ffcfbd}.survive-beta #surviveRecord{font-size:10px;color:#b8cbd9;margin:5px 0 0}
