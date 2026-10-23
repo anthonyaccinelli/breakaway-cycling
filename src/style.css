@@ -829,19 +829,12 @@ body[data-breakaway-screen="route"] #screenRoute .route-quick-action-row .quick-
  }
 }
 
-/* Route action consistency: yellow route-generation actions, prominent infinity. */
+/* Endless route icon and layout; colors are controlled by the action hierarchy below. */
 body[data-breakaway-screen="route"] #screenRoute #endlessRoute{
- background:#ffe600!important;
- border-color:#e6cb00!important;
- color:#293e82!important;
  display:inline-flex!important;
  align-items:center!important;
  justify-content:center!important;
  gap:7px!important;
-}
-body[data-breakaway-screen="route"] #screenRoute #endlessRoute:hover,
-body[data-breakaway-screen="route"] #screenRoute #endlessRoute:focus-visible{
- background:#ffef57!important;
 }
 body[data-breakaway-screen="route"] #screenRoute #endlessRoute .endless-symbol{
  display:inline-block!important;
