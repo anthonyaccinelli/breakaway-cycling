@@ -1687,7 +1687,7 @@ function publishDesktopOverlay(){
 /* SURVIVE beta: opt-in chase; actual trainer power; no resistance manipulation. */
 let surviveWarmupRemaining=600;let surviveOn=false,surviveCaught=false,surviveElapsed=0,surviveGap=100,surviveWave=1,surviveLast=0,surviveTheme='ZOMBIES',survivePeriod=180;
 const survivePanel=document.createElement('section');survivePanel.className='survive-beta';survivePanel.innerHTML='<header><strong>☣ SURVIVE · BETA</strong><span id="surviveStatus">READY</span></header><div class="survive-controls"><label>Threat <select id="surviveTheme"><option>ZOMBIES</option><option>WOLVES</option><option>KILLER CLOWNS</option><option>POISON GAS</option></select></label><label>Wave <select id="survivePeriod"><option value="180">3 minutes</option><option value="300">5 minutes</option></select></label><button id="surviveStart">START SURVIVE</button><button id="surviveStop" disabled>END</button></div><div id="surviveHudMain" hidden><div class="survive-stats"><span>WAVE <b id="surviveWave">1</b></span><span>GAP <b id="surviveGap">100 m</b></span><span>YOU / THREAT <b id="surviveSpeeds">—</b></span><span id="survivePhase">CHASE</span></div><div class="survive-track"><i id="surviveBar"></i></div><strong id="surviveMessage">OUTRUN THE PURSUERS</strong></div><p id="surviveRecord">10-minute warm-up, then 60-second chases. Local beta records only.</p>';
-document.getElementById('screenRide')?.prepend(survivePanel);
+// The ride screen is created later; mount SURVIVE after its DOM exists.
 const se=(id:string)=>survivePanel.querySelector<HTMLElement>('#'+id)!;
 // A pursuer follows its own route position and obeys the same forces as the rider.
 // The gap is road distance (meters), not a difference between invented flat-ground speeds.
@@ -1798,6 +1798,7 @@ if(routeStudioHeader)routeStudioHeader.append(rideStepNav);
 const screenRoute=document.createElement('section');screenRoute.id='screenRoute';screenRoute.className='breakaway-screen';
 const screenSetup=document.createElement('section');screenSetup.id='screenSetup';screenSetup.className='breakaway-screen';
 const screenRide=document.createElement('section');screenRide.id='screenRide';screenRide.className='breakaway-screen';
+screenRide.prepend(survivePanel);
 const rideHeading=document.createElement('div');rideHeading.className='ride-screen-header';rideHeading.innerHTML='<strong>YOUR RIDE</strong><div class="ride-screen-actions"><button id="backToSetup" class="secondary" type="button">← Devices</button><button id="backToStudio" class="secondary" type="button">Route Studio</button></div>';
 const setupStepHeader=document.createElement('header');
 setupStepHeader.className='breakaway-integrated-step-header';
