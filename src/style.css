@@ -1384,3 +1384,94 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-choices .setup-
  border:2px solid #455da7!important;
  box-shadow:none!important;
 }
+
+
+/* Phase 1: elevation-first ride HUD. Presentation only; retain existing DOM,
+   metric IDs, trainer controls, recording and overlay behavior. */
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
+ grid-template-rows:minmax(0,60fr) minmax(0,40fr)!important;
+ gap:8px!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .route-preview{
+ padding:10px 16px!important;
+ border-radius:12px!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .route-preview #chart{
+ flex:1 1 auto!important;
+ min-height:0!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard{
+ padding:8px 12px!important;
+ border-radius:12px!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard>h2{
+ font-size:14px!important;
+ margin:0 0 5px!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{
+ display:grid!important;
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;
+ grid-auto-rows:minmax(0,1fr)!important;
+ gap:7px!important;
+ flex:1 1 auto!important;
+ height:auto!important;
+ min-height:0!important;
+ align-content:stretch!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{
+ height:auto!important;
+ max-height:none!important;
+ min-height:0!important;
+ padding:6px 8px!important;
+ border-radius:10px!important;
+ gap:3px!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric b{
+ font-size:clamp(22px,3.3vw,49px)!important;
+ line-height:1.05!important;
+ letter-spacing:-.025em!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric small{
+ font-size:clamp(10px,.9vw,13px)!important;
+ font-weight:700!important;
+ line-height:1.2!important;
+ margin:0!important;
+}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#power){order:1;background:#e1f5e9!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#cadence){order:2}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#speed){order:3}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#heartRate){order:4;background:#ffebee!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#distance){order:5}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#elapsedTime){order:6}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#totalGain){order:7}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#remaining){order:8}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric #power{color:#19834a!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric #heartRate{color:#c53c50!important}
+body.ride-focus-active[data-breakaway-screen="ride"] #screenRide .profile-editor,
+body.ride-focus-active[data-breakaway-screen="ride"] #screenRide .route-preview-help{
+ display:none!important;
+}
+@media(max-height:850px){
+ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{
+  grid-template-rows:repeat(2,minmax(0,1fr))!important;
+  grid-auto-rows:minmax(0,1fr)!important;
+ }
+ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{
+  height:auto!important;max-height:none!important;
+ }
+ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric b{
+  font-size:clamp(19px,2.7vw,36px)!important;
+ }
+}
+@media(max-width:800px){
+ body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{
+  grid-template-rows:minmax(0,55fr) minmax(0,45fr)!important;
+ }
+ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric b{
+  font-size:clamp(17px,4.5vw,30px)!important;
+ }
+ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric small{
+  font-size:10px!important;
+ }
+}
