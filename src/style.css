@@ -1206,3 +1206,66 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-devi
 body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row{
  overflow:visible!important;
 }
+
+/* Compact rider and trainer settings: three key metrics on the first row. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings{
+ padding:10px 14px!important;
+ overflow:visible!important;
+ height:auto!important;
+ max-height:none!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>h3{
+ margin:0 0 8px!important;
+ font-size:16px!important;
+ line-height:1.2!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings{
+ display:grid!important;
+ grid-template-columns:repeat(6,minmax(0,1fr))!important;
+ gap:8px 12px!important;
+ padding:0!important;
+ margin:0!important;
+ width:100%!important;
+ height:auto!important;
+ max-height:none!important;
+ overflow:visible!important;
+ border:0!important;
+ border-radius:0!important;
+ background:transparent!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings>h2{
+ display:none!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings>label{
+ grid-column:span 2!important;
+ min-width:0!important;
+ gap:3px!important;
+ font-size:12px!important;
+ line-height:1.2!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings>label:nth-of-type(n+4){
+ grid-column:span 3!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings input{
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-height:34px!important;
+ height:34px!important;
+ padding:5px 9px!important;
+ font-size:14px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings>.note{
+ grid-column:1/-1!important;
+ font-size:11px!important;
+ line-height:1.35!important;
+ margin:3px 0 0!important;
+}
+@media(max-width:1050px){
+ body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings>label,
+ body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings>label:nth-of-type(n+4){
+  grid-column:span 1!important;
+ }
+}
