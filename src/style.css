@@ -2075,3 +2075,13 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 #screenRide .survive-game-hud[data-gap-trend="steady"] .survive-game-gap{background:#343329;border-color:#c2a844}
 #screenRide .survive-game-hud[data-gap-trend="steady"] .survive-game-gap strong{color:#ffd43b!important}
 #screenRide .survive-game-hud[data-gap-trend="steady"] .survive-game-gap small{color:#ffe28b}
+
+/* Step 1: keep the ride terrain unobstructed and place live metrics in its footer. */
+#screenRide #chart .profile-live-grade,
+#screenRide #chart .profile-telemetry{display:none!important}
+#profileInspector .profile-inline-telemetry{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;flex-shrink:0;margin-right:12px}
+#profileInspector .profile-inline-metric{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding:4px 10px;min-width:76px;border:1px solid #34566c;border-radius:7px;background:#1b3446;white-space:nowrap}
+#profileInspector .profile-inline-metric small{font-size:10px;line-height:1.1;color:#a9c3d3;font-weight:850;letter-spacing:.045em}
+#profileInspector .profile-inline-metric b{font-size:19px;line-height:1.15;color:#fff;font-weight:900;font-variant-numeric:tabular-nums}
+#profileInspector #profileBarHR{color:#ff8190}
+@media(max-width:1050px){#profileInspector .profile-inline-telemetry{flex-wrap:wrap;margin-right:0}#profileInspector .profile-inline-metric{min-width:65px;padding:4px 7px}}
