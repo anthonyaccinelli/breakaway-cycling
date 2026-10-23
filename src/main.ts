@@ -746,8 +746,10 @@ function refreshHeartRateProfile(){
   const powerTrace=root.querySelector<SVGGElement>('.ride-power-trace');
   if(trace){trace.setAttribute('points',hrLine);trace.style.display=heart.length>1?'':'none';}
   if(hrLabel){hrLabel.textContent=latestHr!=null?latestHr+' bpm':'— bpm';hrLabel.style.display='';}
+  if(root.id==='chart'){const barHr=document.getElementById('profileBarHR');if(barHr)barHr.textContent=latestHr!=null?latestHr+' bpm':(($('heartRate').textContent||'—').trim()+' bpm').replace('— bpm bpm','— bpm');}
   const gearLabel=root.querySelector<HTMLElement>('.profile-gear-readout');
   if(gearLabel){gearLabel.textContent=drivetrainMode==='virtual'?'Gear '+gear:'Gear —';gearLabel.style.display=drivetrainMode==='virtual'?'':'none';}
+  if(root.id==='chart'){const barGear=document.getElementById('profileBarGear');if(barGear)barGear.textContent=drivetrainMode==='virtual'?String(gear):'—';}
   if(powerTrace){powerTrace.innerHTML=segments;powerTrace.style.display=watts.length>1?'':'none';}
  }
 }
@@ -796,7 +798,8 @@ function svg(){
 }
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
  zoomDisplay();
- const liveGrade=$('profileLiveGrade');const hud=gradeHud(displayGrade());if(liveGrade){liveGrade.textContent=hud.label;liveGrade.style.color=hud.color;liveGrade.style.fontSize=hud.size+'px';liveGrade.innerHTML=hud.label+climbHud(currentClimb);}
+ const liveGrade=$('profileLiveGrade');const hud=gradeHud(displayGrade());const barGrade=document.getElementById('profileBarGrade');if(barGrade){barGrade.textContent=hud.label;barGrade.style.color=hud.color;}
+ if(liveGrade){liveGrade.textContent=hud.label;liveGrade.style.color=hud.color;liveGrade.style.fontSize=hud.size+'px';liveGrade.innerHTML=hud.label+climbHud(currentClimb);}
  $('totalGain').textContent=Math.round(points.length?gainLossThrough(distance).gain*FEET_PER_METER:0).toLocaleString();
  $('distance').textContent=(distance/METERS_PER_MILE).toFixed(2);$('remaining').textContent=(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2));$('grade').textContent=p.grade.toFixed(1);$('elapsedTime').textContent=rideClock();$('beersEarned').textContent=(energyKcal/BEER_KCAL).toFixed(2);$('caloriesBurned').textContent=Math.round(energyKcal).toLocaleString();$('speed').textContent=(speed*MPH_PER_MPS).toFixed(1);$('power').textContent=threeSecondWatts()?.toFixed(0)??'—';$('cadence').textContent=realTelemetry?cadence.toFixed(0):'—';$('gear').textContent=drivetrainMode==='virtual'?String(gear):'—';
  refreshInspection();
