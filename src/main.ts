@@ -765,7 +765,21 @@ function svg(){
  const line=reduced.map(p=>`${x(p.distance)},${y(p.elevation)}`).join(' ');
  // Use the same grade colors in Chrome and in the floating Electron overlay.
  // A segment's grade is measured from its two endpoints, not the entire hill.
- const gradeColor=(g:number)=>g>18?'#a65cf5':g>12?'#f04452':g>6?'#ff9b31':'#35c96b';
+ // Smooth six-stop grade scale shared by the ride profile, HUD and floating overlay.
+const GRADE_STOPS:[number,string][]=[[-3,'#4b9be9'],[0,'#35c96b'],[3,'#d4d94b'],[6,'#ff9b31'],[9,'#f04452'],[12,'#a65cf5']];
+function gradeColor(g:number){
+ if(!Number.isFinite(g))return GRADE_STOPS[1][1];
+ if(g<=GRADE_STOPS[0][0])return GRADE_STOPS[0][1];
+ for(let i=1;i<GRADE_STOPS.length;i++){
+  const [end,hex]=GRADE_STOPS[i], [start,from]=GRADE_STOPS[i-1];
+  if(g<=end){
+   const t=(g-start)/(end-start);
+   const rgb=(a:string,b:string)=>Math.round(parseInt(a,16)+(parseInt(b,16)-parseInt(a,16))*t).toString(16).padStart(2,'0');
+   return '#'+rgb(from.slice(1,3),hex.slice(1,3))+rgb(from.slice(3,5),hex.slice(3,5))+rgb(from.slice(5,7),hex.slice(5,7));
+  }
+ }
+ return GRADE_STOPS[GRADE_STOPS.length-1][1];
+}
  const strips=240;
  const colored=Array.from({length:strips},(_,i)=>{
   const d0=start+(max-start)*i/strips;
@@ -1444,7 +1458,7 @@ function displayGrade(){
 }
 // Shared grade HUD: identical thresholds, colors, and sizing on dashboard and overlay.
 function gradeHud(grade:number){
- const color=grade>18?'#a65cf5':grade>12?'#f04452':grade>6?'#ff9b31':'#35c96b';
+ const color=gradeColor(grade);
  const size=Math.abs(grade)>18?44:Math.abs(grade)>12?38:Math.abs(grade)>6?32:26;
  return {color,size,label:grade.toFixed(1)+'%'};
 }
@@ -1458,10 +1472,10 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  const reduced=samples.filter((_,i)=>i%stride===0);
  if(reduced.at(-1)!==samples.at(-1))reduced.push(samples.at(-1)!);
  // Each colored vertical strip represents the grade of the segment ahead.
- // Downhills and gradients <= 6% are green by design.
+ // The full descent-to-climb palette blends continuously between grade stops.
  const x=(d:number)=>pad+(d-start)/Math.max(1,stop-start)*(w-2*pad);
  const y=(e:number)=>h-pad-(e-min)/range*(h-2*pad);
- const gradeColor=(g:number)=>g>18?'#a65cf5':g>12?'#f04452':g>6?'#ff9b31':'#35c96b';
+ // Use the shared continuous gradient palette.
  const clipId='breakaway-terrain-clip';
  const terrain=reduced.map(p=>`${x(p.distance)},${y(p.elevation)}`).join(' ');
  const fillPath=`M ${x(start)} ${h-pad} L ${terrain.replaceAll(' ', ' L ')} L ${x(stop)} ${h-pad} Z`;
