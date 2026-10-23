@@ -1986,3 +1986,17 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 /* SURVIVE GAP is the primary safety metric. */
 #screenRide .survive-beta .survive-stats>span:has(#surviveGap){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#213c48;border:1px solid #5b8b92;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:900;white-space:nowrap}
 #screenRide .survive-beta #surviveGap{font-size:clamp(30px,3.5vw,48px);font-weight:950;color:#ffd43b;line-height:1.05;font-variant-numeric:tabular-nums}
+
+/* Group gear and heart rate beside live grade at the upper-left of the ride elevation profile. */
+#chart .profile-telemetry{
+ left:clamp(112px,16vw,205px)!important;
+ right:auto!important;
+ top:9px!important;
+ justify-content:flex-start!important;
+ gap:clamp(12px,2vw,30px)!important;
+ font-size:clamp(13px,1.35vw,21px)!important;
+ max-width:calc(100% - clamp(112px,16vw,205px) - 12px);
+}
+@media(max-width:600px){
+ #chart .profile-telemetry{left:105px!important;top:9px!important;gap:10px!important;font-size:13px!important;max-width:calc(100% - 113px)}
+}
