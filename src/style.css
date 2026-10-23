@@ -1269,3 +1269,39 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup
   grid-column:span 1!important;
  }
 }
+
+/* Two-choice shifting selector; original select stays synchronized in the DOM. */
+body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-original-select{
+ display:none!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-choices{
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:8px!important;
+ margin:4px 0 9px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-choice{
+ display:block!important;
+ width:100%!important;
+ min-height:42px!important;
+ padding:8px 12px!important;
+ background:#f0f2f8!important;
+ color:#293e82!important;
+ border:2px solid #cbd4ef!important;
+ border-radius:9px!important;
+ font-weight:750!important;
+ font-size:15px!important;
+ cursor:pointer!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-choice.active{
+ background:#455da7!important;
+ color:#fff!important;
+ border-color:#455da7!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup #drivetrainHelp{
+ font-size:12px!important;
+ margin:3px 0 8px!important;
+}
+body[data-breakaway-screen="setup"] #screenSetup #virtualShiftingSettings[hidden]{
+ display:none!important;
+}
