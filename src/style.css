@@ -1035,3 +1035,41 @@ body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details[open]{
  }
 }
 
+
+/* Connect Trainer: fill the horizontal row instead of three tiny centered cards. */
+@media(min-width:851px){
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  justify-items:stretch!important;
+  gap:8px!important;
+  margin:5px 0 9px!important;
+ }
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  height:clamp(128px,15vh,172px)!important;
+  min-height:0!important;
+  aspect-ratio:auto!important;
+  padding:10px 14px!important;
+  box-sizing:border-box!important;
+ }
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile h3{
+  margin:0 0 8px!important;
+  font-size:clamp(19px,1.55vw,25px)!important;
+ }
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  width:100%!important;
+ }
+ body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row button:not(.secondary){
+  width:100%!important;
+  max-width:none!important;
+  min-height:54px!important;
+  font-size:clamp(16px,1.25vw,20px)!important;
+  margin:0!important;
+ }
+}
