@@ -2000,3 +2000,18 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 @media(max-width:600px){
  #chart .profile-telemetry{left:105px!important;top:9px!important;gap:10px!important;font-size:13px!important;max-width:calc(100% - 113px)}
 }
+
+/* SURVIVE caught state: explicit failure screen without ending the ride. */
+.survive-fail-screen[hidden]{display:none!important}
+.survive-fail-screen{position:fixed;inset:0;z-index:2147483000;background:rgba(3,9,17,.88);backdrop-filter:blur(9px);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}
+.survive-fail-card{width:min(100%,480px);background:linear-gradient(160deg,#3a1720,#141e2c 75%);border:2px solid #f04452;border-radius:18px;padding:clamp(22px,4vw,42px);box-shadow:0 24px 100px #000a;text-align:center;color:#fff;font-family:Inter,system-ui,sans-serif}
+.survive-fail-icon{font-size:48px;color:#ff6571}
+.survive-fail-card h2{font-size:clamp(28px,5vw,44px);line-height:1.05;margin:12px 0;color:#ff6571;font-weight:950}
+.survive-fail-card>p{color:#d8e2e8;font-weight:750}
+.survive-fail-results{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
+.survive-fail-results span{background:#ffffff12;border:1px solid #ffffff2a;border-radius:9px;padding:16px 8px;font-size:11px;font-weight:850;color:#b9cbd6}
+.survive-fail-results strong{display:block;font-size:34px;color:white;margin-top:6px;font-variant-numeric:tabular-nums}
+.survive-fail-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:20px}
+.survive-fail-actions button{flex:1 1 160px;min-height:46px;font-weight:900}
+#surviveFailRetry{background:#f04452;color:#fff;border:0}
+#surviveFailContinue{background:#25394a;color:#fff;border:1px solid #71899b}
