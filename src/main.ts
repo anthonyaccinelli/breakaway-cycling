@@ -2103,8 +2103,10 @@ for(const preset of quickPresets){
   if(!points.length)return;
   saveQuickRide();
   refreshQuickRide();
-  showBreakawayScreen('setup');
-  if(autoBluetoothEnabled)void reconnectRememberedBluetooth();
+  // Keep riders in Route Studio so they can inspect the generated elevation
+  // profile and summary before choosing to connect their smart trainer.
+  showBreakawayScreen('route');
+  requestAnimationFrame(()=>syncStudioRoutePreview());
  });
  quickPresetBar.append(button);
 }
