@@ -2122,3 +2122,12 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 #screenRide #profileInspector .profile-inline-metric b{font-size:clamp(23px,2vw,30px)!important;line-height:1.1!important}
 #screenRide #profileInspector .profile-inline-telemetry{gap:10px!important}
 @media(max-width:899px){#screenRide #profileInspector .profile-inline-metric{min-width:65px!important;padding:4px 8px!important}}
+
+/* Keep SURVIVE start actions clickable and show trainer prerequisites inline. */
+#screenRide .survive-beta .survive-controls{position:relative;z-index:2}
+#screenRide .survive-beta #surviveStart{pointer-events:auto!important;cursor:pointer!important}
+#screenRide .survive-beta.setup-warning #surviveStatus{color:#ffcf68!important;white-space:normal!important;font-size:12px!important}
+@media(min-width:900px){
+ #screenRide:not(.survive-playing)>.survive-beta.setup-warning>header{flex:1 1 auto!important;min-width:0!important}
+ #screenRide:not(.survive-playing)>.survive-beta.setup-warning>header #surviveStatus{margin-left:12px!important}
+}
