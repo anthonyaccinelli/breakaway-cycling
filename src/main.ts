@@ -1693,19 +1693,6 @@ const screenRide=document.createElement('section');screenRide.id='screenRide';sc
 const rideHeading=document.createElement('div');rideHeading.className='ride-screen-header';rideHeading.innerHTML='<strong>YOUR RIDE</strong><div class="ride-screen-actions"><button id="backToSetup" class="secondary" type="button">← Devices</button><button id="backToStudio" class="secondary" type="button">Route Studio</button></div>';
 const rideView=document.createElement('div');rideView.className='ride-screen-content';
 rideView.append(originalProfile,originalDashboard);
-const rideStateBadge=document.createElement('span');
-rideStateBadge.id='rideStateBadge';
-rideStateBadge.className='ride-state-badge';
-rideStateBadge.setAttribute('role','status');
-rideStateBadge.setAttribute('aria-live','polite');
-rideHeading.querySelector('strong')?.insertAdjacentElement('afterend',rideStateBadge);
-function refreshRideStateBadge(){
- const label=rideEnd?'Finished':running?'Riding':rideStart?'Paused':'Ready';
- rideStateBadge.textContent=label;
- rideStateBadge.dataset.state=label.toLowerCase();
-}
-setInterval(refreshRideStateBadge,500);
-refreshRideStateBadge();
 screenRide.append(rideHeading,rideView);
 // Route Studio needs its own live profile: the interactive original belongs to the ride screen.
 const routePreviewPanel=document.createElement('section');
