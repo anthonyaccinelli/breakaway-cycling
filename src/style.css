@@ -778,3 +778,6 @@ body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{overscr
  border-color:#116b3a!important;
  color:#ffffff!important;
 }
+
+/* Keep Quick Start label readable on the dark Route Studio background. */
+#screenRoute .route-quick-action-row .quick-preset-label{color:#ffffff!important;}
