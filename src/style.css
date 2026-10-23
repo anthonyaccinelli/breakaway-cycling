@@ -788,3 +788,21 @@ body[data-breakaway-screen="setup"] #screenSetup .ride-connection-layout{overscr
 #screenRoute .route-quick-action-row .quick-preset-label{align-self:flex-start!important;display:flex!important;align-items:center!important;height:38px!important;line-height:1!important;}
 #screenRoute .route-quick-action-row .quick-preset-button,
 #screenRoute .route-quick-action-row #enjoyRide{align-self:flex-start!important;margin-top:0!important;vertical-align:top!important;}
+
+/* Exact top-edge alignment: override older #enjoyRide margin-top rules. */
+body[data-breakaway-screen="route"] #screenRoute .route-quick-action-row > #enjoyRide{
+ margin-block-start:0!important;
+ margin-top:0!important;
+ margin-bottom:0!important;
+ position:relative!important;
+ top:0!important;
+ transform:none!important;
+ height:38px!important;
+ box-sizing:border-box!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .route-quick-action-row .quick-preset-button{
+ margin-block-start:0!important;
+ margin-top:0!important;
+ height:38px!important;
+ box-sizing:border-box!important;
+}
