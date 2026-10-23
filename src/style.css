@@ -2028,3 +2028,39 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 .survive-fail-actions{width:min(100%,600px)}
 .survive-fail-actions button{min-height:56px;font-size:15px}
 #surviveFailFinish{background:#f04452;color:#fff;border:0}
+
+/* SURVIVE full gameplay mode: no nested scrolling, no duplicate ride dashboard. */
+#screenRide .survive-game-hud[hidden]{display:none!important}
+#screenRide.survive-playing>.survive-beta,
+#screenRide.survive-playing>.ride-screen-header{display:none!important}
+#screenRide.survive-playing .ride-dashboard,
+#screenRide.survive-playing .screen-progress{display:none!important}
+#screenRide.survive-playing .ride-screen-content{display:block!important;min-height:0!important}
+#screenRide.survive-playing #profileSection{margin:0!important;min-height:0!important}
+#screenRide.survive-playing{overflow:visible!important}
+#screenRide .survive-game-hud{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;background:#0d1e2d;color:#fff;border:1px solid #32677a;border-radius:12px;padding:13px 16px;margin-bottom:10px;box-sizing:border-box;font-family:Inter,system-ui,sans-serif;overflow:visible!important;max-height:none!important}
+.survive-game-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.survive-game-top>strong{font-size:19px;color:#64e7b9;font-weight:950;letter-spacing:.025em}
+.survive-game-top>span:nth-child(2){background:#1b5c56;color:#d8fff0;border-radius:5px;padding:5px 9px;font-size:11px;font-weight:900}
+.survive-game-top>span:nth-child(3){color:#b9cddd;font-size:12px;font-weight:850;margin-right:auto}
+.survive-game-top button{background:#304558;color:#fff;border:1px solid #577083;border-radius:7px;padding:8px 13px;font-size:11px;font-weight:900}
+.survive-game-metrics{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:9px}
+.survive-game-metrics>div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 8px;border-radius:9px;background:#203a4b;min-width:0}
+.survive-game-metrics small{color:#b9cddd;font-size:11px;font-weight:850;letter-spacing:.055em}
+.survive-game-metrics strong{color:#fff;font-size:clamp(29px,4vw,54px);line-height:1.05;font-weight:950;font-variant-numeric:tabular-nums;white-space:nowrap}
+.survive-game-metrics .survive-game-gap{background:#273640;border:1px solid #b0a24b}
+.survive-game-gap strong{color:#ffd43b!important}
+.survive-game-hud.is-critical .survive-game-gap{border-color:#f04452;background:#45202a;animation:surviveGapPulse 1s ease-in-out infinite alternate}
+.survive-game-hud.is-critical .survive-game-gap strong{color:#ff6571!important}
+@keyframes surviveGapPulse{to{box-shadow:0 0 20px #f0445270}}
+.survive-game-clock{display:flex;align-items:center;justify-content:center;gap:16px;background:#183b39;border-radius:8px;padding:9px 15px;flex-wrap:wrap}
+.survive-game-clock span:first-child{font-size:13px;font-weight:900;color:#8ce7c3}
+.survive-game-clock strong{font-size:clamp(27px,3vw,41px);font-variant-numeric:tabular-nums;color:#fff}
+.survive-game-clock span:last-child{font-size:11px;font-weight:750;color:#b9d3d8}
+.survive-game-hud.is-chase .survive-game-clock{background:#4c232d}
+.survive-game-hud.is-chase .survive-game-clock span:first-child{color:#ffadb4}
+.survive-game-hud.is-chase .survive-game-top>span:nth-child(2){background:#842e40;color:#fff}
+.survive-game-bottom{display:flex;align-items:center;justify-content:space-around;gap:12px;flex-wrap:wrap;border-top:1px solid #395265;padding-top:10px}
+.survive-game-bottom span{font-size:11px;font-weight:800;color:#b7cbd7;white-space:nowrap}
+.survive-game-bottom b{color:#fff;font-size:15px;font-variant-numeric:tabular-nums}
+@media(max-width:680px){#screenRide .survive-game-hud{padding:10px;gap:7px}.survive-game-metrics{gap:5px}.survive-game-metrics strong{font-size:clamp(22px,5vw,34px)}.survive-game-metrics small{font-size:9px}.survive-game-clock{gap:8px;padding:7px}.survive-game-bottom{justify-content:center;gap:8px 15px}}
