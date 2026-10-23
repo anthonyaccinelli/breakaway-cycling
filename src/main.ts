@@ -1528,9 +1528,15 @@ if(dashboardContainer)wireReadoutSorting(dashboardContainer,'.metric',keys=>{das
 let selectedReadout:HTMLElement|null=null;
 dashboardContainer?.addEventListener('click',event=>{const card=(event.target as HTMLElement).closest<HTMLElement>('.metric');if(!card)return;if(!selectedReadout){selectedReadout=card;card.classList.add('readout-selected');return;}if(selectedReadout===card){card.classList.remove('readout-selected');selectedReadout=null;return;}const a=selectedReadout,b=card,marker=document.createElement('span');a.before(marker);b.before(a);marker.replaceWith(b);a.classList.remove('readout-selected');selectedReadout=null;dashboardOrder=Array.from(dashboardContainer!.querySelectorAll<HTMLElement>('.metric')).map(el=>el.dataset.metricKey||'');localStorage.setItem(READOUT_LAYOUT_KEY,JSON.stringify(dashboardOrder));});
 const readoutControls=document.createElement('div');
-readoutControls.className='readout-controls';
+readoutControls.className='readout-controls';readoutControls.id='rideReadoutSettings';
 readoutControls.innerHTML='<label>Readout text size <input id="readoutSize" type="range" min="24" max="56" step="2"></label><output id="readoutSizeValue"></output><span class="note">Drag tiles or select two to swap. Changes save automatically.</span>';
 dashboardContainer?.before(readoutControls);
+ const readoutToggle=document.createElement('button');
+ readoutToggle.type='button';readoutToggle.className='secondary ride-readout-toggle';
+ readoutToggle.textContent='⚙ Dashboard settings';readoutToggle.setAttribute('aria-expanded','false');
+ readoutControls.hidden=true;
+ readoutToggle.addEventListener('click',()=>{readoutControls.hidden=!readoutControls.hidden;readoutToggle.setAttribute('aria-expanded',String(!readoutControls.hidden));});
+ readoutControls.before(readoutToggle);
 const sizeInput=readoutControls.querySelector<HTMLInputElement>('#readoutSize')!;
 const sizeOutput=readoutControls.querySelector<HTMLOutputElement>('#readoutSizeValue')!;
 function applyReadoutSize(){
@@ -1730,7 +1736,7 @@ screenRide.append(rideHeading,rideView);
 // Route Studio needs its own live profile: the interactive original belongs to the ride screen.
 const routePreviewPanel=document.createElement('section');
 routePreviewPanel.className='route-studio-live-preview';
-routePreviewPanel.innerHTML='<div class="route-studio-live-heading"><div><span class="route-step">02</span><h2>Your route preview</h2></div><span class="note">Updates when you generate or edit your route</span></div><div id="studioLiveChart" class="studio-live-chart" role="img" aria-label="Generated route elevation profile"></div><div class="studio-live-stats"><span>Distance <b id="studioPreviewMiles">—</b></span><span>Elevation gain <b id="studioPreviewGain">—</b></span></div>';
+routePreviewPanel.innerHTML='<div class="route-studio-live-heading"><div><span class="route-step">02</span><h2>Your route preview</h2></div><span class="note">Updates when you generate or edit your route</span></div><div id="studioLiveChart" class="studio-live-chart" role="img" aria-label="Generated route elevation profile"></div><div class="studio-live-stats"><span>Distance <b id="studioPreviewMiles">—</b></span><span>Elevation gain <b id="studioPreviewGain">—</b></span><span>Terrain <b id="studioDifficulty">—</b></span><span>Est. time <b id="studioEstimatedTime">—</b></span><span>Steepest grade <b id="studioSteepestGrade">—</b></span></div>';
 originalRouteStudio.querySelector('.route-studio-grid')!.append(routePreviewPanel);
 const studioLiveChart=routePreviewPanel.querySelector<HTMLElement>('#studioLiveChart')!;
 const routeScrubReadout=document.createElement('div');
@@ -1860,6 +1866,15 @@ function syncStudioRoutePreview(){
  const gain=document.getElementById('profileRouteGain');
  routePreviewPanel.querySelector('#studioPreviewMiles')!.textContent=miles?.textContent||'—';
  routePreviewPanel.querySelector('#studioPreviewGain')!.textContent=gain?.textContent||'—';
+ const routeMiles=(points.at(-1)?.distance||0)/METERS_PER_MILE;
+ const routeGain=points.length?gainLossThrough(points.at(-1)!.distance).gain*FEET_PER_METER:0;
+ const gainPerMile=routeMiles>0?routeGain/routeMiles:0;
+ const difficulty=gainPerMile<35?'Flat':gainPerMile<85?'Rolling':gainPerMile<160?'Hilly':'Mountainous';
+ routePreviewPanel.querySelector('#studioDifficulty')!.textContent=routeMiles>0?difficulty:'—';
+ const minutes=routeMiles>0?Math.round(routeMiles/15*60):0;
+ routePreviewPanel.querySelector('#studioEstimatedTime')!.textContent=routeMiles>0?Math.floor(minutes/60)+'h '+String(minutes%60).padStart(2,'0')+'m @ 15 mph':'—';
+ const steepest=points.length?Math.max(0,...points.map(p=>p.grade)):0;
+ routePreviewPanel.querySelector('#studioSteepestGrade')!.textContent=points.length?steepest.toFixed(1)+'%':'—';
 }
 const studioChartObserver=new MutationObserver(()=>{
  if(studioPreviewQueued)return;
