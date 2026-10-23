@@ -1883,6 +1883,43 @@ if(setupLayout&&setupDevices&&setupShifting){
 }
 // Progressive disclosure: keep setup instructions available without occupying
 // the primary pairing viewport or silently clipping important help text.
+// Keep the original select as the source of truth for saved settings and listeners.
+// These two buttons offer a faster, clearer choice without changing shifting logic.
+const shiftingSelect=originalConnections.querySelector<HTMLSelectElement>('#drivetrainMode');
+if(shiftingSelect){
+ const shiftingLabel=shiftingSelect.closest('label');
+ if(shiftingLabel){
+  const shiftingChoices=document.createElement('div');
+  shiftingChoices.className='setup-shifting-choices';
+  shiftingChoices.setAttribute('role','group');
+  shiftingChoices.setAttribute('aria-label','How do you shift gears?');
+  const choices:[string,string][]=[['traditional','Traditional'],['virtual','Virtual']];
+  const buttons=choices.map(([value,title])=>{
+   const button=document.createElement('button');
+   button.type='button';
+   button.className='setup-shifting-choice';
+   button.textContent=title;
+   button.addEventListener('click',()=>{
+    shiftingSelect.value=value;
+    shiftingSelect.dispatchEvent(new Event('change',{bubbles:true}));
+    syncShiftingChoices();
+   });
+   shiftingChoices.append(button);
+   return button;
+  });
+  function syncShiftingChoices(){
+   for(let i=0;i<buttons.length;i++){
+    const active=shiftingSelect!.value===choices[i][0];
+    buttons[i].classList.toggle('active',active);
+    buttons[i].setAttribute('aria-pressed',String(active));
+   }
+  }
+  shiftingLabel.insertAdjacentElement('afterend',shiftingChoices);
+  shiftingLabel.classList.add('setup-shifting-original-select');
+  shiftingSelect.addEventListener('change',syncShiftingChoices);
+  syncShiftingChoices();
+ }
+}
 const drivetrainSection=originalConnections.querySelector<HTMLElement>('#drivetrainSection');
 if(drivetrainSection){
  const detailedHelp=drivetrainSection.querySelector<HTMLElement>('#virtualShiftingSettings > p.note');
