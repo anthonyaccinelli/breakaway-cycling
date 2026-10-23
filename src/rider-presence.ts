@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import type {SupabaseClient, RealtimeChannel} from '@supabase/supabase-js';
 
 export type RiderPresence={setRiding:(riding:boolean)=>Promise<void>};
