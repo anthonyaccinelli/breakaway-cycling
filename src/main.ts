@@ -1353,7 +1353,7 @@ $('nativeProfile').addEventListener('click',async()=>{
    #overlayTop strong{font-size:10px;letter-spacing:.05em;white-space:nowrap;color:#b8c9dc}
    #overlayLabel{font-size:10px;color:#c7d5e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
    #overlayActions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
-   #overlayActions button{background:#20374c;color:#e8f4ff;border:1px solid #446079;border-radius:5px;font:600 10px system-ui;padding:2px 7px;cursor:pointer}
+   #overlayActions select{background:#20374c;color:#e8f4ff;border:1px solid #446079;border-radius:5px;font:600 10px system-ui;padding:2px 4px;max-width:85px}#overlayActions button{background:#20374c;color:#e8f4ff;border:1px solid #446079;border-radius:5px;font:600 10px system-ui;padding:2px 7px;cursor:pointer}
    #overlaySettings{display:none;position:absolute;right:9px;top:26px;z-index:5;background:#20374c;padding:9px;border:1px solid #537087;border-radius:8px;box-shadow:0 6px 18px #0008}
    #overlaySettings.open{display:flex;align-items:center;gap:6px}
    #overlayOpacity{width:100px;accent-color:#45d6aa}
@@ -1369,10 +1369,13 @@ $('nativeProfile').addEventListener('click',async()=>{
    body.expanded .tile b{font-size:clamp(16px,1.8vw,26px)}
    @media(max-width:800px){.tile b{font-size:17px}.tile small{font-size:9px}#overlayTop strong{font-size:9px}}
   </style>`;
-  pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
+  pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><select id="overlayZoom" aria-label="Elevation zoom"><option value="1">Full route</option><option value="2">2×</option><option value="5">5×</option><option value="10">10×</option></select><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
   const modeButton=pip.document.getElementById('overlayMode') as HTMLButtonElement;
   const settingsButton=pip.document.getElementById('overlaySettingsToggle') as HTMLButtonElement;
   const settingsPanel=pip.document.getElementById('overlaySettings') as HTMLElement;
+  const zoomSelect=pip.document.getElementById('overlayZoom') as HTMLSelectElement;
+  zoomSelect.value=String(overlayZoomFactor);
+  zoomSelect.addEventListener('change',()=>{overlayZoomFactor=Number(zoomSelect.value)||1;try{localStorage.setItem('breakaway-overlay-zoom',String(overlayZoomFactor));}catch{}lastOverlayPush=0;publishDesktopOverlay();});
   const savedMode=localStorage.getItem('breakaway-overlay-mode')==='expanded'?'expanded':'compact';
   const setMode=(mode:'compact'|'expanded')=>{
    pip.document.body.classList.toggle('expanded',mode==='expanded');
@@ -1472,16 +1475,19 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  const hud=gradeHud(markerDistance<=0?displayGrade():at(markerDistance).grade);
  return `<div class="overlay-profile-graphic" style="position:relative;width:100%;overflow:hidden"><div class="overlay-profile-grade" aria-label="Current gradient" style="position:absolute;z-index:3;top:12px;left:16px;pointer-events:none;font-weight:850;line-height:1;letter-spacing:-.045em;text-shadow:0 2px 6px #061019,0 0 3px #061019;color:${hud.color};font-size:${hud.size}px">${hud.label}${climbHud(climbNow())}</div><svg viewBox="0 0 ${w} ${h}" style="display:block;width:100%;height:210px" preserveAspectRatio="none"><defs><clipPath id="${clipId}"><path d="${fillPath}"/></clipPath></defs><g clip-path="url(#${clipId})">${segments}</g><polyline points="${terrain}" fill="none" stroke="#e9f0f2" stroke-width="1.6" opacity=".85"/><line x1="${markerX}" x2="${markerX}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg></div>`;
 }
+let overlayZoomFactor=[1,2,5,10].includes(Number(localStorage.getItem('breakaway-overlay-zoom')))?Number(localStorage.getItem('breakaway-overlay-zoom')):1;
 function desktopOverlayProfiles(){
  const routeEnd=Math.max(1,routeEndForProfile());
  const steep=updateSteepOverlay(Date.now());
- const climb=selectedClimbIndex>=0?climbs[selectedClimbIndex]??null:null;
- // Fixed/GPX routes show the complete route by default.
- // Endless routes show the surrounding 5-mile terrain because no complete future route exists.
- const span=steep&&!climb?Math.min(routeEnd,1*METERS_PER_MILE):(endless?Math.min(routeEnd,5*METERS_PER_MILE):routeEnd);
- const start=climb?Math.max(0,climb.start-150):span>=routeEnd?0:Math.max(0,Math.min(routeEnd-span,distance-span/2));
- const stop=climb?Math.min(routeEnd,climb.end+150):Math.min(routeEnd,start+span);
- const label=climb?`${climb.category} · ${((climb.end-climb.start)/1000).toFixed(1)} KM · ${climb.meanGrade.toFixed(1)}% AVG`:steep?'STEEP CLIMB · 1 MI':endless?'TERRAIN AHEAD · 5 MI':'ENTIRE ROUTE · '+(routeEnd/METERS_PER_MILE).toFixed(1)+' MI';
+ const activeClimb=climbNow();
+ const climb=activeClimb&&distance>=activeClimb.start&&distance<activeClimb.end?activeClimb:null;
+ // An active categorized climb takes priority over manual zoom; restore the
+ // selected zoom level as soon as the rider passes the climb finish.
+ const baseSpan=endless?Math.min(routeEnd,5*METERS_PER_MILE):routeEnd;
+ const span=climb?Math.min(routeEnd,climb.end-climb.start+300):Math.min(routeEnd,baseSpan/overlayZoomFactor);
+ const start=climb?Math.max(0,climb.start-150):Math.max(0,Math.min(routeEnd-span,distance-span/2));
+ const stop=Math.min(routeEnd,start+span);
+ const label=climb?'⛰ CLIMB · '+((climb.end-distance)/METERS_PER_MILE).toFixed(2)+' MI LEFT · '+climb.meanGrade.toFixed(1)+'% AVG':(steep?'STEEP GRADE · ':'')+(overlayZoomFactor===1?'ENTIRE ROUTE':overlayZoomFactor+'× ZOOM')+' · '+(span/METERS_PER_MILE).toFixed(1)+' MI';
  return {
   detailChart:overlayChart(start,stop,distance),
   detailLabel:label,
@@ -1738,6 +1744,12 @@ const routePreviewPanel=document.createElement('section');
 routePreviewPanel.className='route-studio-live-preview';
 routePreviewPanel.innerHTML='<div class="route-studio-live-heading"><div><span class="route-step">02</span><h2>Your route preview</h2></div><span class="note">Updates when you generate or edit your route</span></div><div id="studioLiveChart" class="studio-live-chart" role="img" aria-label="Generated route elevation profile"></div><div class="studio-live-stats"><span>Distance <b id="studioPreviewMiles">—</b></span><span>Elevation gain <b id="studioPreviewGain">—</b></span><span>Terrain <b id="studioDifficulty">—</b></span><span>Est. time <b id="studioEstimatedTime">—</b></span><span>Steepest grade <b id="studioSteepestGrade">—</b></span></div>';
 originalRouteStudio.querySelector('.route-studio-grid')!.append(routePreviewPanel);
+// Route facts are mirrored next to the preview title, so they remain visible
+// even when the detailed stats strip is clipped by the no-scroll layout.
+const routeQuickFacts=document.createElement('div');routeQuickFacts.className='route-quick-facts';
+routeQuickFacts.setAttribute('aria-live','polite');
+routeQuickFacts.textContent='Generate a route to see terrain, estimated time and steepest grade';
+routePreviewPanel.querySelector('.route-studio-live-heading')!.append(routeQuickFacts);
 const studioLiveChart=routePreviewPanel.querySelector<HTMLElement>('#studioLiveChart')!;
 const routeScrubReadout=document.createElement('div');
 routeScrubReadout.className='studio-scrub-readout';
@@ -1875,6 +1887,7 @@ function syncStudioRoutePreview(){
  routePreviewPanel.querySelector('#studioEstimatedTime')!.textContent=routeMiles>0?Math.floor(minutes/60)+'h '+String(minutes%60).padStart(2,'0')+'m @ 15 mph':'—';
  let steepest=0;for(const point of points)if(point.grade>steepest)steepest=point.grade;
  routePreviewPanel.querySelector('#studioSteepestGrade')!.textContent=points.length?steepest.toFixed(1)+'%':'—';
+ routeQuickFacts.textContent=routeMiles>0?difficulty+' terrain  ·  '+Math.floor(minutes/60)+'h '+String(minutes%60).padStart(2,'0')+'m at 15 mph  ·  Max '+steepest.toFixed(1)+'%':'Generate a route to see terrain and ride estimates';
 }
 const studioChartObserver=new MutationObserver(()=>{
  if(studioPreviewQueued)return;
