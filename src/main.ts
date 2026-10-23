@@ -739,11 +739,11 @@ function refreshHeartRateProfile(){
  for(const root of [$('chart'),document.getElementById('floatChart')]){
   if(!root)continue;
   const trace=root.querySelector<SVGPolylineElement>('.ride-hr-trace');
-  const hrLabel=root.querySelector<SVGTextElement>('.ride-hr-label');
+  const hrLabel=root.querySelector<HTMLElement>('.profile-hr-readout');
   const powerTrace=root.querySelector<SVGGElement>('.ride-power-trace');
   if(trace){trace.setAttribute('points',hrLine);trace.style.display=heart.length>1?'':'none';}
   if(hrLabel){hrLabel.textContent=latestHr!=null?latestHr+' bpm':'— bpm';hrLabel.style.display='';}
-  const gearLabel=root.querySelector<SVGTextElement>('.ride-gear-label');
+  const gearLabel=root.querySelector<HTMLElement>('.profile-gear-readout');
   if(gearLabel){gearLabel.textContent=drivetrainMode==='virtual'?'Gear '+gear:'Gear —';gearLabel.style.display=drivetrainMode==='virtual'?'':'none';}
   if(powerTrace){powerTrace.innerHTML=segments;powerTrace.style.display=watts.length>1?'':'none';}
  }
@@ -773,7 +773,7 @@ function svg(){
   return `<rect x="${x(d0).toFixed(2)}" y="0" width="${(x(d1)-x(d0)+0.3).toFixed(2)}" height="${h}" fill="${gradeColor(grade)}"/>`;
  }).join('');
  const terrainPath=`M ${x(start)} ${h-pad} L ${line.replaceAll(' ',' L ')} L ${x(max)} ${h-pad} Z`;
- $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><text class="ride-hr-label" x="884" y="13" text-anchor="end" fill="#ff6571" font-size="11" font-weight="800" pointer-events="none">— bpm</text><text class="ride-gear-label" x="788" y="13" text-anchor="end" fill="#8db6ff" font-size="11" font-weight="800" pointer-events="none" style="display:none"></text><circle id="marker" cx="${pad}" cy="${h-pad}" r="6" fill="#ffc85c" stroke="#fff1b8" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none"/></svg>`;
+ $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><div class="profile-telemetry"><span class="profile-gear-readout"></span><span class="profile-hr-readout">— bpm</span></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><circle id="marker" cx="${pad}" cy="${h-pad}" r="6" fill="#ffc85c" stroke="#fff1b8" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none"/></svg>`;
  zoomDisplay();syncProfileCharts();refreshHeartRateProfile();refreshInspection();
 }
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
@@ -1289,7 +1289,7 @@ const floatChart=$('floatChart') as HTMLElement;
 let popout:Window|null=null;
 function syncProfileCharts(){
  const original=$('chart').querySelector('svg');
- if(original)floatChart.innerHTML='<div id="floatLiveGrade" class="profile-live-grade" aria-label="Current gradient"></div>'+original.outerHTML.replace('id="marker"','id="floatMarker"');
+ if(original)floatChart.innerHTML='<div id="floatLiveGrade" class="profile-live-grade" aria-label="Current gradient"></div><div class="profile-telemetry"><span class="profile-gear-readout"></span><span class="profile-hr-readout">— bpm</span></div>'+original.outerHTML.replace('id="marker"','id="floatMarker"');
  publishProfile();
 }
 function profileSnapshot(){
