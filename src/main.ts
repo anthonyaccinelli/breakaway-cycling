@@ -1,3 +1,4 @@
+import {installEditableSvgExport} from './editable-svg-export';
 import './style.css';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
@@ -2557,3 +2558,6 @@ window.addEventListener('pagehide',saveRideRecovery);
 // All ride UI and handlers are initialized by this point.
 offerRideRecovery();
 
+
+// Design branch only: browser-derived Illustrator-friendly SVG exports.
+installEditableSvgExport();
