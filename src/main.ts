@@ -1841,36 +1841,7 @@ let surviveChaseWattSeconds=0;
 let surviveChaseSeconds=0;
 const surviveDifficultyPower={recovery:.82,standard:1,hard:1.12,nightmare:1.25};let surviveOn=false,surviveCaught=false,surviveElapsed=0,surviveGap=100,surviveWave=1,surviveLast=0,surviveTheme='ZOMBIES',survivePeriod=180;
 
-// Survival sound playback is intentionally recording-only: never synthesize replacement horror effects.
-// Place licensed recordings at the listed paths to enable playback; missing files fail silently.
-const surviveSoundFiles:Record<string,string>={
- 'ZOMBIES':'/sounds/survival/zombie-growl.mp3',
- 'WOLVES':'/sounds/survival/wolf-howl.mp3',
- 'THE BUTCHER':'/sounds/survival/chainsaw.mp3'
-};
-let surviveSoundEnabled=localStorage.getItem('breakaway-survive-sound')!=='off';
-let surviveSoundVolume=Math.max(0,Math.min(1,Number(localStorage.getItem('breakaway-survive-volume')??'0.6')||0));
-let surviveSoundLast=0,surviveSoundWasChasing=false,surviveSoundLastNear=false;
-const surviveAudio=new Audio();surviveAudio.preload='none';
-function surviveSoundStop(){surviveAudio.pause();surviveAudio.currentTime=0;surviveSoundWasChasing=false;surviveSoundLastNear=false;}
-function surviveSoundTick(now:number,phase:string,gap:number,theme:string){
- const chase=surviveOn&&phase==='CHASE'&&survivePrepRemaining<=0;
- if(!chase||!surviveSoundEnabled||surviveSoundVolume<=0){if(!chase||!surviveSoundEnabled)surviveSoundStop();return;}
- const near=gap<=25,close=gap<=65;
- const entering=chase&&!surviveSoundWasChasing;
- const nearEdge=near&&!surviveSoundLastNear;
- surviveSoundWasChasing=true;surviveSoundLastNear=near;
- const delay=near?3200:close?6500:11000;
- if(!entering&&!nearEdge&&now-surviveSoundLast<delay)return;
- surviveSoundLast=now;
- const file=surviveSoundFiles[theme];if(!file)return;
- if(!surviveAudio.src.endsWith(file))surviveAudio.src=file;
- surviveAudio.pause();surviveAudio.currentTime=0;
- // Brief foreground rev at close range, softer distant ambience otherwise.
- surviveAudio.volume=Math.min(1,surviveSoundVolume*(near?1:close?.65:.28));
- void surviveAudio.play().catch(()=>{});
-}
-const survivePanel=document.createElement('section');survivePanel.className='survive-beta';survivePanel.innerHTML='<header><strong>☣ SURVIVE · BETA</strong><span id="surviveStatus">READY</span></header><div class="survive-controls"><label>Sound <input type="checkbox" id="surviveSoundEnabled" /></label><label>Volume <input type="range" id="surviveSoundVolume" min="0" max="100" value="60" /></label><label>Threat <select id="surviveTheme"><option>ZOMBIES</option><option>WOLVES</option><option>THE BUTCHER</option></select></label><label>Mode <select id="surviveMode"><option value="finish">Finish Line Survival</option><option value="classic">Classic Waves</option></select></label><label>Difficulty <select id="surviveDifficulty"><option value="recovery">Recovery</option><option value="standard" selected>Standard</option><option value="hard">Hard</option><option value="nightmare">Nightmare</option></select></label><label id="surviveWaveSettings">Wave <select id="survivePeriod"><option value="180">3 minutes</option><option value="300">5 minutes</option></select></label><button id="surviveStart">START SURVIVE</button><button id="surviveStop" disabled>END</button></div><div id="surviveHudMain" hidden><div class="survive-stats"><span>WAVE <b id="surviveWave">1</b></span><span>GAP <b id="surviveGap">100 m</b></span><span class="survive-speed-box">YOU MPH <b id="surviveYouMph">—</b></span><span class="survive-speed-box">THREAT MPH <b id="surviveThreatMph">—</b></span><span class="survive-countdown"><b id="survivePhase">CHASE</b><strong id="surviveCountdown">1:00</strong></span></div><div class="survive-track"><span class="survive-threat-dot" id="surviveThreatDot"></span><span class="survive-rider-dot" id="surviveRiderDot"></span></div><strong id="surviveMessage">OUTRUN THE PURSUERS</strong></div><p id="surviveRecord">Start with 2 or 4 minutes to prepare, then 60-second chases. Local beta records only.</p>';
+const survivePanel=document.createElement('section');survivePanel.className='survive-beta';survivePanel.innerHTML='<header><strong>☣ SURVIVE · BETA</strong><span id="surviveStatus">READY</span></header><div class="survive-controls"><label>Threat <select id="surviveTheme"><option>ZOMBIES</option><option>WOLVES</option><option>THE BUTCHER</option></select></label><label>Mode <select id="surviveMode"><option value="finish">Finish Line Survival</option><option value="classic">Classic Waves</option></select></label><label>Difficulty <select id="surviveDifficulty"><option value="recovery">Recovery</option><option value="standard" selected>Standard</option><option value="hard">Hard</option><option value="nightmare">Nightmare</option></select></label><label id="surviveWaveSettings">Wave <select id="survivePeriod"><option value="180">3 minutes</option><option value="300">5 minutes</option></select></label><button id="surviveStart">START SURVIVE</button><button id="surviveStop" disabled>END</button></div><div id="surviveHudMain" hidden><div class="survive-stats"><span>WAVE <b id="surviveWave">1</b></span><span>GAP <b id="surviveGap">100 m</b></span><span class="survive-speed-box">YOU MPH <b id="surviveYouMph">—</b></span><span class="survive-speed-box">THREAT MPH <b id="surviveThreatMph">—</b></span><span class="survive-countdown"><b id="survivePhase">CHASE</b><strong id="surviveCountdown">1:00</strong></span></div><div class="survive-track"><span class="survive-threat-dot" id="surviveThreatDot"></span><span class="survive-rider-dot" id="surviveRiderDot"></span></div><strong id="surviveMessage">OUTRUN THE PURSUERS</strong></div><p id="surviveRecord">Start with 2 or 4 minutes to prepare, then 60-second chases. Local beta records only.</p>';
 // Compact setup banner: expand only when the rider wants to configure a chase.
 const surviveExpand=document.createElement('button');
 surviveExpand.type='button';
@@ -2002,7 +1973,6 @@ function surviveGapDirection(now:number){
  return surviveGapTrend;
 }
 function surviveRender(){const c=surviveData();
- surviveSoundTick(performance.now(),c.phase,c.gap,c.theme);
  const gameActive=surviveOn;
  const rideScreen=document.getElementById('screenRide');
  if(rideScreen)rideScreen.classList.toggle('survive-playing',gameActive);
@@ -2047,10 +2017,6 @@ se('surviveStart').addEventListener('click',()=>{if(!connected||!controlGranted|
   se('surviveStatus').textContent=warning;status(warning);return;
  }
  surviveWon=false;surviveChaseWattSeconds=0;surviveChaseSeconds=0;surviveVictoryScreen.hidden=true;surviveOn=true;surviveCaught=false;survivePanel.classList.remove('setup-warning');survivePanel.classList.add('survive-collapsed');surviveExpand.setAttribute('aria-expanded','false');surviveExpand.textContent='Configure';surviveWarmupRemaining=0;surviveElapsed=0;surviveGap=100;surviveWave=1;surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveLast=performance.now();surviveTheme=(se('surviveTheme') as HTMLSelectElement).value;survivePeriod=Number((se('survivePeriod') as HTMLSelectElement).value)||180;survivePrepRemaining=surviveMode==='finish'?120:survivePeriod-60;if(!running)beginRide();surviveRender();lastOverlayPush=0;publishDesktopOverlay();});
-(se('surviveSoundEnabled') as HTMLInputElement).checked=surviveSoundEnabled;
-(se('surviveSoundVolume') as HTMLInputElement).value=String(Math.round(surviveSoundVolume*100));
-se('surviveSoundEnabled').addEventListener('change',()=>{surviveSoundEnabled=(se('surviveSoundEnabled') as HTMLInputElement).checked;localStorage.setItem('breakaway-survive-sound',surviveSoundEnabled?'on':'off');if(!surviveSoundEnabled)surviveSoundStop();});
-se('surviveSoundVolume').addEventListener('input',()=>{surviveSoundVolume=Number((se('surviveSoundVolume') as HTMLInputElement).value)/100;localStorage.setItem('breakaway-survive-volume',String(surviveSoundVolume));surviveAudio.volume=Math.min(surviveAudio.volume,surviveSoundVolume);});
 se('surviveMode').addEventListener('change',()=>{const finish=(se('surviveMode') as HTMLSelectElement).value==='finish';se('surviveWaveSettings').hidden=finish;se('surviveRecord').textContent=finish?'Reach the route finish before capture. Requires a finite generated or uploaded route.':'Classic timed waves: survive as long as you can.';});
 (se('surviveMode') as HTMLSelectElement).dispatchEvent(new Event('change'));
 se('surviveStop').addEventListener('click',()=>surviveEnd());surviveRender();
