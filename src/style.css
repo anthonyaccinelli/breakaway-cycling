@@ -2384,3 +2384,17 @@ body[data-ride-experience="survival"][data-breakaway-screen="route"] .route-stud
  body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls select{padding:5px 8px!important}
  body[data-ride-experience="survival"][data-breakaway-screen="route"] #studioRouteFeedback{margin-top:3px!important;font-size:10px!important}
 }
+
+
+/* Clear chase/recovery state on the in-ride Survival HUD */
+.survive-game-hud{transition:background-color .55s ease,border-color .55s ease,box-shadow .55s ease}
+.survive-game-hud.is-chase{background:#461825!important;border:2px solid #ff4868!important;box-shadow:inset 0 0 42px #ff315326!important}
+.survive-game-hud.is-recovery{background:#103e2e!important;border:2px solid #42df9c!important;box-shadow:inset 0 0 42px #24e18d24!important}
+.survive-game-hud.is-prepare{background:#19394d!important;border:2px solid #60b8ff!important}
+.survive-game-hud.is-chase .survive-game-top{background:#662238!important}
+.survive-game-hud.is-recovery .survive-game-top{background:#206246!important}
+.survive-game-hud.is-prepare .survive-game-top{background:#255071!important}
+.survive-game-hud.is-chase #surviveGameState{color:#fff!important;background:#bd2949!important;padding:4px 12px;border-radius:6px;font-weight:1000}
+.survive-game-hud.is-recovery #surviveGameState{color:#082b1e!important;background:#76f0b0!important;padding:4px 12px;border-radius:6px;font-weight:1000}
+.survive-game-hud.is-prepare #surviveGameState{color:#08283a!important;background:#9ddaff!important;padding:4px 12px;border-radius:6px;font-weight:1000}
+@media(prefers-reduced-motion:reduce){.survive-game-hud{transition:none!important}}
