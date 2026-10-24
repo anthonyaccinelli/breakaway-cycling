@@ -2668,3 +2668,83 @@ body[data-breakaway-screen] #screenRide :is(.metric b,.ride-dashboard .metric b)
   body[data-breakaway-screen] #screenSetup .breakaway-integrated-step-header,
   body[data-breakaway-screen] #screenRide .ride-screen-header{padding:13px!important}
 }
+
+
+/* OPTION 5 / SETUP PARITY — remove legacy white-and-blue Connect Trainer skin.
+   These selectors deliberately outrank earlier screen-specific !important rules. */
+html body[data-breakaway-screen="setup"]{
+ background:#0b1015!important;color:#f5f6f2!important;
+}
+html body[data-breakaway-screen="setup"] main,
+html body[data-breakaway-screen="setup"] #screenSetup,
+html body[data-breakaway-screen="setup"] #screenSetup .connection-strip{
+ background:#111920!important;color:#f5f6f2!important;
+}
+html body[data-breakaway-screen="setup"] .breakaway-brand-bar{
+ background:transparent!important;border-bottom:1px solid #354650!important;
+}
+html body[data-breakaway-screen="setup"] .app-brand{
+ color:#f5f6f2!important;text-shadow:none!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.ride-shifting-column,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row #drivetrainSection,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details{
+ background:#172129!important;color:#f5f6f2!important;
+ border:1px solid #354650!important;border-radius:14px!important;
+ box-shadow:none!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile{
+ background:#1e2b34!important;color:#f5f6f2!important;
+ border:1px solid #42555e!important;border-radius:14px!important;
+ box-shadow:none!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>h3,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row h2,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row h3,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles h3{
+ color:#f5f6f2!important;text-shadow:none!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row label,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row .note,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile .setup-connection-indicator,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details label,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details .note{
+ color:#c6d5d9!important;text-shadow:none!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .device-button-row button:not(.secondary),
+html body[data-breakaway-screen="setup"] #screenSetup #goToRide:not(:disabled){
+ background:#d4f47b!important;color:#172115!important;
+ border:1px solid #d4f47b!important;border-radius:10px!important;
+ box-shadow:none!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-choices .setup-shifting-choice:not(.active){
+ background:#24333c!important;color:#e8f1ec!important;
+ border:1px solid #60747a!important;box-shadow:none!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-shifting-choices .setup-shifting-choice.active{
+ background:#d4f47b!important;color:#172115!important;
+ border:1px solid #d4f47b!important;box-shadow:none!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>.bluetooth-auto,
+html body[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>.bluetooth-auto label{
+ background:transparent!important;color:#e5eeeb!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-secondary-options>summary{
+ color:#d4f47b!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="connected"]{
+ border-color:#a3d77e!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="error"]{
+ border-color:#f28f88!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="connected"] .setup-connection-indicator{
+ color:#b6e89a!important;
+}
+html body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="error"] .setup-connection-indicator{
+ color:#ffb5ad!important;
+}
+@media(max-width:850px){
+ html body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row{grid-template-columns:1fr!important}
+}
