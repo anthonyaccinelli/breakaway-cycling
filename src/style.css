@@ -2312,3 +2312,28 @@ a{color:#78fff1!important}a:hover{color:#e7fff9!important}
 #screenRide .ride-screen-header,#screenSetup .breakaway-integrated-step-header{border-bottom-color:#6b7fa5!important}
 @media(max-width:700px){body main{padding:10px!important}.ride-workspace{padding:10px!important;box-shadow:4px 4px 0 #040610!important}}
 @media(prefers-reduced-motion:reduce){button{transition:none!important;transform:none!important}}
+
+/* OPTION 3 — HYPERMODE 2099: stronger Y2K neon, high-contrast telemetry */
+:root{--neon-bg:#050410;--neon-panel:#111027;--neon-card:#1b193a;--neon-cyan:#65fff3;--neon-pink:#ff4de1;--neon-acid:#c5ff28;--neon-violet:#7e4dff;--neon-orange:#ff9b38}
+html{background:#050410!important}
+body{background:radial-gradient(ellipse 65% 50% at 85% -15%,#8b28a550,transparent 75%),radial-gradient(ellipse 60% 45% at -15% 65%,#00e8f32b,transparent 75%),linear-gradient(135deg,#050410 0%,#111027 53%,#070713 100%)!important}
+.app-brand{text-shadow:3px 3px 0 #ff4de1,6px 6px 0 #1d4d94,0 0 22px #ff4de133!important}
+.breakaway-tagline{color:#65fff3!important}
+.ride-workspace{background:linear-gradient(140deg,#161331,#0d1026)!important;border-color:#8050c5!important;box-shadow:8px 8px 0 #04040e,0 0 35px #7e4dff22!important}
+.ride-workspace section{background:#15152f!important;border-color:#65539c!important}
+.workspace-header h2{color:#65fff3!important;text-shadow:0 0 20px #65fff355!important}
+.device-connect-card,.setup-device-tile{background:#1e1b40!important;border-color:#7758aa!important}
+.metric,.ride-dashboard .metric{background:linear-gradient(140deg,#241c4a,#17172f)!important;border:1px solid #745aa8!important;border-left:3px solid #65fff3!important;box-shadow:3px 3px 0 #080817,0 0 15px #7e4dff16!important}
+.metric:nth-child(3n+2),.ride-dashboard .metric:nth-child(3n+2){border-left-color:#ff4de1!important}
+.metric:nth-child(3n),.ride-dashboard .metric:nth-child(3n){border-left-color:#c5ff28!important}
+.metric b,.ride-dashboard .metric b{color:#fff!important;text-shadow:0 0 13px #65fff32a!important}
+.metric small,.ride-dashboard .metric small{color:#e1dafa!important}
+.screen-progress .screen-step.active,.screen-progress .screen-step[aria-current="step"]{background:#65fff3!important;border-color:#65fff3!important;color:#080d20!important;box-shadow:4px 4px 0 #ff4de1!important}
+button:not(.secondary):not(.screen-step):not([id="entertainmentView"]){background:#c5ff28!important;color:#0e1020!important;border-color:#c5ff28!important;box-shadow:3px 3px 0 #ff4de1!important}
+button.secondary{background:#292047!important;color:#fff!important;border-color:#a78ad4!important;box-shadow:3px 3px 0 #0b0b20!important}
+#screenRide #profileSection .profile-heading-actions #entertainmentView{background:#c5ff28!important;color:#0e1020!important;border-color:#c5ff28!important;box-shadow:3px 3px 0 #ff4de1!important}
+.live-riders{border-color:#65fff3!important;box-shadow:3px 3px 0 #ff4de1!important}
+input:not([type="checkbox"]):not([type="radio"]),select,textarea{background:#171632!important;border-color:#8e77c2!important;color:#fff!important}
+a{color:#8cfff5!important}
+:where(button,summary,input,select,textarea):focus-visible{outline:3px solid #c5ff28!important;outline-offset:3px!important}
+@media(prefers-reduced-motion:reduce){button{transition:none!important;transform:none!important}}
