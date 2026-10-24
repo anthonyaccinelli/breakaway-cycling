@@ -2267,3 +2267,45 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 .ride-summary-fullscreen .garmin-export-actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
 .ride-summary-fullscreen .garmin-export-actions button{min-height:40px;padding:9px 14px;border-radius:8px;font-weight:800;cursor:pointer}
 .ride-summary-fullscreen .garmin-export-actions button:first-child{background:#ffd347;color:#24230f;border:1px solid #e6ad27}
+
+
+/* BREAKAWAY ATELIER — visual direction v1 (development preview only)
+   Midnight ink / glacier / electric citron. Pure presentation, no behavior changes. */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+:root{--ba-ink:#09131e;--ba-panel:#122334;--ba-panel-raised:#192e40;--ba-line:#2a4352;--ba-text:#f4f8fb;--ba-muted:#aec3d0;--ba-accent:#d8ff54;--ba-glacier:#6fe2d2;font-family:'DM Sans',Inter,system-ui,sans-serif!important;color-scheme:dark}
+html{background:var(--ba-ink)!important}
+body{background:radial-gradient(ellipse 70% 42% at 72% -8%,rgba(55,149,160,.19),transparent 80%),linear-gradient(160deg,#09131e 0%,#0e1c2a 52%,#09131e 100%)!important;color:var(--ba-text)!important;min-height:100vh;-webkit-font-smoothing:antialiased}
+body main{max-width:1680px!important;margin:0 auto!important;padding:clamp(14px,2.2vw,34px)!important}
+h1,h2,h3,.app-brand,.route-studio-heading h2,.ride-screen-header strong,.integrated-step-title h2{font-family:Manrope,'DM Sans',sans-serif!important;letter-spacing:-.035em}
+.app-brand{font-size:clamp(24px,2.2vw,36px)!important;font-weight:800!important;color:#fff!important;line-height:1.12!important}
+.breakaway-tagline{letter-spacing:.19em!important;font-size:10px!important;font-weight:800!important;color:var(--ba-glacier)!important}
+.breakaway-brand-bar{padding:12px 4px 18px!important;align-items:center}
+.live-riders{background:#152b39!important;color:#e5f7f4!important;border:1px solid #355568!important;border-radius:999px!important;box-shadow:0 8px 26px #0003!important}
+.screen-progress{gap:10px!important;margin:8px auto 18px!important}
+.screen-progress .screen-step{border-radius:999px!important;font-family:'DM Sans',sans-serif!important;font-weight:800!important;letter-spacing:.01em!important;transition:background .18s,border-color .18s,transform .18s}
+.screen-progress .screen-step:hover{transform:translateY(-1px)}
+.ride-workspace{background:rgba(15,31,46,.92)!important;border:1px solid #2d4c5d!important;border-radius:24px!important;box-shadow:0 22px 75px #02070d55,0 1px 0 #ffffff0b inset!important}
+.workspace-header{border-bottom:1px solid #294554!important}
+.workspace-header h2{color:#f4f8fb!important;font-weight:800!important}
+.workspace-header p,.note{color:var(--ba-muted)}
+.ride-workspace section,.ride-stage>section,.breakaway-screen section{border-radius:18px!important}
+.ride-workspace section{background:#142638!important;border-color:#2c4759!important}
+.route-studio,.connection-strip,.ride-dashboard,#profileSection{box-shadow:0 8px 30px #0000001c}
+.device-connect-card,.setup-device-tile,.route-builder,.route-preview,.route-studio-live-preview,.metric,.ride-dashboard .metric{border-radius:14px!important}
+.device-connect-card,.setup-device-tile{background:#1a3042!important;border-color:#345266!important}
+.metric,.ride-dashboard .metric{background:linear-gradient(150deg,#20384a,#162a3b)!important;border:1px solid #335266!important;box-shadow:0 3px 14px #0002}
+.metric b,.ride-dashboard .metric b{color:#eaffff!important;font-family:Manrope,sans-serif!important;font-weight:800!important;letter-spacing:-.045em!important;font-variant-numeric:tabular-nums}
+.metric small,.ride-dashboard .metric small{color:#afc8d5!important;font-weight:700!important;letter-spacing:.015em}
+button,input,select,textarea,summary{font-family:'DM Sans',sans-serif!important}
+button{transition:background-color .16s,border-color .16s,box-shadow .16s,transform .16s}
+button:hover:not(:disabled){filter:brightness(1.08)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #d8ff54!important;outline-offset:3px!important}
+button:not(.secondary):not(.screen-step):not([id="entertainmentView"]){border-radius:11px}
+button.secondary{border-radius:11px}
+input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-radius:11px!important;box-shadow:0 1px 0 #ffffff0b inset}
+#screenRoute .route-studio-heading,#screenSetup .breakaway-integrated-step-header,#screenRide .ride-screen-header{border-bottom-color:#345162!important}
+#screenRide #profileSection .profile-heading-actions #entertainmentView{background:#d8ff54!important;border-color:#b8dd3d!important;color:#132016!important}
+#screenRide #profileSection .profile-heading-actions #entertainmentView:hover{background:#ebff99!important}
+#chart svg,#floatChart svg{border-radius:13px!important}
+@media(max-width:700px){body main{padding:10px!important}.ride-workspace{border-radius:17px!important;padding:10px!important}.breakaway-brand-bar{padding:8px 3px 13px!important}}
+@media(prefers-reduced-motion:reduce){button,.screen-progress .screen-step{transition:none!important;transform:none!important}}
