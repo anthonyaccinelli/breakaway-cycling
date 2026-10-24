@@ -2528,6 +2528,14 @@ document.getElementById('backToStudio')!.addEventListener('click',()=>{if(runnin
 window.setInterval(checkAutomaticRideCountdown,500);
 showBreakawayScreen('route');
 
+// Trainer Test Lab is a separate offline simulator, never connected to live ride state.
+const trainerLabLink=document.createElement('a');
+trainerLabLink.href='/trainer-lab.html';
+trainerLabLink.textContent='Trainer Test Lab ↗';
+trainerLabLink.title='Open simulated trainer diagnostics (no physical Bluetooth)';
+trainerLabLink.style.cssText='position:fixed;right:14px;bottom:14px;z-index:1000;padding:9px 13px;border-radius:9px;background:#172129;color:#d4f47b;border:1px solid #64776a;font:700 12px system-ui;text-decoration:none;box-shadow:0 4px 16px #0008';
+document.body.append(trainerLabLink);
+
 // Real-time stationary detection continues when browser animation frames are throttled.
 window.setInterval(()=>checkStationaryRide(performance.now()),500);
 
