@@ -2599,7 +2599,25 @@ function syncSurvivalStudio(){
  (se('surviveTheme') as HTMLSelectElement).value=(document.getElementById('studioThreat') as HTMLSelectElement).value;
  (se('surviveMode') as HTMLSelectElement).dispatchEvent(new Event('change'));
 }
-survivalStudio.querySelectorAll('select').forEach(select=>select.addEventListener('change',syncSurvivalStudio));
+survivalStudio.querySelectorAll('select').forEach(select=>select.addEventListener('change',()=>{
+ syncSurvivalStudio();
+ const isFinish=(document.getElementById('studioChallenge') as HTMLSelectElement).value==='finish';
+ const endlessButton=document.getElementById('endlessRoute') as HTMLButtonElement|null;
+ if(endlessButton){endlessButton.disabled=isFinish;endlessButton.title=isFinish?'Finish Line requires a finite route. Choose Classic Waves for Endless.':'';}
+}));
+const studioRouteFeedback=document.createElement('div');
+studioRouteFeedback.id='studioRouteFeedback';
+studioRouteFeedback.setAttribute('role','status');
+studioRouteFeedback.textContent='Generate a finite route or upload GPX/TCX, then inspect the elevation profile before connecting.';
+survivalStudio.append(studioRouteFeedback);
+const generateRouteButton=document.getElementById('generateRoute') as HTMLButtonElement|null;
+generateRouteButton?.addEventListener('click',()=>{
+ studioRouteFeedback.textContent='Route generation requested — review the updated elevation profile below.';
+ requestAnimationFrame(()=>{syncStudioRoutePreview();});
+});
+const uploadRouteInput=document.querySelector<HTMLInputElement>('input[type="file"]');
+uploadRouteInput?.addEventListener('change',()=>{studioRouteFeedback.textContent='Route uploaded — review the route preview below.';});
+
 function chooseRideExperience(mode:RideExperience){
  rideExperience=mode;
  modeLanding.hidden=true;
@@ -2607,6 +2625,7 @@ function chooseRideExperience(mode:RideExperience){
  survivalStudio.hidden=mode!=='survival';
  document.body.dataset.rideExperience=mode;
  syncSurvivalStudio();
+ survivalStudio.querySelector('select')?.dispatchEvent(new Event('change'));
  showBreakawayScreen('route');
  const routeTitle=screenRoute.querySelector('.route-studio-heading h2');
  if(routeTitle)routeTitle.textContent=mode==='survival'?'GENERATE YOUR ESCAPE ROUTE':'ROUTE STUDIO';
