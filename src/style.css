@@ -2278,3 +2278,109 @@ html body .setup-device-tile .trainer-diagnostic:not([hidden]){
  overflow-wrap:anywhere!important;white-space:normal!important;
 }
 html body .trainer-diagnostic[hidden]{display:none!important}
+
+
+/* Survival 2.0: finish-line victory dialog, preview only */
+#surviveVictoryScreen[hidden]{display:none!important}
+#surviveVictoryScreen{position:fixed;inset:0;z-index:100000;background:#04101ae8;display:grid;place-items:center;padding:20px}
+.survive-victory-card{background:#102838;border:2px solid #56e3a7;border-radius:22px;box-shadow:0 20px 80px #000a;padding:36px;max-width:570px;width:100%;text-align:center;color:#fff}
+.survive-victory-icon{display:block;font-size:56px}
+.survive-victory-card h2{font-size:clamp(36px,6vw,62px);font-weight:1000;color:#d4f47b;margin:10px 0}
+.survive-victory-card p{font-weight:800;letter-spacing:.06em;color:#a5d5ce}
+#surviveVictoryStats{background:#1b3b4c;border-radius:10px;padding:18px;margin:22px 0;font-weight:800;line-height:1.8;color:#fff}
+.survive-victory-card button{border-radius:12px;padding:14px 20px;font-weight:900;margin:5px;background:#d4f47b;color:#102838}
+.survive-victory-card #surviveVictoryContinue{background:#2d5061;color:#fff}
+.survive-controls label[hidden]{display:none!important}
+
+
+/* Mode selection + Survival Studio preview (not on production) */
+.mode-landing[hidden],#modeHomeButton[hidden],.survival-studio-intro[hidden]{display:none!important}
+body[data-breakaway-screen="home"]{background:#071521!important;color:#f4f8fa!important}
+body[data-breakaway-screen="home"] main,body[data-breakaway-screen="home"] header,body[data-breakaway-screen="home"] footer,body[data-breakaway-screen="home"] #trainerLabLink{display:none!important}
+body[data-breakaway-screen="home"] .mode-landing{display:block}
+.mode-landing{min-height:100vh;padding:clamp(22px,4vw,65px);max-width:1600px;margin:0 auto;color:#f5fafb;font-family:Inter,system-ui,sans-serif}
+.mode-landing-brand{display:flex;justify-content:space-between;gap:20px;align-items:center;font-weight:1000;letter-spacing:.07em;font-size:clamp(19px,2.5vw,32px)}
+.mode-landing-brand small{font-size:12px;letter-spacing:.12em;color:#49d9b2}
+.mode-landing-intro{text-align:center;margin:clamp(24px,5vh,64px) auto 36px}
+.mode-landing-intro>span{font-size:12px;font-weight:900;letter-spacing:.2em;color:#50d8b2}
+.mode-landing-intro h1{font-size:clamp(34px,5.7vw,78px);letter-spacing:-.045em;line-height:1.05;margin:12px 0}
+.mode-landing-intro p{color:#aec0cf;font-size:clamp(14px,1.5vw,18px)}
+.mode-landing-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(15px,2vw,30px)}
+.mode-card{appearance:none;border:2px solid #315569;border-radius:22px;padding:clamp(18px,3vw,38px);min-height:clamp(340px,45vh,530px);background:radial-gradient(circle at 80% 18%,#22606b 0%,#112b3c 47%,#0d202d 100%);color:#fff;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:14px;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+.mode-card:hover,.mode-card:focus-visible{transform:translateY(-4px);border-color:#4de0b5;box-shadow:0 18px 65px #0008;outline:none}
+.mode-card-survival{background:radial-gradient(circle at 80% 18%,#823453 0%,#392338 43%,#1c1a2b 100%);border-color:#8a4564}
+.mode-card-survival:hover,.mode-card-survival:focus-visible{border-color:#fa6e8a}
+.mode-card-number{font-size:12px;font-weight:900;letter-spacing:.13em;color:#b4d7dc}
+.mode-card-survival .mode-card-number{color:#ffc0d0}
+.mode-card-visual{font-size:clamp(80px,11vw,155px);font-weight:900;line-height:1;align-self:center;margin:auto 0;color:#4de0b5;text-shadow:0 0 60px #41d9b680}
+.mode-card-survival .mode-card-visual{color:#fb6286;text-shadow:0 0 60px #fb628670}
+.mode-card strong{font-size:clamp(32px,4.2vw,64px);letter-spacing:-.04em;line-height:1}
+.mode-card-description{font-size:clamp(13px,1.35vw,18px);color:#c2d3dd;max-width:440px}
+.mode-card-action{display:block;width:100%;background:#49d8ad;color:#082334;padding:17px 20px;border-radius:11px;text-align:center;font-size:15px;font-weight:1000;margin-top:12px}
+.mode-card-survival .mode-card-action{background:#f46788;color:#270e21}
+.mode-landing-footer{text-align:center;color:#7f9dac;letter-spacing:.08em;font-size:11px;margin:26px 0 0}
+#modeHomeButton{position:fixed;left:14px;bottom:14px;z-index:10002;background:#122a3b;color:#e6f7f3;border:1px solid #56a4a1;border-radius:10px;padding:10px 15px;font:800 12px system-ui;cursor:pointer;box-shadow:0 8px 28px #0006}
+body[data-ride-experience="survival"][data-breakaway-screen="route"]{background:#0a1420!important}
+.survival-studio-intro{background:linear-gradient(125deg,#162b3b,#281c34);border:2px solid #88445e;border-radius:18px;padding:clamp(16px,2.5vw,30px);margin:10px 0 18px;color:#fff}
+.survival-studio-head>span{font-size:12px;color:#ff7696;font-weight:900;letter-spacing:.13em}
+.survival-studio-head h2{font-size:clamp(24px,3.2vw,42px);margin:8px 0;letter-spacing:-.035em;color:#fff}
+.survival-studio-head p{color:#b9c9d5;font-size:14px;margin:0 0 20px;max-width:800px}
+.survival-studio-controls{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:15px}
+.survival-studio-controls label{display:flex;flex-direction:column;gap:8px;font-size:11px;font-weight:900;letter-spacing:.09em;color:#f1c6d1}
+.survival-studio-controls select{background:#162b3b;border:1px solid #527082;color:#fff;border-radius:9px;padding:12px;min-width:0;font:600 14px system-ui;width:100%}
+.survival-studio-guide{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.survival-studio-guide span{background:#372c43;border:1px solid #684a65;border-radius:9px;padding:9px 12px;color:#ffd2dc;font-size:11px;font-weight:800}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .route-studio{border-color:#88445e}
+@media(max-width:760px){.mode-landing-cards{grid-template-columns:1fr}.mode-card{min-height:320px}.mode-card-visual{font-size:80px}.survival-studio-controls{grid-template-columns:1fr}.mode-landing-brand{flex-direction:column;align-items:flex-start}.mode-landing-intro{margin:28px 0}}
+
+
+/* Compact Survival Studio: keep the actual route generator and profile visible */
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-intro{padding:12px 18px!important;margin:0 0 8px!important;border-radius:12px!important}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-head h2{font-size:23px!important;margin:0!important}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-head p{display:none!important}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls{grid-template-columns:1.6fr 1fr 1fr;gap:12px;margin-top:10px}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls label{gap:4px}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls select{padding:8px 10px!important}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-guide{display:none!important}
+#studioRouteFeedback{color:#bce5dd;font:700 11px system-ui;margin-top:9px}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #endlessRoute:disabled{opacity:.35;cursor:not-allowed}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .route-studio{margin-top:0!important}
+@media(max-width:760px){body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls{grid-template-columns:1fr!important}}
+
+
+/* Fix: the original route studio occupied 100% viewport height PLUS the new
+   Survival Studio header. Make them share one constrained screen height. */
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute{
+ display:flex!important;flex-direction:column!important;min-height:0!important;
+ height:100%!important;overflow:hidden!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute>.survival-studio-intro{
+ flex:0 0 auto!important;min-height:0!important;max-height:165px!important;
+ overflow:hidden!important;box-sizing:border-box!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute>.route-studio{
+ flex:1 1 0!important;height:auto!important;min-height:0!important;
+ overflow:hidden!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute .route-studio-grid{
+ flex:1 1 0!important;min-height:0!important;overflow:hidden!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute .route-studio-live-preview{
+ display:flex!important;flex-direction:column!important;min-height:0!important;
+ overflow:hidden!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute .studio-live-chart{
+ flex:1 1 0!important;min-height:90px!important;overflow:hidden!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-head h2,
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .route-studio-live-heading h2{
+ color:#f6fbff!important;
+}
+@media(max-height:850px){
+ body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute>.survival-studio-intro{max-height:122px!important;padding:8px 12px!important}
+ body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-head h2{font-size:19px!important}
+ body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls{margin-top:5px!important}
+ body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls select{padding:5px 8px!important}
+ body[data-ride-experience="survival"][data-breakaway-screen="route"] #studioRouteFeedback{margin-top:3px!important;font-size:10px!important}
+}

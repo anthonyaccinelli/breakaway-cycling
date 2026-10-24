@@ -1479,12 +1479,12 @@ $('nativeProfile').addEventListener('click',async()=>{
    .survive-hud-metric small{font-size:10px;font-weight:800;color:#b6cddd;white-space:nowrap}
    .survive-hud-metric b{font-size:clamp(19px,2.8vw,36px);font-weight:900;font-variant-numeric:tabular-nums;color:#fff}
    .survive-hud-profile{grid-column:2;grid-row:1 / span 2;position:relative;overflow:hidden;background:#0d1d2b;border-radius:6px;min-height:0}
-   .survive-hud-profile .overlay-profile-graphic{height:100%!important}.survive-hud-profile svg{width:100%!important;height:100%!important}
-   .survive-hud-dots{position:absolute;left:7px;right:7px;bottom:14px;height:12px;border-top:2px solid #ffffff66}
+   .survive-hud-profile .overlay-profile-graphic{height:calc(100% - 64px)!important}.survive-hud-profile svg{width:100%!important;height:calc(100% - 64px)!important}
+   .survive-hud-dots{position:absolute;left:7px;right:7px;bottom:72px;height:12px;border-top:2px solid #ffffff66}
    .survive-hud-dots i{position:absolute;top:-7px;width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 2px #0d1d2b}
    .survive-hud-dots .threat{background:#f04452}.survive-hud-dots .rider{background:#ffd43b;right:auto}
-   .survive-hud-timer{position:absolute;left:50%;top:7px;transform:translateX(-50%);display:flex;align-items:center;flex-direction:column;gap:2px;padding:3px 9px;background:#071724dd;border-radius:6px;white-space:nowrap;max-width:95%}
-   .survive-hud-timer strong{font-size:clamp(19px,3vw,32px);color:#fff;font-variant-numeric:tabular-nums}.survive-hud-timer span{font-size:10px;color:#d9eaf2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+   .survive-hud-timer{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:4px;background:#071724;border-radius:0 0 6px 6px;white-space:nowrap}.survive-hud-timer>div{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;background:#1b3246;border-radius:5px}.survive-hud-timer small{font-size:9px;color:#b6cddd;font-weight:800}
+   .survive-hud-timer strong{font-size:clamp(14px,2vw,24px);color:#fff;font-variant-numeric:tabular-nums}.survive-hud-timer span{font-size:10px;color:#d9eaf2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
    .survive-hud-gap{font-size:clamp(15px,1.8vw,24px);color:#ffd43b;font-weight:900;white-space:nowrap;text-shadow:0 1px 4px #000}.survive-hud-spacer{display:none}
    .survive-hud-grid>.survive-hud-metric:nth-child(1){grid-column:1;grid-row:1}
    .survive-hud-grid>.survive-hud-metric:nth-child(3){grid-column:3;grid-row:1}
@@ -1791,7 +1791,7 @@ function publishDesktopOverlay(){
  window.breakawayDesktop?.updateOverlay(snapshot);
  if(overlayWindow&&!overlayWindow.closed){
   const doc=overlayWindow.document;
-  const chase=surviveData(),root=doc.getElementById('overlayContent');if(root){root.classList.toggle('survive-overlay',chase.active||chase.caught);root.classList.toggle('survive-danger',chase.active&&!chase.warming&&chase.gap<65);root.classList.toggle('survive-critical',chase.active&&!chase.warming&&chase.gap<25);let hud=doc.getElementById('surviveHud');if(chase.active||chase.caught){if(!hud){hud=doc.createElement('div');hud.id='surviveHud';root.append(hud);}hud.innerHTML='<div class="survive-hud-head"><strong>☣ SURVIVE · '+(chase.phase==='RECOVER'?'RECOVER & PREPARE':chase.phase)+'</strong><span>'+chase.theme+'</span></div><div class="survive-hud-grid"><div class="survive-hud-metric"><small>YOU MPH</small><b>'+chase.you.toFixed(1)+'</b></div><div class="survive-hud-profile">'+snapshot.detailChart+'<div class="survive-hud-dots"><i class="threat" style="left:'+Math.max(0,Math.min(100,(surviveEnemyDistance-snapshot.profileStart)/Math.max(1,snapshot.profileStop-snapshot.profileStart)*100))+'%"></i><i class="rider" style="left:'+Math.max(0,Math.min(100,(distance-snapshot.profileStart)/Math.max(1,snapshot.profileStop-snapshot.profileStart)*100))+'%"></i></div><div class="survive-hud-timer"><strong>'+Math.floor(chase.remaining/60)+':'+String(chase.remaining%60).padStart(2,'0')+'</strong><span>'+chase.message+'</span><b class="survive-hud-gap">GAP '+chase.gap+' m</b></div></div><div class="survive-hud-metric"><small>WATTS</small><b>'+(snapshot.power??'—')+'</b></div><div class="survive-hud-metric"><small>THREAT MPH</small><b>'+chase.enemy.toFixed(1)+'</b></div><div class="survive-hud-spacer"></div><div class="survive-hud-metric"><small>WAVE #</small><b>'+chase.wave+'</b></div></div>';}else hud?.remove();}
+  const chase=surviveData(),root=doc.getElementById('overlayContent');if(root){root.classList.toggle('survive-overlay',chase.active||chase.caught);root.classList.toggle('survive-danger',chase.active&&!chase.warming&&chase.gap<65);root.classList.toggle('survive-critical',chase.active&&!chase.warming&&chase.gap<25);let hud=doc.getElementById('surviveHud');if(chase.active||chase.caught){if(!hud){hud=doc.createElement('div');hud.id='surviveHud';root.append(hud);}hud.innerHTML='<div class="survive-hud-head"><strong>☣ SURVIVE · '+(chase.phase==='RECOVER'?'RECOVER & PREPARE':chase.phase)+'</strong><span>'+chase.theme+'</span></div><div class="survive-hud-grid"><div class="survive-hud-metric"><small>YOU MPH</small><b>'+chase.you.toFixed(1)+'</b></div><div class="survive-hud-profile">'+snapshot.detailChart+'<div class="survive-hud-dots"><i class="threat" style="left:'+Math.max(0,Math.min(100,(surviveEnemyDistance-snapshot.profileStart)/Math.max(1,snapshot.profileStop-snapshot.profileStart)*100))+'%"></i><i class="rider" style="left:'+Math.max(0,Math.min(100,(distance-snapshot.profileStart)/Math.max(1,snapshot.profileStop-snapshot.profileStart)*100))+'%"></i></div><div class="survive-hud-timer"><div><small>'+(chase.warming?'THREAT STARTS':'CHASE ELAPSED')+'</small><strong>'+surviveFormatTime(chase.warming?chase.remaining:surviveElapsed)+'</strong></div><div><small>GAP</small><strong class="survive-hud-gap">'+chase.gap+' m</strong></div><div><small>'+(surviveMode==='finish'?'EST. TIME LEFT':'WAVE')+'</small><strong>'+(surviveMode==='finish'?surviveFormatTime(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):String(chase.wave))+'</strong></div></div></div><div class="survive-hud-metric"><small>WATTS</small><b>'+(snapshot.power??'—')+'</b></div><div class="survive-hud-metric"><small>THREAT MPH</small><b>'+chase.enemy.toFixed(1)+'</b></div><div class="survive-hud-spacer"></div><div class="survive-hud-metric"><small>WAVE #</small><b>'+chase.wave+'</b></div></div>';}else hud?.remove();}
   const chart=doc.getElementById('overlayChart');if(chart)chart.innerHTML=snapshot.climbComplete?'<div style="height:210px;display:grid;place-items:center;font:900 45px system-ui;color:#6cf5c9;text-align:center;text-shadow:0 3px 18px #000">⛰ CLIMB COMPLETE!</div>':snapshot.detailChart;
   const label=doc.getElementById('overlayLabel');if(label)label.textContent=(running?'● RIDING · ':rideStart&&!rideEnd?'Ⅱ PAUSED · ':'')+snapshot.detailLabel;
   const metrics=doc.getElementById('overlayMetrics');if(metrics){
@@ -1832,8 +1832,15 @@ function publishDesktopOverlay(){
 
 
 /* SURVIVE beta: opt-in chase; actual trainer power; no resistance manipulation. */
-let surviveWarmupRemaining=0;let survivePrepRemaining=0;let surviveOn=false,surviveCaught=false,surviveElapsed=0,surviveGap=100,surviveWave=1,surviveLast=0,surviveTheme='ZOMBIES',survivePeriod=180;
-const survivePanel=document.createElement('section');survivePanel.className='survive-beta';survivePanel.innerHTML='<header><strong>☣ SURVIVE · BETA</strong><span id="surviveStatus">READY</span></header><div class="survive-controls"><label>Threat <select id="surviveTheme"><option>ZOMBIES</option><option>WOLVES</option><option>KILLER CLOWNS</option><option>POISON GAS</option></select></label><label>Wave <select id="survivePeriod"><option value="180">3 minutes</option><option value="300">5 minutes</option></select></label><button id="surviveStart">START SURVIVE</button><button id="surviveStop" disabled>END</button></div><div id="surviveHudMain" hidden><div class="survive-stats"><span>WAVE <b id="surviveWave">1</b></span><span>GAP <b id="surviveGap">100 m</b></span><span class="survive-speed-box">YOU MPH <b id="surviveYouMph">—</b></span><span class="survive-speed-box">THREAT MPH <b id="surviveThreatMph">—</b></span><span class="survive-countdown"><b id="survivePhase">CHASE</b><strong id="surviveCountdown">1:00</strong></span></div><div class="survive-track"><span class="survive-threat-dot" id="surviveThreatDot"></span><span class="survive-rider-dot" id="surviveRiderDot"></span></div><strong id="surviveMessage">OUTRUN THE PURSUERS</strong></div><p id="surviveRecord">Start with 2 or 4 minutes to prepare, then 60-second chases. Local beta records only.</p>';
+let surviveWarmupRemaining=0;let survivePrepRemaining=0;
+let surviveMode:'classic'|'finish'='classic';
+let surviveDifficulty:'recovery'|'standard'|'hard'|'nightmare'='standard';
+let surviveFinishDistance=0;
+let surviveWon=false;
+let surviveChaseWattSeconds=0;
+let surviveChaseSeconds=0;
+const surviveDifficultyPower={recovery:.82,standard:1,hard:1.12,nightmare:1.25};let surviveOn=false,surviveCaught=false,surviveElapsed=0,surviveGap=100,surviveWave=1,surviveLast=0,surviveTheme='ZOMBIES',survivePeriod=180;
+const survivePanel=document.createElement('section');survivePanel.className='survive-beta';survivePanel.innerHTML='<header><strong>☣ SURVIVE · BETA</strong><span id="surviveStatus">READY</span></header><div class="survive-controls"><label>Threat <select id="surviveTheme"><option>ZOMBIES</option><option>WOLVES</option><option>KILLER CLOWNS</option><option>POISON GAS</option></select></label><label>Mode <select id="surviveMode"><option value="finish">Finish Line Survival</option><option value="classic">Classic Waves</option></select></label><label>Difficulty <select id="surviveDifficulty"><option value="recovery">Recovery</option><option value="standard" selected>Standard</option><option value="hard">Hard</option><option value="nightmare">Nightmare</option></select></label><label id="surviveWaveSettings">Wave <select id="survivePeriod"><option value="180">3 minutes</option><option value="300">5 minutes</option></select></label><button id="surviveStart">START SURVIVE</button><button id="surviveStop" disabled>END</button></div><div id="surviveHudMain" hidden><div class="survive-stats"><span>WAVE <b id="surviveWave">1</b></span><span>GAP <b id="surviveGap">100 m</b></span><span class="survive-speed-box">YOU MPH <b id="surviveYouMph">—</b></span><span class="survive-speed-box">THREAT MPH <b id="surviveThreatMph">—</b></span><span class="survive-countdown"><b id="survivePhase">CHASE</b><strong id="surviveCountdown">1:00</strong></span></div><div class="survive-track"><span class="survive-threat-dot" id="surviveThreatDot"></span><span class="survive-rider-dot" id="surviveRiderDot"></span></div><strong id="surviveMessage">OUTRUN THE PURSUERS</strong></div><p id="surviveRecord">Start with 2 or 4 minutes to prepare, then 60-second chases. Local beta records only.</p>';
 // Compact setup banner: expand only when the rider wants to configure a chase.
 const surviveExpand=document.createElement('button');
 surviveExpand.type='button';
@@ -1856,6 +1863,15 @@ surviveGameHud.id='surviveGameHud';
 surviveGameHud.className='survive-game-hud';
 surviveGameHud.hidden=true;
 surviveGameHud.innerHTML='<div class="survive-game-top"><strong>☣ SURVIVE</strong><span id="surviveGameState">PREPARE</span><span id="surviveGameTheme">ZOMBIES · WAVE 1</span><button id="surviveGameEnd" type="button">END SURVIVE</button></div><div class="survive-game-metrics"><div><small>YOU MPH</small><strong id="surviveGameYou">—</strong></div><div class="survive-game-gap"><small id="surviveGameGapLabel">GAP · STEADY</small><strong id="surviveGameGap">100 m</strong></div><div><small>THREAT MPH</small><strong id="surviveGameThreat">—</strong></div></div><div class="survive-game-clock"><span id="surviveGameClockLabel">CHASE BEGINS IN</span><strong id="surviveGameClock">2:00</strong><span id="surviveGameMessage">GET READY</span></div><div class="survive-game-bottom"><span>POWER <b id="surviveGamePower">—</b> W</span><span>GEAR <b id="surviveGameGear">—</b></span><span>HEART RATE <b id="surviveGameHR">—</b> BPM</span><span>DISTANCE <b id="surviveGameDistance">0.00</b> MI</span><span>ASCENT <b id="surviveGameAscent">0</b> FT</span></div>';
+const surviveVictoryScreen=document.createElement('div');
+surviveVictoryScreen.id='surviveVictoryScreen';
+surviveVictoryScreen.hidden=true;
+surviveVictoryScreen.setAttribute('role','dialog');
+surviveVictoryScreen.setAttribute('aria-modal','true');
+surviveVictoryScreen.innerHTML='<div class="survive-victory-card"><strong class="survive-victory-icon">🏁</strong><h2>YOU SURVIVED</h2><p>YOU REACHED THE FINISH BEFORE THE THREAT</p><div id="surviveVictoryStats"></div><button type="button" id="surviveVictoryContinue">CONTINUE RIDE</button><button type="button" id="surviveVictoryFinish">FINISH & SAVE RIDE</button></div>';
+document.body.append(surviveVictoryScreen);
+surviveVictoryScreen.querySelector('#surviveVictoryContinue')!.addEventListener('click',()=>{surviveVictoryScreen.hidden=true;});
+surviveVictoryScreen.querySelector('#surviveVictoryFinish')!.addEventListener('click',()=>{surviveVictoryScreen.hidden=true;if(rideStart&&!rideEnd)finishRide();});
 surviveGameHud.querySelector('#surviveGameEnd')!.addEventListener('click',()=>surviveEnd());
 const gameSet=(id:string,value:string)=>{const el=surviveGameHud.querySelector('#'+id);if(el&&el.textContent!==value)el.textContent=value;};
 const surviveFailScreen=document.createElement('div');
@@ -1890,12 +1906,15 @@ const se=(id:string)=>survivePanel.querySelector<HTMLElement>('#'+id)!;
 // A pursuer follows its own route position and obeys the same forces as the rider.
 // The gap is road distance (meters), not a difference between invented flat-ground speeds.
 let surviveEnemyDistance=0,surviveEnemySpeed=0;
+const surviveRouteFinish=()=>Math.max(0,procedural?routeLimit:(points.at(-1)?.distance||0));
+const surviveFormatTime=(seconds:number)=>Math.floor(seconds/60)+':'+String(Math.max(0,Math.floor(seconds%60))).padStart(2,'0');
 function surviveTarget(){const ftp=Math.max(50,Number(($('ftp') as HTMLInputElement).value)||250),pcts=[50,60,70,75,80,85,90,95,100,105,110,115,120,125,130,135],pct=pcts[Math.min(15,surviveWave-1)]+Math.max(0,surviveWave-16)*5,work=surviveElapsed%survivePeriod<60;return {watts:ftp*(work?pct/100:.45),work};}
-function surviveData(){const warming=surviveOn&&survivePrepRemaining>0,target=surviveTarget(),work=target.work,remaining=warming?Math.ceil(survivePrepRemaining):Math.ceil((work?60:survivePeriod)-surviveElapsed%survivePeriod);return {active:surviveOn,caught:surviveCaught,warming,theme:surviveTheme,wave:surviveWave,gap:Math.round(surviveGap),you:speed*MPH_PER_MPS,enemy:warming?0:surviveEnemySpeed*MPH_PER_MPS,target:Math.round(target.watts),phase:warming?'PREPARE':work?'CHASE':'RECOVER',remaining,message:warming?'THREAT STARTS IN '+Math.floor(remaining/60)+':'+String(remaining%60).padStart(2,'0'):surviveCaught?'YOU WERE CAUGHT':surviveGap<25?'SPRINT! THEY ARE RIGHT BEHIND YOU':surviveGap<65?'THEY ARE CLOSING IN':work?'OUTRUN YOUR PURSUERS':'RECOVER AND PREPARE'};}
+function surviveData(){const warming=surviveOn&&survivePrepRemaining>0,target=surviveTarget(),work=surviveMode==='finish'?true:target.work,remaining=warming?Math.ceil(survivePrepRemaining):surviveMode==='finish'?Math.ceil(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):Math.ceil((work?60:survivePeriod)-surviveElapsed%survivePeriod);return {active:surviveOn,caught:surviveCaught,warming,theme:surviveTheme,wave:surviveWave,gap:Math.round(surviveGap),you:speed*MPH_PER_MPS,enemy:warming?0:surviveEnemySpeed*MPH_PER_MPS,target:Math.round(target.watts),phase:warming?'PREPARE':work?'CHASE':'RECOVER',remaining,message:warming?'THREAT STARTS IN '+Math.floor(remaining/60)+':'+String(remaining%60).padStart(2,'0'):surviveCaught?'YOU WERE CAUGHT':surviveGap<25?'SPRINT! THEY ARE RIGHT BEHIND YOU':surviveGap<65?'THEY ARE CLOSING IN':surviveMode==='finish'?'REACH THE FINISH BEFORE CAPTURE':work?'OUTRUN YOUR PURSUERS':'RECOVER AND PREPARE'};}
 
 function surviveAdvanceEnemy(dt:number){
  if(!points.length||dt<=0)return;
- const watts=Math.max(0,surviveTarget().watts)*.975;
+ const watts=Math.max(0,(surviveMode==='finish'?Math.max(50,Number(($('ftp') as HTMLInputElement).value)||250)*.9:surviveTarget().watts))*.975*(surviveMode==='finish'?surviveDifficultyPower[surviveDifficulty]:1);
+ const catchup=surviveMode==='finish'?Math.min(1.2,Math.max(0,(surviveGap-75)/350)*1.2):0;
  const mass=Math.max(35,weightKg('weight')+weightKg('bikeWeight')),g=9.80665,crr=Math.max(0,num('crr'));
  const steps=Math.max(1,Math.ceil(dt/.05)),step=dt/steps;
  for(let i=0;i<steps;i++){
@@ -1905,7 +1924,9 @@ function surviveAdvanceEnemy(dt:number){
   const aero=.5*1.225*.38*surviveEnemySpeed*surviveEnemySpeed;
   const drive=Math.min(700,watts/Math.max(surviveEnemySpeed,1.5));
   const acceleration=(drive-gravity-rolling-aero)/mass,old=surviveEnemySpeed;
-  surviveEnemySpeed=Math.max(0,Math.min(35,surviveEnemySpeed+acceleration*step));
+  surviveEnemySpeed=Math.max(0,Math.min(22,surviveEnemySpeed+acceleration*step));
+  // Bounded catch-up acceleration only; no teleportation or instantaneous speed changes.
+  if(catchup>0)surviveEnemySpeed=Math.min(22,surviveEnemySpeed+Math.min(catchup,.55)*step);
   if(watts>=35)surviveEnemySpeed=Math.max(.25,surviveEnemySpeed);
   surviveEnemyDistance+=(old+surviveEnemySpeed)*.5*step;
  }
@@ -1962,12 +1983,12 @@ function surviveRender(){const c=surviveData();
   surviveGameHud.dataset.gapTrend=gapDirection;
   gameSet('surviveGameGapLabel',gapDirection==='closing'?'GAP · CLOSING':gapDirection==='extending'?'GAP · PULLING AWAY':'GAP · STEADY');
   gameSet('surviveGameState',c.phase==='RECOVER'?'RECOVER & PREPARE':c.phase);
-  gameSet('surviveGameTheme',c.theme+' · WAVE '+c.wave);
+  gameSet('surviveGameTheme',surviveMode==='finish'?c.theme+' · FINISH LINE · '+surviveDifficulty.toUpperCase():c.theme+' · WAVE '+c.wave);
   gameSet('surviveGameYou',c.you.toFixed(1));
   gameSet('surviveGameGap',c.warming?'—':c.gap+' m');
   gameSet('surviveGameThreat',c.enemy.toFixed(1));
-  gameSet('surviveGameClockLabel',c.phase==='CHASE'?'CHASE ENDS IN':'CHASE BEGINS IN');
-  gameSet('surviveGameClock',Math.floor(c.remaining/60)+':'+String(c.remaining%60).padStart(2,'0'));
+  gameSet('surviveGameClockLabel',surviveMode==='finish'&&!c.warming?'EST. TIME TO FINISH':c.phase==='CHASE'?'CHASE ENDS IN':'CHASE BEGINS IN');
+  gameSet('surviveGameClock',surviveMode==='finish'&&!c.warming?surviveFormatTime(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):surviveFormatTime(c.remaining));
   gameSet('surviveGameMessage',c.message);
   gameSet('surviveGamePower',threeSecondWatts()?.toFixed(0)??'—');
   gameSet('surviveGameGear',drivetrainMode==='virtual'?String(gear):'—');
@@ -1975,11 +1996,28 @@ function surviveRender(){const c=surviveData();
   gameSet('surviveGameDistance',(distance/METERS_PER_MILE).toFixed(2));
   gameSet('surviveGameAscent',String(Math.round(gainLossThrough(distance).gain*FEET_PER_METER)));
  }
-surviveUpdateProfileThreat();survivePanel.classList.toggle('danger',surviveOn&&surviveGap<65);survivePanel.classList.toggle('critical',surviveOn&&surviveGap<25);se('surviveHudMain').hidden=!(surviveOn||surviveCaught);se('surviveStatus').textContent=surviveCaught?'CAUGHT':surviveOn?(c.warming?'WARM-UP':surviveTheme):'READY';se('surviveWave').textContent=String(c.wave);se('surviveGap').textContent=c.warming?'—':c.gap+' m';se('surviveYouMph').textContent=c.you.toFixed(1);se('surviveThreatMph').textContent=c.enemy.toFixed(1);se('survivePhase').textContent=c.phase==='RECOVER'?'RECOVER & PREPARE':c.phase;se('surviveCountdown').textContent=Math.floor(c.remaining/60)+':'+String(c.remaining%60).padStart(2,'0');se('surviveMessage').textContent=c.message;se('surviveRiderDot').style.left='calc(100% - 13px)';se('surviveThreatDot').style.left='calc('+Math.max(2,96-94*c.gap/(c.gap+100))+'% - 5px)';(se('surviveStart') as HTMLButtonElement).disabled=surviveOn;(se('surviveStop') as HTMLButtonElement).disabled=!surviveOn;}
-function surviveEnd(caught=false){if(!surviveOn)return;surviveOn=false;surviveCaught=caught;if(caught){const waves=Math.max(0,surviveWave-1);try{const k='breakaway-survive-beta-records',old=JSON.parse(localStorage.getItem(k)||'[]');localStorage.setItem(k,JSON.stringify([...(Array.isArray(old)?old:[]),{theme:surviveTheme,waves,duration:survivePeriod,date:new Date().toISOString()}].slice(-100)));}catch{}se('surviveRecord').textContent='CAUGHT · '+waves+' completed waves. Local record saved. Keep riding!';surviveFailScreen.querySelector('#surviveFailTheme')!.textContent=surviveTheme+' CAUGHT YOU';surviveFailScreen.querySelector('#surviveFailWaves')!.textContent=String(waves);const survivedSeconds=Math.floor(survivePeriod-60+surviveElapsed);surviveFailScreen.querySelector('#surviveFailTime')!.textContent=Math.floor(survivedSeconds/60)+':'+String(survivedSeconds%60).padStart(2,'0');surviveFailScreen.hidden=false;surviveFailDeadline=performance.now()+30000;surviveFailPedalSince=0;}else se('surviveRecord').textContent='Chase ended. Normal riding continues.';surviveRender();lastOverlayPush=0;publishDesktopOverlay();}
+surviveUpdateProfileThreat();survivePanel.classList.toggle('danger',surviveOn&&surviveGap<65);survivePanel.classList.toggle('critical',surviveOn&&surviveGap<25);se('surviveHudMain').hidden=!(surviveOn||surviveCaught);se('surviveStatus').textContent=surviveWon?'YOU SURVIVED':surviveCaught?'CAUGHT':surviveOn?(c.warming?'PREPARE':surviveMode==='finish'?'RACE TO FINISH':surviveTheme):'READY';se('surviveWave').textContent=String(c.wave);se('surviveGap').textContent=c.warming?'—':c.gap+' m';se('surviveYouMph').textContent=c.you.toFixed(1);se('surviveThreatMph').textContent=c.enemy.toFixed(1);se('survivePhase').textContent=surviveMode==='finish'&&!c.warming?'FINISH LINE':c.phase==='RECOVER'?'RECOVER & PREPARE':c.phase;se('surviveCountdown').textContent=surviveFormatTime(c.remaining);se('surviveMessage').textContent=c.message;se('surviveRiderDot').style.left='calc(100% - 13px)';se('surviveThreatDot').style.left='calc('+Math.max(2,96-94*c.gap/(c.gap+100))+'% - 5px)';(se('surviveStart') as HTMLButtonElement).disabled=surviveOn;(se('surviveStop') as HTMLButtonElement).disabled=!surviveOn;}
+function surviveEnd(caught=false){if(!surviveOn)return;surviveOn=false;surviveCaught=caught;if(caught){const waves=Math.max(0,surviveWave-1);try{const k='breakaway-survive-beta-records',old=JSON.parse(localStorage.getItem(k)||'[]');localStorage.setItem(k,JSON.stringify([...(Array.isArray(old)?old:[]),{theme:surviveTheme,waves,duration:survivePeriod,date:new Date().toISOString()}].slice(-100)));}catch{}se('surviveRecord').textContent='CAUGHT · '+waves+' completed waves. Local record saved. Keep riding!';surviveFailScreen.querySelector('#surviveFailTheme')!.textContent=surviveTheme+' CAUGHT YOU';surviveFailScreen.querySelector('#surviveFailWaves')!.textContent=String(waves);const survivedSeconds=Math.floor(survivePeriod-60+surviveElapsed);surviveFailScreen.querySelector('#surviveFailTime')!.textContent=Math.floor(survivedSeconds/60)+':'+String(survivedSeconds%60).padStart(2,'0');surviveFailScreen.hidden=false;surviveFailDeadline=performance.now()+30000;surviveFailPedalSince=0;}else se('surviveRecord').textContent=surviveWon?'FINISH LINE REACHED · YOU SURVIVED!':'Chase ended. Normal riding continues.';surviveRender();lastOverlayPush=0;publishDesktopOverlay();}
 function surviveTick(now:number){const dt=surviveLast?Math.max(0,Math.min(1,(now-surviveLast)/1000)):0;surviveLast=now;// SURVIVE is independent of the rider's pause state: the pursuer never stops.
- if(!surviveOn)return;if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;surviveWave=1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(surviveGap<=0)surviveEnd(true);surviveRender();}
-se('surviveStart').addEventListener('click',()=>{if(!connected||!controlGranted||!realTelemetry){const message=!connected?'CONNECT YOUR TRAINER TO START SURVIVE':!controlGranted?'WAITING FOR TRAINER CONTROL — RECONNECT YOUR TRAINER':'WAITING FOR LIVE POWER FROM YOUR TRAINER';status(message);se('surviveStatus').textContent=message;survivePanel.classList.add('setup-warning');return;}survivePanel.classList.remove('setup-warning');surviveOn=true;surviveCaught=false;survivePanel.classList.remove('setup-warning');survivePanel.classList.add('survive-collapsed');surviveExpand.setAttribute('aria-expanded','false');surviveExpand.textContent='Configure';surviveWarmupRemaining=0;surviveElapsed=0;surviveGap=100;surviveWave=1;surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveLast=performance.now();surviveTheme=(se('surviveTheme') as HTMLSelectElement).value;survivePeriod=Number((se('survivePeriod') as HTMLSelectElement).value)||180;survivePrepRemaining=survivePeriod-60;if(!running)beginRide();surviveRender();lastOverlayPush=0;publishDesktopOverlay();});
+ if(!surviveOn)return;if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;if(surviveMode==='finish'){surviveChaseWattSeconds+=Math.max(0,power)*dt;surviveChaseSeconds+=dt;}surviveWave=surviveMode==='finish'?1:1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(surviveMode==='finish'&&surviveFinishDistance>0&&distance>=surviveFinishDistance&&surviveGap>0){
+  surviveWon=true;
+  const finishGap=Math.round(surviveGap);
+  surviveEnd(false);
+  const stats=surviveVictoryScreen.querySelector('#surviveVictoryStats');
+  if(stats)stats.textContent='FINISHING GAP '+finishGap+' m · DISTANCE '+(surviveFinishDistance/METERS_PER_MILE).toFixed(2)+' mi · CHASE '+surviveFormatTime(surviveElapsed)+' · AVG POWER '+Math.round(surviveChaseSeconds?surviveChaseWattSeconds/surviveChaseSeconds:0)+' W';
+  surviveVictoryScreen.hidden=false;
+ }else if(surviveGap<=0)surviveEnd(true);surviveRender();}
+se('surviveStart').addEventListener('click',()=>{if(!connected||!controlGranted||!realTelemetry){const message=!connected?'CONNECT YOUR TRAINER TO START SURVIVE':!controlGranted?'WAITING FOR TRAINER CONTROL — RECONNECT YOUR TRAINER':'WAITING FOR LIVE POWER FROM YOUR TRAINER';status(message);se('surviveStatus').textContent=message;survivePanel.classList.add('setup-warning');return;}survivePanel.classList.remove('setup-warning');
+ surviveMode=(se('surviveMode') as HTMLSelectElement).value==='finish'?'finish':'classic';
+ surviveDifficulty=(se('surviveDifficulty') as HTMLSelectElement).value as typeof surviveDifficulty;
+ surviveFinishDistance=surviveRouteFinish();
+ if(surviveMode==='finish'&&(endless||surviveFinishDistance<=distance+50)){
+  const warning='FINISH LINE SURVIVAL REQUIRES A FINITE ROUTE WITH DISTANCE REMAINING. GENERATE OR UPLOAD A ROUTE FIRST.';
+  se('surviveStatus').textContent=warning;status(warning);return;
+ }
+ surviveWon=false;surviveChaseWattSeconds=0;surviveChaseSeconds=0;surviveVictoryScreen.hidden=true;surviveOn=true;surviveCaught=false;survivePanel.classList.remove('setup-warning');survivePanel.classList.add('survive-collapsed');surviveExpand.setAttribute('aria-expanded','false');surviveExpand.textContent='Configure';surviveWarmupRemaining=0;surviveElapsed=0;surviveGap=100;surviveWave=1;surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveLast=performance.now();surviveTheme=(se('surviveTheme') as HTMLSelectElement).value;survivePeriod=Number((se('survivePeriod') as HTMLSelectElement).value)||180;survivePrepRemaining=surviveMode==='finish'?120:survivePeriod-60;if(!running)beginRide();surviveRender();lastOverlayPush=0;publishDesktopOverlay();});
+se('surviveMode').addEventListener('change',()=>{const finish=(se('surviveMode') as HTMLSelectElement).value==='finish';se('surviveWaveSettings').hidden=finish;se('surviveRecord').textContent=finish?'Reach the route finish before capture. Requires a finite generated or uploaded route.':'Classic timed waves: survive as long as you can.';});
+(se('surviveMode') as HTMLSelectElement).dispatchEvent(new Event('change'));
 se('surviveStop').addEventListener('click',()=>surviveEnd());surviveRender();
 
 // All overlay variables and event handlers are initialized before the first render.
@@ -2538,6 +2576,74 @@ document.getElementById('backToSetup')!.addEventListener('click',()=>{if(running
 document.getElementById('backToStudio')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
 window.setInterval(checkAutomaticRideCountdown,500);
 showBreakawayScreen('route');
+
+// Two distinct entry experiences, sharing the real route editor and trainer workflow.
+type RideExperience='classic'|'survival';
+let rideExperience:RideExperience='classic';
+const modeLanding=document.createElement('section');
+modeLanding.id='modeLanding';
+modeLanding.className='mode-landing';
+modeLanding.innerHTML='<div class="mode-landing-brand"><span>RIDE BREAKAWAY</span><small>CREATE. CONNECT. RIDE.</small></div><div class="mode-landing-intro"><span>YOUR RIDE. YOUR RULES.</span><h1>CHOOSE YOUR RIDE.</h1><p>Two ways to experience Breakaway. One smart trainer.</p></div><div class="mode-landing-cards"><button type="button" id="chooseClassic" class="mode-card mode-card-classic"><span class="mode-card-number">01 / THE ORIGINAL</span><span class="mode-card-visual">⌁</span><strong>CLASSIC</strong><span class="mode-card-description">Create a route. Conquer the climbs. Ride your way.</span><span class="mode-card-action">START CLASSIC ↗</span></button><button type="button" id="chooseSurvival" class="mode-card mode-card-survival"><span class="mode-card-number">02 / THE CHALLENGE</span><span class="mode-card-visual">☣</span><strong>SURVIVAL</strong><span class="mode-card-description">Build an escape route. Stay ahead of the threat. Reach the finish.</span><span class="mode-card-action">ENTER SURVIVAL ↗</span></button></div><p class="mode-landing-footer">SMART TRAINER REQUIRED · NO ACCOUNT NECESSARY TO PREVIEW MODES</p>';
+document.body.append(modeLanding);
+const modeHomeButton=document.createElement('button');
+modeHomeButton.type='button';modeHomeButton.id='modeHomeButton';modeHomeButton.textContent='← CHANGE MODE';
+document.body.append(modeHomeButton);
+const survivalStudio=document.createElement('section');
+survivalStudio.id='survivalStudio';
+survivalStudio.className='survival-studio-intro';
+survivalStudio.innerHTML='<div class="survival-studio-head"><span>☣ SURVIVAL STUDIO</span><h2>BUILD YOUR ESCAPE.</h2><p>Choose your challenge, set the threat, then generate or upload a route below. The live elevation editor and trainer connection are shared with Classic.</p></div><div class="survival-studio-controls"><label>CHALLENGE<select id="studioChallenge"><option value="finish">🏁 Finish Line — beat the threat to the finish</option><option value="classic">⏱ Classic Waves — survive timed chases</option></select></label><label>DIFFICULTY<select id="studioDifficulty"><option value="recovery">Recovery · Forgiving</option><option value="standard" selected>Standard · Balanced</option><option value="hard">Hard · Aggressive</option><option value="nightmare">Nightmare · Relentless</option></select></label><label>THREAT<select id="studioThreat"><option>ZOMBIES</option><option>WOLVES</option><option>KILLER CLOWNS</option><option>POISON GAS</option></select></label></div><div class="survival-studio-guide"><span>01 / CONFIGURE CHALLENGE</span><span>02 / GENERATE ESCAPE ROUTE ↓</span><span>03 / CONNECT TRAINER → SURVIVE</span></div>';
+screenRoute.prepend(survivalStudio);
+function syncSurvivalStudio(){
+ (se('surviveMode') as HTMLSelectElement).value=(document.getElementById('studioChallenge') as HTMLSelectElement).value;
+ (se('surviveDifficulty') as HTMLSelectElement).value=(document.getElementById('studioDifficulty') as HTMLSelectElement).value;
+ (se('surviveTheme') as HTMLSelectElement).value=(document.getElementById('studioThreat') as HTMLSelectElement).value;
+ (se('surviveMode') as HTMLSelectElement).dispatchEvent(new Event('change'));
+}
+survivalStudio.querySelectorAll('select').forEach(select=>select.addEventListener('change',()=>{
+ syncSurvivalStudio();
+ const isFinish=(document.getElementById('studioChallenge') as HTMLSelectElement).value==='finish';
+ const endlessButton=document.getElementById('endlessRoute') as HTMLButtonElement|null;
+ if(endlessButton){endlessButton.disabled=isFinish;endlessButton.title=isFinish?'Finish Line requires a finite route. Choose Classic Waves for Endless.':'';}
+}));
+const studioRouteFeedback=document.createElement('div');
+studioRouteFeedback.id='studioRouteFeedback';
+studioRouteFeedback.setAttribute('role','status');
+studioRouteFeedback.textContent='Generate a finite route or upload GPX/TCX, then inspect the elevation profile before connecting.';
+survivalStudio.append(studioRouteFeedback);
+const generateRouteButton=document.getElementById('generateRoute') as HTMLButtonElement|null;
+generateRouteButton?.addEventListener('click',()=>{
+ studioRouteFeedback.textContent='Route generation requested — review the updated elevation profile below.';
+ requestAnimationFrame(()=>{syncStudioRoutePreview();});
+});
+const uploadRouteInput=document.querySelector<HTMLInputElement>('input[type="file"]');
+uploadRouteInput?.addEventListener('change',()=>{studioRouteFeedback.textContent='Route uploaded — review the route preview below.';});
+
+function chooseRideExperience(mode:RideExperience){
+ rideExperience=mode;
+ modeLanding.hidden=true;
+ modeHomeButton.hidden=false;
+ survivalStudio.hidden=mode!=='survival';
+ document.body.dataset.rideExperience=mode;
+ syncSurvivalStudio();
+ survivalStudio.querySelector('select')?.dispatchEvent(new Event('change'));
+ showBreakawayScreen('route');
+ const routeTitle=screenRoute.querySelector('.route-studio-heading h2');
+ if(routeTitle)routeTitle.textContent=mode==='survival'?'GENERATE YOUR ESCAPE ROUTE':'ROUTE STUDIO';
+}
+function openModeLanding(){
+ if(surviveOn){status('End your current Survival session before changing modes.');return;}
+ modeLanding.hidden=false;
+ modeHomeButton.hidden=true;
+ screenRoute.hidden=true;screenSetup.hidden=true;screenRide.hidden=true;
+ document.body.dataset.breakawayScreen='home';
+ window.scrollTo(0,0);
+}
+modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
+modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
+modeHomeButton.addEventListener('click',openModeLanding);
+const originalEnterRideScreen=enterRideScreen;
+// Preview starts with mode selection, not the existing route editor.
+openModeLanding();
 
 // Trainer Test Lab is a separate offline simulator, never connected to live ride state.
 const trainerLabLink=document.createElement('a');
