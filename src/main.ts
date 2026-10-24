@@ -333,10 +333,16 @@ function showRideSummary(){
  const garminTitle=document.createElement('h3');garminTitle.textContent='Garmin Connect';
  const garminInfo=document.createElement('p');garminInfo.className='note';garminInfo.textContent='Automatic activity upload is not connected yet. Garmin’s standard Activity API imports rides from Garmin into partner apps; sending Breakaway rides to Garmin requires a separately approved upload integration. For now, export this ride and import it into Garmin Connect.';
  const garminActions=document.createElement('div');garminActions.className='garmin-export-actions';
- const garminDownload=document.createElement('button');garminDownload.type='button';garminDownload.className='secondary';garminDownload.textContent='1. Download ride for Garmin';garminDownload.addEventListener('click',()=>{try{downloadTcx({id:rideStart||'',start:rideStart||'',end:rideEnd||'',name:routeName,meters:distance,elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:null,tcx:buildRideTcx()});}catch(e){status(String(e));}});
- const garminOpen=document.createElement('button');garminOpen.type='button';garminOpen.className='secondary';garminOpen.textContent='2. Open Garmin Connect';garminOpen.addEventListener('click',()=>{window.open('https://connect.garmin.com/modern/activities','_blank','noopener,noreferrer');});
- const garminHelp=document.createElement('p');garminHelp.className='note';garminHelp.textContent='In Garmin Connect on desktop, use the cloud upload icon → Import Data → select the downloaded .tcx file.';
- garminActions.append(garminDownload,garminOpen);garminBox.append(garminTitle,garminInfo,garminActions,garminHelp);root.append(garminBox);
+ const garminDownload=document.createElement('button');garminDownload.type='button';garminDownload.className='secondary';garminDownload.textContent='Download / Upload to Garmin Connect';
+ garminDownload.addEventListener('click',()=>{
+  // Open in the user gesture before initiating the file download, avoiding popup blockers.
+  const connectTab=window.open('https://connect.garmin.com/modern/activities','_blank','noopener,noreferrer');
+  try{downloadTcx({id:rideStart||'',start:rideStart||'',end:rideEnd||'',name:routeName,meters:distance,elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:null,tcx:buildRideTcx()});}
+  catch(e){status('Could not download ride: '+String(e));}
+  if(!connectTab)status('Ride download started. Allow pop-ups to open Garmin Connect automatically.');
+ });
+ const garminHelp=document.createElement('p');garminHelp.className='note';garminHelp.textContent='Downloads your .tcx ride file and opens Garmin Connect in a new tab. In Garmin Connect, use the cloud upload icon → Import Data → choose the downloaded file.';
+ garminActions.append(garminDownload);garminBox.append(garminTitle,garminInfo,garminActions,garminHelp);root.append(garminBox);
  const note=document.createElement('p');note.className='note';note.textContent='Ride history and TCX files are stored in this browser, not the Breakaway cloud. Export TCX backups regularly.';root.append(note);
  const done=document.createElement('button');done.type='button';done.textContent='Done — new ride';done.addEventListener('click',()=>{root.hidden=true;root.style.removeProperty('display');root.classList.remove('ride-summary-fullscreen');setRideFocus(false);distance=0;speed=0;rideStart=null;rideEnd=null;resetRideMetrics();resetSimController();$('start').textContent='Let’s Ride!';syncManualFinishButton();update();});root.append(done);
  document.body.append(root);root.hidden=false;root.classList.add('ride-summary-fullscreen');root.style.display='block';root.scrollTop=0;
