@@ -2307,3 +2307,18 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-radius:7
 #screenRide .ride-screen-header,#screenSetup .breakaway-integrated-step-header{border-bottom-color:#2b8682!important}
 @media(max-width:700px){body main{padding:10px!important}.ride-workspace{padding:10px!important;border-radius:10px!important}}
 @media(prefers-reduced-motion:reduce){button{transition:none!important}}
+
+/* ACCESSIBILITY PASS — Option 2: enforce legible text against forest-teal panels */
+body,main,.breakaway-screen,.ride-workspace,.ride-workspace section,.connection-strip,.route-studio,.ride-dashboard,.device-connect-card,.setup-device-tile,.metric,.ride-dashboard .metric{color:#F1FFF5!important}
+p,.note,small,.workspace-header p,.device-connect-card p,.setup-device-tile p,.metric small,.ride-dashboard .metric small{color:#D2EDE5!important}
+label,.ride-workspace label,.breakaway-screen label,legend{color:#EDFFF6!important}
+h1,h2,h3,h4,.ride-workspace h2,.ride-workspace h3{color:#F1FFF5!important}
+.workspace-header h2{color:#E4FFEC!important}
+input:not([type="checkbox"]):not([type="radio"]),select,textarea{background:#073C43!important;color:#F3FFF7!important;border-color:#5DAAA3!important}
+input::placeholder,textarea::placeholder{color:#C1E3DC!important;opacity:1}
+button.secondary,.screen-progress .screen-step{background:#0C575D!important;color:#F5FFF8!important;border:1px solid #68B5AC!important}
+button:not(.secondary):not(.screen-step):not([id="entertainmentView"]){background:#B6FF6A!important;color:#063A3B!important;border:1px solid #A4E85D!important}
+button:disabled{opacity:.7!important}
+a{color:#B6FFCA}
+a:hover{color:#E4FFED}
+.metric b,.ride-dashboard .metric b{color:#F1FFF5!important}
