@@ -2442,6 +2442,7 @@ function showBreakawayScreen(screen:BreakawayScreen){
  if(screen==='ride')requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));
 }
 function enterRideScreen(){
+ document.getElementById('ridePreviewNotice')?.setAttribute('hidden','');
  stopRideCountdown();
  if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
  // Start the ride from the Connect Trainer action itself. FTMS power and
@@ -2462,7 +2463,31 @@ document.getElementById('goToRide')!.addEventListener('click',enterRideScreen);
 // Navigation is free between planning and devices; entering the active ride requires a trainer.
 document.getElementById('stepRoute')!.addEventListener('click',()=>{stopRideCountdown();if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
 document.getElementById('stepSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');checkAutomaticRideCountdown();});
-document.getElementById('stepRide')!.addEventListener('click',()=>{if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
+// Preview mode is navigation only. It never calls beginRide(), sends FTMS commands,
+// or invents telemetry. A real ride still requires a connected, initialized trainer.
+function previewRideScreen(){
+ if(running){showBreakawayScreen('ride');return;}
+ if(trainerReadyForRide()){showBreakawayScreen('ride');return;}
+ showBreakawayScreen('ride');
+ let banner=document.getElementById('ridePreviewNotice') as HTMLElement|null;
+ if(!banner){
+  banner=document.createElement('div');
+  banner.id='ridePreviewNotice';
+  banner.setAttribute('role','status');
+  banner.className='ride-preview-notice';
+  banner.textContent='PREVIEW MODE — Explore the ride dashboard without a trainer. Live metrics and trainer resistance are unavailable until you connect a smart trainer.';
+  screenRide.prepend(banner);
+ }
+ banner.hidden=false;
+}
+document.getElementById('stepRide')!.addEventListener('click',previewRideScreen);
+const previewRideButton=document.createElement('button');
+previewRideButton.id='previewRideScreen';
+previewRideButton.type='button';
+previewRideButton.className='secondary';
+previewRideButton.textContent='Preview Ride Screen →';
+previewRideButton.addEventListener('click',previewRideScreen);
+document.getElementById('goToRide')!.insertAdjacentElement('afterend',previewRideButton);
 document.getElementById('backToRoute')!.addEventListener('click',()=>{stopRideCountdown();showBreakawayScreen('route');});
 document.getElementById('backToSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');});
 document.getElementById('backToStudio')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
