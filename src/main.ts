@@ -2007,6 +2007,36 @@ screenSetup.append(setupStepHeader);
 const rideView=document.createElement('div');rideView.className='ride-screen-content';
 rideView.append(originalProfile,originalDashboard);
 screenRide.append(rideHeading,rideView);
+// Step 5: persistent Compact / Expanded ride dashboard. This only changes presentation;
+// live telemetry, ride recording, trainer controls and overlay readout choices stay intact.
+const DASHBOARD_MODE_KEY='breakaway-dashboard-mode-v1';
+type DashboardMode='compact'|'expanded';
+let dashboardMode:DashboardMode='expanded';
+try{dashboardMode=localStorage.getItem(DASHBOARD_MODE_KEY)==='compact'?'compact':'expanded';}catch{}
+const dashboardModePicker=document.createElement('div');
+dashboardModePicker.className='dashboard-mode-picker';
+dashboardModePicker.setAttribute('role','group');
+dashboardModePicker.setAttribute('aria-label','Dashboard layout');
+const dashboardModeLabel=document.createElement('span');dashboardModeLabel.textContent='Dashboard view';
+const compactDashboardButton=document.createElement('button');compactDashboardButton.type='button';compactDashboardButton.textContent='Compact';compactDashboardButton.className='secondary';
+const expandedDashboardButton=document.createElement('button');expandedDashboardButton.type='button';expandedDashboardButton.textContent='Expanded';expandedDashboardButton.className='secondary';
+function setDashboardMode(mode:DashboardMode){
+ dashboardMode=mode;
+ originalDashboard.dataset.dashboardMode=mode;
+ compactDashboardButton.setAttribute('aria-pressed',String(mode==='compact'));
+ expandedDashboardButton.setAttribute('aria-pressed',String(mode==='expanded'));
+ try{localStorage.setItem(DASHBOARD_MODE_KEY,mode);}catch{}
+}
+compactDashboardButton.addEventListener('click',()=>setDashboardMode('compact'));
+expandedDashboardButton.addEventListener('click',()=>setDashboardMode('expanded'));
+dashboardModePicker.append(dashboardModeLabel,compactDashboardButton,expandedDashboardButton);
+const dashboardTitle=originalDashboard.querySelector('h2');
+if(dashboardTitle)dashboardTitle.after(dashboardModePicker);else originalDashboard.prepend(dashboardModePicker);
+for(const metric of originalDashboard.querySelectorAll<HTMLElement>('.metrics .metric')){
+ const id=metric.querySelector('b')?.id;
+ if(id==='speed'||id==='distance'||id==='power'||id==='elapsedTime')metric.classList.add('dashboard-essential');
+}
+setDashboardMode(dashboardMode);
 // Route Studio needs its own live profile: the interactive original belongs to the ride screen.
 const routePreviewPanel=document.createElement('section');
 routePreviewPanel.className='route-studio-live-preview';
