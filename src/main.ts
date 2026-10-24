@@ -1280,6 +1280,13 @@ async function connectClickDevice(selected:any){
   };
   clickCharacteristic.addEventListener('characteristicvaluechanged',clickHandler);
   await clickCharacteristic.startNotifications();
+  // A successful Zwift Click connection always enables virtual shifting, including auto-reconnects.
+  if(drivetrainMode!=='virtual'){
+   drivetrainMode='virtual';
+   ($('drivetrainMode') as HTMLSelectElement).value='virtual';
+   applyDrivetrainMode();
+   saveRideSettings();
+  }
   // Crucial: notifications stay silent until the original Click is activated.
   clickWriteCharacteristic=await service.getCharacteristic(CLICK_WRITE);
   const session=clickSession;
