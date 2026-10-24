@@ -768,7 +768,31 @@ function refreshHeartRateProfile(){
  }
 }
 
-const GRADE_STOPS:[number,string][]=[[-3,'#4b9be9'],[0,'#35c96b'],[3,'#d4d94b'],[6,'#ff9b31'],[9,'#f04452'],[12,'#a65cf5']];
+let GRADE_STOPS:[number,string][]=[[-3,'#4b9be9'],[0,'#35c96b'],[3,'#d4d94b'],[6,'#ff9b31'],[9,'#f04452'],[12,'#a65cf5']];
+
+/* Breakaway appearance lab: option 3 shares its neon grade scale with every profile. */
+const BREAKAWAY_NEON_STOPS:[number,string][]=[[-3,'#38e8ff'],[0,'#38e8ff'],[2,'#43a2ff'],[4,'#8c65ff'],[6,'#ea5aff'],[8,'#ff62b7'],[12,'#f5f05a']];
+const BREAKAWAY_CLASSIC_STOPS=GRADE_STOPS.map(([n,c])=>[n,c] as [number,string]);
+function applyBreakawayAppearance(option:string){
+ const selected=['1','2','3'].includes(option)?option:'1';
+ document.body.dataset.breakawayTheme=selected;
+ GRADE_STOPS=(selected==='3'?BREAKAWAY_NEON_STOPS:BREAKAWAY_CLASSIC_STOPS).map(([n,c])=>[n,c]);
+ try{localStorage.setItem('breakaway-appearance',selected);}catch{}
+ try{window.dispatchEvent(new Event('resize'));}catch{}
+ try{(document.getElementById('chart')||document.getElementById('profile'))?.dispatchEvent(new Event('change'));}catch{}
+}
+function installAppearanceSelector(){
+ const panel=document.createElement('div');
+ panel.className='breakaway-appearance-picker';
+ panel.innerHTML='<label for="breakawayAppearance">APPEARANCE</label><select id="breakawayAppearance" aria-label="Breakaway appearance"><option value="1">01 / Classic</option><option value="2">02 / Atelier</option><option value="3">03 / Neon Circuit</option></select>';
+ document.body.appendChild(panel);
+ const select=panel.querySelector('select')!;
+ let initial='1';try{initial=localStorage.getItem('breakaway-appearance')||'1';}catch{}
+ select.value=['1','2','3'].includes(initial)?initial:'1';
+ applyBreakawayAppearance(select.value);
+ select.addEventListener('change',()=>{applyBreakawayAppearance(select.value);try{svg();}catch{}});
+}
+installAppearanceSelector();
 function gradeColor(g:number){
  if(!Number.isFinite(g))return GRADE_STOPS[1][1];
  if(g<=GRADE_STOPS[0][0])return GRADE_STOPS[0][1];
