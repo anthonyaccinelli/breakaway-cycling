@@ -2154,3 +2154,34 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
  #screenRide #profileInspector .profile-ride-actions{gap:5px!important;flex-wrap:wrap!important}
  #screenRide #profileInspector .profile-ride-actions button{font-size:11px!important;padding:6px 9px!important}
 }
+
+/* Step 3 — inactive SURVIVE is a compact expandable banner, not a large setup panel. */
+#screenRide>.survive-beta.survive-collapsed:not(.danger):not(.critical){
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ flex:0 0 auto!important;gap:14px!important;height:auto!important;min-height:42px!important;
+ max-height:none!important;overflow:visible!important;padding:7px 13px!important;
+}
+#screenRide>.survive-beta.survive-collapsed>header{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ flex:1 1 auto!important;gap:12px!important;margin:0!important;min-width:0!important
+}
+#screenRide>.survive-beta.survive-collapsed>header strong{font-size:15px!important}
+#screenRide>.survive-beta.survive-collapsed .survive-controls,
+#screenRide>.survive-beta.survive-collapsed #surviveRecord,
+#screenRide>.survive-beta.survive-collapsed #surviveHudMain{display:none!important}
+#screenRide>.survive-beta #surviveExpand{
+ background:#25485a!important;border:1px solid #467386!important;color:#e9f9ff!important;
+ border-radius:7px!important;min-height:29px!important;padding:5px 13px!important;
+ font-size:12px!important;font-weight:850!important;cursor:pointer!important;
+}
+#screenRide>.survive-beta:not(.survive-collapsed)>header #surviveExpand{margin-left:auto}
+#screenRide>.survive-beta:not(.survive-collapsed){max-height:none!important;overflow:visible!important}
+#screenRide>.survive-beta:not(.survive-collapsed)>.survive-controls{display:flex!important;flex-wrap:wrap!important}
+@media(min-width:900px){
+ #screenRide:not(.survive-playing)>.survive-beta.survive-collapsed>header{width:100%!important}
+ #screenRide:not(.survive-playing)>.survive-beta:not(.survive-collapsed){
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ }
+ #screenRide:not(.survive-playing)>.survive-beta:not(.survive-collapsed)>header{flex:0 0 auto!important}
+ #screenRide:not(.survive-playing)>.survive-beta:not(.survive-collapsed)>.survive-controls{flex:1 1 auto!important}
+}
