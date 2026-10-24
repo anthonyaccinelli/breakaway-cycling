@@ -2337,3 +2337,38 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{background:#171
 a{color:#8cfff5!important}
 :where(button,summary,input,select,textarea):focus-visible{outline:3px solid #c5ff28!important;outline-offset:3px!important}
 @media(prefers-reduced-motion:reduce){button{transition:none!important;transform:none!important}}
+
+
+/* OPTION 3 — NEON OVERDRIVE / ARCADE HUD PASS
+   Presentation-only: preserve IDs, event handlers, route logic and BLE behavior.
+   Keep essential text solid; reserve glows for borders and decorative surfaces. */
+:root{--arcade-cyan:#65fff3;--arcade-pink:#ff4de1;--arcade-lime:#c5ff28;--arcade-violet:#a77aff;--arcade-surface:#12142d;--arcade-ink:#f9fbff}
+.breakaway-brand-bar{position:relative;isolation:isolate;border-bottom:2px solid #65fff3!important;margin-bottom:15px!important}
+.breakaway-brand-bar:after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:2px;background:linear-gradient(90deg,#65fff3 0 28%,#ff4de1 28% 58%,#c5ff28 58% 82%,#a77aff 82%);box-shadow:0 0 14px #65fff377;pointer-events:none}
+.app-brand{font-size:clamp(42px,5.2vw,82px)!important;line-height:.94!important;letter-spacing:-.015em!important}
+.breakaway-tagline{font-size:clamp(10px,1vw,13px)!important;letter-spacing:.23em!important}
+.screen-progress .screen-step{min-height:43px!important;padding:10px 15px!important;border-color:#a77aff!important;letter-spacing:.055em!important}
+.screen-progress .screen-step.active,.screen-progress .screen-step[aria-current="step"]{border-color:#65fff3!important;box-shadow:4px 4px 0 #ff4de1,0 0 19px #65fff344!important}
+.ride-workspace{position:relative;isolation:isolate;border:2px solid #a77aff!important;background:linear-gradient(135deg,#1a1538 0%,#0d122b 70%)!important;box-shadow:7px 7px 0 #060511,0 0 25px #a77aff30!important}
+.ride-workspace:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#65fff3,#ff4de1 38%,#c5ff28 73%,#a77aff);box-shadow:0 0 15px #ff4de166;pointer-events:none}
+.workspace-header h2,.ride-screen-header h2,.breakaway-integrated-step-header h2{font-size:clamp(27px,3vw,46px)!important;line-height:1.02!important;letter-spacing:.035em!important}
+.ride-workspace section,.route-studio,.connection-strip,.ride-dashboard{border-color:#826ab4!important}
+.ride-workspace section h2,.ride-workspace section h3{letter-spacing:.045em!important}
+.metric,.ride-dashboard .metric{min-width:0!important;overflow:visible!important;position:relative!important;isolation:isolate;border-top:2px solid #8d79bf!important;background:linear-gradient(145deg,#28204e,#171b37)!important;box-shadow:3px 3px 0 #080817,0 0 18px #7e4dff24!important}
+.metric:before,.ride-dashboard .metric:before{content:"";position:absolute;top:-2px;right:0;width:35%;height:2px;background:#ff4de1;box-shadow:0 0 11px #ff4de188;pointer-events:none}
+.metric b,.ride-dashboard .metric b{font-size:clamp(25px,2.6vw,44px)!important;line-height:1.05!important;overflow-wrap:anywhere!important;font-variant-numeric:tabular-nums!important;text-shadow:none!important;color:#fff!important}
+.metric small,.ride-dashboard .metric small{font-size:clamp(10px,.85vw,12px)!important;line-height:1.4!important;overflow-wrap:anywhere!important;color:#e8e5ff!important}
+#chart,#floatChart{min-width:0!important}
+#chart svg,#floatChart svg{background:#0b1028!important;border:1px solid #785eb5!important;box-shadow:inset 0 0 22px #6038ad24,0 0 18px #65fff31c!important}
+.floating-profile{background:linear-gradient(155deg,#191637,#0c132c)!important;border:2px solid #65fff3!important;border-radius:3px!important;box-shadow:5px 5px 0 #ff4de1,0 0 25px #65fff344!important}
+.floating-handle{border-bottom:2px solid #a77aff!important}
+.float-stats{gap:8px!important}
+.float-stats b{color:#65fff3!important;text-shadow:none!important}
+.profile-inspector,.overlay-selection{background:#191734!important;border-color:#8b70c2!important}
+.profile-inspector b{color:#c5ff28!important}
+button:not(:disabled):active{transform:translate(1px,1px)!important;box-shadow:1px 1px 0 #ff4de1!important}
+button:disabled{opacity:.55!important;cursor:not-allowed!important}
+input[type=checkbox],input[type=radio],input[type=range]{accent-color:#65fff3!important}
+::selection{background:#ff4de1;color:#090916}
+@media(max-width:700px){.app-brand{font-size:clamp(38px,10vw,60px)!important}.screen-progress .screen-step{padding:9px 7px!important;font-size:10px!important}.metric b,.ride-dashboard .metric b{font-size:clamp(23px,6vw,35px)!important}.floating-profile{max-width:calc(100vw - 12px)!important}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
