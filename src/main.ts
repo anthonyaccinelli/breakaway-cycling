@@ -1261,7 +1261,11 @@ async function connectClickDevice(selected:any){
   clickDevice=selected;plusPressed=false;minusPressed=false;clickPackets=0;clickButtonEvents=0;
   selected.addEventListener('gattserverdisconnected',()=>{if(clickDevice===selected){stopClickKeepalive();clickSession++;plusPressed=false;minusPressed=false;clickMessage('Zwift Click disconnected — press a button to wake it, then reconnect');}});
   const server=await selected.gatt.connect();
-  const service=await server.getPrimaryService(CLICK_SERVICE);
+  let service:any;
+  try{service=await server.getPrimaryService(CLICK_SERVICE);}
+  catch{
+   throw Error('Connected to '+(selected.name||'Zwift controller')+', but its Bluetooth service differs from the original Click. Newer Cog & Click / Play controllers need protocol support. Device name: '+(selected.name||'unknown'));
+  }
   clickCharacteristic=await service.getCharacteristic(CLICK_NOTIFY);
   clickHandler=(event:any)=>{
    const view:DataView=event.target.value;
@@ -1295,7 +1299,7 @@ async function connectClickDevice(selected:any){
   clickMessage('Zwift Click activated · idle keepalive every 15s · press + or − to shift');
  }catch(err){clickMessage('Zwift Click: '+String(err));throw err;}
 }
-$('connectClick').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({filters:[{namePrefix:'Zwift Click'}],optionalServices:[CLICK_SERVICE]});pausedBleRoles.delete('click');rememberDevice('click',selected);await connectClickDevice(selected);}catch(err){clickMessage('Zwift Click: '+String(err));}});
+$('connectClick').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({filters:[{namePrefix:'Zwift Click'},{namePrefix:'Zwift Play'},{namePrefix:'Zwift'}],optionalServices:[CLICK_SERVICE]});pausedBleRoles.delete('click');rememberDevice('click',selected);await connectClickDevice(selected);}catch(err){clickMessage('Zwift Click: '+String(err));}});
 $('disconnectClick').addEventListener('click',()=>{pausedBleRoles.add('click');
  stopClickKeepalive();clickSession++;
  if(clickCharacteristic&&clickHandler)clickCharacteristic.removeEventListener('characteristicvaluechanged',clickHandler);
