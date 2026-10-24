@@ -2347,3 +2347,40 @@ body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-s
 body[data-ride-experience="survival"][data-breakaway-screen="route"] #endlessRoute:disabled{opacity:.35;cursor:not-allowed}
 body[data-ride-experience="survival"][data-breakaway-screen="route"] .route-studio{margin-top:0!important}
 @media(max-width:760px){body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls{grid-template-columns:1fr!important}}
+
+
+/* Fix: the original route studio occupied 100% viewport height PLUS the new
+   Survival Studio header. Make them share one constrained screen height. */
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute{
+ display:flex!important;flex-direction:column!important;min-height:0!important;
+ height:100%!important;overflow:hidden!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute>.survival-studio-intro{
+ flex:0 0 auto!important;min-height:0!important;max-height:165px!important;
+ overflow:hidden!important;box-sizing:border-box!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute>.route-studio{
+ flex:1 1 0!important;height:auto!important;min-height:0!important;
+ overflow:hidden!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute .route-studio-grid{
+ flex:1 1 0!important;min-height:0!important;overflow:hidden!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute .route-studio-live-preview{
+ display:flex!important;flex-direction:column!important;min-height:0!important;
+ overflow:hidden!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute .studio-live-chart{
+ flex:1 1 0!important;min-height:90px!important;overflow:hidden!important;
+}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-head h2,
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .route-studio-live-heading h2{
+ color:#f6fbff!important;
+}
+@media(max-height:850px){
+ body[data-ride-experience="survival"][data-breakaway-screen="route"] #screenRoute>.survival-studio-intro{max-height:122px!important;padding:8px 12px!important}
+ body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-head h2{font-size:19px!important}
+ body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls{margin-top:5px!important}
+ body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls select{padding:5px 8px!important}
+ body[data-ride-experience="survival"][data-breakaway-screen="route"] #studioRouteFeedback{margin-top:3px!important;font-size:10px!important}
+}
