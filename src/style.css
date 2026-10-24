@@ -2535,3 +2535,35 @@ a:hover{color:#e6ffac!important}
 @media(prefers-reduced-motion:reduce){
   button,.screen-progress .screen-step{transition:none!important}
 }
+
+
+/* OPTION 5 — CRITICAL ROUTE SUMMARY CONTRAST FIX
+   The route statistics must remain legible on every screen size. */
+body[data-breakaway-screen="route"] #screenRoute .route-studio-live-heading .studio-live-stats,
+#screenRoute .studio-live-stats{
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+  gap:8px 16px!important;background:#203039!important;
+  border:1px solid #51666e!important;border-radius:10px!important;
+  padding:10px 13px!important;color:#e8f0ed!important;
+  opacity:1!important;visibility:visible!important;
+  line-height:1.5!important;font-size:13px!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .route-studio-live-heading .studio-live-stats span,
+#screenRoute .studio-live-stats span{
+  display:inline-flex!important;align-items:baseline!important;flex-wrap:wrap!important;
+  gap:5px!important;color:#d1e0e3!important;
+  font-weight:600!important;opacity:1!important;
+  text-shadow:none!important;white-space:normal!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .route-studio-live-heading .studio-live-stats b,
+#screenRoute .studio-live-stats b{
+  color:#f8fff1!important;font-size:14px!important;font-weight:800!important;
+  line-height:1.4!important;text-shadow:none!important;opacity:1!important;
+}
+body[data-breakaway-screen="route"] #screenRoute .route-quick-facts{
+  color:#e3f2ce!important;font-weight:650!important;
+}
+@media(max-width:750px){
+  #screenRoute .studio-live-stats{gap:6px 12px!important;padding:9px!important}
+  #screenRoute .studio-live-stats span{font-size:12px!important}
+}
