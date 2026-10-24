@@ -2459,18 +2459,18 @@ function refreshSetupDeviceCards(){
   if(setupPairingPending[entry.id]&&(connectedNow||/error|fail|cancel|not found|denied|unable|disconnected/i.test(detail)))setupPairingPending[entry.id]=false;
   const pairing=setupPairingPending[entry.id]&&!connectedNow;
   const error=!connectedNow&&!pairing&&/error|fail|not found|denied|unable/i.test(detail);
-  const state=ready?'connected':connectedNow?'initializing':pairing?'connecting':error?'error':'disconnected';
+  const state=ready?'connected':connectedNow&&entry.id==='connect'?'telemetry-only':connectedNow?'initializing':pairing?'connecting':error?'error':'disconnected';
   card.dataset.connectionState=state;
   let indicator=card.querySelector<HTMLElement>('.setup-connection-indicator');
   if(!indicator){indicator=document.createElement('div');indicator.className='setup-connection-indicator';indicator.setAttribute('role','status');indicator.setAttribute('aria-live','polite');card.querySelector('h3')?.insertAdjacentElement('afterend',indicator);}
   const name=entry.device()?.name||entry.name;
-  indicator.textContent=state==='connected'?'✓ Connected · '+name:state==='initializing'?'◌ Initializing · '+name:state==='connecting'?'◌ Connecting…':state==='error'?'! Connection failed':'○ Not connected';
+  indicator.textContent=state==='connected'?'✓ Connected · '+name:state==='telemetry-only'?'◐ Power telemetry only · '+name:state==='initializing'?'◌ Initializing · '+name:state==='connecting'?'◌ Connecting…':state==='error'?'! Connection failed':'○ Not connected';
   if(entry.id==='connect'){
    let diagnostics=card.querySelector<HTMLElement>('.trainer-diagnostic');
    if(!diagnostics){diagnostics=document.createElement('p');diagnostics.className='trainer-diagnostic';diagnostics.setAttribute('role','alert');diagnostics.setAttribute('aria-live','assertive');card.append(diagnostics);}
    const detailText=detail.trim();
-   diagnostics.textContent=state==='error'?(detailText||'Trainer connection failed. Try again after closing other trainer apps.'):'';
-   diagnostics.hidden=state!=='error';
+   diagnostics.textContent=state==='telemetry-only'?'Bluetooth connected, but resistance control is unavailable. '+(detailText||'SIM/ERG is not supported for this connection.'):state==='error'?(detailText||'Trainer connection failed. Try again after closing other trainer apps.'):'';
+   diagnostics.hidden=state!=='error'&&state!=='telemetry-only';
   }
   if(state==='connected')button.textContent='Change '+entry.name;
   else if(state==='connecting')button.textContent='Connecting…';
