@@ -1359,6 +1359,7 @@ const stopDragging=()=>{drag=null;};
 handle.addEventListener('pointerup',stopDragging);
 handle.addEventListener('pointercancel',stopDragging);
 // The native companion starts hidden. A user click reveals it above other apps.
+$('entertainmentView').addEventListener('click',()=>{($('nativeProfile') as HTMLButtonElement).click();});
 $('nativeProfile').addEventListener('click',async()=>{
  if(window.breakawayDesktop){
   try{await window.breakawayDesktop.openOverlay();lastOverlayPush=0;publishDesktopOverlay();status('Native always-on-top overlay opened. Adjust true window opacity in its header.');}
