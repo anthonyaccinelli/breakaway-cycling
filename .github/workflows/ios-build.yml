@@ -1,0 +1,38 @@
+name: iOS native build validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/native-platform.ts'
+      - '.github/workflows/ios-build.yml'
+      - 'ios/**'
+
+jobs:
+  ios-build:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Build web bundle
+        run: npm run build
+      - name: Generate iOS project
+        run: npx cap add ios
+      - name: Synchronize Capacitor
+        run: npx cap sync ios
+      - name: Compile iOS Simulator app (unsigned)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj \
+            -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build
