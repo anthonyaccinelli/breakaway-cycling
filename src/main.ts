@@ -2032,7 +2032,7 @@ expandedDashboardButton.addEventListener('click',()=>setDashboardMode('expanded'
 dashboardModePicker.append(dashboardModeLabel,compactDashboardButton,expandedDashboardButton);
 const dashboardTitle=originalDashboard.querySelector('h2');
 if(dashboardTitle)dashboardTitle.after(dashboardModePicker);else originalDashboard.prepend(dashboardModePicker);
-for(const metric of originalDashboard.querySelectorAll<HTMLElement>('.metrics .metric')){
+for(const metric of Array.from(originalDashboard.querySelectorAll<HTMLElement>('.metrics .metric'))){
  const id=metric.querySelector('b')?.id;
  if(id==='speed'||id==='distance'||id==='power'||id==='elapsedTime')metric.classList.add('dashboard-essential');
 }
