@@ -2332,3 +2332,18 @@ body[data-ride-experience="survival"][data-breakaway-screen="route"]{background:
 .survival-studio-guide span{background:#372c43;border:1px solid #684a65;border-radius:9px;padding:9px 12px;color:#ffd2dc;font-size:11px;font-weight:800}
 body[data-ride-experience="survival"][data-breakaway-screen="route"] .route-studio{border-color:#88445e}
 @media(max-width:760px){.mode-landing-cards{grid-template-columns:1fr}.mode-card{min-height:320px}.mode-card-visual{font-size:80px}.survival-studio-controls{grid-template-columns:1fr}.mode-landing-brand{flex-direction:column;align-items:flex-start}.mode-landing-intro{margin:28px 0}}
+
+
+/* Compact Survival Studio: keep the actual route generator and profile visible */
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-intro{padding:12px 18px!important;margin:0 0 8px!important;border-radius:12px!important}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-head h2{font-size:23px!important;margin:0!important}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-head p{display:none!important}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls{grid-template-columns:1.6fr 1fr 1fr;gap:12px;margin-top:10px}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls label{gap:4px}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls select{padding:8px 10px!important}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-guide{display:none!important}
+#studioRouteFeedback{color:#bce5dd;font:700 11px system-ui;margin-top:9px}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] #endlessRoute:disabled{opacity:.35;cursor:not-allowed}
+body[data-ride-experience="survival"][data-breakaway-screen="route"] .route-studio{margin-top:0!important}
+@media(max-width:760px){body[data-ride-experience="survival"][data-breakaway-screen="route"] .survival-studio-controls{grid-template-columns:1fr!important}}
