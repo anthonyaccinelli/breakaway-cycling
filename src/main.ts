@@ -768,7 +768,7 @@ function refreshHeartRateProfile(){
  }
 }
 
-const GRADE_STOPS:[number,string][]=[[-3,'#4b9be9'],[0,'#35c96b'],[3,'#d4d94b'],[6,'#ff9b31'],[9,'#f04452'],[12,'#a65cf5']];
+const GRADE_STOPS:[number,string][]=[[-3,'#5478ff'],[0,'#57f5f2'],[3,'#64c8ff'],[6,'#b09aff'],[9,'#ff54c8'],[12,'#ff9de6']];
 function gradeColor(g:number){
  if(!Number.isFinite(g))return GRADE_STOPS[1][1];
  if(g<=GRADE_STOPS[0][0])return GRADE_STOPS[0][1];
