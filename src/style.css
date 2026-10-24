@@ -2267,3 +2267,15 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 .ride-summary-fullscreen .garmin-export-actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
 .ride-summary-fullscreen .garmin-export-actions button{min-height:40px;padding:9px 14px;border-radius:8px;font-weight:800;cursor:pointer}
 .ride-summary-fullscreen .garmin-export-actions button:first-child{background:#ffd347;color:#24230f;border:1px solid #e6ad27}
+
+/* UI roadmap Step 5 — ride dashboard density modes */
+.ride-dashboard .dashboard-mode-picker{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.ride-dashboard .dashboard-mode-picker span{font-size:11px;font-weight:700;color:#bfd3df;margin-right:auto}
+.ride-dashboard .dashboard-mode-picker button{font-size:11px;line-height:1.2;min-height:31px;padding:6px 11px;border-radius:8px}
+.ride-dashboard .dashboard-mode-picker button[aria-pressed="true"]{background:#ffd347!important;border-color:#ffd347!important;color:#17252e!important;font-weight:800}
+.ride-dashboard[data-dashboard-mode="compact"] .metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.ride-dashboard[data-dashboard-mode="compact"] .metrics .metric:not(.dashboard-essential){display:none!important}
+.ride-dashboard[data-dashboard-mode="compact"] .metrics .metric{padding:15px 8px}
+.ride-dashboard[data-dashboard-mode="compact"] .metrics .metric b{font-size:clamp(23px,2.5vw,32px);line-height:1.15}
+.ride-dashboard[data-dashboard-mode="compact"] .metrics .metric small{font-size:11px;margin-top:5px}
+@media(max-width:600px){.ride-dashboard .dashboard-mode-picker{gap:5px}.ride-dashboard .dashboard-mode-picker span{width:100%;margin-bottom:3px}.ride-dashboard[data-dashboard-mode="compact"] .metrics .metric{padding:12px 5px}}
