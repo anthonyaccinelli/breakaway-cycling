@@ -999,7 +999,12 @@ async function connectTrainerDevice(selected:any){try{
  const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Use desktop Chrome or Edge over localhost/HTTPS.');
  device=selected;
  device.addEventListener('gattserverdisconnected',()=>{if(rideStart&&!rideEnd){pauseRide();saveRideRecovery();}connected=false;controlGranted=false;realTelemetry=false;running=false;setRideFocus(false);resetSimController();speed=0;power=0;cadence=0;$('start').textContent='Let’s Ride!';update();status('Trainer disconnected — ride paused and saved. Reconnect to resume.');});
- const server=await device.gatt.connect(),service=await server.getPrimaryService(FTMS);
+ const server=await device.gatt.connect();
+ let service:any;
+ try{service=await server.getPrimaryService(FTMS);}catch(err){
+  server.disconnect();
+  throw Error('Device discovered, but it does not expose Bluetooth FTMS (Fitness Machine Service). This trainer may need another supported protocol or a firmware update.');
+ }
  control=await service.getCharacteristic(CONTROL);
  await control.startNotifications();
  control.addEventListener('characteristicvaluechanged',(event:any)=>{
@@ -1010,10 +1015,10 @@ async function connectTrainerDevice(selected:any){try{
  await bike.startNotifications();
  bike.addEventListener('characteristicvaluechanged',(event:any)=>parseBikeData(event.target.value));
  connected=true;controlGranted=await command([0x00]);
- status(controlGranted?'Direto XR-T connected; waiting for live trainer power/cadence':'Connected, but FTMS control not granted');
- }catch(err){status('Direto connection error: '+String(err));throw err;}
+ status(controlGranted?'Trainer connected via FTMS; waiting for live power/cadence':'Trainer connected, but FTMS control not granted');
+ }catch(err){status('Trainer connection error: '+String(err));throw err;}
 }
-$('connect').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({filters:[{services:[FTMS]}],optionalServices:[FTMS]});pausedBleRoles.delete('trainer');rememberDevice('trainer',selected);await connectTrainerDevice(selected);}catch(err){status('Direto connection error: '+String(err));}});
+$('connect').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[FTMS]});pausedBleRoles.delete('trainer');rememberDevice('trainer',selected);await connectTrainerDevice(selected);}catch(err){status('Trainer connection error: '+String(err));}});
 
 // v3.8.7 — persist rider and trainer preferences on this browser.
 // Restore values before the existing trainer-mode event listeners are installed.
