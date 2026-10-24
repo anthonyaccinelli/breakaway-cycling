@@ -2278,3 +2278,40 @@ html body .setup-device-tile .trainer-diagnostic:not([hidden]){
  overflow-wrap:anywhere!important;white-space:normal!important;
 }
 html body .trainer-diagnostic[hidden]{display:none!important}
+
+
+/* SVG reference-inspired Create Route preview. Isolated to design-svg-route-reference. */
+body[data-breakaway-screen="route"]{background:#0a1521;color:#e9f0f5}
+body[data-breakaway-screen="route"] main{max-width:1480px;padding:28px 42px}
+body[data-breakaway-screen="route"] .breakaway-brand-bar{margin-bottom:20px}
+body[data-breakaway-screen="route"] .app-brand{font-size:clamp(28px,3vw,42px);font-weight:900;letter-spacing:.045em;color:#eef5f7}
+body[data-breakaway-screen="route"] .breakaway-tagline{color:#40d2aa;font-weight:800;letter-spacing:.045em}
+body[data-breakaway-screen="route"] .screen-progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:790px}
+body[data-breakaway-screen="route"] .screen-step{background:#1e3648;border:0;border-radius:11px;color:#e9f0f5;min-height:50px;font-weight:800}
+body[data-breakaway-screen="route"] .screen-step.active{background:#40d2aa;color:#071a24}
+body[data-breakaway-screen="route"] .route-studio{background:transparent;border:0;box-shadow:none;padding:0}
+body[data-breakaway-screen="route"] .route-studio-heading{margin:16px 0 24px;display:block}
+body[data-breakaway-screen="route"] .route-studio-heading .route-kicker{display:none}
+body[data-breakaway-screen="route"] .route-studio-heading h2{font-size:30px;letter-spacing:-.025em;color:#e9f0f5}
+body[data-breakaway-screen="route"] .route-studio-hint{color:#9bb3c1}
+body[data-breakaway-screen="route"] .route-studio-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(350px,1fr);gap:22px;align-items:stretch}
+body[data-breakaway-screen="route"] .route-builder,body[data-breakaway-screen="route"] .route-preview{background:#142638;border:2px solid #34586c;border-radius:18px;padding:28px;box-shadow:none;min-width:0}
+body[data-breakaway-screen="route"] .route-panel-heading{margin:4px 0 14px}
+body[data-breakaway-screen="route"] .route-panel-heading h2{font-size:25px;font-weight:500;color:#f1f6fa}
+body[data-breakaway-screen="route"] .route-step{display:none}
+body[data-breakaway-screen="route"] .route-kicker{color:#40d2aa;font-weight:800}
+body[data-breakaway-screen="route"] .route-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 24px}
+body[data-breakaway-screen="route"] .route-fields label{color:#a9bfcd;font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.02em}
+body[data-breakaway-screen="route"] .route-fields input,body[data-breakaway-screen="route"] .route-fields select{width:100%;min-width:0;box-sizing:border-box;background:#1e3648;border:0;border-radius:9px;color:#f0f6f8;min-height:54px;padding:12px 16px;font-size:17px}
+body[data-breakaway-screen="route"] .route-actions{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0}
+body[data-breakaway-screen="route"] .route-actions button{border-radius:9px;min-height:48px;flex:1;white-space:normal;background:#1e3648;color:#f0f6f8}
+body[data-breakaway-screen="route"] #generateRoute,body[data-breakaway-screen="route"] #enjoyRide{background:#40d2aa;color:#071a24;font-weight:900}
+body[data-breakaway-screen="route"] #enjoyRide{min-height:52px;border-radius:9px}
+body[data-breakaway-screen="route"] .route-preview .profile-heading h2{font-size:22px;color:#f0f6f8}
+body[data-breakaway-screen="route"] #chart{background:#0a1b2c;border-radius:12px;overflow:hidden}
+body[data-breakaway-screen="route"] #chart svg{background:#0a1b2c}
+body[data-breakaway-screen="route"] .profile-inspector{background:#1e3648;border-color:#35546a}
+body[data-breakaway-screen="route"] .profile-inspector b{color:#40d2aa}
+body[data-breakaway-screen="route"] .route-import{background:#102333;border:1px solid #34586c;border-radius:10px;padding:12px}
+@media(max-width:1000px){body[data-breakaway-screen="route"] .route-studio-grid{grid-template-columns:1fr}body[data-breakaway-screen="route"] main{padding:20px}}
+@media(max-width:580px){body[data-breakaway-screen="route"] .route-fields{grid-template-columns:1fr}body[data-breakaway-screen="route"] .route-builder,body[data-breakaway-screen="route"] .route-preview{padding:16px}body[data-breakaway-screen="route"] .screen-progress{gap:5px}body[data-breakaway-screen="route"] .screen-step{font-size:11px;padding:8px}}
