@@ -2213,3 +2213,21 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
  #screenRide #profileDisplayOptions>summary{font-size:12px;padding:6px 10px}
  #screenRide #profileDisplayOptions .profile-display-menu{min-width:215px}
 }
+
+/* Entertainment View: prominent one-click shortcut for the always-on-top overlay. */
+#screenRide #profileSection .profile-heading-actions{
+ display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;
+}
+#screenRide #profileSection #entertainmentView{
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;
+ min-height:38px;padding:7px 14px;border-radius:8px;
+ border:1px solid #e6ad27;background:#ffd347;color:#24230f;
+ font-size:13px;font-weight:900;line-height:1.2;white-space:nowrap;cursor:pointer;
+ box-shadow:0 2px 8px #00000026;
+}
+#screenRide #profileSection #entertainmentView:hover{background:#ffe078;border-color:#f8c63a}
+#screenRide #profileSection #entertainmentView:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media(max-width:550px){
+ #screenRide #profileSection .profile-heading-actions{gap:6px}
+ #screenRide #profileSection #entertainmentView{font-size:12px;padding:6px 10px}
+}
