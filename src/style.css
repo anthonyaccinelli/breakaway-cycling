@@ -2267,3 +2267,21 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 .ride-summary-fullscreen .garmin-export-actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
 .ride-summary-fullscreen .garmin-export-actions button{min-height:40px;padding:9px 14px;border-radius:8px;font-weight:800;cursor:pointer}
 .ride-summary-fullscreen .garmin-export-actions button:first-child{background:#ffd347;color:#24230f;border:1px solid #e6ad27}
+
+
+/* Option 3: Neon Circuit / Y2K cyberpunk, scoped to avoid changing other options. */
+.breakaway-appearance-picker{position:fixed;right:14px;bottom:14px;z-index:99999;display:flex;align-items:center;gap:10px;background:#151329;color:#f5f3ff;border:1px solid #8c65ff;border-radius:14px;padding:9px 12px;box-shadow:0 8px 30px #08071588;font:700 11px Inter,system-ui,sans-serif;letter-spacing:.08em}
+.breakaway-appearance-picker label{margin:0;color:#c4b8ff}
+.breakaway-appearance-picker select{min-width:135px;border:1px solid #6257a3;border-radius:8px;background:#24203e;color:#fff;padding:8px;font:700 12px Inter,system-ui,sans-serif;cursor:pointer}
+body[data-breakaway-theme="3"]{background:#0c0b19!important;color:#f4f0ff!important}
+body[data-breakaway-theme="3"] main,body[data-breakaway-theme="3"] section{color:#f4f0ff}
+body[data-breakaway-theme="3"] section,body[data-breakaway-theme="3"] .metric,body[data-breakaway-theme="3"] .card{background:#1a1930!important;border-color:#534779!important}
+body[data-breakaway-theme="3"] button:not(.secondary){background:#38e8ff;color:#0c0b19}
+body[data-breakaway-theme="3"] button.secondary{background:#33274e;color:#f8f4ff;border:1px solid #8c65ff}
+body[data-breakaway-theme="3"] input,body[data-breakaway-theme="3"] select{accent-color:#ea5aff}
+body[data-breakaway-theme="3"] input[type="number"],body[data-breakaway-theme="3"] input[type="text"]{background:#17142b;color:#fff;border-color:#7564a9}
+body[data-breakaway-theme="3"] .metric b{color:#38e8ff}
+body[data-breakaway-theme="3"] .metric small,body[data-breakaway-theme="3"] .note{color:#d1cbe6}
+body[data-breakaway-theme="3"] #chart svg{background:#121126}
+body[data-breakaway-theme="3"][data-breakaway-screen="ride"]{background:#0c0b19!important}
+@media(max-width:600px){.breakaway-appearance-picker{right:8px;bottom:8px;padding:6px 8px;gap:5px}.breakaway-appearance-picker select{min-width:110px}}
