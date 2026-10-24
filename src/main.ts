@@ -7,6 +7,8 @@ startRiderPresence(createClient, document.getElementById('liveRidersCount'), doc
 type Point = {distance:number; elevation:number; grade:number};
 type BLEDevice = any;
 const FTMS='00001826-0000-1000-8000-00805f9b34fb';
+const CYCLING_POWER='00001818-0000-1000-8000-00805f9b34fb';
+const CYCLING_POWER_MEASUREMENT='00002a63-0000-1000-8000-00805f9b34fb';
 const CONTROL='00002ad9-0000-1000-8000-00805f9b34fb';
 const STATUS='00002ada-0000-1000-8000-00805f9b34fb';
 const BIKE='00002ad2-0000-1000-8000-00805f9b34fb';
@@ -993,6 +995,45 @@ function tick(now:number){
  requestAnimationFrame(tick);
 }
 $('gpx').addEventListener('change',async e=>{try{const file=(e.target as HTMLInputElement).files?.[0];if(!file)return;if(rideStart&&!rideEnd)finishRide();procedural=false;endless=false;zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;routeLimit=0;plannedGainFeet=null;gainScale=1;resetClimbingTotals();clearElevationEditor();points=parseGPX(await file.text());routeName=file.name;rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();svg();update();requestAnimationFrame(()=>syncStudioRoutePreview());status(`Loaded ${file.name}: ${(points.at(-1)!.distance/METERS_PER_MILE).toFixed(1)} mi`);}catch(err){status(String(err));}});
+// Wahoo SNAP compatibility phase 1: read-only Cycling Power Service discovery.
+// Never issue undocumented Wahoo resistance commands.
+function parseCyclingPowerMeasurement(v:DataView){
+ if(v.byteLength<4)return;
+ const flags=v.getUint16(0,true);
+ power=Math.max(0,v.getInt16(2,true));
+ // Crank revolution data is optional; use it only when present and safely bounded.
+ let o=4;
+ if(flags&(1<<0))o+=1;
+ if(flags&(1<<2))o+=1;
+ if(flags&(1<<4))o+=6;
+ if(flags&(1<<5))o+=4;
+ if(flags&(1<<6))o+=4;
+ if(flags&(1<<7))o+=2;
+ if((flags&(1<<8))&&o+4<=v.byteLength){
+  const rev=v.getUint16(o,true),eventTime=v.getUint16(o+2,true);
+  if(lastSnapCrank){
+   const dr=(rev-lastSnapCrank.rev+65536)%65536;
+   const dt=(eventTime-lastSnapCrank.time+65536)%65536;
+   if(dt>0&&dr>0&&dr<20)cadence=Math.min(200,Math.round(dr*60*1024/dt));
+  }
+  lastSnapCrank={rev,time:eventTime};
+ }
+ realTelemetry=true;
+ const sampleTime=performance.now();
+ powerHistory.push({time:sampleTime,watts:power});
+ powerHistory=powerHistory.filter(sample=>sampleTime-sample.time<=POWER_WINDOW_MS+2000);
+ update();
+}
+let lastSnapCrank:{rev:number;time:number}|null=null;
+async function connectLegacyCyclingPower(server:any,selected:any){
+ const service=await server.getPrimaryService(CYCLING_POWER);
+ const measurement=await service.getCharacteristic(CYCLING_POWER_MEASUREMENT);
+ await measurement.startNotifications();
+ measurement.addEventListener('characteristicvaluechanged',(event:any)=>parseCyclingPowerMeasurement(event.target.value));
+ connected=true;
+ controlGranted=false;
+ status('Wahoo '+(selected.name||'trainer')+' connected: cycling power telemetry only. SIM/ERG resistance control is not yet supported. This is a diagnostic connection, not a ride-ready trainer.');
+}
 async function connectTrainerDevice(selected:any){try{
  if(connected&&device?.id===selected.id)return;
  if(device?.gatt?.connected&&device.id!==selected.id)device.gatt.disconnect();
@@ -1002,8 +1043,14 @@ async function connectTrainerDevice(selected:any){try{
  const server=await device.gatt.connect();
  let service:any;
  try{service=await server.getPrimaryService(FTMS);}catch(err){
+  if((selected.name||'').toLowerCase().includes('kickr')||(selected.name||'').toLowerCase().includes('wahoo')){
+   try{await connectLegacyCyclingPower(server,selected);return;}catch(powerErr){
+    server.disconnect();
+    throw Error('Wahoo detected but Cycling Power Service unavailable: '+String(powerErr));
+   }
+  }
   server.disconnect();
-  throw Error('Device discovered, but it does not expose Bluetooth FTMS (Fitness Machine Service). This trainer may need another supported protocol or a firmware update.');
+  throw Error('Device does not expose Bluetooth FTMS. Non-FTMS Wahoo trainers can be tested with read-only Cycling Power Service.');
  }
  control=await service.getCharacteristic(CONTROL);
  await control.startNotifications();
@@ -1018,7 +1065,7 @@ async function connectTrainerDevice(selected:any){try{
  status(controlGranted?'Trainer connected via FTMS; waiting for live power/cadence':'Trainer connected, but FTMS control not granted');
  }catch(err){status('Trainer connection error: '+String(err));throw err;}
 }
-$('connect').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[FTMS]});pausedBleRoles.delete('trainer');rememberDevice('trainer',selected);await connectTrainerDevice(selected);}catch(err){status('Trainer connection error: '+String(err));}});
+$('connect').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[FTMS,CYCLING_POWER]});pausedBleRoles.delete('trainer');rememberDevice('trainer',selected);await connectTrainerDevice(selected);}catch(err){status('Trainer connection error: '+String(err));}});
 
 // v3.8.7 — persist rider and trainer preferences on this browser.
 // Restore values before the existing trainer-mode event listeners are installed.
