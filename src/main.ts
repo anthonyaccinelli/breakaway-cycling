@@ -810,7 +810,7 @@ function svg(){
  $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><div class="profile-telemetry"><span class="profile-gear-readout"></span><span class="profile-hr-readout">— bpm</span></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><circle id="marker" cx="${pad}" cy="${h-pad}" r="6" fill="#ffc85c" stroke="#fff1b8" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none"/><circle id="surviveProfileThreat" cx="${pad}" cy="${h-pad}" r="8" fill="#f04452" stroke="#fff" stroke-width="2.5" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/></svg>`;
  zoomDisplay();syncProfileCharts();refreshHeartRateProfile();refreshInspection();
 }
-function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
+function update(){if(typeof dashboardPreviewActive!=='undefined'&&dashboardPreviewActive){paintDashboardPreview();return;}const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
  zoomDisplay();
  const liveGrade=$('profileLiveGrade');const hud=gradeHud(displayGrade());const barGrade=document.getElementById('profileBarGrade');if(barGrade){barGrade.textContent=hud.label;barGrade.style.color=hud.color;}
  if(liveGrade){liveGrade.textContent=hud.label;liveGrade.style.color=hud.color;liveGrade.style.fontSize=hud.size+'px';liveGrade.innerHTML=hud.label+climbHud(currentClimb);}
@@ -2037,6 +2037,42 @@ for(const metric of Array.from(originalDashboard.querySelectorAll<HTMLElement>('
  if(id==='speed'||id==='distance'||id==='power'||id==='elapsedTime')metric.classList.add('dashboard-essential');
 }
 setDashboardMode(dashboardMode);
+// Preview is presentation-only: no trainer commands, ride start, or saved activities.
+let dashboardPreviewActive=false;
+const dashboardPreviewButton=document.createElement('button');
+dashboardPreviewButton.type='button';dashboardPreviewButton.className='secondary dashboard-preview-button';
+dashboardPreviewButton.textContent='Preview Dashboard';
+const dashboardPreviewNotice=document.createElement('div');
+dashboardPreviewNotice.className='dashboard-preview-notice';
+dashboardPreviewNotice.textContent='PREVIEW MODE · Sample metrics only · No trainer connection or ride recording';
+dashboardPreviewNotice.hidden=true;
+originalDashboard.prepend(dashboardPreviewNotice);
+const previewMetrics:Record<string,string>={speed:'18.6',distance:'12.42',power:'245',elapsedTime:'00:42:15',cadence:'88',heartRate:'146',totalGain:'820',remaining:'7.58'};
+function paintDashboardPreview(){
+ for(const [id,value] of Object.entries(previewMetrics)){
+  const element=document.getElementById(id);
+  if(element)element.textContent=value;
+ }
+}
+function setDashboardPreview(active:boolean){
+ dashboardPreviewActive=active;
+ dashboardPreviewButton.textContent=active?'Exit Preview':'Preview Dashboard';
+ dashboardPreviewButton.setAttribute('aria-pressed',String(active));
+ dashboardPreviewNotice.hidden=!active;
+ document.body.classList.toggle('dashboard-preview-active',active);
+ if(active)paintDashboardPreview();else update();
+}
+dashboardPreviewButton.addEventListener('click',()=>{
+ if(running||rideStart&&!rideEnd){status('Finish your active ride before previewing the dashboard.');return;}
+ if(!dashboardPreviewActive){showBreakawayScreen('ride');setDashboardPreview(true);}
+ else {setDashboardPreview(false);showBreakawayScreen('setup');}
+});
+rideHeading.querySelector('.ride-screen-actions')?.append(dashboardPreviewButton);
+const setupPreviewButton=document.createElement('button');
+setupPreviewButton.type='button';setupPreviewButton.className='secondary dashboard-preview-entry';
+setupPreviewButton.textContent='Preview Dashboard (no trainer needed)';
+setupPreviewButton.addEventListener('click',()=>dashboardPreviewButton.click());
+setupStepHeader.append(setupPreviewButton);
 // Route Studio needs its own live profile: the interactive original belongs to the ride screen.
 const routePreviewPanel=document.createElement('section');
 routePreviewPanel.className='route-studio-live-preview';
