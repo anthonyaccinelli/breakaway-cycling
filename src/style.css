@@ -2278,3 +2278,16 @@ html body .setup-device-tile .trainer-diagnostic:not([hidden]){
  overflow-wrap:anywhere!important;white-space:normal!important;
 }
 html body .trainer-diagnostic[hidden]{display:none!important}
+
+
+/* Survival 2.0: finish-line victory dialog, preview only */
+#surviveVictoryScreen[hidden]{display:none!important}
+#surviveVictoryScreen{position:fixed;inset:0;z-index:100000;background:#04101ae8;display:grid;place-items:center;padding:20px}
+.survive-victory-card{background:#102838;border:2px solid #56e3a7;border-radius:22px;box-shadow:0 20px 80px #000a;padding:36px;max-width:570px;width:100%;text-align:center;color:#fff}
+.survive-victory-icon{display:block;font-size:56px}
+.survive-victory-card h2{font-size:clamp(36px,6vw,62px);font-weight:1000;color:#d4f47b;margin:10px 0}
+.survive-victory-card p{font-weight:800;letter-spacing:.06em;color:#a5d5ce}
+#surviveVictoryStats{background:#1b3b4c;border-radius:10px;padding:18px;margin:22px 0;font-weight:800;line-height:1.8;color:#fff}
+.survive-victory-card button{border-radius:12px;padding:14px 20px;font-weight:900;margin:5px;background:#d4f47b;color:#102838}
+.survive-victory-card #surviveVictoryContinue{background:#2d5061;color:#fff}
+.survive-controls label[hidden]{display:none!important}
