@@ -2748,3 +2748,18 @@ html body[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-co
 @media(max-width:850px){
  html body[data-breakaway-screen="setup"] #screenSetup .setup-settings-row{grid-template-columns:1fr!important}
 }
+
+/* Option 5: clearly separated visual-only ride preview, never a simulated session. */
+html body[data-breakaway-screen="ride"] #screenRide .ride-preview-notice{
+ display:block!important;margin:0 0 12px!important;padding:12px 16px!important;
+ background:#263526!important;color:#effbd4!important;
+ border:1px solid #779d58!important;border-left:4px solid #d4f47b!important;
+ border-radius:10px!important;font-size:13px!important;line-height:1.45!important;
+ font-weight:650!important;
+}
+html body #screenRide .ride-preview-notice[hidden]{display:none!important}
+html body[data-breakaway-screen="setup"] #screenSetup #previewRideScreen{
+ background:#26353e!important;color:#f5f8f5!important;
+ border:1px solid #829a9c!important;border-radius:10px!important;
+ min-height:40px!important;font-weight:700!important;
+}
