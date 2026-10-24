@@ -2270,55 +2270,45 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 
 
 
-/* OPTION 2 — EDITORIAL TEAL | reference: owner's Adobe Express collage.
-   A deliberate alternative to Atelier, scoped to development only. */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=DM+Serif+Display&display=swap');
-:root{font-family:'DM Sans',sans-serif!important;color-scheme:dark;--breakaway-forest:#063b3d;--breakaway-deep:#042d34;--breakaway-teal:#0e797d;--breakaway-aqua:#83ded2;--breakaway-mint:#a3f5c6;--breakaway-lime:#b6ff6a;--breakaway-cream:#f1f2df}
-html,body{background:#052e34!important}
-body{background:radial-gradient(ellipse at 80% -15%,#147c78 0%,transparent 52%),linear-gradient(145deg,#053b40 0%,#062f37 55%,#04282f 100%)!important;color:#eefcf5!important;min-height:100vh;-webkit-font-smoothing:antialiased}
-body main{max-width:1660px!important;margin:auto!important;padding:clamp(12px,2vw,30px)!important}
-h1,h2,h3,.app-brand{font-family:'Outfit','DM Sans',sans-serif!important;letter-spacing:-.045em!important;font-weight:800!important}
-.app-brand{color:#e4ffef!important;font-size:clamp(26px,2.5vw,39px)!important;font-weight:900!important;line-height:1.03!important;text-transform:uppercase}
-.breakaway-tagline{color:#a5f6c6!important;font-family:'DM Sans',sans-serif!important;font-size:10px!important;letter-spacing:.24em!important;font-weight:800!important}
-.breakaway-brand-bar{padding:14px 5px 22px!important}
-.live-riders{background:#073e43!important;border:1px solid #25857d!important;border-radius:8px!important;color:#b5f8d8!important;box-shadow:none!important}
-.screen-progress{gap:10px!important;margin:8px auto 19px!important}
-.screen-progress .screen-step{border-radius:7px!important;font-family:Outfit,sans-serif!important;font-weight:800!important;letter-spacing:.01em!important}
-.ride-workspace{background:#073b42!important;border:1px solid #278080!important;border-radius:13px!important;box-shadow:0 20px 55px #001c2370!important}
-.workspace-header{border-bottom:1px solid #398785!important;padding:6px 8px 14px!important}
-.workspace-header h2{font-family:'DM Serif Display',Georgia,serif!important;letter-spacing:-.015em!important;font-weight:400!important;font-size:clamp(24px,2vw,33px)!important;color:#d0f7df!important}
-.workspace-header p,.note{color:#b4d9d4!important}
-.ride-workspace section{background:#0a4a50!important;border:1px solid #297b7c!important;border-radius:10px!important}
-.device-connect-card,.setup-device-tile{background:#0c5154!important;border:1px solid #328886!important;border-radius:8px!important;box-shadow:none!important}
-.device-connect-card h3,.setup-device-tile h3{color:#b5f4d4!important}
-.metric,.ride-dashboard .metric{background:#08565c!important;border:1px solid #2b8584!important;border-radius:7px!important;box-shadow:inset 0 2px 0 #ffffff09!important}
-.metric b,.ride-dashboard .metric b{color:#dcffef!important;font-family:Outfit,sans-serif!important;font-weight:800!important;letter-spacing:-.055em!important;font-variant-numeric:tabular-nums}
-.metric small,.ride-dashboard .metric small{color:#9fdad0!important;letter-spacing:.075em!important;text-transform:uppercase;font-weight:700!important}
-button,input,select,textarea,summary{font-family:'DM Sans',sans-serif!important}
-button:not(.secondary):not(.screen-step):not([id="entertainmentView"]){border-radius:7px!important}
-button.secondary{border-radius:7px!important}
-button{transition:background-color .15s,border-color .15s,filter .15s}
-button:hover:not(:disabled){filter:brightness(1.1)}
-button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #b6ff6a!important;outline-offset:2px!important}
-input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-radius:7px!important}
-#chart svg,#floatChart svg{border-radius:8px!important}
-#screenRide #profileSection .profile-heading-actions #entertainmentView{background:#b6ff6a!important;border-color:#b6ff6a!important;color:#063a3b!important}
-#screenRide #profileSection .profile-heading-actions #entertainmentView:hover{background:#d8ffa5!important}
-#screenRide .ride-screen-header,#screenSetup .breakaway-integrated-step-header{border-bottom-color:#2b8682!important}
-@media(max-width:700px){body main{padding:10px!important}.ride-workspace{padding:10px!important;border-radius:10px!important}}
-@media(prefers-reduced-motion:reduce){button{transition:none!important}}
 
-/* ACCESSIBILITY PASS — Option 2: enforce legible text against forest-teal panels */
-body,main,.breakaway-screen,.ride-workspace,.ride-workspace section,.connection-strip,.route-studio,.ride-dashboard,.device-connect-card,.setup-device-tile,.metric,.ride-dashboard .metric{color:#F1FFF5!important}
-p,.note,small,.workspace-header p,.device-connect-card p,.setup-device-tile p,.metric small,.ride-dashboard .metric small{color:#D2EDE5!important}
-label,.ride-workspace label,.breakaway-screen label,legend{color:#EDFFF6!important}
-h1,h2,h3,h4,.ride-workspace h2,.ride-workspace h3{color:#F1FFF5!important}
-.workspace-header h2{color:#E4FFEC!important}
-input:not([type="checkbox"]):not([type="radio"]),select,textarea{background:#073C43!important;color:#F3FFF7!important;border-color:#5DAAA3!important}
-input::placeholder,textarea::placeholder{color:#C1E3DC!important;opacity:1}
-button.secondary,.screen-progress .screen-step{background:#0C575D!important;color:#F5FFF8!important;border:1px solid #68B5AC!important}
-button:not(.secondary):not(.screen-step):not([id="entertainmentView"]){background:#B6FF6A!important;color:#063A3B!important;border:1px solid #A4E85D!important}
-button:disabled{opacity:.7!important}
-a{color:#B6FFCA}
-a:hover{color:#E4FFED}
-.metric b,.ride-dashboard .metric b{color:#F1FFF5!important}
+/* OPTION 3 — BREAKAWAY: NEON OVERDRIVE | Y2K x CYBERPUNK
+   Scoped to design-option-3-cyberpunk. Styling only; no ride logic changes. */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+:root{font-family:'Space Grotesk',sans-serif!important;color-scheme:dark;--neon-bg:#070914;--neon-panel:#121528;--neon-card:#1b2037;--neon-edge:#465273;--neon-cyan:#57f5f2;--neon-pink:#ff54c8;--neon-acid:#d9ff43;--neon-text:#f6f7ff;--neon-muted:#c4cce2}
+html{background:#070914!important}
+body{background:radial-gradient(ellipse 80% 40% at 92% -8%,#49246b75,transparent 75%),radial-gradient(ellipse 60% 45% at -15% 55%,#064f6888,transparent 75%),linear-gradient(155deg,#070914,#111429 52%,#080a18)!important;color:var(--neon-text)!important;min-height:100vh;-webkit-font-smoothing:antialiased}
+body main{max-width:1680px!important;margin:auto!important;padding:clamp(12px,2vw,32px)!important}
+h1,h2,h3,h4,.app-brand{font-family:'Barlow Condensed',Impact,sans-serif!important;letter-spacing:.025em!important;text-transform:uppercase!important;font-weight:800!important;color:#f9faff!important}
+.app-brand{font-size:clamp(36px,4vw,58px)!important;line-height:.95!important;letter-spacing:.015em!important;text-shadow:3px 3px 0 #ae2d91,6px 6px 0 #123d61}
+.breakaway-tagline{font-family:'Space Mono',monospace!important;color:#57f5f2!important;letter-spacing:.17em!important;font-size:10px!important;font-weight:700!important}
+.breakaway-brand-bar{padding:16px 5px 22px!important}
+.live-riders{background:#111c32!important;color:#e5fffb!important;border:1px solid #57f5f2!important;border-radius:3px!important;box-shadow:3px 3px 0 #b73a98!important}
+.screen-progress{gap:9px!important;margin:12px auto 22px!important}
+.screen-progress .screen-step{background:#1b2441!important;color:#effbff!important;border:1px solid #6a7b9d!important;border-radius:3px!important;font-family:'Space Mono',monospace!important;font-size:11px!important;font-weight:700!important;text-transform:uppercase;box-shadow:3px 3px 0 #0b0d19!important}
+.screen-progress .screen-step.active,.screen-progress .screen-step[aria-current="step"]{background:#57f5f2!important;color:#081421!important;border-color:#57f5f2!important;box-shadow:4px 4px 0 #ff54c8!important}
+.ride-workspace{background:linear-gradient(145deg,#171b34,#0f1529)!important;border:1px solid #607399!important;border-radius:5px!important;box-shadow:8px 8px 0 #040610,0 0 0 1px #253e60 inset!important}
+.workspace-header{border-bottom:1px solid #506385!important;padding:7px 8px 14px!important}
+.workspace-header h2{font-size:clamp(29px,2.5vw,42px)!important;color:#57f5f2!important}
+.workspace-header p,.note{color:#c4cce2!important}
+.ride-workspace section{background:#161e36!important;border:1px solid #42567a!important;border-radius:4px!important;box-shadow:3px 3px 0 #0a0e1d!important}
+.device-connect-card,.setup-device-tile{background:#202945!important;border:1px solid #586d94!important;border-radius:3px!important;box-shadow:3px 3px 0 #0b1023!important}
+.device-connect-card h3,.setup-device-tile h3{color:#d9ff43!important}
+.metric,.ride-dashboard .metric{background:linear-gradient(150deg,#202d4b,#17233b)!important;border:1px solid #617aa2!important;border-left:3px solid #57f5f2!important;border-radius:2px!important;box-shadow:3px 3px 0 #0b1020!important}
+.metric b,.ride-dashboard .metric b{color:#f9ffff!important;font-family:'Barlow Condensed',sans-serif!important;font-size:clamp(28px,2.5vw,39px)!important;font-weight:800!important;letter-spacing:.02em!important;font-variant-numeric:tabular-nums}
+.metric small,.ride-dashboard .metric small{color:#c5d7f0!important;font-family:'Space Mono',monospace!important;font-size:10px!important;letter-spacing:.045em!important;text-transform:uppercase;font-weight:700!important}
+button,input,select,textarea,summary{font-family:'Space Grotesk',sans-serif!important}
+button{transition:transform .14s,box-shadow .14s,background-color .14s!important}
+button:not(.secondary):not(.screen-step):not([id="entertainmentView"]){background:#d9ff43!important;color:#101526!important;border:1px solid #d9ff43!important;border-radius:3px!important;box-shadow:3px 3px 0 #ff54c8!important;font-weight:800!important}
+button.secondary{background:#253251!important;color:#f5f9ff!important;border:1px solid #6f8cb6!important;border-radius:3px!important;box-shadow:3px 3px 0 #11152b!important}
+button:hover:not(:disabled){filter:brightness(1.12);transform:translate(-1px,-1px)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #57f5f2!important;outline-offset:3px!important}
+input:not([type="checkbox"]):not([type="radio"]),select,textarea{background:#121d35!important;color:#f6faff!important;border:1px solid #7289b4!important;border-radius:2px!important}
+input::placeholder,textarea::placeholder{color:#cad5e9!important;opacity:1}
+body,main,.breakaway-screen,.ride-workspace,.ride-workspace section,.connection-strip,.route-studio,.ride-dashboard,.device-connect-card,.setup-device-tile,.metric{color:#f6f7ff!important}
+p,small,.ride-workspace label,.breakaway-screen label,legend{color:#e1e9f8!important}
+a{color:#78fff1!important}a:hover{color:#e7fff9!important}
+#chart svg,#floatChart svg{border-radius:2px!important}
+#screenRide #profileSection .profile-heading-actions #entertainmentView{background:#d9ff43!important;color:#121526!important;border-color:#d9ff43!important;border-radius:3px!important;box-shadow:3px 3px 0 #ff54c8!important}
+#screenRide .ride-screen-header,#screenSetup .breakaway-integrated-step-header{border-bottom-color:#6b7fa5!important}
+@media(max-width:700px){body main{padding:10px!important}.ride-workspace{padding:10px!important;box-shadow:4px 4px 0 #040610!important}}
+@media(prefers-reduced-motion:reduce){button{transition:none!important;transform:none!important}}
