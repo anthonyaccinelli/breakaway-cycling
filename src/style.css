@@ -2279,3 +2279,10 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
 .ride-dashboard[data-dashboard-mode="compact"] .metrics .metric b{font-size:clamp(23px,2.5vw,32px);line-height:1.15}
 .ride-dashboard[data-dashboard-mode="compact"] .metrics .metric small{font-size:11px;margin-top:5px}
 @media(max-width:600px){.ride-dashboard .dashboard-mode-picker{gap:5px}.ride-dashboard .dashboard-mode-picker span{width:100%;margin-bottom:3px}.ride-dashboard[data-dashboard-mode="compact"] .metrics .metric{padding:12px 5px}}
+
+/* Step 5: no-trainer dashboard preview */
+.dashboard-preview-entry{margin:10px 0 0;min-height:38px;padding:9px 14px;border:1px solid #e8b83a!important;background:#ffd347!important;color:#17252e!important;font-weight:800;border-radius:8px;cursor:pointer}
+.dashboard-preview-button{min-height:34px;padding:7px 12px;border-radius:8px}
+.dashboard-preview-notice{padding:9px 11px;margin-bottom:10px;border:1px solid #e4b638;border-radius:8px;background:rgba(255,211,71,.13);color:#ffe08a;font-size:11px;font-weight:800;letter-spacing:.025em}
+.dashboard-preview-notice[hidden]{display:none!important}
+body.dashboard-preview-active .dashboard-preview-button{background:#ffd347!important;color:#182a32!important;border-color:#ffd347!important;font-weight:800}
