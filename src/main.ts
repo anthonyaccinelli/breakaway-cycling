@@ -430,7 +430,7 @@ $('surpriseRoute').addEventListener('click',()=>{
 
 const num=(id:string)=>Number(($(id) as HTMLInputElement).value);
 const weightKg=(id:string)=>num(id)/POUNDS_PER_KG;
-const status=(s:string)=>{$('status').textContent=s};
+const status=(s:string)=>{$('status').textContent=s;const diagnostic=document.querySelector<HTMLElement>('.trainer-diagnostic');if(diagnostic&&/trainer connection error|ftms|gatt|bluetooth/i.test(s)){diagnostic.textContent=s;diagnostic.hidden=false;}};
 const rad=(v:number)=>v*Math.PI/180;
 const METERS_PER_MILE=1609.344;
 const FEET_PER_METER=3.280839895;
@@ -2407,6 +2407,13 @@ function refreshSetupDeviceCards(){
   if(!indicator){indicator=document.createElement('div');indicator.className='setup-connection-indicator';indicator.setAttribute('role','status');indicator.setAttribute('aria-live','polite');card.querySelector('h3')?.insertAdjacentElement('afterend',indicator);}
   const name=entry.device()?.name||entry.name;
   indicator.textContent=state==='connected'?'✓ Connected · '+name:state==='initializing'?'◌ Initializing · '+name:state==='connecting'?'◌ Connecting…':state==='error'?'! Connection failed':'○ Not connected';
+  if(entry.id==='connect'){
+   let diagnostics=card.querySelector<HTMLElement>('.trainer-diagnostic');
+   if(!diagnostics){diagnostics=document.createElement('p');diagnostics.className='trainer-diagnostic';diagnostics.setAttribute('role','alert');diagnostics.setAttribute('aria-live','assertive');card.append(diagnostics);}
+   const detailText=detail.trim();
+   diagnostics.textContent=state==='error'?(detailText||'Trainer connection failed. Try again after closing other trainer apps.'):'';
+   diagnostics.hidden=state!=='error';
+  }
   if(state==='connected')button.textContent='Change '+entry.name;
   else if(state==='connecting')button.textContent='Connecting…';
   else button.textContent='Connect '+entry.name;
