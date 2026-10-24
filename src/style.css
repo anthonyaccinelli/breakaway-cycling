@@ -2231,3 +2231,31 @@ body[data-breakaway-screen="route"] #screenRoute .route-studio-heading h2{
  #screenRide #profileSection .profile-heading-actions{gap:6px}
  #screenRide #profileSection #entertainmentView{font-size:12px;padding:6px 10px}
 }
+
+/* Match Overlay and Display Options dimensions exactly; only their colors differ. */
+#screenRide #profileSection .profile-heading-actions #entertainmentView,
+#screenRide #profileSection .profile-heading-actions #profileDisplayOptions>summary{
+ box-sizing:border-box!important;
+ width:156px!important;
+ height:38px!important;
+ min-height:38px!important;
+ padding:7px 14px!important;
+ border-radius:8px!important;
+ border-width:1px!important;
+ font-size:13px!important;
+ font-weight:850!important;
+ line-height:1.2!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+}
+#screenRide #profileSection .profile-heading-actions #entertainmentView{
+ background:#ffd347!important;border-color:#e6ad27!important;color:#24230f!important;
+}
+@media(max-width:550px){
+ #screenRide #profileSection .profile-heading-actions #entertainmentView,
+ #screenRide #profileSection .profile-heading-actions #profileDisplayOptions>summary{
+  width:138px!important;height:36px!important;min-height:36px!important;
+  padding:6px 9px!important;font-size:12px!important;
+ }
+}
