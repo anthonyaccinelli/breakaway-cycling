@@ -2372,3 +2372,35 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:#65fff3!im
 ::selection{background:#ff4de1;color:#090916}
 @media(max-width:700px){.app-brand{font-size:clamp(38px,10vw,60px)!important}.screen-progress .screen-step{padding:9px 7px!important;font-size:10px!important}.metric b,.ride-dashboard .metric b{font-size:clamp(23px,6vw,35px)!important}.floating-profile{max-width:calc(100vw - 12px)!important}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+
+/* OPTION 3 — NIGHT-RIDE TERMINAL / original Cyberpunk 2077-inspired HUD.
+   CSS-only; preserve ride engine, accessibility and input behavior. */
+:root{--terminal-bg:#090b13;--terminal-panel:#151a29;--terminal-alert:#ff416d;--terminal-signal:#d7ff35;--terminal-data:#62f9f3}
+body{background:radial-gradient(ellipse at 100% 0%,#ff416d1c,transparent 48%),repeating-linear-gradient(0deg,transparent 0 31px,#9b8ac00b 32px),#090b13!important}
+.app-brand{font-family:'Barlow Condensed',Impact,sans-serif!important;font-style:italic!important;font-size:clamp(48px,6vw,94px)!important;letter-spacing:-.025em!important;text-shadow:4px 4px 0 #ff416d,8px 8px 0 #101d33!important}
+.breakaway-tagline{color:#d7ff35!important;font-family:'Space Mono',monospace!important}
+.ride-workspace{border-color:#d7ff35!important;clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,20px 100%,0 calc(100% - 20px));background:linear-gradient(155deg,#171c2d,#0c1120)!important}
+.ride-workspace:before{background:linear-gradient(90deg,#d7ff35 0 38%,#ff416d 38% 62%,#62f9f3 62% 100%)!important}
+.workspace-header{position:relative!important;padding-left:18px!important;border-left:4px solid #d7ff35!important}
+.workspace-header h2{color:#d7ff35!important;text-shadow:none!important;font-style:italic!important}
+.ride-workspace section{border-left:3px solid #62f9f3!important;background:#151b2d!important;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%)}
+.ride-workspace section h2{color:#f7f9ff!important}
+.ride-workspace section h3{color:#d7ff35!important}
+.screen-progress .screen-step{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));border-radius:0!important;background:#1a2335!important}
+.screen-progress .screen-step.active,.screen-progress .screen-step[aria-current="step"]{background:#d7ff35!important;color:#111521!important;border-color:#d7ff35!important;box-shadow:4px 4px 0 #ff416d!important}
+.metric,.ride-dashboard .metric{border-left:4px solid #62f9f3!important;border-top:1px solid #7891ac!important;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);background:linear-gradient(125deg,#20283b,#111827)!important}
+.metric:nth-child(3n+2),.ride-dashboard .metric:nth-child(3n+2){border-left-color:#ff416d!important}
+.metric:nth-child(3n),.ride-dashboard .metric:nth-child(3n){border-left-color:#d7ff35!important}
+.metric b,.ride-dashboard .metric b{color:#fff!important;font-style:italic!important;letter-spacing:0!important;text-shadow:none!important}
+.metric small,.ride-dashboard .metric small{color:#dce8f5!important;letter-spacing:.07em!important}
+.device-connect-card,.setup-device-tile{border-left:3px solid #d7ff35!important;background:#1a2032!important}
+button:not(.secondary):not(.screen-step):not([id="entertainmentView"]){background:#d7ff35!important;border-color:#d7ff35!important;color:#111521!important;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);box-shadow:none!important}
+button.secondary{background:#222a40!important;border-color:#62f9f3!important;color:#f9fbff!important}
+#chart svg,#floatChart svg{border-color:#62f9f3!important;background:#090f20!important;box-shadow:inset 0 0 28px #62f9f31a!important}
+.floating-profile{background:#101626!important;border-color:#d7ff35!important;box-shadow:5px 5px 0 #ff416d,0 0 22px #d7ff3522!important;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%)}
+.floating-handle{border-bottom-color:#62f9f3!important}
+.profile-inspector b{color:#d7ff35!important}
+#screenRide #profileSection .profile-heading-actions #entertainmentView{background:#d7ff35!important;color:#111521!important;border-color:#d7ff35!important}
+:where(button,summary,input,select,textarea):focus-visible{outline:3px solid #62f9f3!important;outline-offset:3px!important}
+@media(max-width:600px){.ride-workspace{clip-path:none!important}.ride-workspace section{clip-path:none!important}.app-brand{font-size:clamp(40px,11vw,66px)!important}}
