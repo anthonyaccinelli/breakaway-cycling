@@ -2577,6 +2577,55 @@ document.getElementById('backToStudio')!.addEventListener('click',()=>{if(runnin
 window.setInterval(checkAutomaticRideCountdown,500);
 showBreakawayScreen('route');
 
+// Two distinct entry experiences, sharing the real route editor and trainer workflow.
+type RideExperience='classic'|'survival';
+let rideExperience:RideExperience='classic';
+const modeLanding=document.createElement('section');
+modeLanding.id='modeLanding';
+modeLanding.className='mode-landing';
+modeLanding.innerHTML='<div class="mode-landing-brand"><span>RIDE BREAKAWAY</span><small>CREATE. CONNECT. RIDE.</small></div><div class="mode-landing-intro"><span>YOUR RIDE. YOUR RULES.</span><h1>CHOOSE YOUR RIDE.</h1><p>Two ways to experience Breakaway. One smart trainer.</p></div><div class="mode-landing-cards"><button type="button" id="chooseClassic" class="mode-card mode-card-classic"><span class="mode-card-number">01 / THE ORIGINAL</span><span class="mode-card-visual">⌁</span><strong>CLASSIC</strong><span class="mode-card-description">Create a route. Conquer the climbs. Ride your way.</span><span class="mode-card-action">START CLASSIC ↗</span></button><button type="button" id="chooseSurvival" class="mode-card mode-card-survival"><span class="mode-card-number">02 / THE CHALLENGE</span><span class="mode-card-visual">☣</span><strong>SURVIVAL</strong><span class="mode-card-description">Build an escape route. Stay ahead of the threat. Reach the finish.</span><span class="mode-card-action">ENTER SURVIVAL ↗</span></button></div><p class="mode-landing-footer">SMART TRAINER REQUIRED · NO ACCOUNT NECESSARY TO PREVIEW MODES</p>';
+document.body.append(modeLanding);
+const modeHomeButton=document.createElement('button');
+modeHomeButton.type='button';modeHomeButton.id='modeHomeButton';modeHomeButton.textContent='← CHANGE MODE';
+document.body.append(modeHomeButton);
+const survivalStudio=document.createElement('section');
+survivalStudio.id='survivalStudio';
+survivalStudio.className='survival-studio-intro';
+survivalStudio.innerHTML='<div class="survival-studio-head"><span>☣ SURVIVAL STUDIO</span><h2>BUILD YOUR ESCAPE.</h2><p>Choose your challenge, set the threat, then generate or upload a route below. The live elevation editor and trainer connection are shared with Classic.</p></div><div class="survival-studio-controls"><label>CHALLENGE<select id="studioChallenge"><option value="finish">🏁 Finish Line — beat the threat to the finish</option><option value="classic">⏱ Classic Waves — survive timed chases</option></select></label><label>DIFFICULTY<select id="studioDifficulty"><option value="recovery">Recovery · Forgiving</option><option value="standard" selected>Standard · Balanced</option><option value="hard">Hard · Aggressive</option><option value="nightmare">Nightmare · Relentless</option></select></label><label>THREAT<select id="studioThreat"><option>ZOMBIES</option><option>WOLVES</option><option>KILLER CLOWNS</option><option>POISON GAS</option></select></label></div><div class="survival-studio-guide"><span>01 / CONFIGURE CHALLENGE</span><span>02 / GENERATE ESCAPE ROUTE ↓</span><span>03 / CONNECT TRAINER → SURVIVE</span></div>';
+screenRoute.prepend(survivalStudio);
+function syncSurvivalStudio(){
+ (se('surviveMode') as HTMLSelectElement).value=(document.getElementById('studioChallenge') as HTMLSelectElement).value;
+ (se('surviveDifficulty') as HTMLSelectElement).value=(document.getElementById('studioDifficulty') as HTMLSelectElement).value;
+ (se('surviveTheme') as HTMLSelectElement).value=(document.getElementById('studioThreat') as HTMLSelectElement).value;
+ (se('surviveMode') as HTMLSelectElement).dispatchEvent(new Event('change'));
+}
+survivalStudio.querySelectorAll('select').forEach(select=>select.addEventListener('change',syncSurvivalStudio));
+function chooseRideExperience(mode:RideExperience){
+ rideExperience=mode;
+ modeLanding.hidden=true;
+ modeHomeButton.hidden=false;
+ survivalStudio.hidden=mode!=='survival';
+ document.body.dataset.rideExperience=mode;
+ syncSurvivalStudio();
+ showBreakawayScreen('route');
+ const routeTitle=screenRoute.querySelector('.route-studio-heading h2');
+ if(routeTitle)routeTitle.textContent=mode==='survival'?'GENERATE YOUR ESCAPE ROUTE':'ROUTE STUDIO';
+}
+function openModeLanding(){
+ if(surviveOn){status('End your current Survival session before changing modes.');return;}
+ modeLanding.hidden=false;
+ modeHomeButton.hidden=true;
+ screenRoute.hidden=true;screenSetup.hidden=true;screenRide.hidden=true;
+ document.body.dataset.breakawayScreen='home';
+ window.scrollTo(0,0);
+}
+modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
+modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
+modeHomeButton.addEventListener('click',openModeLanding);
+const originalEnterRideScreen=enterRideScreen;
+// Preview starts with mode selection, not the existing route editor.
+openModeLanding();
+
 // Trainer Test Lab is a separate offline simulator, never connected to live ride state.
 const trainerLabLink=document.createElement('a');
 trainerLabLink.href='/trainer-lab.html';
