@@ -2567,3 +2567,104 @@ body[data-breakaway-screen="route"] #screenRoute .route-quick-facts{
   #screenRoute .studio-live-stats{gap:6px 12px!important;padding:9px!important}
   #screenRoute .studio-live-stats span{font-size:12px!important}
 }
+
+
+/* OPTION 5 — ONE PRODUCT, THREE SCREENS.
+   Unify Create Route, Connect Trainer, Enjoy the Ride, profile overlay and dialogs.
+   Keep structure, device logic and chart rendering unchanged. */
+body[data-breakaway-screen]{
+  --ui-bg:#0b1015;--ui-shell:#111920;--ui-card:#172129;
+  --ui-raised:#1e2b34;--ui-border:#354650;--ui-text:#f5f6f2;
+  --ui-muted:#c1d0d4;--ui-action:#d4f47b;
+}
+body[data-breakaway-screen] #screenRoute,
+body[data-breakaway-screen] #screenSetup,
+body[data-breakaway-screen] #screenRide{
+  color:var(--ui-text)!important;background:transparent!important;
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
+body[data-breakaway-screen] #screenRoute :is(section,.route-studio-live-preview,.route-studio-live-heading,.route-preview),
+body[data-breakaway-screen] #screenSetup :is(section,.connection-strip,.device-connect-card,.setup-device-tile,.breakaway-integrated-step-header),
+body[data-breakaway-screen] #screenRide :is(section,.ride-dashboard,.ride-screen-header,.connection-strip,.device-connect-card,.profile-heading,.ride-summary){
+  color:var(--ui-text)!important;
+}
+body[data-breakaway-screen] #screenSetup :is(.breakaway-integrated-step-header,.device-connect-card,.setup-device-tile,.connection-strip),
+body[data-breakaway-screen] #screenRide :is(.ride-screen-header,.device-connect-card,.connection-strip,.ride-dashboard,.profile-inspector,.overlay-selection){
+  background:var(--ui-card)!important;border-color:var(--ui-border)!important;
+  box-shadow:none!important;
+}
+body[data-breakaway-screen] #screenSetup .breakaway-integrated-step-header,
+body[data-breakaway-screen] #screenRide .ride-screen-header{
+  border-radius:15px!important;padding:18px 22px!important;
+}
+body[data-breakaway-screen] #screenSetup :is(h1,h2,h3,h4),
+body[data-breakaway-screen] #screenRide :is(h1,h2,h3,h4),
+body[data-breakaway-screen] #screenRoute :is(h1,h2,h3,h4){
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-style:normal!important;font-weight:730!important;letter-spacing:-.035em!important;
+  text-transform:none!important;color:var(--ui-text)!important;text-shadow:none!important;
+}
+body[data-breakaway-screen] #screenSetup :is(p,small,.note,.setup-device-tile p),
+body[data-breakaway-screen] #screenRide :is(p,small,.note,.metric small,.ride-dashboard .metric small),
+body[data-breakaway-screen] #screenRoute :is(p,small,.note){
+  color:var(--ui-muted)!important;text-shadow:none!important;
+}
+body[data-breakaway-screen] #screenSetup :is(label,legend),
+body[data-breakaway-screen] #screenRide :is(label,legend),
+body[data-breakaway-screen] #screenRoute :is(label,legend){
+  color:#e4eceb!important;
+}
+body[data-breakaway-screen] #screenSetup :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+body[data-breakaway-screen] #screenRide :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+body[data-breakaway-screen] #screenRoute :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+  background:#101b23!important;color:#f6f8f5!important;
+  border:1px solid #5d757d!important;border-radius:10px!important;
+  box-shadow:none!important;
+}
+body[data-breakaway-screen] #screenSetup button:not(.secondary):not(.screen-step),
+body[data-breakaway-screen] #screenRide button:not(.secondary):not(.screen-step),
+body[data-breakaway-screen] #screenRoute button:not(.secondary):not(.screen-step){
+  background:#d4f47b!important;color:#172115!important;
+  border:1px solid #d4f47b!important;border-radius:10px!important;
+  box-shadow:none!important;text-shadow:none!important;
+  font-family:Inter,ui-sans-serif,sans-serif!important;font-weight:750!important;
+  clip-path:none!important;
+}
+body[data-breakaway-screen] #screenSetup button.secondary,
+body[data-breakaway-screen] #screenRide button.secondary,
+body[data-breakaway-screen] #screenRoute button.secondary{
+  background:#26353e!important;color:#f5f8f5!important;
+  border:1px solid #58717b!important;border-radius:10px!important;
+  box-shadow:none!important;text-shadow:none!important;
+}
+body[data-breakaway-screen] #screenRide :is(.metric,.ride-dashboard .metric),
+body[data-breakaway-screen] #screenSetup :is(.setup-device-tile,.device-connect-card){
+  background:#1e2b34!important;color:#f5f6f2!important;
+  border:1px solid #3c4d57!important;border-radius:13px!important;
+  box-shadow:none!important;clip-path:none!important;
+}
+body[data-breakaway-screen] #screenRide :is(.metric b,.ride-dashboard .metric b){
+  color:#f9fbf5!important;font-family:Inter,ui-sans-serif,sans-serif!important;
+  font-style:normal!important;text-shadow:none!important;
+  letter-spacing:-.05em!important;min-width:0!important;
+}
+body[data-breakaway-screen] #screenRide :is(.metric small,.ride-dashboard .metric small){
+  color:#c1d0d4!important;font-family:Inter,ui-sans-serif,sans-serif!important;
+  text-transform:uppercase!important;letter-spacing:.07em!important;
+}
+body[data-breakaway-screen] #screenRide #profileSection .profile-heading-actions #entertainmentView{
+  background:#d4f47b!important;color:#172115!important;border-color:#d4f47b!important;
+  border-radius:10px!important;box-shadow:none!important;
+}
+body[data-breakaway-screen] :is(#screenRoute,#screenSetup,#screenRide) :is(button,input,select,textarea,summary):focus-visible{
+  outline:3px solid #d4f47b!important;outline-offset:3px!important;
+}
+body[data-breakaway-screen] :is(#screenRoute,#screenSetup,#screenRide) :is(button,input,select,textarea){
+  max-width:100%;box-sizing:border-box;
+}
+body[data-breakaway-screen] #screenRide :is(.metric,.ride-dashboard .metric){min-width:0!important}
+body[data-breakaway-screen] #screenRide :is(.metric b,.ride-dashboard .metric b){overflow-wrap:anywhere!important}
+@media(max-width:700px){
+  body[data-breakaway-screen] #screenSetup .breakaway-integrated-step-header,
+  body[data-breakaway-screen] #screenRide .ride-screen-header{padding:13px!important}
+}
