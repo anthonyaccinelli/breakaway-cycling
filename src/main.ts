@@ -825,7 +825,48 @@ function update(){const currentClimb=refreshClimbState();const p=at(distance),ma
 }
 // Serialize FTMS control point operations and wait for the indicated result.
 // A successful GATT write is NOT proof that the trainer accepted a command.
+// Legacy Wahoo Cycling Power control point (WCPS), used by pre-FTMS KICKR/SNAP firmware.
+// Only enable after the proprietary characteristic is actually discovered and unlock acknowledged.
+const WAHOO_CONTROL='a026e005-0a7d-4ab3-97fa-f1500f9feb8b';
+let snapControl:any=null;
+let snapControlReady=false;
+let snapResponseWaiter:((v:DataView)=>void)|null=null;
+let snapQueue=Promise.resolve();
+async function snapWrite(bytes:number[]):Promise<boolean>{
+ const op=async()=>{
+  if(!snapControl||!connected)return false;
+  let timer:any;
+  try{
+   const response=new Promise<DataView>((resolve,reject)=>{
+    timer=setTimeout(()=>{snapResponseWaiter=null;reject(Error('Wahoo control response timeout'));},3000);
+    snapResponseWaiter=resolve;
+   });
+   await snapControl.writeValue(new Uint8Array(bytes));
+   const v=await response;
+   // Legacy Wahoo ACK: status 0x01, matching opcode.
+   if(v.byteLength<2||v.getUint8(0)!==1||v.getUint8(1)!==bytes[0])throw Error('Wahoo control command not acknowledged');
+   return true;
+  }catch(e){status('Wahoo control: '+String(e));return false;}
+  finally{clearTimeout(timer);snapResponseWaiter=null;}
+ };
+ const result=snapQueue.then(op,op);
+ snapQueue=result.then(()=>undefined,()=>undefined);
+ return result;
+}
+async function snapGrade(grade:number):Promise<boolean>{
+ const raw=Math.round((1+Math.max(-12,Math.min(12,grade))/100)*32768);
+ return snapWrite([0x46,raw&255,(raw>>8)&255]);
+}
 async function command(bytes:number[]):Promise<boolean>{
+ if(snapControlReady){
+  if(bytes[0]===0x00||bytes[0]===0x07||bytes[0]===0x08)return true;
+  if(bytes[0]===0x05&&bytes.length>=3)return snapWrite([0x42,bytes[1],bytes[2]]);
+  if(bytes[0]===0x11&&bytes.length>=5){
+   const scaled=(bytes[3]|(bytes[4]<<8));const signed=scaled>=32768?scaled-65536:scaled;
+   return snapGrade(signed/100);
+  }
+  return false;
+ }
  const operation=async()=>{
   if(!control||!connected) return false;
   try{
@@ -1031,15 +1072,32 @@ async function connectLegacyCyclingPower(server:any,selected:any){
  await measurement.startNotifications();
  measurement.addEventListener('characteristicvaluechanged',(event:any)=>parseCyclingPowerMeasurement(event.target.value));
  connected=true;
+ snapControlReady=false;snapControl=null;
+ try{
+  snapControl=await service.getCharacteristic(WAHOO_CONTROL);
+  await snapControl.startNotifications();
+  snapControl.addEventListener('characteristicvaluechanged',(event:any)=>snapResponseWaiter?.(event.target.value));
+  const unlocked=await snapWrite([0x20,0xEE,0xFC]);
+  if(unlocked){
+   // Initialize simulation mass/rolling parameters before sending grades.
+   const mass=Math.round(Math.max(35,Math.min(250,weightKg('weight')+weightKg('bikeWeight')))*100);
+   const crr=Math.round(Math.max(0,Math.min(.02,num('crr')))*10000);
+   const params=await snapWrite([0x43,mass&255,(mass>>8)&255,crr&255,(crr>>8)&255,51,0]);
+   snapControlReady=params;controlGranted=params;
+  }
+ }catch(e){console.warn('Legacy Wahoo control unavailable:',e);snapControl=null;}
+ status(snapControlReady?'Wahoo SNAP resistance control ready (legacy BLE)':'Wahoo '+(selected.name||'trainer')+' connected: cycling power telemetry only; resistance control unavailable.');
+ if(snapControlReady)return;
  controlGranted=false;
- status('Wahoo '+(selected.name||'trainer')+' connected: cycling power telemetry only. SIM/ERG resistance control is not yet supported. This is a diagnostic connection, not a ride-ready trainer.');
+ status('Wahoo +(selected.name||'trainer')+' connected: cycling power telemetry only. SIM/ERG resistance control is not yet supported. This is a diagnostic connection, not a ride-ready trainer.');
 }
 async function connectTrainerDevice(selected:any){try{
  if(connected&&device?.id===selected.id)return;
+ snapControlReady=false;snapControl=null;
  if(device?.gatt?.connected&&device.id!==selected.id)device.gatt.disconnect();
  const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Use desktop Chrome or Edge over localhost/HTTPS.');
  device=selected;
- device.addEventListener('gattserverdisconnected',()=>{if(rideStart&&!rideEnd){pauseRide();saveRideRecovery();}connected=false;controlGranted=false;realTelemetry=false;running=false;setRideFocus(false);resetSimController();speed=0;power=0;cadence=0;$('start').textContent='Let’s Ride!';update();status('Trainer disconnected — ride paused and saved. Reconnect to resume.');});
+ device.addEventListener('gattserverdisconnected',()=>{if(rideStart&&!rideEnd){pauseRide();saveRideRecovery();}connected=false;controlGranted=false;snapControlReady=false;snapControl=null;realTelemetry=false;running=false;setRideFocus(false);resetSimController();speed=0;power=0;cadence=0;$('start').textContent='Let’s Ride!';update();status('Trainer disconnected — ride paused and saved. Reconnect to resume.');});
  const server=await device.gatt.connect();
  let service:any;
  try{service=await server.getPrimaryService(FTMS);}catch(err){
