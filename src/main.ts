@@ -844,7 +844,7 @@ async function snapWrite(bytes:number[]):Promise<boolean>{
    await snapControl.writeValue(new Uint8Array(bytes));
    const v=await response;
    // Legacy Wahoo ACK: status 0x01, matching opcode.
-   if(v.byteLength<2||v.getUint8(0)!==1||v.getUint8(1)!==bytes[0])throw Error('Wahoo control command not acknowledged');
+   if(v.byteLength<3||v.getUint8(0)!==1||v.getUint8(1)!==bytes[0]||v.getUint8(2)!==1)throw Error('Wahoo control command not acknowledged');
    return true;
   }catch(e){status('Wahoo control: '+String(e));return false;}
   finally{clearTimeout(timer);snapResponseWaiter=null;}
@@ -1085,11 +1085,11 @@ async function connectLegacyCyclingPower(server:any,selected:any){
    const params=await snapWrite([0x43,mass&255,(mass>>8)&255,crr&255,(crr>>8)&255,51,0]);
    snapControlReady=params;controlGranted=params;
   }
- }catch(e){console.warn('Legacy Wahoo control unavailable:',e);snapControl=null;}
+ }catch(e){console.warn('Legacy Wahoo control unavailable:',e);status('Wahoo legacy control unavailable: '+String(e));snapControl=null;}
  status(snapControlReady?'Wahoo SNAP resistance control ready (legacy BLE)':'Wahoo '+(selected.name||'trainer')+' connected: cycling power telemetry only; resistance control unavailable.');
  if(snapControlReady)return;
  controlGranted=false;
- status('Wahoo +(selected.name||'trainer')+' connected: cycling power telemetry only. SIM/ERG resistance control is not yet supported. This is a diagnostic connection, not a ride-ready trainer.');
+ status('Wahoo '+(selected.name||'trainer')+' connected: cycling power telemetry only. Legacy resistance control was not granted.');
 }
 async function connectTrainerDevice(selected:any){try{
  if(connected&&device?.id===selected.id)return;
