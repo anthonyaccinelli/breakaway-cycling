@@ -37,6 +37,6 @@ test('new monster modules remain behind the beta password gate',async()=>{
  const {default:handler}=await import('../api/cycle-quest.js');
  const oldPassword=process.env.CYCLE_QUEST_PASSWORD,oldSecret=process.env.CYCLE_QUEST_SESSION_SECRET;
  process.env.CYCLE_QUEST_PASSWORD='test-fixture';process.env.CYCLE_QUEST_SESSION_SECRET='test-signing-key';
- try{for(const asset of ['monsters.js','combat.js','profile.js','level-up.js']){let status;const res={setHeader(){},status(n){status=n;return this;},json(){return this;},end(){}};await handler({method:'GET',url:'/api/cycle-quest?asset='+asset,headers:{host:'localhost'}},res);assert.equal(status,401);}}
+ try{for(const asset of ['monsters.js','combat.js','profile.js','level-up.js','workouts.js','workout-ui.js','fit-decoder.js']){let status;const res={setHeader(){},status(n){status=n;return this;},json(){return this;},end(){}};await handler({method:'GET',url:'/api/cycle-quest?asset='+asset,headers:{host:'localhost'}},res);assert.equal(status,401);}}
  finally{if(oldPassword===undefined)delete process.env.CYCLE_QUEST_PASSWORD;else process.env.CYCLE_QUEST_PASSWORD=oldPassword;if(oldSecret===undefined)delete process.env.CYCLE_QUEST_SESSION_SECRET;else process.env.CYCLE_QUEST_SESSION_SECRET=oldSecret;}
 });
