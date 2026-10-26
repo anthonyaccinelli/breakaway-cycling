@@ -12,6 +12,7 @@ const CYCLING_POWER_MEASUREMENT='00002a63-0000-1000-8000-00805f9b34fb';
 const CONTROL='00002ad9-0000-1000-8000-00805f9b34fb';
 const STATUS='00002ada-0000-1000-8000-00805f9b34fb';
 const BIKE='00002ad2-0000-1000-8000-00805f9b34fb';
+let cycleQuestHold=false;
 let drivetrainMode:'traditional'|'virtual'='traditional';let realTelemetry=false;let trainerMode:'sim'|'erg'|'target'='sim';let lastTarget=0;let targetErgWatts=180;let lastFixedErgCommand=0;let controlResponseWaiter:((v:DataView)=>void)|null=null;let controlQueue=Promise.resolve();let points:Point[]=[];let distance=0;let speed=0;let power=0;let cadence=0;let gear=6;let running=false;let last=0;let device:BLEDevice;let control:any;let connected=false;let controlGranted=false;let pending=false;let trainerGrade=NaN;
 // Procedural routes: deterministic, streaming terrain; never allocate the entire endless route.
 type Terrain = 'flat'|'rolling'|'mountain'|'punchy';
@@ -860,7 +861,7 @@ async function setGrade(grade:number){
 const CLIMB_ASSIST=[0.10,0.15,0.21,0.28,0.36,0.45,0.56,0.70] as const;
 function climbingAssist():number{return gear<=8?CLIMB_ASSIST[gear-1]:1;}
 function simRequestedGrade():number{
- const routeGrade=at(distance).grade*num('difficulty')/100;
+ const routeGrade=(cycleQuestHold?0:at(distance).grade)*num('difficulty')/100;
  if(drivetrainMode==='traditional')return Math.max(-12,Math.min(12,routeGrade));
  const ratio=zwiftGearMultiplier();
  const effectiveLoad=4+Math.max(0,speed*speed*0.08);
@@ -961,6 +962,7 @@ function advanceRide(now:number){
   const step=dt/steps;
   if(procedural)ensureTerrain();
   for(let i=0;i<steps;i++){
+   if(cycleQuestHold){speed=0;break;}
    const grade=at(distance).grade/100;
    const angle=Math.atan(grade);
    const gravityForce=mass*g*Math.sin(angle);
@@ -1277,8 +1279,9 @@ async function connectClickDevice(selected:any){
    clickButtonEvents++;
    $('clickDecoded').textContent=`Decoded button packets: ${clickButtonEvents} | Plus: ${state.plus?'PRESSED':'released'} | Minus: ${state.minus?'PRESSED':'released'}`;
    // Edge detection: one gear change per press, not per notification.
-   if(drivetrainMode==='virtual'&&state.plus&&!plusPressed)shift(1);
-   if(drivetrainMode==='virtual'&&state.minus&&!minusPressed)shift(-1);
+   const questConsumed=routeQuestClick(state.plus,state.minus);
+   if(!questConsumed&&drivetrainMode==='virtual'&&state.plus&&!plusPressed)shift(1);
+   if(!questConsumed&&drivetrainMode==='virtual'&&state.minus&&!minusPressed)shift(-1);
    plusPressed=state.plus;minusPressed=state.minus;
    clickMessage(`Zwift Click connected · + ${plusPressed?'pressed':'ready'} / − ${minusPressed?'pressed':'ready'} · ${clickPackets} packets`);
   };
@@ -2544,6 +2547,8 @@ function updateSetupReadiness(){
  refreshSetupDeviceCards();
 }
 function showBreakawayScreen(screen:BreakawayScreen){
+ if(document.body.dataset.rideExperience==='cyclequest'&&screen==='ride'){showCycleQuest();return;}
+ const questHost=document.getElementById('cycleQuestHost');if(questHost)questHost.hidden=true;
  breakawayScreen=screen;
  // One shared navigation component, mounted inside the active screen's header.
  if(screen==='route'&&routeStudioHeader)routeStudioHeader.append(rideStepNav);
@@ -2592,12 +2597,12 @@ window.setInterval(checkAutomaticRideCountdown,500);
 showBreakawayScreen('route');
 
 // Two distinct entry experiences, sharing the real route editor and trainer workflow.
-type RideExperience='classic'|'survival';
+type RideExperience='classic'|'survival'|'cyclequest';
 let rideExperience:RideExperience='classic';
 const modeLanding=document.createElement('section');
 modeLanding.id='modeLanding';
 modeLanding.className='mode-landing';
-modeLanding.innerHTML='<div class="mode-landing-brand"><span>RIDE BREAKAWAY</span><small>CREATE. CONNECT. RIDE.</small></div><div class="mode-landing-intro"><span>YOUR RIDE. YOUR RULES.</span><h1>CHOOSE YOUR RIDE.</h1><p>Two ways to experience Breakaway. One smart trainer.</p></div><div class="mode-landing-cards"><button type="button" id="chooseClassic" class="mode-card mode-card-classic"><span class="mode-card-number">01 / THE ORIGINAL</span><span class="mode-card-visual">⌁</span><strong>CLASSIC</strong><span class="mode-card-description">Create a route. Conquer the climbs. Ride your way.</span><span class="mode-card-action">START CLASSIC ↗</span></button><button type="button" id="chooseSurvival" class="mode-card mode-card-survival"><span class="mode-card-number">02 / THE CHALLENGE</span><span class="mode-card-visual">☣</span><strong>SURVIVAL</strong><span class="mode-card-description">Build an escape route. Stay ahead of the threat. Reach the finish.</span><span class="mode-card-action">ENTER SURVIVAL ↗</span></button></div><p class="mode-landing-footer">SMART TRAINER REQUIRED · NO ACCOUNT NECESSARY TO PREVIEW MODES</p>';
+modeLanding.innerHTML='<div class="mode-landing-brand"><span>RIDE BREAKAWAY</span><small>CREATE. CONNECT. RIDE.</small></div><div class="mode-landing-intro"><span>YOUR RIDE. YOUR RULES.</span><h1>CHOOSE YOUR RIDE.</h1><p>Three ways to experience Breakaway. One smart trainer.</p></div><div class="mode-landing-cards"><button type="button" id="chooseClassic" class="mode-card mode-card-classic"><span class="mode-card-number">01 / THE ORIGINAL</span><span class="mode-card-visual">⌁</span><strong>CLASSIC</strong><span class="mode-card-description">Create a route. Conquer the climbs. Ride your way.</span><span class="mode-card-action">START CLASSIC ↗</span></button><button type="button" id="chooseSurvival" class="mode-card mode-card-survival"><span class="mode-card-number">02 / THE CHALLENGE</span><span class="mode-card-visual">☣</span><strong>SURVIVOR</strong><span class="mode-card-description">Build an escape route. Stay ahead of the threat. Reach the finish.</span><span class="mode-card-action">ENTER SURVIVOR ↗</span></button><button type="button" id="chooseCycleQuest" class="mode-card mode-card-quest"><span class="mode-card-number">03 / PRIVATE BETA</span><span class="mode-card-visual">✦</span><strong>CYCLE QUEST</strong><span class="mode-card-description">Ride. Level up. Battle random enemies. Defeat the next boss.</span><span class="mode-card-action">UNLOCK CYCLE QUEST ↗</span></button></div><p class="mode-landing-footer">SMART TRAINER REQUIRED · NO ACCOUNT NECESSARY TO PREVIEW MODES</p>';
 document.body.append(modeLanding);
 const modeHomeButton=document.createElement('button');
 modeHomeButton.type='button';modeHomeButton.id='modeHomeButton';modeHomeButton.textContent='← CHANGE MODE';
@@ -2645,6 +2650,8 @@ function chooseRideExperience(mode:RideExperience){
  if(routeTitle)routeTitle.textContent=mode==='survival'?'GENERATE YOUR ESCAPE ROUTE':'ROUTE STUDIO';
 }
 function openModeLanding(){
+ const host=document.getElementById('cycleQuestHost');if(host)host.hidden=true;
+ if(document.body.dataset.rideExperience==='cyclequest'){if(running)pauseRide();cycleQuestHold=false;}
  if(surviveOn){status('End your current Survival session before changing modes.');return;}
  modeLanding.hidden=false;
  modeHomeButton.hidden=true;
@@ -2655,6 +2662,7 @@ function openModeLanding(){
 modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
 modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
 modeHomeButton.addEventListener('click',openModeLanding);
+modeLanding.querySelector('#chooseCycleQuest')!.addEventListener('click',enterCycleQuest);
 const originalEnterRideScreen=enterRideScreen;
 // Preview starts with mode selection, not the existing route editor.
 openModeLanding();
@@ -2677,3 +2685,61 @@ window.addEventListener('pagehide',saveRideRecovery);
 // All ride UI and handlers are initialized by this point.
 offerRideRecovery();
 
+
+// Cycle Quest keeps the existing Bluetooth/physics engine as the sole trainer owner.
+const cycleQuestHost=document.createElement('section');
+cycleQuestHost.id='cycleQuestHost';cycleQuestHost.hidden=true;
+cycleQuestHost.innerHTML='<div class="quest-host-bar"><button id="questHome" type="button">← HOME</button><span>CYCLE QUEST · PRIVATE BETA</span><button id="questDevices" type="button">TRAINER / DEVICES</button></div><iframe id="cycleQuestFrame" title="Cycle Quest cycling RPG" allow="picture-in-picture"></iframe>';
+document.body.append(cycleQuestHost);
+const questFrame=cycleQuestHost.querySelector<HTMLIFrameElement>('iframe')!;
+let questAuthenticated=false,questReward=false,questButtonLatch=false;
+function questSend(data:Record<string,unknown>){questFrame.contentWindow?.postMessage({source:'breakaway',...data},location.origin);}
+function showCycleQuest(){modeLanding.hidden=true;modeHomeButton.hidden=true;screenRoute.hidden=true;screenSetup.hidden=true;screenRide.hidden=true;cycleQuestHost.hidden=false;document.body.dataset.breakawayScreen='quest';document.body.classList.remove('ride-focus-active');window.scrollTo(0,0);}
+async function enterCycleQuest(){
+ try{const response=await fetch('/api/cycle-quest?asset=status',{credentials:'same-origin',cache:'no-store'});if(response.ok){launchCycleQuest();return;}}catch{}
+ questGate.showModal();questPassword.focus();
+}
+function launchCycleQuest(){questAuthenticated=true;rideExperience='cyclequest';document.body.dataset.rideExperience='cyclequest';survivalStudio.hidden=true;cycleQuestHold=false;questReward=false;if(!questFrame.src)questFrame.src='/api/cycle-quest?asset=index.html';showCycleQuest();}
+const questGate=document.createElement('dialog');questGate.className='quest-access-dialog';questGate.id='questAccessGate';questGate.innerHTML='<form id="questAccessForm"><span>PRIVATE BETA</span><h2>CYCLE QUEST</h2><p>Enter the beta password to begin.</p><label for="questPassword">Password</label><input id="questPassword" type="password" autocomplete="off" required maxlength="200"><p id="questAccessError" role="alert"></p><div><button type="submit">UNLOCK CYCLE QUEST</button><button type="button" id="questAccessCancel">CANCEL</button></div></form>';document.body.append(questGate);
+const questPassword=questGate.querySelector<HTMLInputElement>('#questPassword')!;
+questGate.querySelector('#questAccessCancel')!.addEventListener('click',()=>questGate.close());
+questGate.querySelector('form')!.addEventListener('submit',async event=>{event.preventDefault();const button=questGate.querySelector<HTMLButtonElement>('button[type=submit]')!;button.disabled=true;const error=questGate.querySelector('#questAccessError')!;error.textContent='';try{const result=await fetch('/api/cycle-quest',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({password:questPassword.value})});questPassword.value='';if(!result.ok){error.textContent=result.status===401?'Incorrect password. Try again.':'Beta access is temporarily unavailable.';return;}questGate.close();launchCycleQuest();}catch{error.textContent='Could not connect. Please try again.';}finally{button.disabled=false;}});
+const questReturn=document.createElement('button');questReturn.id='questReturn';questReturn.type='button';questReturn.textContent='← RETURN TO CYCLE QUEST';questReturn.hidden=true;screenSetup.querySelector('.setup-next')?.prepend(questReturn);questReturn.addEventListener('click',showCycleQuest);
+cycleQuestHost.querySelector('#questHome')!.addEventListener('click',openModeLanding);
+cycleQuestHost.querySelector('#questDevices')!.addEventListener('click',()=>{if(running)pauseRide();cycleQuestHost.hidden=true;questReturn.hidden=false;showBreakawayScreen('setup');});
+(window as any).openCycleQuestOverlay=async({width,height}:{width:number;height:number})=>{
+ if('documentPictureInPicture' in window)return (window as any).documentPictureInPicture.requestWindow({width,height,preferInitialWindowPlacement:true});
+ return window.open('','cycle-quest-overlay',`popup,width=${width},height=${height}`);
+};
+function routeFromQuest(data:any){
+ const r=data.route;if(!r||!Array.isArray(r.points)||r.points.length<2||r.points.length>1000||!Number.isFinite(r.distance)||r.distance<10||typeof r.name!=='string')return;
+ if(!r.points.every((p:any,i:number)=>Number.isFinite(p.d)&&Number.isFinite(p.e)&&p.d>=0&&(!i||p.d>r.points[i-1].d)))return;
+ if(running)pauseRide();if(rideStart&&!rideEnd)finishRide();
+ procedural=false;endless=false;zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;routeLimit=0;plannedGainFeet=null;gainScale=1;resetClimbingTotals();clearElevationEditor();
+ points=r.points.map((p:any,i:number)=>{const a=r.points[Math.max(0,i-1)],b=r.points[Math.min(r.points.length-1,i+1)];return {distance:p.d,elevation:p.e,grade:(b.e-a.e)/Math.max(1,b.d-a.d)*100};});
+ routeName=r.name.slice(0,80);rideStart=null;rideEnd=null;clearRideRecovery();distance=Math.min(points.at(-1)!.distance,Math.max(0,Number(data.restoreMiles)||0)*METERS_PER_MILE);speed=0;resetRideMetrics();svg();update();
+}
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin||event.source!==questFrame.contentWindow||event.data?.source!=='cycle-quest'||!questAuthenticated)return;
+ const data=event.data;
+ if(data.type==='connect'){if(running)pauseRide();cycleQuestHost.hidden=true;questReturn.hidden=false;showBreakawayScreen('setup');}
+ else if(data.type==='toggle'){if(!connected||!controlGranted||!realTelemetry){cycleQuestHost.hidden=true;questReturn.hidden=false;showBreakawayScreen('setup');status('Connect your smart trainer to start Cycle Quest.');}else if(running)pauseRide();else if(rideEnd){status('Finish the ride summary before starting another ride.');}else beginRide();}
+ else if(data.type==='pause'){if(running)pauseRide();}
+ else if(data.type==='finish'){if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();}else questSend({type:'notice',message:'No active ride to finish.'});}
+ else if(data.type==='route')routeFromQuest(data);
+ else if(data.type==='hold'){cycleQuestHold=!!data.hold;questReward=!!data.reward;questButtonLatch=plusPressed||minusPressed;resetSimController();}
+ else if(data.type==='reward-state')questReward=!!data.reward;
+});
+function routeQuestClick(plus:boolean,minus:boolean){
+ if(rideExperience!=='cyclequest')return false;
+ if(!plus&&!minus)questButtonLatch=false;
+ questSend({type:'click',plus,minus});
+ if(questReward){questButtonLatch=plus||minus;return true;}
+ // A reward-selection press must be released before shifting resumes.
+ return questButtonLatch;
+}
+window.setInterval(()=>{
+ if(!questAuthenticated||rideExperience!=='cyclequest')return;
+ const p=points.length?at(distance):{grade:0,elevation:0};
+ questSend({type:'telemetry',connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
+},200);
