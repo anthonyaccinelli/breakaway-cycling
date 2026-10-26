@@ -1092,7 +1092,7 @@ async function runSnapBluetoothDiagnostic(){
    if(!services.some((v:any)=>v.uuid===uuid))lines.push('NOT EXPOSED '+uuid);
   }
  }catch(e){lines.push('Diagnostic error: '+String(e));}
- snapDiagnosticReport=lines.join('\\n');
+ snapDiagnosticReport=lines.join('\n');
  output.textContent=snapDiagnosticReport;
 }
 function ensureSnapDiagnosticUI(){
