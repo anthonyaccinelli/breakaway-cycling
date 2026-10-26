@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
-    "fit-file-parser": "6.2.3"
+    "fit-file-parser": "6.2.3",
+    "html2canvas": "1.4.1"
   },
   "devDependencies": {
     "@garmin/fitsdk": "21.218.0",
