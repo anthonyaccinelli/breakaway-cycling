@@ -2711,10 +2711,23 @@ cycleQuestHost.querySelector('#questDevices')!.addEventListener('click',()=>{if(
  if('documentPictureInPicture' in window)return (window as any).documentPictureInPicture.requestWindow({width,height,preferInitialWindowPlacement:true});
  return window.open('','cycle-quest-overlay',`popup,width=${width},height=${height}`);
 };
+let questProfileRevision='';
 function routeFromQuest(data:any){
  const r=data.route;if(!r||!Array.isArray(r.points)||r.points.length<2||r.points.length>1000||!Number.isFinite(r.distance)||r.distance<10||typeof r.name!=='string')return;
  if(!r.points.every((p:any,i:number)=>Number.isFinite(p.d)&&Number.isFinite(p.e)&&p.d>=0&&(!i||p.d>r.points[i-1].d)))return;
+ if(r.endless===true&&(!Number.isInteger(r.seed)||!['flat','rolling','mountain','punchy'].includes(r.terrain)||!Number.isFinite(r.windowStart||0)||(r.windowStart||0)<0))return;
  if(running)pauseRide();if(rideStart&&!rideEnd)finishRide();
+ questProfileRevision='';
+ if(r.endless===true){
+  procedural=true;endless=true;routeLimit=Infinity;proceduralTerrain=r.terrain;proceduralSeed=r.seed;proceduralIntensity=1;gainScale=1;plannedGainFeet=null;resetHills();resetClimbingTotals();clearElevationEditor();zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;
+  const start=r.windowStart||0;points=r.points.map((p:any,i:number)=>{const a=r.points[Math.max(0,i-1)],b=r.points[Math.min(r.points.length-1,i+1)];return {distance:p.d+start,elevation:p.e,grade:(b.e-a.e)/Math.max(1,b.d-a.d)*100};});
+  // Generate with Classic's exact 80m sampling on a new ride. On reload keep
+  // the saved rolling window so long rides do not rebuild all prior terrain.
+  const restore=Math.max(0,Number(data.restoreMiles)||0)*METERS_PER_MILE;
+  distance=Math.max(start,Math.min(points.at(-1)!.distance,restore));
+  if(!restore){points=[];generatedThrough=0;}else generatedThrough=points.at(-1)!.distance;
+  routeName=r.name.slice(0,80);rideStart=null;rideEnd=null;speed=0;clearRideRecovery();resetRideMetrics();ensureTerrain();resetSimController();svg();update();return;
+ }
  procedural=false;endless=false;zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;routeLimit=0;plannedGainFeet=null;gainScale=1;resetClimbingTotals();clearElevationEditor();
  points=r.points.map((p:any,i:number)=>{const a=r.points[Math.max(0,i-1)],b=r.points[Math.min(r.points.length-1,i+1)];return {distance:p.d,elevation:p.e,grade:(b.e-a.e)/Math.max(1,b.d-a.d)*100};});
  routeName=r.name.slice(0,80);rideStart=null;rideEnd=null;clearRideRecovery();distance=Math.min(points.at(-1)!.distance,Math.max(0,Number(data.restoreMiles)||0)*METERS_PER_MILE);speed=0;resetRideMetrics();svg();update();
@@ -2741,5 +2754,13 @@ function routeQuestClick(plus:boolean,minus:boolean){
 window.setInterval(()=>{
  if(!questAuthenticated||rideExperience!=='cyclequest'||document.body.dataset.breakawayScreen==='home')return;
  const p=points.length?at(distance):{grade:0,elevation:0};
- questSend({type:'telemetry',connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
+ let routeProfile:Record<string,unknown>|undefined;
+ if(endless&&procedural&&points.length>1){
+  const revision=generatedThrough+':'+points[0].distance;
+  if(revision!==questProfileRevision){
+   questProfileRevision=revision;const visible=points.length<=1000?points:Array.from({length:1000},(_,i)=>points[Math.round(i/999*(points.length-1))]);const start=visible[0].distance;
+   routeProfile={endless:true,windowStart:start,distance:visible.at(-1)!.distance-start,hasElevation:true,gain:visible.slice(1).reduce((sum,p,i)=>sum+Math.max(0,p.elevation-visible[i].elevation),0),points:visible.map(p=>({d:p.distance-start,e:p.elevation}))};
+  }
+ }
+ questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
 },200);

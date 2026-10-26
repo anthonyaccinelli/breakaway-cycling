@@ -1,0 +1,34 @@
+import {MONSTERS} from '/api/cycle-quest?asset=monsters.js';
+export {MONSTERS};
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+export const attackAt=level=>1.08**(level-1);
+export const hpAt=level=>100+10*(level-1);
+// CR establishes progression. HP and attack distinguish creatures within a tier.
+// Source damage is a strongest basic attack average, not a claim of tabletop DPR.
+export function monsterPool(target,kind='enemy'){
+ const highest=Math.max(...MONSTERS.map(m=>m.level));
+ let pool=MONSTERS.filter(m=>target>highest?m.level>=highest-20:m.level>=Math.max(1,target-4)&&m.level<=target+1);
+ if(!pool.length){const nearest=Math.min(...MONSTERS.map(m=>Math.abs(m.level-target)));pool=MONSTERS.filter(m=>Math.abs(m.level-target)===nearest);}
+ if(kind==='summit'){const summit=pool.filter(m=>['dragon','giant','elemental','monstrosity'].includes(m.type));if(summit.length)pool=summit;}
+ return pool;
+}
+export function selectMonster(target,kind='enemy',random=Math.random){
+ const pool=monsterPool(target,kind);
+ return pool[Math.min(pool.length-1,Math.max(0,Math.floor(random()*pool.length)))];
+}
+export function creatureFactors(monster){
+ const peers=MONSTERS.filter(m=>m.cr===monster.cr);
+ const mean=key=>peers.reduce((n,m)=>n+m[key],0)/peers.length;
+ return {health:clamp(1+.16*Math.log2(monster.hp/mean('hp')),.82,1.18),attack:clamp(1+.12*Math.log2((monster.damage+Math.max(0,monster.attack))/(mean('damage')+Math.max(0,mean('attack')))),.8,1.2)};
+}
+export function makeBattle(kind,{level,ftp,chapterLevel=level,random=Math.random}){
+ const reference=kind==='boss'?chapterLevel:level;
+ const target=kind==='enemy'?Math.max(1,level-2):kind==='summit'?level+5:chapterLevel;
+ const monster=selectMonster(target,kind,random),f=creatureFactors(monster);
+ const watts=Number.isFinite(ftp)&&ftp>0?ftp:280;
+ // Regular fights: roughly 10–16 seconds at 50% FTP. Bosses retain fixed stats.
+ const hp=kind==='enemy'?watts*.5*13*f.health*attackAt(reference):kind==='summit'?watts*1.25*60*f.health*attackAt(reference):watts*.75*240*f.health*attackAt(reference);
+ const dps=kind==='enemy'?Math.min(1,.8*f.attack):kind==='summit'?0:.8*hpAt(reference)/240*f.attack;
+ return {kind,name:(target>92?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:monster.id,level:reference,sourceCR:monster.cr,sourceHP:monster.hp,sourceAttack:monster.attack,hp:Math.round(hp),max:Math.round(hp),dps,time:kind==='enemy'?30:kind==='summit'?60:300,reward:kind==='enemy'?60:kind==='summit'?1200:600};
+}
+export function chapterRandom(chapter){let n=Math.imul(chapter,0x9e3779b1);n=Math.imul(n^(n>>>16),0x7feb352d);return ((n^(n>>>16))>>>0)/4294967296;}
