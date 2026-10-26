@@ -1067,6 +1067,50 @@ function parseCyclingPowerMeasurement(v:DataView){
  update();
 }
 let lastSnapCrank:{rev:number;time:number}|null=null;
+// Read-only Web Bluetooth service inventory. Browser permissions limit what can be enumerated.
+let snapDiagnosticReport='No diagnostic run yet.';
+async function runSnapBluetoothDiagnostic(){
+ const output=document.getElementById('snapDiagnosticOutput');
+ if(!output)return;
+ output.textContent='Scanning Bluetooth services…';
+ const lines:string[]=['Ride Breakaway — Bluetooth Service Diagnostic','Device: '+(device?.name||'none'),'Browser: '+navigator.userAgent,'Note: Web Bluetooth only exposes services permitted by the device chooser.'];
+ try{
+  if(!device?.gatt?.connected)throw Error('Connect your trainer first.');
+  const services=await device.gatt.getPrimaryServices();
+  lines.push('Accessible primary services: '+services.length);
+  for(const service of services){
+   lines.push('SERVICE '+service.uuid);
+   try{
+    const characteristics=await service.getCharacteristics();
+    for(const c of characteristics){
+     const p=c.properties;
+     lines.push('  '+c.uuid+' ['+(['read','write','writeWithoutResponse','notify','indicate'].filter(k=>!!p[k]).join(', '))+']');
+    }
+   }catch(e){lines.push('  Characteristics unavailable: '+String(e));}
+  }
+  for(const uuid of [FTMS,CYCLING_POWER,WAHOO_SERVICE]){
+   if(!services.some((v:any)=>v.uuid===uuid))lines.push('NOT EXPOSED '+uuid);
+  }
+ }catch(e){lines.push('Diagnostic error: '+String(e));}
+ snapDiagnosticReport=lines.join('\\n');
+ output.textContent=snapDiagnosticReport;
+}
+function ensureSnapDiagnosticUI(){
+ const button=document.getElementById('connect');
+ const tile=button?.closest('.setup-device-tile');
+ if(!tile||document.getElementById('snapDiagnosticRun'))return;
+ const panel=document.createElement('section');
+ panel.style.cssText='margin-top:12px;padding:12px;border:1px solid #7893a8;border-radius:10px;background:#f1f5f9;color:#142433';
+ const heading=document.createElement('strong');heading.textContent='Bluetooth Service Diagnostic (read-only)';
+ const info=document.createElement('p');info.textContent='Connect your trainer, then scan accessible services. No resistance commands will be sent.';
+ info.style.cssText='font-size:12px;margin:7px 0';
+ const run=document.createElement('button');run.id='snapDiagnosticRun';run.type='button';run.textContent='Scan Bluetooth Services';run.style.cssText='padding:9px;margin-right:8px;border-radius:7px;background:#2563eb;color:white';
+ run.addEventListener('click',()=>{void runSnapBluetoothDiagnostic();});
+ const copy=document.createElement('button');copy.type='button';copy.textContent='Copy Report';copy.style.cssText='padding:9px;border-radius:7px;background:#dbeafe;color:#142433';
+ copy.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(snapDiagnosticReport);copy.textContent='Copied!';}catch{copy.textContent='Select report text below';}});
+ const out=document.createElement('pre');out.id='snapDiagnosticOutput';out.textContent=snapDiagnosticReport;out.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;max-height:220px;overflow:auto;margin-top:10px';
+ panel.append(heading,info,run,copy,out);tile.append(panel);
+}
 async function connectLegacyCyclingPower(server:any,selected:any){
  const service=await server.getPrimaryService(CYCLING_POWER);
  const measurement=await service.getCharacteristic(CYCLING_POWER_MEASUREMENT);
@@ -2560,6 +2604,7 @@ const setupDeviceDefinitions=[
  {id:'connectClick',name:'Zwift Click',ready:()=>clickReadyForRide(),connected:()=>clickReadyForRide(),device:()=>clickDevice,detail:()=>($('clickStatus').textContent||'')}
 ];
 function refreshSetupDeviceCards(){
+ ensureSnapDiagnosticUI();
  if(breakawayScreen!=='setup')return;
  for(const entry of setupDeviceDefinitions){
   const button=document.getElementById(entry.id) as HTMLButtonElement|null;
