@@ -15,8 +15,8 @@ test('all playable tiers have forgiving regular fights and bounded summit/boss t
  for(let level=1;level<=200;level++)for(const random of [()=>0,()=>.5,()=>.999999]){
   assert(monsterPool(level).length>0);
   const enemy=makeBattle('enemy',{level,ftp:280,random});const seconds=enemy.hp/(140*1.08**(level-1));
-  assert(seconds>=10&&seconds<=16);assert(enemy.dps<=1&&enemy.dps>0);assert.equal(enemy.time,30);assert.equal(enemy.reward,60);
-  const summit=makeBattle('summit',{level,ftp:280,random});assert.equal(summit.time,60);assert.equal(summit.reward,1200);assert(summit.hp>enemy.hp);
+  assert(seconds>=20&&seconds<=30);assert(enemy.dps<=1&&enemy.dps>0);assert.equal(enemy.time,30);assert.equal(enemy.reward,60);
+  const summit=makeBattle('summit',{level,ftp:280,random});assert.equal(summit.time,60);assert.equal(summit.reward,600);assert(summit.dps>0);assert(summit.hp>enemy.hp);
   const boss=makeBattle('boss',{level,chapterLevel:level,ftp:280,random});assert.equal(boss.time,300);assert(boss.hp>enemy.hp&&boss.dps>0);
  }
 });

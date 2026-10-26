@@ -12,7 +12,7 @@ const CYCLING_POWER_MEASUREMENT='00002a63-0000-1000-8000-00805f9b34fb';
 const CONTROL='00002ad9-0000-1000-8000-00805f9b34fb';
 const STATUS='00002ada-0000-1000-8000-00805f9b34fb';
 const BIKE='00002ad2-0000-1000-8000-00805f9b34fb';
-let cycleQuestHold=false;
+let cycleQuestHold=false;let cycleQuestHeldSpeed=0;
 let drivetrainMode:'traditional'|'virtual'='traditional';let realTelemetry=false;let trainerMode:'sim'|'erg'|'target'='sim';let lastTarget=0;let targetErgWatts=180;let lastFixedErgCommand=0;let controlResponseWaiter:((v:DataView)=>void)|null=null;let controlQueue=Promise.resolve();let points:Point[]=[];let distance=0;let speed=0;let power=0;let cadence=0;let gear=6;let running=false;let last=0;let device:BLEDevice;let control:any;let connected=false;let controlGranted=false;let pending=false;let trainerGrade=NaN;
 // Procedural routes: deterministic, streaming terrain; never allocate the entire endless route.
 type Terrain = 'flat'|'rolling'|'mountain'|'punchy';
@@ -374,8 +374,8 @@ function confirmManualFinish(){
  overlay.querySelector<HTMLButtonElement>('#manualConfirmFinish')!.onclick=()=>{overlay.remove();finishRide();};
  overlay.querySelector<HTMLButtonElement>('#manualKeepRiding')!.focus();
 }
-function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!connected||!controlGranted||!realTelemetry)return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();void command([0x07]);if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
-function pauseRide(){if(!running)return;rideAwaitingPedaling=breakawayScreen==='ride'&&!rideEnd;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
+function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!connected||!controlGranted||!realTelemetry)return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);if(rideExperience==='cyclequest')showCycleQuest();else showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();void command([0x07]);if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
+function pauseRide(){if(!running)return;rideAwaitingPedaling=(breakawayScreen==='ride'||rideExperience==='cyclequest')&&!rideEnd;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
 function finishRide(){
  closeStationaryPrompt();stationarySince=0;
  if(!rideStart||rideEnd)return;
@@ -861,10 +861,10 @@ async function setGrade(grade:number){
 const CLIMB_ASSIST=[0.10,0.15,0.21,0.28,0.36,0.45,0.56,0.70] as const;
 function climbingAssist():number{return gear<=8?CLIMB_ASSIST[gear-1]:1;}
 function simRequestedGrade():number{
- const routeGrade=(cycleQuestHold?0:at(distance).grade)*num('difficulty')/100;
+ const routeGrade=at(distance).grade*num('difficulty')/100;
  if(drivetrainMode==='traditional')return Math.max(-12,Math.min(12,routeGrade));
  const ratio=zwiftGearMultiplier();
- const effectiveLoad=4+Math.max(0,speed*speed*0.08);
+ const effectiveLoad=4+Math.max(0,(cycleQuestHold?cycleQuestHeldSpeed:speed)**2*0.08);
  const shifted=routeGrade+(ratio-1)*effectiveLoad;
  // Scale down BOTH grade and baseline load for low climbing gears.
  // Negative effective grades are intentional: they lower trainer resistance
@@ -939,7 +939,7 @@ function parseBikeData(v:DataView){
  // Advance distance from actual trainer notifications even when Chrome throttles background animation frames.
  advanceRide(performance.now());
  // Require sustained pedaling to avoid starting from a single noisy cadence packet.
- if(rideAwaitingPedaling&&!running&&!rideEnd&&!document.getElementById('stationaryRidePrompt')&&breakawayScreen==='ride'&&points.length&&connected&&controlGranted&&(cadence>=20||power>=15)){if(!pedalSince)pedalSince=Date.now();if(Date.now()-pedalSince>=3000){pedalSince=0;beginRide();}}else if(!running)pedalSince=0;
+ if(rideAwaitingPedaling&&!running&&!rideEnd&&!document.getElementById('stationaryRidePrompt')&&(breakawayScreen==='ride'||(rideExperience==='cyclequest'&&document.body.dataset.breakawayScreen==='quest'))&&points.length&&connected&&controlGranted&&(cadence>=20||power>=15)){if(!pedalSince)pedalSince=Date.now();if(Date.now()-pedalSince>=3000){pedalSince=0;beginRide();}}else if(!running)pedalSince=0;
  update();
 }
 function shift(delta:number){if(drivetrainMode!=='virtual')return;gear=Math.max(1,Math.min(24,gear+delta));update();if(trainerMode==='erg')void setVirtualGearResistance();else if(trainerMode==='sim'&&running)void updateSimResistance(performance.now(),true);}
@@ -2736,12 +2736,12 @@ window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==questFrame.contentWindow||event.data?.source!=='cycle-quest'||!questAuthenticated||rideExperience!=='cyclequest'||document.body.dataset.breakawayScreen==='home')return;
  const data=event.data;
  if(data.type==='connect'){if(running)pauseRide();cycleQuestHost.hidden=true;questReturn.hidden=false;showBreakawayScreen('setup');}
- else if(data.type==='toggle'){if(!connected||!controlGranted||!realTelemetry){cycleQuestHost.hidden=true;questReturn.hidden=false;showBreakawayScreen('setup');status('Connect your smart trainer to start Cycle Quest.');}else if(running)pauseRide();else if(rideEnd){status('Finish the ride summary before starting another ride.');}else beginRide();}
- else if(data.type==='pause'){if(running)pauseRide();}
- else if(data.type==='finish'){if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();}else questSend({type:'notice',message:'No active ride to finish.'});}
+ else if(data.type==='toggle'){if(!connected||!controlGranted||!realTelemetry){cycleQuestHost.hidden=true;questReturn.hidden=false;showBreakawayScreen('setup');status('Connect your smart trainer to start Cycle Quest.');}else if(running)pauseRide();else if(rideEnd){status('Finish the ride summary before starting another ride.');}else {rideAwaitingPedaling=true;pedalSince=0;questSend({type:'notice',message:'Ready — start pedaling to begin.'});}}
+ else if(data.type==='pause'){if(running)pauseRide();if(data.autoResume===false)rideAwaitingPedaling=false;}
+ else if(data.type==='finish'){if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();questSend({type:'ride-finished'});}else questSend({type:'notice',message:'No active ride to finish.'});}
  else if(data.type==='route')routeFromQuest(data);
  else if(data.type==='ready'){void savedRides().then(rides=>questSend({type:'indoor-history',workouts:rides.slice(0,5000).map(r=>({start:r.start,end:r.end}))})).catch(()=>{});}
- else if(data.type==='hold'){cycleQuestHold=!!data.hold;questReward=!!data.reward;questButtonLatch=plusPressed||minusPressed;resetSimController();}
+ else if(data.type==='hold'){if(data.hold&&!cycleQuestHold)cycleQuestHeldSpeed=speed;cycleQuestHold=!!data.hold;questReward=!!data.reward;questButtonLatch=plusPressed||minusPressed;}
  else if(data.type==='reward-state')questReward=!!data.reward;
 });
 function routeQuestClick(plus:boolean,minus:boolean){
@@ -2763,5 +2763,5 @@ window.setInterval(()=>{
    routeProfile={endless:true,windowStart:start,distance:visible.at(-1)!.distance-start,hasElevation:true,gain:visible.slice(1).reduce((sum,p,i)=>sum+Math.max(0,p.elevation-visible[i].elevation),0),points:visible.map(p=>({d:p.distance-start,e:p.elevation}))};
   }
  }
- questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
+ questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade})),connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
 },200);
