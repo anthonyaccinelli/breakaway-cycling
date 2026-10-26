@@ -2743,6 +2743,13 @@ window.addEventListener('message',event=>{
  else if(data.type==='ready'){void savedRides().then(rides=>questSend({type:'indoor-history',workouts:rides.slice(0,5000).map(r=>({start:r.start,end:r.end}))})).catch(()=>{});}
  else if(data.type==='hold'){if(data.hold&&!cycleQuestHold)cycleQuestHeldSpeed=speed;cycleQuestHold=!!data.hold;questReward=!!data.reward;questButtonLatch=plusPressed||minusPressed;}
  else if(data.type==='reward-state')questReward=!!data.reward;
+ else if(data.type==='quest-summary'&&rideEnd){
+  const root=$('rideSummary');if(root.querySelector('#quest-summary-section'))return;
+  const section=document.createElement('section');section.id='quest-summary-section';const heading=document.createElement('h2');heading.textContent='Cycle Quest';section.append(heading);
+  for(const value of (Array.isArray(data.lines)?data.lines:[]).slice(0,7)){if(typeof value!=='string')continue;const line=document.createElement('p');line.textContent=value.slice(0,100);section.append(line);}
+  if(typeof data.image==='string'&&data.image.startsWith('data:image/png;base64,')&&data.image.length<2000000){const image=document.createElement('img');image.src=data.image;image.alt='Cycle Quest shareable ride summary';image.style.cssText='display:block;width:min(100%,600px);margin:16px 0';section.append(image);const link=document.createElement('a');link.href=data.image;link.download='cycle-quest-ride-summary.png';link.textContent='Download Cycle Quest image';section.append(link);}
+  root.append(section);
+ }
 });
 function routeQuestClick(plus:boolean,minus:boolean){
  if(rideExperience!=='cyclequest')return false;
