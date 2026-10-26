@@ -827,6 +827,7 @@ function update(){const currentClimb=refreshClimbState();const p=at(distance),ma
 // A successful GATT write is NOT proof that the trainer accepted a command.
 // Legacy Wahoo Cycling Power control point (WCPS), used by pre-FTMS KICKR/SNAP firmware.
 // Only enable after the proprietary characteristic is actually discovered and unlock acknowledged.
+const WAHOO_SERVICE='a026ee0d-0a7d-4ab3-97fa-f1500f9feb8b';
 const WAHOO_CONTROL='a026e005-0a7d-4ab3-97fa-f1500f9feb8b';
 let snapControl:any=null;
 let snapControlReady=false;
@@ -1074,7 +1075,8 @@ async function connectLegacyCyclingPower(server:any,selected:any){
  connected=true;
  snapControlReady=false;snapControl=null;
  try{
-  snapControl=await service.getCharacteristic(WAHOO_CONTROL);
+  const wahooService=await server.getPrimaryService(WAHOO_SERVICE);
+  snapControl=await wahooService.getCharacteristic(WAHOO_CONTROL);
   await snapControl.startNotifications();
   snapControl.addEventListener('characteristicvaluechanged',(event:any)=>snapResponseWaiter?.(event.target.value));
   const unlocked=await snapWrite([0x20,0xEE,0xFC]);
@@ -1089,7 +1091,7 @@ async function connectLegacyCyclingPower(server:any,selected:any){
  status(snapControlReady?'Wahoo SNAP resistance control ready (legacy BLE)':'Wahoo '+(selected.name||'trainer')+' connected: cycling power telemetry only; resistance control unavailable.');
  if(snapControlReady)return;
  controlGranted=false;
- status('Wahoo '+(selected.name||'trainer')+' connected: cycling power telemetry only. Legacy resistance control was not granted.');
+ status('Wahoo '+(selected.name||'trainer')+' connected: power telemetry only. Legacy resistance control was not granted; check browser console for Bluetooth service details.');
 }
 async function connectTrainerDevice(selected:any){try{
  if(connected&&device?.id===selected.id)return;
@@ -1123,7 +1125,7 @@ async function connectTrainerDevice(selected:any){try{
  status(controlGranted?'Trainer connected via FTMS; waiting for live power/cadence':'Trainer connected, but FTMS control not granted');
  }catch(err){status('Trainer connection error: '+String(err));throw err;}
 }
-$('connect').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[FTMS,CYCLING_POWER]});pausedBleRoles.delete('trainer');rememberDevice('trainer',selected);await connectTrainerDevice(selected);}catch(err){status('Trainer connection error: '+String(err));}});
+$('connect').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[FTMS,CYCLING_POWER,WAHOO_SERVICE]});pausedBleRoles.delete('trainer');rememberDevice('trainer',selected);await connectTrainerDevice(selected);}catch(err){status('Trainer connection error: '+String(err));}});
 
 // v3.8.7 — persist rider and trainer preferences on this browser.
 // Restore values before the existing trainer-mode event listeners are installed.
