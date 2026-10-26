@@ -1,0 +1,5 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {createRewardGesture} from '../cycle-quest/reward-gesture.js';
+const setup=()=>{const g=createRewardGesture();for(let t=0;t<=5000;t+=250)g.sample(t,80);return [g,g.begin(5000)];};
+test('XP default, normal cadence and single spike do not select healing',()=>{const[g,c]=setup();assert.equal(c.selected,'xp');g.update(c,5100,110);g.update(c,5400,80);g.update(c,6500,82);assert.equal(c.selected,'xp');assert.equal(c.end,15000);});
+test('sustained cadence increase selects and latches healing with confirmation time',()=>{const[g,c]=setup();for(let t=13500;t<=14500;t+=250)g.update(c,t,100);assert.equal(c.selected,'heal');assert.equal(c.end,17500);g.update(c,14750,80);assert.equal(c.selected,'heal');});
+test('missing baseline and telemetry gaps never trigger healing',()=>{const g=createRewardGesture(),c=g.begin(0);g.update(c,100,100);g.update(c,1200,100);assert.equal(c.selected,'xp');const[h,d]=setup();h.update(d,5100,100);h.update(d,8000,100);assert.equal(d.selected,'xp');});
