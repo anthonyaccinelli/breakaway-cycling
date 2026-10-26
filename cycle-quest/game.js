@@ -60,5 +60,5 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==
  render();if(++saveTick>=5){save();saveTick=0;}
  }else if(m.type==='click'){if(!m.plus&&!m.minus){clickArmed=true;return;}if(s.reward&&clickArmed){clickArmed=false;choose(m.plus?'xp':'heal');}}
 });
-render();parentSend({type:'route',route:s.route,restoreMiles:s.routeMiles||0});parentSend({type:'ready'});
+lastLiveDistance=(s.routeMiles||0)*METERS_PER_MILE;render();parentSend({type:'route',route:s.route,restoreMiles:s.routeMiles||0});parentSend({type:'ready'});
 })();

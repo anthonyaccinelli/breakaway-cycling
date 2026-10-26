@@ -2620,7 +2620,7 @@ function syncSurvivalStudio(){
 }
 survivalStudio.querySelectorAll('select').forEach(select=>select.addEventListener('change',()=>{
  syncSurvivalStudio();
- const isFinish=(document.getElementById('studioChallenge') as HTMLSelectElement).value==='finish';
+ const isFinish=rideExperience==='survival'&&(document.getElementById('studioChallenge') as HTMLSelectElement).value==='finish';
  const endlessButton=document.getElementById('endlessRoute') as HTMLButtonElement|null;
  if(endlessButton){endlessButton.disabled=isFinish;endlessButton.title=isFinish?'Finish Line requires a finite route. Choose Classic Waves for Endless.':'';}
 }));
@@ -2720,7 +2720,7 @@ function routeFromQuest(data:any){
  routeName=r.name.slice(0,80);rideStart=null;rideEnd=null;clearRideRecovery();distance=Math.min(points.at(-1)!.distance,Math.max(0,Number(data.restoreMiles)||0)*METERS_PER_MILE);speed=0;resetRideMetrics();svg();update();
 }
 window.addEventListener('message',event=>{
- if(event.origin!==location.origin||event.source!==questFrame.contentWindow||event.data?.source!=='cycle-quest'||!questAuthenticated)return;
+ if(event.origin!==location.origin||event.source!==questFrame.contentWindow||event.data?.source!=='cycle-quest'||!questAuthenticated||rideExperience!=='cyclequest'||document.body.dataset.breakawayScreen==='home')return;
  const data=event.data;
  if(data.type==='connect'){if(running)pauseRide();cycleQuestHost.hidden=true;questReturn.hidden=false;showBreakawayScreen('setup');}
  else if(data.type==='toggle'){if(!connected||!controlGranted||!realTelemetry){cycleQuestHost.hidden=true;questReturn.hidden=false;showBreakawayScreen('setup');status('Connect your smart trainer to start Cycle Quest.');}else if(running)pauseRide();else if(rideEnd){status('Finish the ride summary before starting another ride.');}else beginRide();}
@@ -2739,7 +2739,7 @@ function routeQuestClick(plus:boolean,minus:boolean){
  return questButtonLatch;
 }
 window.setInterval(()=>{
- if(!questAuthenticated||rideExperience!=='cyclequest')return;
+ if(!questAuthenticated||rideExperience!=='cyclequest'||document.body.dataset.breakawayScreen==='home')return;
  const p=points.length?at(distance):{grade:0,elevation:0};
  questSend({type:'telemetry',connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
 },200);
