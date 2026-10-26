@@ -1,7 +1,8 @@
 import {sample,grade,METERS_PER_MILE} from './routes.js';
+window.openCycleQuestOverlay=async({width,height})=>{if('documentPictureInPicture' in window)return window.documentPictureInPicture.requestWindow({width,height,preferInitialWindowPlacement:true});return window.open('','cycle-quest-overlay',`popup,width=${width},height=${height}`);};
 const frame=document.getElementById('ride');let route=null,distance=0,held=false,paused=false,started=false,last=performance.now(),time=0,rewardSince=0;
 const send=m=>frame.contentWindow?.postMessage({source:'breakaway',...m},location.origin);
-const state=()=>{document.getElementById('state').textContent=paused?'PAUSED':held?'BATTLE / REWARD · 1×':'AUTOPLAY · '+document.getElementById('speed').value+'×';document.getElementById('pause').textContent=paused?'Resume':'Pause';};
+const state=()=>{document.getElementById('state').textContent=paused?'PAUSED':held?'BATTLE / REWARD / LEVEL UP · 1×':'AUTOPLAY · '+document.getElementById('speed').value+'×';document.getElementById('pause').textContent=paused?'Resume':'Pause';};
 window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==frame.contentWindow||event.data?.source!=='cycle-quest')return;const m=event.data;if(m.type==='route'){route=m.route;distance=Math.max(0,m.restoreMiles||0)*METERS_PER_MILE;started=true;}if(m.type==='hold')held=!!m.hold;if(m.type==='toggle'){paused=!paused;state();}if(m.type==='pause'){paused=true;state();}if(m.type==='finish'){paused=true;state();}if(m.type==='connect'){paused=false;state();}if(m.type==='reward-state'){if(m.reward&&!rewardSince)rewardSince=performance.now();if(!m.reward)rewardSince=0;state();}});
 document.getElementById('pause').onclick=()=>{paused=!paused;state();};document.getElementById('speed').onchange=state;
 document.querySelectorAll('[data-scene]').forEach(b=>b.onclick=()=>{paused=false;send({type:'demo-action',action:b.dataset.scene});state();});
