@@ -2740,6 +2740,7 @@ window.addEventListener('message',event=>{
  else if(data.type==='pause'){if(running)pauseRide();}
  else if(data.type==='finish'){if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();}else questSend({type:'notice',message:'No active ride to finish.'});}
  else if(data.type==='route')routeFromQuest(data);
+ else if(data.type==='ready'){void savedRides().then(rides=>questSend({type:'indoor-history',workouts:rides.slice(0,5000).map(r=>({start:r.start,end:r.end}))})).catch(()=>{});}
  else if(data.type==='hold'){cycleQuestHold=!!data.hold;questReward=!!data.reward;questButtonLatch=plusPressed||minusPressed;resetSimController();}
  else if(data.type==='reward-state')questReward=!!data.reward;
 });
@@ -2762,5 +2763,5 @@ window.setInterval(()=>{
    routeProfile={endless:true,windowStart:start,distance:visible.at(-1)!.distance-start,hasElevation:true,gain:visible.slice(1).reduce((sum,p,i)=>sum+Math.max(0,p.elevation-visible[i].elevation),0),points:visible.map(p=>({d:p.distance-start,e:p.elevation}))};
   }
  }
- questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
+ questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
 },200);

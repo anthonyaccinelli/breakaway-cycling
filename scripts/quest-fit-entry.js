@@ -1,0 +1,2 @@
+import FitParser from 'fit-file-parser';
+export async function decodeFIT(bytes){const parser=new FitParser({mode:'list',speedUnit:'m/s',lengthUnit:'m',force:false,strict:true});const data=await parser.parseAsync(bytes);if((data.records?.length||0)>150000)throw Error('Activity contains too many samples. Export a shorter activity.');if(data.file_id?.type&&data.file_id.type!=='activity')throw Error('Choose a recorded activity FIT file.');return data;}
