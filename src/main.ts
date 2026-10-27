@@ -2037,7 +2037,7 @@ function surviveRender(){const c=surviveData();
   gameSet('surviveGameYou',c.you.toFixed(1));
   gameSet('surviveGameGap',c.warming?'—':c.gap+' m');
   gameSet('surviveGameThreat',c.enemy.toFixed(1));
-  gameSet('surviveGameClockLabel',surviveMode==='finish'&&!c.warming?'EST. TIME TO FINISH':c.phase==='CHASE'?'CHASE ENDS IN':'CHASE BEGINS IN');
+  gameSet('surviveGameClockLabel',surviveMode==='finish'&&!c.warming?'EST. TIME TO FINISH':c.warming?'CHASE BEGINS IN':c.phase==='CHASE'?'SURGE ENDS IN':'NEXT SURGE IN');
   gameSet('surviveGameClock',surviveMode==='finish'&&!c.warming?surviveFormatTime(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):surviveFormatTime(c.remaining));
   gameSet('surviveGameMessage',c.message);
   gameSet('surviveGamePower',threeSecondWatts()?.toFixed(0)??'—');
