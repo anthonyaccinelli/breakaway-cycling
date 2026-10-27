@@ -777,8 +777,17 @@ function refreshHeartRateProfile(){
 const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#76D7E8'],[-6,'#55B9F5'],[-3,'#79A9FF'],[0,'#C5C9D2'],[3,'#A6A0FF'],[6,'#8B70F4'],[9,'#C477E8'],[12,'#F095C7'],[16,'#F4A86A']];
 const SURVIVAL_GRADE_STOPS:[number,string][]=[[-12,'#374253'],[-6,'#53627A'],[-3,'#756777'],[0,'#B8A6A9'],[3,'#B9798A'],[6,'#C34B63'],[9,'#E72D4C'],[12,'#FF4350'],[16,'#FF9A68']];
 function gradeColor(g:number){
- const stops=document.body.dataset.rideExperience==='survival'?SURVIVAL_GRADE_STOPS:CLASSIC_GRADE_STOPS;
+ const isSurvival=document.body.dataset.rideExperience==='survival';
+ const stops=isSurvival?SURVIVAL_GRADE_STOPS:CLASSIC_GRADE_STOPS;
  if(!Number.isFinite(g))return stops[3][1];
+ // Survival uses hard grade bands, not RGB blending. Midpoint boundaries
+ // put each established palette color at the center of its grade range.
+ // Classic deliberately retains its existing smooth interpolation.
+ if(isSurvival){
+  const thresholds=[-9,-4.5,-1.5,1.5,4.5,7.5,10.5,14];
+  const band=thresholds.findIndex(boundary=>g<boundary);
+  return stops[band<0?stops.length-1:band][1];
+ }
  if(g<=stops[0][0])return stops[0][1];
  for(let i=1;i<stops.length;i++){
   const [end,hex]=stops[i], [start,from]=stops[i-1];
