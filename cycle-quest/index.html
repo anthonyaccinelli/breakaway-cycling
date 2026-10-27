@@ -70,6 +70,23 @@
 #cq-preview .cq-mini-battle .cq-rat-card{gap:2px}
 #cq-preview .cq-mini-battle .cq-rat-card .cq-rat-hp{font-size:clamp(9px,1vw,14px)}
 #cq-preview .cq-mini-battle .cq-rat-card .cq-enemymeter{height:7px;min-height:7px}
+</style><style>
+#cq-preview .cq-route>.cq-event:has(.cq-art-group){display:block!important;background:linear-gradient(110deg,#2c3972,#111d50)!important;padding:0!important;overflow:hidden}
+#cq-preview .cq-event:has(.cq-art-group)::before,#cq-preview .cq-event:has(.cq-art-group)::after{content:"";position:absolute;z-index:0;top:32%;height:44%;background:#17245580}
+#cq-preview .cq-event:has(.cq-art-group)::before{left:1.3%;width:36%}
+#cq-preview .cq-event:has(.cq-art-group)::after{right:15.7%;width:23%}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-battleheading{position:absolute;left:2%;right:2%;top:24%;z-index:1;font-size:clamp(12px,1.15vw,23px);line-height:1}
+#cq-preview .cq-event:has(.cq-art-group)>h3,#cq-preview .cq-event:has(.cq-art-group)>.cq-eventbar,#cq-preview .cq-event:has(.cq-art-group)>span.cq-sub,#cq-preview .cq-event:has(.cq-art-group)>p.cq-sub{display:none}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-art-group{position:absolute;z-index:2;inset:6% 22.5% 8%;width:55%;height:86%;max-height:none;display:flex;align-items:stretch;justify-content:center;gap:2%;margin:0}
+#cq-preview .cq-event .cq-art-group .cq-rat-card{flex:1 1 0;height:100%;max-width:32%;gap:2%;justify-content:stretch}
+#cq-preview .cq-event .cq-art-group .cq-rat-card:only-child{max-width:32%}
+#cq-preview .cq-event .cq-rat-name{display:block;flex:none;width:100%;color:#fff;font:700 clamp(13px,1.25vw,27px)/1.15 Georgia,serif;letter-spacing:.13em;white-space:nowrap;text-align:center;text-shadow:none}
+#cq-preview .cq-event .cq-rat-card:only-child .cq-rat-name{font-size:clamp(20px,2.6vw,56px);width:220%}
+#cq-preview .cq-event .cq-art-group .cq-rat-card img.cq-rat-art{flex:1 1 0;width:100%!important;height:0!important;min-height:0;max-height:none!important;object-fit:contain;filter:none}
+#cq-preview .cq-event .cq-art-group .cq-rat-hp{font:700 clamp(11px,1.25vw,27px)/1.1 Georgia,serif;letter-spacing:.08em;text-shadow:none;white-space:nowrap}
+#cq-preview .cq-event .cq-art-group .cq-rat-card .cq-enemymeter{height:clamp(10px,2.1vw,40px);min-height:0;width:100%;flex:none;background:#121e4c}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-group{position:absolute;bottom:2%;left:2%;width:18%;z-index:3}
+#cq-preview .cq-mini-battle .cq-rat-name{display:none}
 </style></head><body><link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <div id="cq-preview">
   <div class="cq-game">
