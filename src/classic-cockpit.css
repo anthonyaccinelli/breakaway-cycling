@@ -604,3 +604,10 @@ body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screen
 body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup) :is(input:not([type="checkbox"]),select){background:#edf3fb!important;color:#142449!important;border-color:#a3b6d8!important}
 body[data-ride-experience="classic"].cc-cockpit-mounted #screenRoute .studio-scrub-readout{background:#edf3fb!important;border-color:#b7c5e3!important}
 body[data-ride-experience="classic"].cc-cockpit-mounted #screenRoute .route-import{background:#fff!important;border-color:#b7c5e3!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted #screenRide>.survive-beta.survive-collapsed,
+body[data-ride-experience="classic"].cc-cockpit-mounted #screenRide>.survive-beta:not(.survive-collapsed){display:none!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted #screenRide #profileSection .profile-heading h2{color:#142449!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted #screenRide .cc-status{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted #screenRide .sc-ride-controls{background:#fff!important;border-color:#b7c5e3!important;color:#142449!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted #screenRide .sc-ride-control-label{color:#455777!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted #screenRide .ride-dashboard .metrics .metric{background:#fff!important;border-color:#d5dff0!important}
