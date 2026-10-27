@@ -491,10 +491,10 @@ let activeClimbKey='';
 let climbSpeedEstimate=3.0; // m/s fallback until moving samples are available
 function climbCategory(km:number,grade:number):string|null{
  if(km>=15&&grade>=7)return 'HC';
- if(km>=8&&km<=18&&grade>=6&&grade<=9)return 'CAT 1';
- if(km>=5&&km<=10&&grade>=5&&grade<=8)return 'CAT 2';
- if(km>=2&&km<=5&&grade>=5&&grade<=8)return 'CAT 3';
- if(km>=1&&km<=3&&grade>=4&&grade<=7)return 'CAT 4';
+ if(km>=8&&km<=18&&grade>=6)return 'CAT 1';
+ if(km>=5&&km<=10&&grade>=5)return 'CAT 2';
+ if(km>=2&&km<=5&&grade>=5)return 'CAT 3';
+ if(km>=1&&km<=3&&grade>=4)return 'CAT 4';
  return null;
 }
 function classifyClimb(start:number,end:number,gain:number):Climb|null{
@@ -506,14 +506,15 @@ function detectClimbs(){
  const end=Math.max(0,Math.min(routeEndForProfile(),procedural?generatedThrough:routeEndForProfile()));
  if(end<1000||!points.length){climbs=[];return;}
  const step=100;
- const elevations:number[]=[];
- for(let d=0;d<=end;d+=step)elevations.push(at(d).elevation);
+ const elevations:number[]=[],sampleDistances:number[]=[];
+ for(let d=0;d<=end;d+=step){sampleDistances.push(d);elevations.push(at(d).elevation);}
+ if(sampleDistances.at(-1)!<end){sampleDistances.push(end);elevations.push(at(end).elevation);}
  // Include the last point when route length is not a multiple of 100 m.
  const candidates:Climb[]=[];
  let start=-1,lastUp=-1;
  const commit=()=>{
   if(start<0||lastUp<=start)return;
-  const d0=start*step,d1=Math.min(end,lastUp*step);
+  const d0=sampleDistances[start],d1=sampleDistances[lastUp];
   const gain=elevations[lastUp]-elevations[start];
   const c=classifyClimb(d0,d1,gain);
   if(c)candidates.push(c);
@@ -984,7 +985,11 @@ function advanceRide(now:number){
   if(procedural&&now-lastChartUpdate>5000){lastChartUpdate=now;ensureTerrain();svg();}
 
   checkStationaryRide(now);
-  if(!endless&&distance>=(procedural?routeLimit:points.at(-1)!.distance)){finishRide();status('Route complete');}
+  if(!endless&&distance>=(procedural?routeLimit:points.at(-1)!.distance)){
+   const summit=rideExperience==='cyclequest'?questHighestSummit():null;
+   const waitForSummit=summit&&!questFinalSummitResolved&&summit.end>=(procedural?routeLimit:points.at(-1)!.distance)-100;
+   if(!waitForSummit){finishRide();status('Route complete');}
+  }
   if(trainerMode==='sim')void updateSimResistance(now);
   if(trainerMode==='erg'&&now-lastGearUpdate>1100){lastGearUpdate=now;void setVirtualGearResistance();}
   if(trainerMode==='target'&&now-lastGearUpdate>1500){lastGearUpdate=now;void setFixedErgPower();}
@@ -2732,12 +2737,14 @@ cycleQuestHost.querySelector('#questDevices')!.addEventListener('click',()=>{if(
  return window.open('','cycle-quest-overlay',`popup,width=${width},height=${height}`);
 };
 let questProfileRevision='';
+let questFinalSummitResolved=false;
+function questHighestSummit(){return climbs.reduce<Climb|null>((best,c)=>!best||at(c.end).elevation>at(best.end).elevation||(at(c.end).elevation===at(best.end).elevation&&c.gain>best.gain)?c:best,null);}
 function routeFromQuest(data:any){
  const r=data.route;if(!r||!Array.isArray(r.points)||r.points.length<2||r.points.length>1000||!Number.isFinite(r.distance)||r.distance<10||typeof r.name!=='string')return;
  if(!r.points.every((p:any,i:number)=>Number.isFinite(p.d)&&Number.isFinite(p.e)&&p.d>=0&&(!i||p.d>r.points[i-1].d)))return;
  if(r.endless===true&&(!Number.isInteger(r.seed)||!['flat','rolling','mountain','punchy'].includes(r.terrain)||!Number.isFinite(r.windowStart||0)||(r.windowStart||0)<0))return;
  if(running)pauseRide();if(rideStart&&!rideEnd)finishRide();
- questProfileRevision='';
+ questProfileRevision='';questFinalSummitResolved=false;
  if(r.endless===true){
   procedural=true;endless=true;routeLimit=Infinity;proceduralTerrain=r.terrain;proceduralSeed=r.seed;proceduralIntensity=1;gainScale=1;plannedGainFeet=null;resetHills();resetClimbingTotals();clearElevationEditor();zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;
   const start=r.windowStart||0;points=r.points.map((p:any,i:number)=>{const a=r.points[Math.max(0,i-1)],b=r.points[Math.min(r.points.length-1,i+1)];return {distance:p.d+start,elevation:p.e,grade:(b.e-a.e)/Math.max(1,b.d-a.d)*100};});
@@ -2750,7 +2757,7 @@ function routeFromQuest(data:any){
  }
  procedural=false;endless=false;zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;routeLimit=0;plannedGainFeet=null;gainScale=1;resetClimbingTotals();clearElevationEditor();
  points=r.points.map((p:any,i:number)=>{const a=r.points[Math.max(0,i-1)],b=r.points[Math.min(r.points.length-1,i+1)];return {distance:p.d,elevation:p.e,grade:(b.e-a.e)/Math.max(1,b.d-a.d)*100};});
- routeName=r.name.slice(0,80);rideStart=null;rideEnd=null;clearRideRecovery();distance=Math.min(points.at(-1)!.distance,Math.max(0,Number(data.restoreMiles)||0)*METERS_PER_MILE);speed=0;resetRideMetrics();svg();update();
+ routeName=r.name.slice(0,80);rideStart=null;rideEnd=null;clearRideRecovery();distance=Math.min(points.at(-1)!.distance,Math.max(0,Number(data.restoreMiles)||0)*METERS_PER_MILE);speed=0;resetRideMetrics();detectClimbs();lastClimbScan=Date.now();svg();update();
 }
 window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==questFrame.contentWindow||event.data?.source!=='cycle-quest'||!questAuthenticated||rideExperience!=='cyclequest'||document.body.dataset.breakawayScreen==='home')return;
@@ -2761,6 +2768,7 @@ window.addEventListener('message',event=>{
  else if(data.type==='finish'){if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();questSend({type:'ride-finished'});}else questSend({type:'notice',message:'No active ride to finish.'});}
  else if(data.type==='route')routeFromQuest(data);
  else if(data.type==='ready'){void savedRides().then(rides=>questSend({type:'indoor-history',workouts:rides.slice(0,5000).map(r=>({start:r.start,end:r.end}))})).catch(()=>{});}
+ else if(data.type==='summit-resolved'){questFinalSummitResolved=true;}
  else if(data.type==='hold'){if(data.hold&&!cycleQuestHold)cycleQuestHeldSpeed=speed;cycleQuestHold=!!data.hold;questReward=!!data.reward;questButtonLatch=plusPressed||minusPressed;}
  else if(data.type==='reward-state')questReward=!!data.reward;
  else if(data.type==='quest-summary'&&rideEnd){
@@ -2790,5 +2798,5 @@ window.setInterval(()=>{
    routeProfile={endless:true,windowStart:start,distance:visible.at(-1)!.distance-start,hasElevation:true,gain:visible.slice(1).reduce((sum,p,i)=>sum+Math.max(0,p.elevation-visible[i].elevation),0),points:visible.map(p=>({d:p.distance-start,e:p.elevation}))};
   }
  }
- questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade})),connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
+ questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade,gain:c.gain,elevation:at(c.end).elevation})),summitBoss:!endless?questHighestSummit():null,connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
 },200);
