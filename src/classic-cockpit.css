@@ -597,3 +597,10 @@ body.cc-cockpit-mounted .cc-status small{font-size:10px;font-weight:800;letter-s
 body.cc-cockpit-mounted .cc-status strong{font-size:clamp(18px,1.8vw,26px);font-variant-numeric:tabular-nums}
 body.cc-cockpit-mounted .cc-status span{font-size:10px;font-weight:700}
 @media(max-width:650px){body.cc-cockpit-mounted .cc-status>div{flex-direction:column;gap:2px;padding:5px}}
+/* Override the dark Survival typography inherited by shared cockpit geometry. */
+body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide) :is(h2,h3,label,.note,.route-kicker,.route-quick-facts,.studio-live-stats,.studio-live-stats b,.studio-scrub-readout,.studio-scrub-readout b,.route-tip,.integrated-step-hint){color:#243c63!important;text-shadow:none!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide) .sc-tabs button:not(.secondary){background:transparent!important;color:#243c63!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide) .sc-tabs button.sc-active:not(.secondary){background:#1764cf!important;color:#fff!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup) :is(input:not([type="checkbox"]),select){background:#edf3fb!important;color:#142449!important;border-color:#a3b6d8!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted #screenRoute .studio-scrub-readout{background:#edf3fb!important;border-color:#b7c5e3!important}
+body[data-ride-experience="classic"].cc-cockpit-mounted #screenRoute .route-import{background:#fff!important;border-color:#b7c5e3!important}
