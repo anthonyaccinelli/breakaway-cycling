@@ -536,3 +536,43 @@ body.sc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide) .sc-tabs butt
 body.sc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide) #scModeChange{
  background:#30121d!important;color:#f5bac6!important;border:1px solid #784052!important;
 }
+
+
+/* Keep the in-page draggable overlay visually consistent with the PiP window.
+   This only affects Survival; the Classic overlay remains unchanged. */
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfile{
+ color:#f8e8ec!important;
+ background:repeating-linear-gradient(108deg,transparent 0 25px,#b5a7a906 25px 26px,transparent 26px 66px),linear-gradient(130deg,#10121b,#22101a)!important;
+ border:1px solid #D54051!important;border-radius:5px!important;
+ box-shadow:0 12px 36px #000c,inset 0 2px #D54051!important;
+ padding:0 10px 9px!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfileHandle{
+ border-bottom:1px solid #394252!important;
+ color:#F19F71!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfileHandle>strong{
+ font-size:0!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfileHandle>strong::after{
+ content:"☣  UNDEAD ESCAPE PROFILE";
+ font-size:13px!important;letter-spacing:1px!important;font-weight:900!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfileHandle button{
+ border-radius:3px!important;
+ background:#30212b!important;color:#fff0f1!important;
+ border:1px solid #79646b!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfile .float-stats{
+ color:#B5A7A9!important;font-weight:750!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfile .float-stats b{
+ color:#F19F71!important;font-variant-numeric:tabular-nums;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatChart{
+ background:#100d14!important;border:1px solid #394252!important;border-radius:4px!important;
+ overflow:hidden!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfile .float-help{
+ color:#B5A7A9!important;font-size:10px!important;
+}
