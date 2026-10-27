@@ -132,3 +132,15 @@ body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric b{font:no
 body[data-breakaway-screen="ride"] #screenRide .metric:has(#power){order:1}body[data-breakaway-screen="ride"] #screenRide .metric:has(#heartRate){order:2}body[data-breakaway-screen="ride"] #screenRide .metric:has(#cadence){order:3}body[data-breakaway-screen="ride"] #screenRide .metric:has(#speed){order:4}body[data-breakaway-screen="ride"] #screenRide .metric:has(#elapsedTime){order:5}body[data-breakaway-screen="ride"] #screenRide .metric:has(#distance){order:6}body[data-breakaway-screen="ride"] #screenRide .metric:has(#totalGain){order:7}body[data-breakaway-screen="ride"] #screenRide .metric:has(#referenceRideGear){order:8}body[data-breakaway-screen="ride"] #screenRide .metric:has(#remaining){order:9}
 body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .survive-game-hud{background:var(--live-panel)!important;border-color:var(--live-border)!important;color:var(--live-text)!important}
 @media(max-width:750px){body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}body[data-breakaway-screen="ride"] #screenRide #chart{height:200px!important}}
+
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{grid-auto-rows:minmax(62px,auto)!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{height:auto!important;min-height:62px!important;flex-direction:column!important;justify-content:center!important;overflow:visible!important;box-sizing:border-box!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric b{order:1!important;background:transparent!important;color:var(--live-text)!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric small{order:0!important}
+body[data-breakaway-screen="ride"] #screenRide .metric:has(#remaining){display:none!important}
+body[data-ride-experience="classic"][data-breakaway-screen="ride"] #screenRide #survivePanel{display:none!important}
+body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar #start,body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar #rideFinishNow{background:var(--live-raised)!important;color:var(--live-text)!important}
+body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar [hidden]{display:none!important}
+body[data-breakaway-screen="ride"] .app-brand{font-size:0!important}
+body[data-ride-experience="classic"][data-breakaway-screen="ride"] .app-brand::after{content:"BREAKAWAY CLASSIC";font:normal clamp(20px,2.5vw,34px) "Courier New",monospace;letter-spacing:.14em;color:var(--live-text)}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"] .app-brand::after{content:"BREAKAWAY SURVIVAL";font:normal clamp(20px,2.5vw,34px) "Courier New",monospace;letter-spacing:.14em;color:var(--live-text)}

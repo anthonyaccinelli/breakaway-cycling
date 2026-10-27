@@ -821,7 +821,7 @@ function update(){const currentClimb=refreshClimbState();const p=at(distance),ma
  const liveGrade=$('profileLiveGrade');const hud=gradeHud(displayGrade());const barGrade=document.getElementById('profileBarGrade');if(barGrade){barGrade.textContent=hud.label;barGrade.style.color=hud.color;}
  if(liveGrade){liveGrade.textContent=hud.label;liveGrade.style.color=hud.color;liveGrade.style.fontSize=hud.size+'px';liveGrade.innerHTML=hud.label+climbHud(currentClimb);}
  $('totalGain').textContent=Math.round(points.length?gainLossThrough(distance).gain*FEET_PER_METER:0).toLocaleString();
- $('distance').textContent=(distance/METERS_PER_MILE).toFixed(2);$('remaining').textContent=(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2));$('grade').textContent=p.grade.toFixed(1);$('elapsedTime').textContent=rideClock();$('beersEarned').textContent=(energyKcal/BEER_KCAL).toFixed(2);$('caloriesBurned').textContent=Math.round(energyKcal).toLocaleString();$('speed').textContent=(speed*MPH_PER_MPS).toFixed(1);$('power').textContent=threeSecondWatts()?.toFixed(0)??'—';$('cadence').textContent=realTelemetry?cadence.toFixed(0):'—';$('gear').textContent=drivetrainMode==='virtual'?String(gear):'—';const referenceGear=document.getElementById('referenceRideGear');if(referenceGear)referenceGear.textContent=drivetrainMode==='virtual'?String(gear):'—';
+ $('distance').textContent=(distance/METERS_PER_MILE).toFixed(2);$('remaining').textContent=(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2));const remainingLabel=document.getElementById('referenceRemaining');if(remainingLabel)remainingLabel.textContent=$('remaining').textContent+' mi';$('grade').textContent=p.grade.toFixed(1);$('elapsedTime').textContent=rideClock();$('beersEarned').textContent=(energyKcal/BEER_KCAL).toFixed(2);$('caloriesBurned').textContent=Math.round(energyKcal).toLocaleString();$('speed').textContent=(speed*MPH_PER_MPS).toFixed(1);$('power').textContent=threeSecondWatts()?.toFixed(0)??'—';$('cadence').textContent=realTelemetry?cadence.toFixed(0):'—';$('gear').textContent=drivetrainMode==='virtual'?String(gear):'—';const referenceGear=document.getElementById('referenceRideGear');if(referenceGear)referenceGear.textContent=drivetrainMode==='virtual'?String(gear):'—';
  refreshInspection();
  updateFloatingProfile();
  refreshHeartRateProfile();
@@ -2132,9 +2132,10 @@ screenRide.append(rideHeading,rideView);
 // Move the original controls into the ride toolbar; their event handlers and state remain intact.
 rideHeading.classList.add('reference-ride-toolbar');
 const rideToolbarActions=rideHeading.querySelector('.ride-screen-actions')!;
-for(const id of ['start','rideFinishNow','entertainmentView','inspectReset']){const control=document.getElementById(id);if(control)rideToolbarActions.append(control);}
+for(const id of ['start','rideFinishNow','entertainmentView','inspectReset']){const control=originalProfile.querySelector('#'+id);if(control)rideToolbarActions.append(control);}
 const rideGearMetric=document.createElement('div');rideGearMetric.className='metric';rideGearMetric.innerHTML='<b id="referenceRideGear">—</b><small>Gear</small>';
 originalDashboard.querySelector('.metrics')!.append(rideGearMetric);
+const referenceRemaining=document.createElement('span');referenceRemaining.innerHTML='Remaining <b id="referenceRemaining">—</b>';originalProfile.querySelector('.profile-inspector')!.append(referenceRemaining);
 // Route Studio needs its own live profile: the interactive original belongs to the ride screen.
 const routePreviewPanel=document.createElement('section');
 routePreviewPanel.className='route-studio-live-preview';
