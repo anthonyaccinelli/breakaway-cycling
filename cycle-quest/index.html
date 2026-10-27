@@ -44,6 +44,22 @@
 #cq-preview .cq-event:has(img.cq-enemyart)>.cq-enemymeter{grid-column:2;grid-row:5}
 #cq-preview .cq-event:has(img.cq-enemyart)>span.cq-sub:last-of-type{grid-column:2;grid-row:6}
 #cq-preview .cq-event:has(img.cq-enemyart)>.cq-group{grid-column:2}
+</style><style>
+#cq-preview .cq-route>.cq-event:has(.cq-art-group){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,55%);grid-template-rows:auto repeat(5,auto);align-content:center;align-items:center;gap:6px 16px}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-battleheading{grid-column:1 / -1;grid-row:1}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-art-group{grid-column:2;grid-row:2 / 7;height:100%;max-height:260px;min-height:0;display:flex;align-items:center;justify-content:center;gap:2px}
+#cq-preview .cq-event:has(.cq-art-group)>h3{grid-column:1;grid-row:2}
+#cq-preview .cq-event:has(.cq-art-group)>span.cq-sub:first-of-type{grid-column:1;grid-row:3}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-eventbar{grid-column:1;grid-row:4}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-enemymeter{grid-column:1;grid-row:5}
+#cq-preview .cq-event:has(.cq-art-group)>span.cq-sub:last-of-type{grid-column:1;grid-row:6}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-group{grid-column:1;grid-row:7}
+#cq-preview .cq-art-group img.cq-rat-art{display:block;min-width:0;max-width:100%;width:auto;height:auto;max-height:100%;flex:0 1 auto;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(7px 8px 0 #1a254b66)}
+#cq-preview .cq-art-group img.cq-rat-art:not(:only-child){width:32%;height:auto}
+#cq-preview .cq-mini-battle.cq-has-art{position:relative;padding-left:9px;padding-right:clamp(90px,35%,220px)}
+#cq-preview .cq-mini-battle .cq-art-group{position:absolute;right:3px;top:3px;width:33%;height:calc(100% - 6px);display:flex;align-items:center;justify-content:center;gap:1px}
+#cq-preview .cq-mini-battle .cq-art-group img.cq-rat-art{position:static;width:auto!important;height:auto!important;max-height:100%!important;max-width:100%;min-height:0;object-fit:contain;margin:0}
+#cq-preview .cq-mini-battle .cq-art-group img.cq-rat-art:not(:only-child){width:32%!important}
 </style></head><body><link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <div id="cq-preview">
   <div class="cq-game">
