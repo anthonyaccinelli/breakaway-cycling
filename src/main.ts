@@ -1,5 +1,8 @@
 import './style.css';
 import './live-ride-themes.css';
+import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
+import {mountSurvivalCockpit} from './survival-cockpit';
+import {mountClassicCockpit} from './classic-cockpit';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
@@ -773,21 +776,22 @@ function refreshHeartRateProfile(){
  }
 }
 
-const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#76D7E8'],[-6,'#55B9F5'],[-3,'#79A9FF'],[0,'#C5C9D2'],[3,'#A6A0FF'],[6,'#8B70F4'],[9,'#C477E8'],[12,'#F095C7'],[16,'#F4A86A']];
-const SURVIVAL_GRADE_STOPS:[number,string][]=[[-12,'#374253'],[-6,'#53627A'],[-3,'#756777'],[0,'#B8A6A9'],[3,'#B9798A'],[6,'#C34B63'],[9,'#E72D4C'],[12,'#FF4350'],[16,'#FF9A68']];
+// Distinct grade colors keep the changing terrain readable at a glance.
+const CLASSIC_GRADE_COLORS={
+ descent:'#55B9F5',flat:'#C5C9D2',climb:'#8B70F4',steep:'#F4A86A'
+} as const;
+// Survival uses the four swatches selected for its zombie theme.
+const SURVIVAL_GRADE_COLORS={
+ descent:'#394252',flat:'#B5A7A9',climb:'#D54051',steep:'#F19F71'
+} as const;
 function gradeColor(g:number){
- const stops=document.body.dataset.rideExperience==='survival'?SURVIVAL_GRADE_STOPS:CLASSIC_GRADE_STOPS;
- if(!Number.isFinite(g))return stops[3][1];
- if(g<=stops[0][0])return stops[0][1];
- for(let i=1;i<stops.length;i++){
-  const [end,hex]=stops[i], [start,from]=stops[i-1];
-  if(g<=end){
-   const t=(g-start)/(end-start);
-   const rgb=(a:string,b:string)=>Math.round(parseInt(a,16)+(parseInt(b,16)-parseInt(a,16))*t).toString(16).padStart(2,'0');
-   return '#'+rgb(from.slice(1,3),hex.slice(1,3))+rgb(from.slice(3,5),hex.slice(3,5))+rgb(from.slice(5,7),hex.slice(5,7));
-  }
- }
- return stops[stops.length-1][1];
+ const survival=document.body.dataset.rideExperience==='survival';
+ const colors=survival?SURVIVAL_GRADE_COLORS:CLASSIC_GRADE_COLORS;
+ if(!Number.isFinite(g))return colors.flat;
+ if(g< -1)return colors.descent;
+ if(g<3)return colors.flat;
+ if(g<(survival?9:6))return colors.climb;
+ return colors.steep;
 }
 
 function svg(){
@@ -1511,7 +1515,13 @@ $('nativeProfile').addEventListener('click',async()=>{
    body[data-ride-experience="survival"] #overlayContent:not(.survive-overlay) .tile{background:#180a10!important;border-color:#8d263a!important;color:#f9e8eb!important}
    body[data-ride-experience="survival"] #overlayChart{background:#180a10!important}
 </style>`;
+  // Keep the distinct Survival visuals inside Chrome's separate PiP document.
+  // The base overlay markup and all its real telemetry/zoom handlers are unchanged.
+  const zombieOverlayStyle=pip.document.createElement('style');
+  zombieOverlayStyle.textContent=SURVIVAL_OVERLAY_CSS;
+  pip.document.head.append(zombieOverlayStyle);
   pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><div id="overlayZoomControls" role="group" aria-label="Elevation zoom"><button type="button" data-zoom="1">1×</button><button type="button" data-zoom="2">2×</button><button type="button" data-zoom="5">5×</button><button type="button" data-zoom="10">10×</button></div><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
+  pip.document.body.classList.toggle('survival-overlay-theme',document.body.dataset.rideExperience==='survival');
   const modeButton=pip.document.getElementById('overlayMode') as HTMLButtonElement;
   const settingsButton=pip.document.getElementById('overlaySettingsToggle') as HTMLButtonElement;
   const settingsPanel=pip.document.getElementById('overlaySettings') as HTMLElement;
@@ -1633,10 +1643,10 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  const reduced=samples.filter((_,i)=>i%stride===0);
  if(reduced.at(-1)!==samples.at(-1))reduced.push(samples.at(-1)!);
  // Each colored vertical strip represents the grade of the segment ahead.
- // The full descent-to-climb palette blends continuously between grade stops.
+ // Each strip uses the current mode's discrete grade palette.
  const x=(d:number)=>pad+(d-start)/Math.max(1,stop-start)*(w-2*pad);
  const y=(e:number)=>h-pad-(e-min)/range*(h-2*pad);
- // Use the shared continuous gradient palette.
+ // Use the same discrete grade palette as the main profile.
  const clipId='breakaway-terrain-clip-'+Math.random().toString(36).slice(2,10);
  const terrain=reduced.map(p=>`${x(p.distance)},${y(p.elevation)}`).join(' ');
  const fillPath=`M ${x(start)} ${h-pad} L ${terrain.replaceAll(' ', ' L ')} L ${x(stop)} ${h-pad} Z`;
@@ -1652,8 +1662,9 @@ function overlayChart(start:number,stop:number,markerDistance:number){
   return `<polygon points="${x(d0).toFixed(2)},${h-pad} ${x(d0).toFixed(2)},${y(e0).toFixed(2)} ${x(d1).toFixed(2)},${y(e1).toFixed(2)} ${x(d1).toFixed(2)},${h-pad}" fill="${gradeColor(grade)}"/>`;
  }).join('');
  const markerX=x(Math.max(start,Math.min(stop,markerDistance)));
+ const threatLine=surviveOn&&survivePrepRemaining<=0?`<line x1="${x(Math.max(start,Math.min(stop,surviveEnemyDistance)))}" x2="${x(Math.max(start,Math.min(stop,surviveEnemyDistance)))}" y1="0" y2="${h}" stroke="#ff304b" stroke-width="3"/>`:"";
  const hud=gradeHud(markerDistance<=0?displayGrade():at(markerDistance).grade);
- return `<div class="overlay-profile-graphic" style="position:relative;width:100%;overflow:hidden"><div class="overlay-profile-grade" aria-label="Current gradient" style="position:absolute;z-index:3;top:12px;left:16px;pointer-events:none;font-weight:850;line-height:1;letter-spacing:-.045em;text-shadow:0 2px 6px #061019,0 0 3px #061019;color:${hud.color};font-size:${hud.size}px">${hud.label}${climbHud(climbNow())}</div><svg viewBox="0 0 ${w} ${h}" style="display:block;width:100%;height:210px" preserveAspectRatio="none">${segments}<polyline points="${terrain}" fill="none" stroke="#e9f0f2" stroke-width="1.6" opacity=".85"/><line x1="${markerX}" x2="${markerX}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg></div>`;
+ return `<div class="overlay-profile-graphic" style="position:relative;width:100%;overflow:hidden"><div class="overlay-profile-grade" aria-label="Current gradient" style="position:absolute;z-index:3;top:12px;left:16px;pointer-events:none;font-weight:850;line-height:1;letter-spacing:-.045em;text-shadow:0 2px 6px #061019,0 0 3px #061019;color:${hud.color};font-size:${hud.size}px">${hud.label}${climbHud(climbNow())}</div><svg viewBox="0 0 ${w} ${h}" style="display:block;width:100%;height:210px" preserveAspectRatio="none">${segments}<polyline points="${terrain}" fill="none" stroke="#e9f0f2" stroke-width="1.6" opacity=".85"/>${threatLine}<line x1="${markerX}" x2="${markerX}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg></div>`;
 }
 let overlayZoomFactor=[1,2,5,10].includes(Number(localStorage.getItem('breakaway-overlay-zoom')))?Number(localStorage.getItem('breakaway-overlay-zoom')):1;
 function desktopOverlayProfiles(){
@@ -1786,6 +1797,7 @@ function publishDesktopOverlay(){
  const p=at(distance),max=points.at(-1)?.distance||0;
  const overlayProfiles=points.length?desktopOverlayProfiles():null;
  const snapshot={
+  rideExperience:document.body.dataset.rideExperience||'classic',
   running, connected, trainerMode, gear,
   power:threeSecondWatts()?.toFixed(0)??null,
   cadence:realTelemetry?Math.round(cadence):null,
@@ -1811,9 +1823,13 @@ function publishDesktopOverlay(){
  if(overlayWindow&&!overlayWindow.closed){
   const doc=overlayWindow.document;
   doc.body.dataset.rideExperience=rideExperience;
-  const chase=surviveData(),root=doc.getElementById('overlayContent');if(root){root.classList.toggle('survive-overlay',chase.active||chase.caught);root.classList.toggle('survive-phase-chase',chase.active&&!chase.warming&&chase.phase==='CHASE');root.classList.toggle('survive-phase-recover',chase.active&&!chase.warming&&chase.phase==='RECOVER');root.classList.toggle('survive-phase-prepare',chase.active&&chase.warming);root.classList.toggle('survive-danger',chase.active&&!chase.warming&&chase.gap<65);root.classList.toggle('survive-critical',chase.active&&!chase.warming&&chase.gap<25);let hud=doc.getElementById('surviveHud');if(chase.active||chase.caught){if(!hud){hud=doc.createElement('div');hud.id='surviveHud';root.append(hud);}hud.innerHTML='<div class="survive-hud-head"><strong>☣ SURVIVE · '+(chase.warming?'THREAT STARTS SOON':chase.phase==='RECOVER'?'RECOVERY MODE':'THREAT PURSUING')+'</strong><span>'+chase.theme+'</span></div><div class="survive-hud-grid"><div class="survive-hud-metric"><small>YOU MPH</small><b>'+chase.you.toFixed(1)+'</b></div><div class="survive-hud-profile">'+snapshot.detailChart+'<div class="survive-hud-dots"><i class="threat" style="left:'+Math.max(0,Math.min(100,(surviveEnemyDistance-snapshot.profileStart)/Math.max(1,snapshot.profileStop-snapshot.profileStart)*100))+'%"></i><i class="rider" style="left:'+Math.max(0,Math.min(100,(distance-snapshot.profileStart)/Math.max(1,snapshot.profileStop-snapshot.profileStart)*100))+'%"></i></div><div class="survive-hud-timer"><div><small>'+(chase.warming?'THREAT STARTS':'CHASE ELAPSED')+'</small><strong>'+surviveFormatTime(chase.warming?chase.remaining:surviveElapsed)+'</strong></div><div><small>GAP</small><strong class="survive-hud-gap">'+chase.gap+' m</strong></div><div><small>'+(surviveMode==='finish'?'EST. TIME LEFT':'WAVE')+'</small><strong>'+(surviveMode==='finish'?surviveFormatTime(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):String(chase.wave))+'</strong></div></div></div><div class="survive-hud-metric"><small>WATTS</small><b>'+(snapshot.power??'—')+'</b></div><div class="survive-hud-metric"><small>THREAT MPH</small><b>'+chase.enemy.toFixed(1)+'</b></div><div class="survive-hud-spacer"></div><div class="survive-hud-metric"><small>WAVE #</small><b>'+chase.wave+'</b></div></div>';}else hud?.remove();}
+  const survivalOverlay=snapshot.rideExperience==='survival';
+  doc.body.classList.toggle('survival-overlay-theme',survivalOverlay);
+  const overlayBrand=doc.querySelector('#overlayTop>strong');
+  if(overlayBrand)overlayBrand.textContent=survivalOverlay?'SURVIVAL / UNDEAD':'BREAKAWAY';
+  const chase=surviveData(),root=doc.getElementById('overlayContent');if(root){root.classList.toggle('survive-overlay',chase.active||chase.caught);root.classList.toggle('survive-phase-chase',chase.active&&!chase.warming&&chase.phase==='CHASE');root.classList.toggle('survive-phase-recover',chase.active&&!chase.warming&&chase.phase==='RECOVER');root.classList.toggle('survive-phase-prepare',chase.active&&chase.warming);root.classList.toggle('survive-danger',chase.active&&!chase.warming&&chase.gap<65);root.classList.toggle('survive-critical',chase.active&&!chase.warming&&chase.gap<25);let hud=doc.getElementById('surviveHud');if(chase.active||chase.caught){if(!hud){hud=doc.createElement('div');hud.id='surviveHud';root.append(hud);}hud.innerHTML='<div class="survive-hud-head"><strong>☣ UNDEAD PURSUIT · '+(chase.warming?'THREAT STARTS SOON':chase.phase==='RECOVER'?'RECOVERY MODE':'THREAT PURSUING')+'</strong><span>'+chase.theme+' · WAVE '+chase.wave+'</span></div><div class="survive-hud-grid"><div class="survive-hud-metric"><small>YOU MPH</small><b>'+chase.you.toFixed(1)+'</b></div><div class="survive-hud-profile">'+snapshot.detailChart+'<div class="survive-hud-timer"><div><small>'+(chase.warming?'THREAT STARTS':'CHASE ELAPSED')+'</small><strong>'+surviveFormatTime(chase.warming?chase.remaining:surviveElapsed)+'</strong></div><div><small>GAP</small><strong class="survive-hud-gap">'+chase.gap+' m</strong></div><div><small>'+(surviveMode==='finish'?'EST. TIME LEFT':'WAVE')+'</small><strong>'+(surviveMode==='finish'?surviveFormatTime(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):String(chase.wave))+'</strong></div></div></div><div class="survive-hud-metric"><small>WATTS</small><b>'+(snapshot.power??'—')+'</b></div><div class="survive-hud-metric"><small>THREAT MPH</small><b>'+chase.enemy.toFixed(1)+'</b></div><div class="survive-hud-spacer"></div><div class="survive-hud-metric"><small>WAVE #</small><b>'+chase.wave+'</b></div></div>';}else hud?.remove();}
   const chart=doc.getElementById('overlayChart');if(chart)chart.innerHTML=snapshot.climbComplete?'<div style="height:210px;display:grid;place-items:center;font:900 45px system-ui;color:#6cf5c9;text-align:center;text-shadow:0 3px 18px #000">⛰ CLIMB COMPLETE!</div>':snapshot.detailChart;
-  const label=doc.getElementById('overlayLabel');if(label)label.textContent=(running?'● RIDING · ':rideStart&&!rideEnd?'Ⅱ PAUSED · ':'')+snapshot.detailLabel;
+  const label=doc.getElementById('overlayLabel');if(label)label.textContent=(survivalOverlay?'ESCAPE / ':'')+(running?'● RIDING · ':rideStart&&!rideEnd?'Ⅱ PAUSED · ':'')+snapshot.detailLabel;
   const metrics=doc.getElementById('overlayMetrics');if(metrics){
    const oldTiles=new Map(Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).map(el=>[el.dataset.metricKey,el]));
    const values:Record<string,string>={distance:snapshot.distance,totalGain:snapshot.totalGain,remaining:snapshot.remaining,grade:snapshot.grade,elapsedTime:snapshot.elapsedTime,speed:snapshot.speed,power:snapshot.power??'—',beersEarned:snapshot.beersEarned,caloriesBurned:snapshot.caloriesBurned,cadence:snapshot.cadence===null?'—':String(snapshot.cadence),heartRate:snapshot.heartRate,gear:drivetrainMode==='virtual'?String(snapshot.gear):'—'};
@@ -2011,7 +2027,7 @@ function surviveRender(){const c=surviveData();
   gameSet('surviveGameYou',c.you.toFixed(1));
   gameSet('surviveGameGap',c.warming?'—':c.gap+' m');
   gameSet('surviveGameThreat',c.enemy.toFixed(1));
-  gameSet('surviveGameClockLabel',surviveMode==='finish'&&!c.warming?'EST. TIME TO FINISH':c.phase==='CHASE'?'CHASE ENDS IN':'CHASE BEGINS IN');
+  gameSet('surviveGameClockLabel',surviveMode==='finish'&&!c.warming?'EST. TIME TO FINISH':c.warming?'CHASE BEGINS IN':c.phase==='CHASE'?'SURGE ENDS IN':'NEXT SURGE IN');
   gameSet('surviveGameClock',surviveMode==='finish'&&!c.warming?surviveFormatTime(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):surviveFormatTime(c.remaining));
   gameSet('surviveGameMessage',c.message);
   gameSet('surviveGamePower',threeSecondWatts()?.toFixed(0)??'—');
@@ -2826,3 +2842,8 @@ window.setInterval(()=>{
  }
  questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade,gain:c.gain,elevation:at(c.end).elevation})),summitBoss:!endless?questHighestSummit():null,connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
 },200);
+
+// Survival v2 is UI-only; initialize after the original controls/listeners exist.
+mountSurvivalCockpit();
+mountClassicCockpit();
+
