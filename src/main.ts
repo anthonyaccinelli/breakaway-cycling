@@ -1,4 +1,5 @@
 import './style.css';
+import './live-ride-themes.css';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
@@ -665,8 +666,8 @@ function updateRiderDot(marker:Element|null,position:number){
  const d=Math.max(start,Math.min(max,position));
  const x=12+(d-start)/Math.max(1,max-start)*876;
  const y=210-12-(overviewAt(d).elevation-min)/range*(210-24);
- marker.setAttribute('cx',x.toFixed(2));
- marker.setAttribute('cy',y.toFixed(2));
+ marker.setAttribute('x1',x.toFixed(2));
+ marker.setAttribute('x2',x.toFixed(2));
 }
 function refreshInspection(){
  if(!points.length)return;
@@ -771,19 +772,21 @@ function refreshHeartRateProfile(){
  }
 }
 
-const GRADE_STOPS:[number,string][]=[[-3,'#4b9be9'],[0,'#35c96b'],[3,'#d4d94b'],[6,'#ff9b31'],[9,'#f04452'],[12,'#a65cf5']];
+const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#76D7E8'],[-6,'#55B9F5'],[-3,'#79A9FF'],[0,'#C5C9D2'],[3,'#A6A0FF'],[6,'#8B70F4'],[9,'#C477E8'],[12,'#F095C7'],[16,'#F4A86A']];
+const SURVIVAL_GRADE_STOPS:[number,string][]=[[-12,'#374253'],[-6,'#53627A'],[-3,'#756777'],[0,'#B8A6A9'],[3,'#B9798A'],[6,'#C34B63'],[9,'#E72D4C'],[12,'#FF4350'],[16,'#FF9A68']];
 function gradeColor(g:number){
- if(!Number.isFinite(g))return GRADE_STOPS[1][1];
- if(g<=GRADE_STOPS[0][0])return GRADE_STOPS[0][1];
- for(let i=1;i<GRADE_STOPS.length;i++){
-  const [end,hex]=GRADE_STOPS[i], [start,from]=GRADE_STOPS[i-1];
+ const stops=document.body.dataset.rideExperience==='survival'?SURVIVAL_GRADE_STOPS:CLASSIC_GRADE_STOPS;
+ if(!Number.isFinite(g))return stops[3][1];
+ if(g<=stops[0][0])return stops[0][1];
+ for(let i=1;i<stops.length;i++){
+  const [end,hex]=stops[i], [start,from]=stops[i-1];
   if(g<=end){
    const t=(g-start)/(end-start);
    const rgb=(a:string,b:string)=>Math.round(parseInt(a,16)+(parseInt(b,16)-parseInt(a,16))*t).toString(16).padStart(2,'0');
    return '#'+rgb(from.slice(1,3),hex.slice(1,3))+rgb(from.slice(3,5),hex.slice(3,5))+rgb(from.slice(5,7),hex.slice(5,7));
   }
  }
- return GRADE_STOPS[GRADE_STOPS.length-1][1];
+ return stops[stops.length-1][1];
 }
 
 function svg(){
@@ -810,7 +813,7 @@ function svg(){
   return `<rect x="${x(d0).toFixed(2)}" y="0" width="${(x(d1)-x(d0)+0.3).toFixed(2)}" height="${h}" fill="${gradeColor(grade)}"/>`;
  }).join('');
  const terrainPath=`M ${x(start)} ${h-pad} L ${line.replaceAll(' ',' L ')} L ${x(max)} ${h-pad} Z`;
- $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><div class="profile-telemetry"><span class="profile-gear-readout"></span><span class="profile-hr-readout">— bpm</span></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><circle id="marker" cx="${pad}" cy="${h-pad}" r="6" fill="#ffc85c" stroke="#fff1b8" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none"/><circle id="surviveProfileThreat" cx="${pad}" cy="${h-pad}" r="8" fill="#f04452" stroke="#fff" stroke-width="2.5" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/></svg>`;
+ $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><div class="profile-telemetry"><span class="profile-gear-readout"></span><span class="profile-hr-readout">— bpm</span></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><line id="marker" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3.5" vector-effect="non-scaling-stroke" pointer-events="none"/><line id="surviveProfileThreat" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ff304b" stroke-width="3.5" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/></svg>`;
  zoomDisplay();syncProfileCharts();refreshHeartRateProfile();refreshInspection();
 }
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
@@ -1940,7 +1943,7 @@ function surviveAdvanceEnemy(dt:number){
  surviveGap=Math.max(0,distance-surviveEnemyDistance);
 }
 function surviveUpdateProfileThreat(){
- const marker=document.getElementById('surviveProfileThreat') as unknown as SVGCircleElement|null;
+ const marker=document.getElementById('surviveProfileThreat') as unknown as SVGLineElement|null;
  if(!marker)return;
  const visible=surviveOn&&survivePrepRemaining<=0&&points.length>0;
  marker.style.display=visible?'':'none';
@@ -1949,8 +1952,9 @@ function surviveUpdateProfileThreat(){
  const pos=Math.max(start,Math.min(max,surviveEnemyDistance));
  const elevations=[overviewAt(start),...overviewPoints().filter(p=>p.distance>start&&p.distance<max),overviewAt(max)].map(p=>p.elevation);
  const min=Math.min(...elevations),range=Math.max(1,Math.max(...elevations)-min);
- marker.setAttribute('cx',String(pad+(pos-start)/Math.max(1,max-start)*(w-2*pad)));
- marker.setAttribute('cy',String(h-pad-(overviewAt(pos).elevation-min)/range*(h-2*pad)));
+ const threatX=String(pad+(pos-start)/Math.max(1,max-start)*(w-2*pad));
+ marker.setAttribute('x1',threatX);
+ marker.setAttribute('x2',threatX);
  marker.setAttribute('opacity',surviveEnemyDistance<start?'0.55':'1');
 }
 let surviveGapHistory:{t:number;gap:number}[]=[];
@@ -2253,6 +2257,7 @@ function syncStudioRoutePreview(){
      el.setAttribute('clip-path',`url(#${previewClipId})`);
    });
   }
+  copy.querySelectorAll('#marker, #surviveProfileThreat').forEach(el=>el.remove());
   copy.querySelectorAll('[id]').forEach(el=>{
    if(el!==clip)el.removeAttribute('id');
   });
@@ -2643,6 +2648,9 @@ function chooseRideExperience(mode:RideExperience){
  modeHomeButton.hidden=false;
  survivalStudio.hidden=mode!=='survival';
  document.body.dataset.rideExperience=mode;
+ // The studio preview clones the live chart SVG. Repaint its grade strips after
+ // switching modes; otherwise it retains the previous mode's cached colors.
+ if(points.length)svg();
  syncSurvivalStudio();
  survivalStudio.querySelector('select')?.dispatchEvent(new Event('change'));
  showBreakawayScreen('route');
