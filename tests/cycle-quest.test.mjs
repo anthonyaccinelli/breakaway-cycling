@@ -5,7 +5,7 @@ import {MONSTERS} from '../cycle-quest/monsters.js';
 import {gradeColor,GRADE_COLORS,elevationSVG} from '../cycle-quest/profile.js';
 import {generateRoute,sample} from '../cycle-quest/routes.js';
 const source=(await readFile(new URL('../cycle-quest/combat.js',import.meta.url),'utf8')).replace("'/api/cycle-quest?asset=monsters.js'",JSON.stringify(new URL('../cycle-quest/monsters.js',import.meta.url).href));
-const {makeBattle,monsterPool,chapterRandom,CHAPTER_BIOMES,nextChapterEncounter,advanceBattle}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const {makeBattle,monsterPool,chapterRandom,CHAPTER_BIOMES,nextChapterEncounter,advanceBattle,SUMMIT_BOSSES,SUMMIT_VARIANTS}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 test('roster contains unique numerical SRD creatures at appropriate progression tiers',()=>{
  assert.equal(MONSTERS.length,314);assert.equal(new Set(MONSTERS.map(m=>m.id)).size,314);
  for(const m of MONSTERS)assert(m.hp>0&&Number.isFinite(m.attack)&&m.damage>=0&&m.level>=1);
@@ -59,3 +59,10 @@ test('group has three full individual health bars and damage rolls to the next e
 });
 test('simultaneous boss defeat and 1 HP is a loss',()=>{const r=advanceBattle({hp:990,max:990,dps:1},100,10,100);assert.equal(r.outcome,'loss');assert.equal(r.hp,1);});
 test('rider can set a ceiling and coasting uses a minimum target',()=>{const b=makeBattle('enemy',{level:1,ftp:280,entryPower:250,ceilingPercent:100});assert.equal(b.targetWatts,280);assert.equal(b.hp,16800);const c=makeBattle('enemy',{level:1,ftp:280,entryPower:0,ceilingPercent:100});assert.equal(c.targetWatts,154);});
+
+test('summit roster has twelve fixed bosses and three variants with level unlocks',()=>{
+ assert.equal(SUMMIT_BOSSES.length,12);assert.equal(new Set(SUMMIT_BOSSES).size,12);assert(SUMMIT_BOSSES.includes('lifted-dually'));for(const id of SUMMIT_BOSSES)if(id!=='lifted-dually')assert(MONSTERS.some(m=>m.id===id));
+ assert.deepEqual(SUMMIT_VARIANTS.map(v=>v.minLevel),[1,10,20]);
+ const names=new Set();for(let i=0;i<12;i++)for(let j=0;j<3;j++){let calls=0;const random=()=>calls++===0?(i+.1)/12:(j+.1)/3;const b=makeBattle('summit',{level:20,ftp:280,random});assert.equal(b.monsterId,SUMMIT_BOSSES[i]);assert(Number.isFinite(b.hp)&&Number.isFinite(b.dps));names.add(b.name);}
+ assert.equal(names.size,36);for(const [level,expected] of [[1,'BASE'],[10,'EXTREME'],[20,'PSYCHO']]){const b=makeBattle('summit',{level,ftp:280,random:()=>.99999});assert.equal(b.summitVariant,expected);}
+});
