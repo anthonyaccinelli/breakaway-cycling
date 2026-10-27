@@ -27,6 +27,74 @@
 #cq-preview .cq-route>.cq-event .cq-eventbar{font-size:clamp(22px,3vw,34px);justify-content:center;margin-top:8px}
 #cq-preview .cq-mini-enemyhp{font-size:34px;line-height:1;color:#fff;text-align:center}
 @media(max-height:750px){#cq-preview .cq-levelup{padding:8px 10px}#cq-preview .cq-levelup header{padding-bottom:5px}#cq-preview .cq-levelup header>strong{font-size:34px}#cq-preview .cq-levelup-gains>div>strong{font-size:50px}#cq-preview .cq-levelup-gains>div>span{font-size:19px}#cq-preview .cq-levelup-gains small{font-size:19px}#cq-preview .cq-levelup footer{font-size:14px;padding-top:5px;margin-top:5px}#cq-preview .cq-levelup-mini header>strong{font-size:25px}#cq-preview .cq-levelup-mini .cq-levelup-gains>div>strong{font-size:36px}#cq-preview .cq-levelup-mini .cq-levelup-gains small{font-size:16px}#cq-preview .cq-levelup-mini footer{font-size:12px;padding-top:2px;margin:0}}
+</style><style>#cq-preview img.cq-rat-art{display:block;object-fit:contain;image-rendering:pixelated;aspect-ratio:1;min-width:0}#cq-preview .cq-mini-battle img.cq-rat-art{width:auto}</style><style>
+#cq-preview .cq-event img.cq-enemyart{width:min(100%,480px);height:0;min-height:0;max-height:none;flex:1 1 0;margin:0 auto;object-fit:contain;image-rendering:pixelated}
+#cq-preview .cq-enemymeter i{background:var(--enemy-health,#f21d38)!important}
+#cq-preview .cq-eventbar span:first-child,#cq-preview .cq-mini-enemyhp,#cq-preview .cq-group>div>span{color:var(--enemy-health,#fff)}
+#cq-preview .cq-mini-battle.cq-has-art{position:relative;padding-left:115px}
+#cq-preview .cq-mini-battle.cq-has-art img.cq-enemyart{position:absolute;left:3px;top:3px;width:105px!important;height:calc(100% - 6px)!important;max-height:none!important;min-height:0!important;object-fit:contain;margin:0}
+@container (max-width:500px){#cq-preview .cq-mini-battle.cq-has-art{padding-left:75px}#cq-preview .cq-mini-battle.cq-has-art img.cq-enemyart{width:70px!important}}
+</style><style>
+#cq-preview .cq-route>.cq-event:has(img.cq-enemyart){display:grid;grid-template-columns:minmax(0, 45%) minmax(0, 1fr);grid-template-rows:auto auto auto auto auto auto;align-content:center;align-items:center;column-gap:18px}
+#cq-preview .cq-event:has(img.cq-enemyart)>.cq-battleheading{grid-column:1 / -1;grid-row:1}
+#cq-preview .cq-event:has(img.cq-enemyart)>img.cq-enemyart{grid-column:1;grid-row:2 / 7;width:100%;height:100%;max-height:260px;min-height:0;object-fit:contain}
+#cq-preview .cq-event:has(img.cq-enemyart)>h3{grid-column:2;grid-row:2}
+#cq-preview .cq-event:has(img.cq-enemyart)>span.cq-sub:first-of-type{grid-column:2;grid-row:3}
+#cq-preview .cq-event:has(img.cq-enemyart)>.cq-eventbar{grid-column:2;grid-row:4}
+#cq-preview .cq-event:has(img.cq-enemyart)>.cq-enemymeter{grid-column:2;grid-row:5}
+#cq-preview .cq-event:has(img.cq-enemyart)>span.cq-sub:last-of-type{grid-column:2;grid-row:6}
+#cq-preview .cq-event:has(img.cq-enemyart)>.cq-group{grid-column:2}
+</style><style>
+#cq-preview .cq-route>.cq-event:has(.cq-art-group){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,55%);grid-template-rows:auto repeat(5,auto);align-content:center;align-items:center;gap:6px 16px}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-battleheading{grid-column:1 / -1;grid-row:1}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-art-group{grid-column:2;grid-row:2 / 7;height:100%;max-height:260px;min-height:0;display:flex;align-items:center;justify-content:center;gap:2px}
+#cq-preview .cq-event:has(.cq-art-group)>h3{grid-column:1;grid-row:2}
+#cq-preview .cq-event:has(.cq-art-group)>span.cq-sub:first-of-type{grid-column:1;grid-row:3}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-eventbar{grid-column:1;grid-row:4}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-enemymeter{grid-column:1;grid-row:5}
+#cq-preview .cq-event:has(.cq-art-group)>span.cq-sub:last-of-type{grid-column:1;grid-row:6}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-group{grid-column:1;grid-row:7}
+#cq-preview .cq-art-group img.cq-rat-art{display:block;min-width:0;max-width:100%;width:auto;height:auto;max-height:100%;flex:0 1 auto;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(7px 8px 0 #1a254b66)}
+#cq-preview .cq-art-group img.cq-rat-art:not(:only-child){width:32%;height:auto}
+#cq-preview .cq-mini-battle.cq-has-art{position:relative;padding-left:9px;padding-right:clamp(90px,35%,220px)}
+#cq-preview .cq-mini-battle .cq-art-group{position:absolute;right:3px;top:3px;width:33%;height:calc(100% - 6px);display:flex;align-items:center;justify-content:center;gap:1px}
+#cq-preview .cq-mini-battle .cq-art-group img.cq-rat-art{position:static;width:auto!important;height:auto!important;max-height:100%!important;max-width:100%;min-height:0;object-fit:contain;margin:0}
+#cq-preview .cq-mini-battle .cq-art-group img.cq-rat-art:not(:only-child){width:32%!important}
+</style><style>
+#cq-preview .cq-art-group .cq-rat-card{min-width:0;min-height:0;flex:1 1 0;max-width:260px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px}
+#cq-preview .cq-art-group .cq-rat-card img.cq-rat-art{width:100%!important;height:0!important;min-height:0;max-height:none!important;flex:1 1 0;object-fit:contain}
+#cq-preview .cq-art-group .cq-rat-hp{color:var(--enemy-health);font-size:clamp(13px,1.25vw,20px);white-space:nowrap;line-height:1}
+#cq-preview .cq-art-group .cq-rat-card .cq-enemymeter{width:100%;height:14px;min-height:14px;flex:none;margin:0}
+#cq-preview .cq-mini-battle .cq-art-group{width:45%;height:calc(100% - 6px)}
+#cq-preview .cq-mini-battle.cq-has-art{padding-right:47%}
+#cq-preview .cq-mini-battle .cq-rat-card{gap:2px}
+#cq-preview .cq-mini-battle .cq-rat-card .cq-rat-hp{font-size:clamp(9px,1vw,14px)}
+#cq-preview .cq-mini-battle .cq-rat-card .cq-enemymeter{height:7px;min-height:7px}
+</style><style>
+#cq-preview .cq-route>.cq-event:has(.cq-art-group){display:block!important;background:linear-gradient(110deg,#2c3972,#111d50)!important;padding:0!important;overflow:hidden}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-battleheading{position:absolute;left:2%;right:2%;top:24%;z-index:1;font-size:clamp(12px,1.15vw,23px);line-height:1}
+#cq-preview .cq-event:has(.cq-art-group)>h3,#cq-preview .cq-event:has(.cq-art-group)>.cq-eventbar,#cq-preview .cq-event:has(.cq-art-group)>span.cq-sub,#cq-preview .cq-event:has(.cq-art-group)>p.cq-sub{display:none}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-art-group{position:absolute;z-index:2;inset:6% 22.5% 8%;width:55%;height:86%;max-height:none;display:flex;align-items:stretch;justify-content:center;gap:2%;margin:0}
+#cq-preview .cq-event .cq-art-group .cq-rat-card{flex:1 1 0;height:100%;max-width:32%;gap:2%;justify-content:stretch}
+#cq-preview .cq-event .cq-art-group .cq-rat-card:only-child{max-width:32%}
+#cq-preview .cq-event .cq-rat-name{display:block;flex:none;width:100%;color:#fff;font:700 clamp(13px,1.25vw,27px)/1.15 Georgia,serif;letter-spacing:.13em;white-space:nowrap;text-align:center;text-shadow:none}
+
+#cq-preview .cq-event .cq-art-group .cq-rat-card img.cq-rat-art{flex:1 1 0;width:100%!important;height:0!important;min-height:0;max-height:none!important;object-fit:contain;filter:none}
+#cq-preview .cq-event .cq-art-group .cq-rat-hp{font:700 clamp(11px,1.25vw,27px)/1.1 Georgia,serif;letter-spacing:.08em;text-shadow:none;white-space:nowrap}
+#cq-preview .cq-event .cq-art-group .cq-rat-card .cq-enemymeter{height:clamp(10px,2.1vw,40px);min-height:0;width:100%;flex:none;background:#121e4c}
+#cq-preview .cq-event:has(.cq-art-group)>.cq-group{position:absolute;bottom:2%;left:2%;width:18%;z-index:3}
+#cq-preview .cq-mini-battle .cq-rat-name{display:none}
+</style><style>
+#cq-preview .cq-mini-battle.cq-has-art{position:relative;padding:0!important;overflow:hidden}
+#cq-preview .cq-mini-battle.cq-has-art>.cq-battleheading{display:none}
+#cq-preview .cq-mini-battle.cq-has-art>.cq-art-group{position:absolute;inset:0;width:100%;height:100%;display:flex;align-items:stretch;justify-content:center;gap:0}
+#cq-preview .cq-mini-battle .cq-art-group .cq-rat-card{position:relative;flex:1 1 0;max-width:none;height:100%;gap:0;display:block}
+#cq-preview .cq-mini-battle .cq-rat-name{display:block;position:absolute;top:12%;left:2%;width:96%;color:#fff;text-align:left;font:700 clamp(9px,.85vw,16px)/1 Georgia,serif;letter-spacing:.08em;white-space:nowrap;text-shadow:none}
+#cq-preview .cq-mini-battle .cq-art-group .cq-rat-card img.cq-rat-art{position:absolute;top:2%;left:0;width:100%!important;height:64%!important;max-width:none;max-height:none!important;object-fit:contain;filter:drop-shadow(5px 6px 0 #1a254b66)}
+#cq-preview .cq-mini-battle .cq-rat-card .cq-rat-hp{position:absolute;bottom:14%;left:0;width:100%;text-align:center;color:var(--enemy-health);font:700 clamp(10px,1.1vw,19px)/1 'VT323',monospace;white-space:nowrap;text-shadow:1px 2px #14204d}
+#cq-preview .cq-mini-battle .cq-rat-card .cq-enemymeter{position:absolute;bottom:5%;left:3%;width:94%;height:7%;min-height:5px;margin:0;background:#121e4c}
+#cq-preview .cq-mini-battle .cq-rat-card:only-child .cq-enemymeter{left:35%;width:30%}
+#cq-preview .cq-mini-battle.cq-has-art>.cq-group{position:absolute;z-index:3;bottom:0;left:0;width:100%;background:#172455}
 </style></head><body><link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <div id="cq-preview">
   <div class="cq-game">
