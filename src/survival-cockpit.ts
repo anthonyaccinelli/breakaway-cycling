@@ -9,16 +9,16 @@ const byId = (id:string) => document.getElementById(id);
 const el = (selector:string) => document.querySelector<HTMLElement>(selector);
 
 export function mountSurvivalCockpit():void {
- const route=byId('screenRoute');
- const setup=byId('screenSetup');
- const ride=byId('screenRide');
- const studio=byId('survivalStudio');
- const rideView=el('#screenRide .ride-screen-content');
- const hud=byId('surviveGameHud');
- const dashboard=el('#screenRide .ride-dashboard');
- const profile=byId('profileSection');
- const metrics=dashboard?.querySelector<HTMLElement>('.metrics');
- const originalActions=profile?.querySelector<HTMLElement>('.profile-ride-actions');
+ const route=byId('screenRoute')!;
+ const setup=byId('screenSetup')!;
+ const ride=byId('screenRide')!;
+ const studio=byId('survivalStudio')!;
+ const rideView=el('#screenRide .ride-screen-content')!;
+ const hud=byId('surviveGameHud')!;
+ const dashboard=el('#screenRide .ride-dashboard')!;
+ const profile=byId('profileSection')!;
+ const metrics=dashboard.querySelector<HTMLElement>('.metrics')!;
+ const originalActions=profile.querySelector<HTMLElement>('.profile-ride-actions')!;
  const originalHudParent=hud?.parentElement;
  const originalHudNext=hud?.nextSibling;
  const waveSettings=byId('surviveWaveSettings');
@@ -63,7 +63,7 @@ export function mountSurvivalCockpit():void {
  const gap=hud.querySelector<HTMLElement>('.survive-game-gap');
  const clock=hud.querySelector<HTMLElement>('.survive-game-clock');
  const bottom=hud.querySelector<HTMLElement>('.survive-game-bottom');
- const speeds=chaseMetrics;
+ const speeds=chaseMetrics!;
  if(!top||!chaseMetrics||!gap||!clock||!bottom) return;
  gap.classList.add('sc-chase-card');
  clock.classList.add('sc-chase-card');
