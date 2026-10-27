@@ -520,3 +520,19 @@ body.sc-cockpit-mounted #screenRide .sc-ride-controls button[hidden]{display:non
 body.sc-cockpit-mounted #screenRoute[hidden],
 body.sc-cockpit-mounted #screenSetup[hidden],
 body.sc-cockpit-mounted #screenRide[hidden]{display:none!important}
+
+/* Keep navigation distinct from global red primary-action button styles. */
+body.sc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide) .sc-tabs button:not(.secondary){
+ background:transparent!important;color:#d6bfc8!important;border:0!important;
+ box-shadow:none!important;min-width:0!important;
+ font-size:clamp(10px,1vw,13px)!important;
+}
+body.sc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide) .sc-tabs button.sc-active:not(.secondary){
+ background:#ff304b!important;color:#fff!important;
+}
+body.sc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide) .sc-tabs button:not(.sc-active):hover{
+ background:#38202b!important;color:#fff!important;
+}
+body.sc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide) #scModeChange{
+ background:#30121d!important;color:#f5bac6!important;border:1px solid #784052!important;
+}
