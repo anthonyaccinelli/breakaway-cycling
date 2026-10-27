@@ -34,6 +34,16 @@
 #cq-preview .cq-mini-battle.cq-has-art{position:relative;padding-left:115px}
 #cq-preview .cq-mini-battle.cq-has-art img.cq-enemyart{position:absolute;left:3px;top:3px;width:105px!important;height:calc(100% - 6px)!important;max-height:none!important;min-height:0!important;object-fit:contain;margin:0}
 @container (max-width:500px){#cq-preview .cq-mini-battle.cq-has-art{padding-left:75px}#cq-preview .cq-mini-battle.cq-has-art img.cq-enemyart{width:70px!important}}
+</style><style>
+#cq-preview .cq-route>.cq-event:has(img.cq-enemyart){display:grid;grid-template-columns:minmax(0, 45%) minmax(0, 1fr);grid-template-rows:auto auto auto auto auto auto;align-content:center;align-items:center;column-gap:18px}
+#cq-preview .cq-event:has(img.cq-enemyart)>.cq-battleheading{grid-column:1 / -1;grid-row:1}
+#cq-preview .cq-event:has(img.cq-enemyart)>img.cq-enemyart{grid-column:1;grid-row:2 / 7;width:100%;height:100%;max-height:260px;min-height:0;object-fit:contain}
+#cq-preview .cq-event:has(img.cq-enemyart)>h3{grid-column:2;grid-row:2}
+#cq-preview .cq-event:has(img.cq-enemyart)>span.cq-sub:first-of-type{grid-column:2;grid-row:3}
+#cq-preview .cq-event:has(img.cq-enemyart)>.cq-eventbar{grid-column:2;grid-row:4}
+#cq-preview .cq-event:has(img.cq-enemyart)>.cq-enemymeter{grid-column:2;grid-row:5}
+#cq-preview .cq-event:has(img.cq-enemyart)>span.cq-sub:last-of-type{grid-column:2;grid-row:6}
+#cq-preview .cq-event:has(img.cq-enemyart)>.cq-group{grid-column:2}
 </style></head><body><link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <div id="cq-preview">
   <div class="cq-game">
