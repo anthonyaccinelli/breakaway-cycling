@@ -9,6 +9,9 @@ export function mountClassicCockpit():void {
  const profile=get('profileSection');
  const metrics=dashboard?.querySelector<HTMLElement>('.metrics');
  const actions=profile?.querySelector<HTMLElement>('.profile-ride-actions');
+ const survivalPanel=ride?.querySelector<HTMLElement>(':scope > .survive-beta');
+ const previousSurvivalDisplay=survivalPanel?.style.getPropertyValue('display')||'';
+ const previousSurvivalPriority=survivalPanel?.style.getPropertyPriority('display')||'';
  if(!route||!setup||!ride||!rideView||!dashboard||!profile||!metrics||!actions)return;
  const originalMetrics=Array.from(metrics.children);
  const buttons=['start','rideFinishNow','inspectReset'].map(get).filter((item):item is HTMLElement=>!!item);
@@ -31,6 +34,7 @@ export function mountClassicCockpit():void {
  function mount(){
   if(document.body.classList.contains('cc-cockpit-mounted'))return;
   document.body.classList.add('cc-cockpit-mounted');
+  survivalPanel?.style.setProperty('display','none','important');
   for(const cell of cells)metrics!.append(cell);
   // Keep eight tiles while the duplicated route values live in the status bar.
   if(gainCell)hidden.append(gainCell);
@@ -45,6 +49,7 @@ export function mountClassicCockpit():void {
  function unmount(){
   if(!document.body.classList.contains('cc-cockpit-mounted'))return;
   document.body.classList.remove('cc-cockpit-mounted');header.remove();status.remove();footer.remove();
+  if(survivalPanel){if(previousSurvivalDisplay)survivalPanel.style.setProperty('display',previousSurvivalDisplay,previousSurvivalPriority);else survivalPanel.style.removeProperty('display');}
   for(const button of buttons)actions!.append(button);
   for(const cell of originalMetrics)metrics!.append(cell);
   gear.remove();grade.remove();hidden.remove();
