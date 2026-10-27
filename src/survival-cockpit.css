@@ -1,0 +1,517 @@
+/* Survival cockpit v2: a single, Cycle Quest-inspired visual language.
+   All rules are scoped to Survival; Classic and Cycle Quest remain untouched. */
+body[data-ride-experience="survival"].sc-cockpit-mounted {
+ --sc-bg:#09070a;--sc-panel:#190b11;--sc-raised:#270f19;
+ --sc-border:#713043;--sc-text:#fbeef0;--sc-muted:#d4a7af;
+ --sc-red:#ff304b;--sc-yellow:#ffd455;
+ background:var(--sc-bg)!important;color:var(--sc-text)!important;
+ font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted main{
+ width:100%!important;max-width:none!important;height:100dvh!important;
+ max-height:100dvh!important;min-height:0!important;margin:0!important;
+ padding:10px 14px 12px!important;box-sizing:border-box!important;
+ overflow:hidden!important;display:flex!important;flex-direction:column!important;
+ background:var(--sc-bg)!important;
+}
+body.sc-cockpit-mounted main>.breakaway-brand-bar,
+body.sc-cockpit-mounted main>.browser-compatibility:not(:not([hidden])),
+body.sc-cockpit-mounted main>.workspace-header,
+body.sc-cockpit-mounted .ride-workspace>.workspace-header{display:none!important}
+body.sc-cockpit-mounted main>p,
+body.sc-cockpit-mounted .screen-progress,
+body.sc-cockpit-mounted #modeHomeButton{display:none!important}
+body.sc-cockpit-mounted main>.ride-workspace{
+ display:flex!important;flex:1 1 0!important;min-height:0!important;height:auto!important;
+ max-height:none!important;overflow:hidden!important;margin:0!important;padding:0!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;
+}
+body.sc-cockpit-mounted #screenRoute,
+body.sc-cockpit-mounted #screenSetup,
+body.sc-cockpit-mounted #screenRide{
+ flex:1 1 0!important;height:100%!important;max-height:100%!important;min-height:0!important;
+ min-width:0!important;width:100%!important;display:flex!important;flex-direction:column!important;
+ gap:10px!important;margin:0!important;padding:0!important;overflow:hidden!important;
+ background:transparent!important;border:0!important;
+}
+body.sc-cockpit-mounted .breakaway-screen[hidden]{display:none!important}
+/* One masthead on every screen, with native step handlers behind each tab. */
+body.sc-cockpit-mounted .sc-masthead{
+ width:100%;flex:0 0 auto;background:#180a10;color:var(--sc-text);
+ border:1px solid var(--sc-border);border-radius:7px;overflow:hidden;
+ box-shadow:0 2px 15px #0004;
+}
+.sc-head{
+ display:flex;align-items:center;justify-content:space-between;gap:15px;
+ padding:10px 15px 8px;min-width:0;
+}
+.sc-brand{display:flex;flex-direction:column;gap:1px;white-space:nowrap;flex:0 0 auto}
+.sc-brand small{color:#f3a0ae;font-size:9px!important;font-weight:800;letter-spacing:1.7px}
+.sc-brand strong{color:var(--sc-red);font-size:clamp(23px,2.6vw,33px);line-height:1;font-weight:900;letter-spacing:-.7px}
+.sc-brand .sc-brand-mark{color:#8b4857;font-size:11px;letter-spacing:0}
+.sc-tabs{display:flex!important;align-items:center;gap:4px;padding:4px;
+ background:#0d111b;border:1px solid #493645;border-radius:5px;
+ min-width:0;flex:0 1 auto;
+}
+.sc-tabs button{
+ cursor:pointer;border:0!important;border-radius:3px!important;
+ white-space:nowrap;background:transparent!important;color:#d6bfc8!important;
+ font-size:clamp(10px,1vw,13px)!important;font-weight:850!important;
+ letter-spacing:.45px;min-height:36px;padding:8px clamp(8px,1.25vw,20px)!important;
+ transition:background .14s ease,color .14s ease;
+}
+.sc-tabs button.sc-active{background:var(--sc-red)!important;color:#fff!important}
+.sc-tabs button:hover:not(.sc-active){background:#38202b!important;color:#fff!important}
+.sc-tabs button:focus-visible,.sc-mode-change:focus-visible{outline:2px solid #ffd455;outline-offset:2px}
+.sc-head-right{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:0 1 auto}
+.sc-phase{
+ display:flex;gap:7px;align-items:center;border:1px solid #743448;border-radius:5px;
+ background:#290f1a;padding:9px 10px;white-space:nowrap;
+ color:#ffc2ca;font-size:10px;font-weight:900;letter-spacing:.65px;
+}
+.sc-phase i{width:7px;height:7px;background:#ee7087;border-radius:50%;box-shadow:0 0 8px #ff304b5c}
+.sc-chasing .sc-phase{border-color:#f0445a;background:#491523;color:#fff}
+.sc-chasing .sc-phase i{background:#ff304b;box-shadow:0 0 11px #ff304b}
+.sc-danger .sc-phase{animation:sc-warning 1.2s ease-in-out infinite}
+@keyframes sc-warning{50%{box-shadow:0 0 16px #ff304b77}}
+.sc-mode-change{
+ cursor:pointer;white-space:nowrap;background:#30121d!important;color:#f5bac6!important;
+ border:1px solid #784052!important;border-radius:4px!important;
+ font-size:10px!important;font-weight:800!important;padding:8px 9px!important;
+}
+.sc-subhead{
+ display:flex;justify-content:space-between;align-items:center;gap:10px;
+ border-top:1px solid #582634;background:#1f0c14;padding:6px 15px;
+}
+.sc-subhead strong{font-size:11px;font-weight:850;letter-spacing:1.5px;color:#ffcfda}
+.sc-subhead span{font-size:10px;color:#d2a2ae;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+/* Survival mission setup: same layout regardless of how the route is generated. */
+body.sc-cockpit-mounted #screenRoute>.survival-studio-intro{
+ flex:0 0 auto!important;max-height:none!important;min-height:0!important;
+ width:100%!important;margin:0!important;padding:10px 15px!important;
+ background:var(--sc-panel)!important;color:var(--sc-text)!important;
+ border:1px solid var(--sc-border)!important;border-radius:6px!important;
+ overflow:visible!important;box-shadow:none!important;
+}
+body.sc-cockpit-mounted #screenRoute .survival-studio-head{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;
+ margin:0!important;padding:0!important;
+}
+body.sc-cockpit-mounted #screenRoute .survival-studio-head>span{font-size:10px!important;letter-spacing:1.3px;color:#ff8699!important}
+body.sc-cockpit-mounted #screenRoute .survival-studio-head h2{
+ font-size:18px!important;line-height:1!important;letter-spacing:-.3px!important;color:#fff!important;
+ margin:0!important;
+}
+body.sc-cockpit-mounted #screenRoute .survival-studio-head p,
+body.sc-cockpit-mounted #screenRoute .survival-studio-guide{display:none!important}
+body.sc-cockpit-mounted #screenRoute .survival-studio-controls{
+ display:grid!important;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr))!important;
+ gap:10px!important;margin:9px 0 0!important;align-items:end!important;
+}
+body.sc-cockpit-mounted #screenRoute .survival-studio-controls label{
+ min-width:0!important;display:flex!important;flex-direction:column!important;gap:4px!important;
+ color:#e2a8b3!important;font-size:10px!important;font-weight:850!important;
+ text-transform:uppercase;letter-spacing:.9px;
+}
+body.sc-cockpit-mounted #screenRoute .survival-studio-controls label[hidden]{display:none!important}
+body.sc-cockpit-mounted #screenRoute .survival-studio-controls select{
+ min-width:0!important;width:100%!important;max-width:100%!important;
+ padding:8px!important;height:35px!important;background:#2b101b!important;
+ color:#fff!important;border:1px solid #8c3b50!important;border-radius:4px!important;
+ font-size:12px!important;font-weight:750!important;
+}
+body.sc-cockpit-mounted #screenRoute #studioRouteFeedback{
+ margin:7px 0 0!important;padding:0!important;background:transparent!important;border:0!important;
+ color:#e5b5be!important;font-size:10px!important;white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis;
+}
+body.sc-cockpit-mounted #screenRoute .route-studio{
+ flex:1 1 0!important;min-height:0!important;height:auto!important;
+ max-height:none!important;padding:0!important;margin:0!important;
+ border:0!important;box-shadow:none!important;overflow:hidden!important;
+ display:flex!important;flex-direction:column!important;background:transparent!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-studio-heading{display:none!important}
+body.sc-cockpit-mounted #screenRoute .route-studio-grid{
+ display:grid!important;flex:1 1 0!important;min-height:0!important;
+ grid-template-columns:minmax(335px,.87fr) minmax(0,1.28fr)!important;
+ grid-template-rows:minmax(0,1fr)!important;gap:10px!important;
+ height:100%!important;overflow:hidden!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-builder,
+body.sc-cockpit-mounted #screenRoute .route-studio-live-preview{
+ background:var(--sc-panel)!important;color:var(--sc-text)!important;
+ border:1px solid var(--sc-border)!important;border-radius:6px!important;
+ padding:12px 14px!important;min-width:0!important;min-height:0!important;
+ height:100%!important;max-height:100%!important;box-sizing:border-box!important;
+ overflow:auto!important;scrollbar-color:#794057 transparent;
+}
+body.sc-cockpit-mounted #screenRoute .route-builder{
+ display:flex!important;flex-direction:column!important;gap:7px!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-panel-heading{margin:2px 0!important;min-height:0!important}
+body.sc-cockpit-mounted #screenRoute .route-panel-heading h2{
+ font-size:18px!important;color:#fff!important;margin:0!important;line-height:1.1!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-panel-heading p{display:none!important}
+body.sc-cockpit-mounted #screenRoute .route-import{
+ display:flex!important;align-items:center!important;gap:10px!important;
+ flex-wrap:wrap!important;margin:0!important;padding:0 0 7px!important;min-height:0!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-import label{color:#e8bbc3!important;font-size:11px!important;white-space:nowrap}
+body.sc-cockpit-mounted #screenRoute .route-import input{min-width:0!important;max-width:100%!important;font-size:11px!important}
+body.sc-cockpit-mounted #screenRoute .route-import p{display:none!important}
+body.sc-cockpit-mounted #screenRoute .route-import-divider{margin:0!important;padding:0!important;min-height:0!important;font-size:10px!important}
+body.sc-cockpit-mounted #screenRoute .route-fields{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:8px!important;min-height:0!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-fields label{
+ display:flex!important;flex-direction:column!important;gap:4px!important;min-width:0!important;
+ font-size:11px!important;color:#e3b2bc!important;font-weight:750!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-fields input,
+body.sc-cockpit-mounted #screenRoute .route-fields select{
+ padding:7px 9px!important;min-height:34px!important;height:34px!important;
+ width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+ background:#290f19!important;color:#fff!important;border:1px solid #744153!important;
+ border-radius:4px!important;font-size:12px!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-actions{
+ display:grid!important;grid-template-columns:1.35fr 1fr 1fr!important;
+ gap:6px!important;margin:0!important;padding:0!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-actions button{
+ padding:7px 9px!important;min-height:36px!important;font-size:11px!important;
+ white-space:nowrap;min-width:0!important;
+}
+body.sc-cockpit-mounted #screenRoute #enjoyRide{
+ min-height:38px!important;background:var(--sc-red)!important;
+ color:#fff!important;font-size:12px!important;font-weight:850!important;
+ white-space:normal!important;line-height:1.15!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-quick-action-row{
+ display:flex!important;flex-direction:column!important;gap:6px!important;margin:0!important;
+}
+body.sc-cockpit-mounted #screenRoute .quick-preset-bar{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:5px!important;margin:0!important;
+}
+body.sc-cockpit-mounted #screenRoute .quick-preset-label{display:none!important}
+body.sc-cockpit-mounted #screenRoute .quick-preset-button{padding:7px 5px!important;font-size:10px!important}
+body.sc-cockpit-mounted #screenRoute .route-tip{display:none!important}
+body.sc-cockpit-mounted #screenRoute .route-studio-live-preview{
+ display:flex!important;flex-direction:column!important;gap:7px!important;
+ overflow:hidden!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-studio-live-heading{
+ flex:0 0 auto!important;display:flex!important;align-items:flex-start!important;
+ justify-content:space-between!important;gap:10px!important;min-height:0!important;
+}
+body.sc-cockpit-mounted #screenRoute .route-studio-live-heading h2{font-size:19px!important;color:#fff!important;margin:0!important}
+body.sc-cockpit-mounted #screenRoute .route-studio-live-heading>.note{display:none!important}
+body.sc-cockpit-mounted #screenRoute .route-quick-facts{color:#f3bdc7!important;font-size:11px!important}
+body.sc-cockpit-mounted #screenRoute .studio-live-stats{
+ display:flex!important;flex-wrap:wrap!important;gap:4px 10px!important;padding:0!important;
+ margin:0!important;align-items:center!important;
+}
+body.sc-cockpit-mounted #screenRoute .studio-live-stats span{font-size:10px!important;color:#cca1ad!important}
+body.sc-cockpit-mounted #screenRoute .studio-live-stats b{color:#fef3f5!important}
+body.sc-cockpit-mounted #screenRoute .studio-elevation-controls{flex:0 0 auto!important;margin:0!important;gap:6px!important}
+body.sc-cockpit-mounted #screenRoute .studio-elevation-controls button{min-height:32px!important;padding:5px 8px!important;font-size:11px!important}
+body.sc-cockpit-mounted #screenRoute .studio-elevation-controls>.note{font-size:10px!important}
+body.sc-cockpit-mounted #screenRoute .studio-live-chart{
+ flex:1 1 0!important;height:auto!important;min-height:125px!important;
+ max-height:none!important;margin:0!important;background:#10080c!important;
+ border:1px solid #663040!important;border-radius:5px!important;
+ overflow:hidden!important;
+}
+body.sc-cockpit-mounted #screenRoute .studio-live-chart svg{width:100%!important;height:100%!important}
+body.sc-cockpit-mounted #screenRoute .studio-scrub-readout{
+ flex:0 0 auto!important;color:#f4d3d9!important;font-size:11px!important;
+ margin:0!important;padding:7px!important;border:1px solid #693142!important;
+ border-radius:4px!important;background:#260e18!important;
+}
+/* Device connection should feel like stage two of the same mission. */
+body.sc-cockpit-mounted #screenSetup .breakaway-integrated-step-header{display:none!important}
+body.sc-cockpit-mounted #screenSetup .connection-strip{
+ flex:1 1 0!important;width:100%!important;max-width:none!important;min-height:0!important;
+ height:auto!important;max-height:none!important;margin:0!important;padding:14px 16px!important;
+ border:1px solid var(--sc-border)!important;border-radius:7px!important;
+ color:var(--sc-text)!important;background:var(--sc-panel)!important;
+ display:flex!important;flex-direction:column!important;gap:9px!important;
+ overflow:auto!important;
+}
+body.sc-cockpit-mounted #screenSetup .connection-strip>h2{color:#fff!important;font-size:20px!important;margin:0!important}
+body.sc-cockpit-mounted #screenSetup .connection-strip>#setupInstructions{font-size:12px!important;color:#d7aab5!important}
+body.sc-cockpit-mounted #screenSetup .setup-device-tiles{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:11px!important;margin:0!important;min-height:0!important;
+}
+body.sc-cockpit-mounted #screenSetup .setup-device-tile{
+ border:1px solid #794050!important;border-radius:6px!important;
+ background:#290f1a!important;min-width:0!important;box-shadow:none!important;
+ padding:15px!important;
+}
+body.sc-cockpit-mounted #screenSetup .setup-device-tile h3{color:#fff!important;font-size:16px!important}
+body.sc-cockpit-mounted #screenSetup .setup-device-tile button{
+ background:var(--sc-red)!important;color:#fff!important;
+ border:1px solid var(--sc-red)!important;font-size:12px!important;
+}
+body.sc-cockpit-mounted #screenSetup .setup-settings-row{
+ display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;min-height:0!important;
+}
+body.sc-cockpit-mounted #screenSetup .setup-settings-row>section,
+body.sc-cockpit-mounted #screenSetup .setup-settings-row>.ride-shifting-column{
+ background:#210e16!important;border:1px solid #683446!important;border-radius:6px!important;
+ min-width:0!important;padding:10px!important;
+}
+body.sc-cockpit-mounted #screenSetup .setup-next{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ flex-wrap:wrap!important;gap:10px!important;margin:0!important;padding:10px 0!important;
+}
+body.sc-cockpit-mounted #screenSetup #goToRide{background:var(--sc-red)!important;color:#fff!important;padding:11px 20px!important;min-height:40px!important}
+body.sc-cockpit-mounted #screenSetup #setupReadiness{color:#e5b2bc!important;font-size:12px!important}
+/* Live cockpit: elevation -> chase cards -> 8 readouts -> ride controls. */
+body.sc-cockpit-mounted #screenRide .ride-screen-header,
+body.sc-cockpit-mounted #screenRide>.survive-beta{display:none!important}
+body.sc-cockpit-mounted #screenRide .ride-screen-content{
+ flex:1 1 0!important;width:100%!important;max-width:none!important;
+ display:flex!important;flex-direction:column!important;min-height:0!important;
+ height:auto!important;gap:8px!important;margin:0!important;padding:0!important;
+ overflow:hidden!important;
+}
+body.sc-cockpit-mounted #screenRide #profileSection{
+ flex:1 1 0!important;width:100%!important;max-width:none!important;min-height:130px!important;
+ height:auto!important;max-height:none!important;display:flex!important;flex-direction:column!important;
+ padding:10px 13px 7px!important;margin:0!important;overflow:hidden!important;
+ background:var(--sc-panel)!important;border:1px solid var(--sc-border)!important;
+ border-radius:6px!important;box-shadow:none!important;
+}
+body.sc-cockpit-mounted #screenRide #profileSection .profile-heading{
+ flex:0 0 auto!important;margin:0 0 5px!important;padding:0!important;min-height:0!important;
+}
+body.sc-cockpit-mounted #screenRide #profileSection .profile-heading h2{
+ color:#fbe9ed!important;letter-spacing:.9px;font-size:14px!important;
+}
+body.sc-cockpit-mounted #screenRide #profileSection .route-step{display:none!important}
+body.sc-cockpit-mounted #screenRide #profileSection .profile-heading-actions{gap:6px!important}
+body.sc-cockpit-mounted #screenRide #profileSection .profile-heading-actions button,
+body.sc-cockpit-mounted #screenRide #profileSection .profile-display-options>summary{
+ font-size:10px!important;min-height:26px!important;padding:4px 8px!important;
+ border-radius:4px!important;
+}
+body.sc-cockpit-mounted #screenRide #profileSection .profile-editor,
+body.sc-cockpit-mounted #screenRide #profileSection .profile-inspector,
+body.sc-cockpit-mounted #screenRide #profileSection .route-preview-help{display:none!important}
+body.sc-cockpit-mounted #screenRide #profileSection .profile-zoom{
+ flex:0 0 auto!important;gap:6px!important;margin:0 0 5px!important;padding:0!important;
+ display:flex!important;align-items:center!important;
+}
+body.sc-cockpit-mounted #screenRide #profileSection .profile-zoom button{
+ min-height:24px!important;padding:3px 8px!important;font-size:10px!important;
+}
+body.sc-cockpit-mounted #screenRide #profileSection .profile-zoom .note{font-size:10px!important}
+body.sc-cockpit-mounted #screenRide #chart{
+ flex:1 1 0!important;min-height:75px!important;max-height:none!important;
+ width:100%!important;height:auto!important;min-width:0!important;
+ margin:0!important;padding:0!important;overflow:hidden!important;
+ background:#10080c!important;border-radius:3px!important;
+}
+body.sc-cockpit-mounted #screenRide #chart svg{height:100%!important;width:100%!important}
+body.sc-cockpit-mounted #screenRide .survive-game-hud{
+ display:flex!important;flex-direction:column!important;flex:0 0 auto!important;
+ width:100%!important;max-width:none!important;min-height:0!important;max-height:none!important;
+ margin:0!important;padding:7px 10px!important;gap:5px!important;
+ background:#1a0b11!important;border:1px solid #7a3447!important;
+ border-radius:6px!important;box-sizing:border-box!important;
+ color:#fff!important;overflow:hidden!important;box-shadow:none!important;
+}
+body.sc-cockpit-mounted #screenRide .survive-game-hud[hidden]{display:none!important}
+body.sc-cockpit-mounted #screenRide .survive-game-hud.is-chase{border-color:#ff304b!important;background:#220b13!important}
+body.sc-cockpit-mounted #screenRide .survive-game-hud.is-recovery{border-color:#a76c7b!important;background:#23121b!important}
+body.sc-cockpit-mounted #screenRide .survive-game-top{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ flex-wrap:nowrap!important;gap:9px!important;padding:0!important;margin:0!important;
+ border:0!important;background:transparent!important;min-height:19px!important;
+}
+body.sc-cockpit-mounted #screenRide .survive-game-top>strong{color:#ff5e75!important;font-size:13px!important}
+body.sc-cockpit-mounted #screenRide .survive-game-top>span{font-size:10px!important;color:#e5afbb!important;white-space:nowrap}
+body.sc-cockpit-mounted #screenRide .survive-game-top .survive-game-metrics{
+ display:flex!important;align-items:center!important;justify-content:flex-end!important;
+ flex:1 1 auto!important;gap:11px!important;margin:0!important;padding:0!important;
+ order:0!important;grid-template-columns:none!important;
+}
+body.sc-cockpit-mounted #screenRide .survive-game-top .survive-game-metrics>div{
+ display:flex!important;flex-direction:row!important;align-items:center!important;gap:5px!important;
+ margin:0!important;padding:0!important;background:transparent!important;border:0!important;min-width:0!important;
+}
+body.sc-cockpit-mounted #screenRide .survive-game-top .survive-game-metrics small{
+ color:#b98c98!important;font-size:9px!important;letter-spacing:.7px;font-weight:850!important;
+}
+body.sc-cockpit-mounted #screenRide .survive-game-top .survive-game-metrics strong{
+ font-size:12px!important;color:#fae9ed!important;line-height:1!important;
+}
+body.sc-cockpit-mounted #screenRide #surviveGameEnd{
+ min-height:24px!important;padding:4px 9px!important;font-size:10px!important;
+ color:#fff!important;background:#91233a!important;border:1px solid #c34b63!important;
+ white-space:nowrap!important;border-radius:4px!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-chase-cards{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-chase-card{
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:center!important;min-width:0!important;gap:1px!important;
+ margin:0!important;padding:7px 8px!important;border:1px solid #783243!important;
+ border-radius:5px!important;background:#300e1b!important;color:#fff!important;
+ min-height:57px!important;text-align:center!important;box-sizing:border-box!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-chase-card small,
+body.sc-cockpit-mounted #screenRide .sc-chase-card>span:first-child{
+ color:#d8a3ae!important;font-size:9px!important;font-weight:850!important;
+ line-height:1.25!important;letter-spacing:1px!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-chase-card strong{
+ font-size:clamp(20px,2.5vw,30px)!important;line-height:1.05!important;
+ font-weight:900!important;color:#ff6577!important;
+ font-variant-numeric:tabular-nums!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-chase-card>span:last-child{
+ font-size:9px!important;color:#d7a4ae!important;line-height:1.1!important;
+}
+body.sc-cockpit-mounted #screenRide .survive-game-hud .survive-game-bottom{display:none!important}
+body.sc-cockpit-mounted #screenRide .sc-preflight{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:12px!important;padding:9px 12px!important;flex:0 0 auto!important;
+ background:#280e18!important;color:#fff!important;
+ border:1px solid #7b3146!important;border-radius:6px!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-preflight[hidden]{display:none!important}
+.sc-preflight>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.sc-preflight .sc-kicker{font-size:9px;color:#f6a2b1;font-weight:850;letter-spacing:1.1px}
+.sc-preflight strong{font-size:13px;color:#fff;letter-spacing:.2px}
+body.sc-cockpit-mounted #screenRide #scStartSurvival{
+ background:var(--sc-red)!important;color:#fff!important;border:1px solid var(--sc-red)!important;
+ padding:10px 19px!important;font-size:12px!important;font-weight:850!important;
+ min-height:38px!important;white-space:nowrap!important;
+}
+body.sc-cockpit-mounted #screenRide .ride-dashboard{
+ flex:0 0 auto!important;width:100%!important;min-width:0!important;max-width:none!important;
+ height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;
+ padding:0!important;border:1px solid var(--sc-border)!important;
+ border-radius:6px!important;overflow:hidden!important;
+ background:var(--sc-panel)!important;box-sizing:border-box!important;
+}
+body.sc-cockpit-mounted #screenRide .ride-dashboard>h2{display:none!important}
+body.sc-cockpit-mounted #screenRide .ride-dashboard .metrics{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;gap:0!important;
+ width:100%!important;height:auto!important;min-height:0!important;
+ max-height:none!important;max-width:none!important;padding:0!important;margin:0!important;
+}
+body.sc-cockpit-mounted #screenRide .ride-dashboard .metric{
+ box-sizing:border-box!important;min-width:0!important;max-width:none!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ padding:9px 12px!important;margin:0!important;border:0!important;border-radius:0!important;
+ border-right:1px solid #532535!important;background:transparent!important;
+ display:flex!important;flex-direction:column-reverse!important;justify-content:center!important;align-items:flex-start!important;
+ gap:2px!important;
+}
+body.sc-cockpit-mounted #screenRide .ride-dashboard .metric:nth-child(4n){border-right:0!important}
+body.sc-cockpit-mounted #screenRide .ride-dashboard .metric:nth-child(-n+4){border-bottom:1px solid #532535!important}
+body.sc-cockpit-mounted #screenRide .ride-dashboard .metric small{
+ font-size:9px!important;line-height:1.1!important;font-weight:850!important;letter-spacing:1px!important;
+ color:#d3a4ad!important;white-space:nowrap;
+}
+body.sc-cockpit-mounted #screenRide .ride-dashboard .metric b{
+ font-size:clamp(20px,2.3vw,32px)!important;line-height:1.07!important;font-weight:850!important;
+ color:#fff0f2!important;white-space:nowrap!important;
+ font-variant-numeric:tabular-nums!important;margin:3px 0 0!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-meter-storage{display:none!important}
+body.sc-cockpit-mounted #screenRide .sc-ride-controls{
+ display:flex!important;align-items:center!important;justify-content:flex-end!important;
+ gap:8px!important;flex:0 0 auto!important;padding:7px 10px!important;
+ margin:0!important;background:#190b11!important;border:1px solid #713043!important;
+ border-radius:6px!important;min-height:39px!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-ride-control-label{
+ color:#c58f9c!important;font-size:10px!important;font-weight:850!important;
+ letter-spacing:1.25px!important;margin-right:auto!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-ride-controls button{
+ background:#361826!important;color:#f9e0e6!important;
+ border:1px solid #975069!important;border-radius:4px!important;
+ padding:8px 15px!important;min-height:32px!important;
+ font-size:11px!important;font-weight:850!important;white-space:nowrap!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-ride-controls #start{
+ background:#b92c45!important;color:#fff!important;border-color:#ff304b!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-ride-controls #rideFinishNow{
+ background:#ff304b!important;color:#fff!important;border-color:#ff304b!important;
+}
+body.sc-cockpit-mounted #screenRide .sc-ride-controls button[hidden]{display:none!important}
+/* Responsive: prioritize the map of the escape and the eight live values. */
+@media(max-height:780px) and (min-width:901px){
+ body.sc-cockpit-mounted .sc-head{padding:6px 12px}
+ body.sc-cockpit-mounted .sc-subhead{padding:4px 12px}
+ body.sc-cockpit-mounted #screenRide .ride-screen-content{gap:5px!important}
+ body.sc-cockpit-mounted #screenRide .ride-dashboard .metric{padding:5px 11px!important}
+ body.sc-cockpit-mounted #screenRide .ride-dashboard .metric b{font-size:clamp(19px,2.0vw,27px)!important}
+ body.sc-cockpit-mounted #screenRide .sc-chase-card{min-height:48px!important;padding:4px 6px!important}
+ body.sc-cockpit-mounted #screenRide #profileSection{padding:7px 10px!important;min-height:105px!important}
+ body.sc-cockpit-mounted #screenRide .sc-ride-controls{padding:5px 9px!important}
+}
+@media(max-width:1090px){
+ .sc-head{gap:7px;padding:9px}
+ .sc-brand strong{font-size:24px}
+ .sc-head-right{gap:5px}
+ .sc-phase{font-size:9px;padding:7px}
+ .sc-tabs button{padding:7px 9px!important}
+ body.sc-cockpit-mounted #screenRoute .route-studio-grid{
+  grid-template-columns:minmax(285px,.85fr) minmax(0,1.15fr)!important;
+ }
+}
+@media(max-width:900px){
+ body.sc-cockpit-mounted main{height:auto!important;max-height:none!important;min-height:100dvh!important;overflow:auto!important}
+ body.sc-cockpit-mounted main>.ride-workspace{overflow:visible!important;flex:1 1 auto!important}
+ body.sc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide){height:auto!important;max-height:none!important;overflow:visible!important}
+ .sc-head{flex-wrap:wrap}
+ .sc-brand{flex:1 1 auto}
+ .sc-tabs{order:3;width:100%;justify-content:center;flex:1 1 100%}
+ .sc-tabs button{flex:1 1 auto}
+ .sc-subhead{padding:7px 10px}
+ body.sc-cockpit-mounted #screenRoute .survival-studio-controls{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body.sc-cockpit-mounted #screenRoute .route-studio{overflow:visible!important}
+ body.sc-cockpit-mounted #screenRoute .route-studio-grid{display:flex!important;flex-direction:column!important;overflow:visible!important;height:auto!important}
+ body.sc-cockpit-mounted #screenRoute .route-builder,
+ body.sc-cockpit-mounted #screenRoute .route-studio-live-preview{height:auto!important;max-height:none!important;overflow:visible!important}
+ body.sc-cockpit-mounted #screenRoute .studio-live-chart{height:240px!important;min-height:240px!important}
+ body.sc-cockpit-mounted #screenRide .ride-screen-content{overflow:visible!important;flex:1 1 auto!important}
+ body.sc-cockpit-mounted #screenRide #profileSection{flex:0 0 auto!important;height:auto!important;min-height:260px!important}
+ body.sc-cockpit-mounted #screenRide #chart{height:190px!important;min-height:190px!important}
+ body.sc-cockpit-mounted #screenSetup .connection-strip{overflow:visible!important}
+}
+@media(max-width:650px){
+ body.sc-cockpit-mounted main{padding:7px!important}
+ .sc-head-right .sc-phase{max-width:120px}
+ .sc-head-right .sc-phase span{overflow:hidden;text-overflow:ellipsis}
+ .sc-tabs button{font-size:10px!important;padding:8px 5px!important}
+ .sc-subhead span{font-size:9px}
+ body.sc-cockpit-mounted #screenSetup .setup-device-tiles{grid-template-columns:1fr!important}
+ body.sc-cockpit-mounted #screenSetup .setup-settings-row{grid-template-columns:1fr!important}
+ body.sc-cockpit-mounted #screenRide .survive-game-top{flex-wrap:wrap!important}
+ body.sc-cockpit-mounted #screenRide .survive-game-top .survive-game-metrics{flex:1 1 100%!important;order:3!important;justify-content:center!important}
+ body.sc-cockpit-mounted #screenRide .sc-chase-cards{gap:4px!important}
+ body.sc-cockpit-mounted #screenRide .sc-chase-card{padding:5px 3px!important}
+ body.sc-cockpit-mounted #screenRide .sc-chase-card strong{font-size:17px!important}
+ body.sc-cockpit-mounted #screenRide .ride-dashboard .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body.sc-cockpit-mounted #screenRide .ride-dashboard .metric:nth-child(2n){border-right:0!important}
+ body.sc-cockpit-mounted #screenRide .ride-dashboard .metric:nth-child(-n+6){border-bottom:1px solid #532535!important}
+ body.sc-cockpit-mounted #screenRide .sc-ride-controls{flex-wrap:wrap!important}
+ body.sc-cockpit-mounted #screenRide .sc-preflight{flex-direction:column!important;align-items:stretch!important}
+ body.sc-cockpit-mounted #screenRide #scStartSurvival{width:100%!important}
+}
+@media(prefers-reduced-motion:reduce){.sc-tabs button,.sc-phase{transition:none!important;animation:none!important}}
