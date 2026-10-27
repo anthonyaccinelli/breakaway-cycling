@@ -2130,7 +2130,7 @@ const rideView=document.createElement('div');rideView.className='ride-screen-con
 rideView.append(originalProfile,originalDashboard);
 screenRide.append(rideHeading,rideView);
 // Move the original controls into the ride toolbar; their event handlers and state remain intact.
-rideHeading.classList.add('reference-ride-toolbar');rideHeading.style.setProperty('height','auto','important');
+rideHeading.classList.add('reference-ride-toolbar');rideHeading.style.setProperty('height','auto','important');rideHeading.style.setProperty('max-height','none','important');
 const rideToolbarActions=rideHeading.querySelector('.ride-screen-actions')!;
 for(const id of ['start','rideFinishNow','entertainmentView','inspectReset']){const control=originalProfile.querySelector('#'+id);if(control)rideToolbarActions.append(control);}
 const rideGearMetric=document.createElement('div');rideGearMetric.className='metric';rideGearMetric.innerHTML='<b id="referenceRideGear">—</b><small>Gear</small>';
