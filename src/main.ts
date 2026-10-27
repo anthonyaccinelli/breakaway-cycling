@@ -772,19 +772,21 @@ function refreshHeartRateProfile(){
  }
 }
 
-const GRADE_STOPS:[number,string][]=[[-3,'#4b9be9'],[0,'#35c96b'],[3,'#d4d94b'],[6,'#ff9b31'],[9,'#f04452'],[12,'#a65cf5']];
+const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#76D7E8'],[-6,'#55B9F5'],[-3,'#79A9FF'],[0,'#C5C9D2'],[3,'#A6A0FF'],[6,'#8B70F4'],[9,'#C477E8'],[12,'#F095C7'],[16,'#F4A86A']];
+const SURVIVAL_GRADE_STOPS:[number,string][]=[[-12,'#374253'],[-6,'#53627A'],[-3,'#756777'],[0,'#B8A6A9'],[3,'#B9798A'],[6,'#C34B63'],[9,'#E72D4C'],[12,'#FF4350'],[16,'#FF9A68']];
 function gradeColor(g:number){
- if(!Number.isFinite(g))return GRADE_STOPS[1][1];
- if(g<=GRADE_STOPS[0][0])return GRADE_STOPS[0][1];
- for(let i=1;i<GRADE_STOPS.length;i++){
-  const [end,hex]=GRADE_STOPS[i], [start,from]=GRADE_STOPS[i-1];
+ const stops=document.body.dataset.rideExperience==='survival'?SURVIVAL_GRADE_STOPS:CLASSIC_GRADE_STOPS;
+ if(!Number.isFinite(g))return stops[3][1];
+ if(g<=stops[0][0])return stops[0][1];
+ for(let i=1;i<stops.length;i++){
+  const [end,hex]=stops[i], [start,from]=stops[i-1];
   if(g<=end){
    const t=(g-start)/(end-start);
    const rgb=(a:string,b:string)=>Math.round(parseInt(a,16)+(parseInt(b,16)-parseInt(a,16))*t).toString(16).padStart(2,'0');
    return '#'+rgb(from.slice(1,3),hex.slice(1,3))+rgb(from.slice(3,5),hex.slice(3,5))+rgb(from.slice(5,7),hex.slice(5,7));
   }
  }
- return GRADE_STOPS[GRADE_STOPS.length-1][1];
+ return stops[stops.length-1][1];
 }
 
 function svg(){
