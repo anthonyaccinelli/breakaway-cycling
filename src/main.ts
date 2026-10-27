@@ -2687,6 +2687,8 @@ function openModeLanding(){
  delete document.body.dataset.deviceShortcut;
  const host=document.getElementById('cycleQuestHost');if(host)host.hidden=true;
  if(running)pauseRide();
+ // A mode change pauses the ride; pedaling on the mode selector must not resume it.
+ rideAwaitingPedaling=false;pedalSince=0;
  if(document.body.dataset.rideExperience==='cyclequest')cycleQuestHold=false;
  modeLanding.hidden=false;
  modeHomeButton.hidden=true;
@@ -2702,9 +2704,8 @@ modeLanding.querySelector('#modeDevices')!.addEventListener('click',()=>{
 });
 modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
 modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
-modeHomeButton.addEventListener('click',()=>{if(surviveOn){status('End your current Survival session before changing modes.');return;}if(history.state?.breakawayPage==='mode')history.back();else openModeLanding();});
+modeHomeButton.addEventListener('click',()=>{if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');});
 modeLanding.querySelector('#chooseCycleQuest')!.addEventListener('click',enterCycleQuest);
-const originalEnterRideScreen=enterRideScreen;
 // Preview starts with mode selection, not the existing route editor.
 openModeLanding();
 history.replaceState({...(history.state||{}),breakawayPage:'home'},'');
@@ -2755,7 +2756,7 @@ const questPassword=questGate.querySelector<HTMLInputElement>('#questPassword')!
 questGate.querySelector('#questAccessCancel')!.addEventListener('click',()=>questGate.close());
 questGate.querySelector('form')!.addEventListener('submit',async event=>{event.preventDefault();const button=questGate.querySelector<HTMLButtonElement>('button[type=submit]')!;button.disabled=true;const error=questGate.querySelector('#questAccessError')!;error.textContent='';try{const result=await fetch('/api/cycle-quest',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({password:questPassword.value})});questPassword.value='';if(!result.ok){error.textContent=result.status===401?'Incorrect password. Try again.':'Beta access is temporarily unavailable.';return;}questGate.close();launchCycleQuest();}catch{error.textContent='Could not connect. Please try again.';}finally{button.disabled=false;}});
 const questReturn=document.createElement('button');questReturn.id='questReturn';questReturn.type='button';questReturn.textContent='← RETURN TO CYCLE QUEST';questReturn.hidden=true;screenSetup.querySelector('.setup-next')?.prepend(questReturn);questReturn.addEventListener('click',showCycleQuest);
-cycleQuestHost.querySelector('#questHome')!.addEventListener('click',openModeLanding);
+cycleQuestHost.querySelector('#questHome')!.addEventListener('click',()=>{if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');});
 cycleQuestHost.querySelector('#questDevices')!.addEventListener('click',()=>{if(running)pauseRide();cycleQuestHost.hidden=true;questReturn.hidden=false;showBreakawayScreen('setup');});
 (window as any).openCycleQuestOverlay=async({width,height}:{width:number;height:number})=>{
  if('documentPictureInPicture' in window)return (window as any).documentPictureInPicture.requestWindow({width,height,preferInitialWindowPlacement:true});
