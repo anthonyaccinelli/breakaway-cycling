@@ -1,4 +1,5 @@
 import './style.css';
+import './live-ride-themes.css';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
