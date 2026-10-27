@@ -515,3 +515,8 @@ body.sc-cockpit-mounted #screenRide .sc-ride-controls button[hidden]{display:non
  body.sc-cockpit-mounted #screenRide #scStartSurvival{width:100%!important}
 }
 @media(prefers-reduced-motion:reduce){.sc-tabs button,.sc-phase{transition:none!important;animation:none!important}}
+
+/* Hidden screens must stay hidden despite ID-specific flex layout rules. */
+body.sc-cockpit-mounted #screenRoute[hidden],
+body.sc-cockpit-mounted #screenSetup[hidden],
+body.sc-cockpit-mounted #screenRide[hidden]{display:none!important}
