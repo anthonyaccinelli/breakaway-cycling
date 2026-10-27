@@ -5,7 +5,7 @@ import {MONSTERS} from '../cycle-quest/monsters.js';
 import {gradeColor,GRADE_COLORS,elevationSVG} from '../cycle-quest/profile.js';
 import {generateRoute,sample} from '../cycle-quest/routes.js';
 const source=(await readFile(new URL('../cycle-quest/combat.js',import.meta.url),'utf8')).replace("'/api/cycle-quest?asset=monsters.js'",JSON.stringify(new URL('../cycle-quest/monsters.js',import.meta.url).href));
-const {makeBattle,monsterPool,chapterRandom}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const {makeBattle,monsterPool,chapterRandom,CHAPTER_BIOMES,nextChapterEncounter}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 test('roster contains unique numerical SRD creatures at appropriate progression tiers',()=>{
  assert.equal(MONSTERS.length,314);assert.equal(new Set(MONSTERS.map(m=>m.id)).size,314);
  for(const m of MONSTERS)assert(m.hp>0&&Number.isFinite(m.attack)&&m.damage>=0&&m.level>=1);
@@ -39,4 +39,10 @@ test('new monster modules remain behind the beta password gate',async()=>{
  process.env.CYCLE_QUEST_PASSWORD='test-fixture';process.env.CYCLE_QUEST_SESSION_SECRET='test-signing-key';
  try{for(const asset of ['monsters.js','combat.js','profile.js','level-up.js','workouts.js','workout-ui.js','fit-decoder.js']){let status;const res={setHeader(){},status(n){status=n;return this;},json(){return this;},end(){}};await handler({method:'GET',url:'/api/cycle-quest?asset='+asset,headers:{host:'localhost'}},res);assert.equal(status,401);}}
  finally{if(oldPassword===undefined)delete process.env.CYCLE_QUEST_PASSWORD;else process.env.CYCLE_QUEST_PASSWORD=oldPassword;if(oldSecret===undefined)delete process.env.CYCLE_QUEST_SESSION_SECRET;else process.env.CYCLE_QUEST_SESSION_SECRET=oldSecret;}
+});
+
+test('first two chapter pools are distinct, complete, and draw fairly without repeated neighbors',()=>{
+ const a=CHAPTER_BIOMES[1].monsters,b=CHAPTER_BIOMES[2].monsters;assert.equal(a.length,8);assert.equal(b.length,8);assert.equal(new Set([...a,...b]).size,16);for(const id of [...a,...b])assert(MONSTERS.some(m=>m.id===id));
+ for(const chapter of [1,2]){let state=null,last=null;for(let cycle=0;cycle<5;cycle++){const drawn=[];for(let i=0;i<8;i++){const pick=nextChapterEncounter(chapter,state,()=>.37);assert.notEqual(pick.monsterId,last);drawn.push(pick.monsterId);last=pick.monsterId;state=pick.state;const fight=makeBattle('enemy',{level:1,ftp:280,monsterId:pick.monsterId});assert.equal(fight.monsterId,pick.monsterId);}assert.equal(new Set(drawn).size,8);}}
+ assert.equal(nextChapterEncounter(3,null),null);
 });

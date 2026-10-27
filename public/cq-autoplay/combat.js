@@ -3,6 +3,21 @@ export {MONSTERS};
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 export const attackAt=level=>1.08**(level-1);
 export const hpAt=level=>100+10*(level-1);
+// Curated regular encounters for the chapters designed so far. Bosses and
+// summit battles retain their independent selection and saved boss identity.
+export const CHAPTER_BIOMES=Object.freeze({
+ 1:{name:'THE VERDANT WILDS',biome:'forest',monsters:['giant-rat','stirge','kobold','goblin','wolf','giant-fire-beetle','giant-spider','worg']},
+ 2:{name:'THE HAUNTED MOOR',biome:'moor',monsters:['skeleton','zombie','ghoul','shadow','specter','death-dog','gnoll','harpy']}
+});
+export function nextChapterEncounter(chapter,previousState,random=Math.random){
+ const config=CHAPTER_BIOMES[chapter];if(!config)return null;
+ const valid=new Set(config.monsters),state=previousState?.chapter===chapter?previousState:null;
+ let bag=Array.isArray(state?.bag)?state.bag.filter((id,i,a)=>valid.has(id)&&a.indexOf(id)===i):[];
+ const last=valid.has(state?.last)?state.last:null;
+ if(!bag.length){bag=[...config.monsters];for(let i=bag.length-1;i>0;i--){const j=Math.max(0,Math.min(i,Math.floor(random()*(i+1))));[bag[i],bag[j]]=[bag[j],bag[i]];}if(bag[0]===last)[bag[0],bag[1]]=[bag[1],bag[0]];}
+ const monsterId=bag.shift();return {monsterId,state:{chapter,bag,last:monsterId}};
+}
+
 // CR establishes progression. HP and attack distinguish creatures within a tier.
 // Source damage is a strongest basic attack average, not a claim of tabletop DPR.
 export function monsterPool(target,kind='enemy'){
@@ -21,14 +36,14 @@ export function creatureFactors(monster){
  const mean=key=>peers.reduce((n,m)=>n+m[key],0)/peers.length;
  return {health:clamp(1+.16*Math.log2(monster.hp/mean('hp')),.82,1.18),attack:clamp(1+.12*Math.log2((monster.damage+Math.max(0,monster.attack))/(mean('damage')+Math.max(0,mean('attack')))),.8,1.2)};
 }
-export function makeBattle(kind,{level,ftp,entryPower=0,chapterLevel=level,random=Math.random}){
+export function makeBattle(kind,{level,ftp,entryPower=0,chapterLevel=level,random=Math.random,monsterId=null}){
  const reference=kind==='boss'?chapterLevel:level;
  const target=kind==='enemy'?Math.max(1,level-2):kind==='summit'?level+5:chapterLevel;
- const monster=selectMonster(target,kind,random),f=creatureFactors(monster);
+ const monster=(kind==='enemy'&&monsterId?MONSTERS.find(m=>m.id===monsterId):null)||selectMonster(target,kind,random),f=creatureFactors(monster);
  const watts=Number.isFinite(ftp)&&ftp>0?ftp:280;
  // Regular fights: roughly 10–16 seconds at 50% FTP. Bosses retain fixed stats.
  const hp=kind==='enemy'?(entryPower>0?entryPower*1.25:watts*.625)*20*f.health*attackAt(reference):kind==='summit'?watts*1.25*60*f.health*attackAt(reference):watts*.75*240*f.health*attackAt(reference);
  const dps=kind==='enemy'?Math.min(1,.8*f.attack):kind==='summit'?.8*hpAt(reference)/120*f.attack:.8*hpAt(reference)/240*f.attack;
- return {kind,name:(target>92?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:monster.id,level:reference,sourceCR:monster.cr,sourceHP:monster.hp,sourceAttack:monster.attack,hp:Math.round(hp),max:Math.round(hp),dps,time:kind==='enemy'?30:kind==='summit'?60:300,reward:kind==='enemy'?60:kind==='summit'?600:600};
+ return {kind,name:(target>92&&!monsterId?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:monster.id,level:reference,sourceCR:monster.cr,sourceHP:monster.hp,sourceAttack:monster.attack,hp:Math.round(hp),max:Math.round(hp),dps,time:kind==='enemy'?30:kind==='summit'?60:300,reward:kind==='enemy'?60:kind==='summit'?600:600};
 }
 export function chapterRandom(chapter){let n=Math.imul(chapter,0x9e3779b1);n=Math.imul(n^(n>>>16),0x7feb352d);return ((n^(n>>>16))>>>0)/4294967296;}
