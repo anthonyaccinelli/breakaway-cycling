@@ -772,8 +772,8 @@ function refreshHeartRateProfile(){
  }
 }
 
-const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#b4eed3'],[-6,'#5cc9ad'],[-3,'#009d9d'],[0,'#0aacb8'],[3,'#00788f'],[6,'#009d9d'],[9,'#5cc9ad'],[12,'#b4eed3'],[16,'#e7e6f0']];
-const SURVIVAL_GRADE_STOPS:[number,string][]=[[-12,'#a0efd0'],[-6,'#4cc69e'],[-3,'#a984a5'],[0,'#916181'],[3,'#cf7fc5'],[6,'#a984a5'],[9,'#4cc69e'],[12,'#a0efd0'],[16,'#cf7fc5']];
+const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#397fa0'],[-6,'#4bb4c4'],[-3,'#69d1cb'],[0,'#a8e9d9'],[3,'#c9eeb0'],[6,'#f6e46f'],[9,'#ffb33d'],[12,'#ff6839'],[16,'#ff374c']];
+const SURVIVAL_GRADE_STOPS:[number,string][]=[[-12,'#829a85'],[-6,'#6f9473'],[-3,'#9b9b64'],[0,'#c0a45c'],[3,'#d48a40'],[6,'#e06b31'],[9,'#e74528'],[12,'#ff3027'],[16,'#ffac49']];
 function gradeColor(g:number){
  const stops=document.body.dataset.rideExperience==='survival'?SURVIVAL_GRADE_STOPS:CLASSIC_GRADE_STOPS;
  if(!Number.isFinite(g))return stops[3][1];
@@ -2129,6 +2129,8 @@ screenSetup.append(setupStepHeader);
 const rideView=document.createElement('div');rideView.className='ride-screen-content';
 rideView.append(originalProfile,originalDashboard);
 screenRide.append(rideHeading,rideView);
+// Keep the ride controls above the Survival panel and chase HUD.
+screenRide.insertBefore(rideHeading,survivePanel);
 // Move the original controls into the ride toolbar; their event handlers and state remain intact.
 rideHeading.classList.add('reference-ride-toolbar');rideHeading.style.setProperty('height','auto','important');rideHeading.style.setProperty('max-height','none','important');
 const rideToolbarActions=rideHeading.querySelector('.ride-screen-actions')!;
