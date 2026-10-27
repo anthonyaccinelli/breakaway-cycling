@@ -5,19 +5,19 @@ import {MONSTERS} from '../cycle-quest/monsters.js';
 import {gradeColor,GRADE_COLORS,elevationSVG} from '../cycle-quest/profile.js';
 import {generateRoute,sample} from '../cycle-quest/routes.js';
 const source=(await readFile(new URL('../cycle-quest/combat.js',import.meta.url),'utf8')).replace("'/api/cycle-quest?asset=monsters.js'",JSON.stringify(new URL('../cycle-quest/monsters.js',import.meta.url).href));
-const {makeBattle,monsterPool,chapterRandom}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const {makeBattle,monsterPool,chapterRandom,CHAPTER_BIOMES,nextChapterEncounter,advanceBattle}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 test('roster contains unique numerical SRD creatures at appropriate progression tiers',()=>{
  assert.equal(MONSTERS.length,314);assert.equal(new Set(MONSTERS.map(m=>m.id)).size,314);
  for(const m of MONSTERS)assert(m.hp>0&&Number.isFinite(m.attack)&&m.damage>=0&&m.level>=1);
  assert(MONSTERS.find(m=>m.id==='goblin').level<MONSTERS.find(m=>m.id==='adult-red-dragon').level);
 });
-test('all playable tiers have forgiving regular fights and bounded summit/boss time',()=>{
+test('regular encounter effort scales with FTP and combat has no timeout',()=>{
  for(let level=1;level<=200;level++)for(const random of [()=>0,()=>.5,()=>.999999]){
   assert(monsterPool(level).length>0);
-  const enemy=makeBattle('enemy',{level,ftp:280,random});const seconds=enemy.hp/(140*1.08**(level-1));
-  assert(seconds>=20&&seconds<=30);assert(enemy.dps<=1&&enemy.dps>0);assert.equal(enemy.time,30);assert.equal(enemy.reward,60);
-  const summit=makeBattle('summit',{level,ftp:280,random});assert.equal(summit.time,60);assert.equal(summit.reward,600);assert(summit.dps>0);assert(summit.hp>enemy.hp);
-  const boss=makeBattle('boss',{level,chapterLevel:level,ftp:280,random});assert.equal(boss.time,300);assert(boss.hp>enemy.hp&&boss.dps>0);
+  const enemy=makeBattle('enemy',{level,ftp:280,entryPower:150,random});const seconds=enemy.hp/(187.5*1.08**(level-1));
+  assert(Math.abs(seconds-60)<.01);assert.equal(enemy.dps,.25);assert.equal(enemy.time,undefined);assert.equal(enemy.reward,60);
+  const summit=makeBattle('summit',{level,ftp:280,random});assert.equal(summit.time,undefined);assert.equal(summit.reward,600);assert(summit.dps>0);assert(summit.hp>enemy.hp);
+  const boss=makeBattle('boss',{level,chapterLevel:level,ftp:280,random});assert.equal(boss.time,undefined);assert(boss.hp>enemy.hp&&boss.dps>0);
  }
 });
 test('chapter selection is reproducible and grinding increases player damage against a fixed boss',()=>{
@@ -40,3 +40,22 @@ test('new monster modules remain behind the beta password gate',async()=>{
  try{for(const asset of ['monsters.js','combat.js','profile.js','level-up.js','workouts.js','workout-ui.js','fit-decoder.js']){let status;const res={setHeader(){},status(n){status=n;return this;},json(){return this;},end(){}};await handler({method:'GET',url:'/api/cycle-quest?asset='+asset,headers:{host:'localhost'}},res);assert.equal(status,401);}}
  finally{if(oldPassword===undefined)delete process.env.CYCLE_QUEST_PASSWORD;else process.env.CYCLE_QUEST_PASSWORD=oldPassword;if(oldSecret===undefined)delete process.env.CYCLE_QUEST_SESSION_SECRET;else process.env.CYCLE_QUEST_SESSION_SECRET=oldSecret;}
 });
+
+test('first two chapter pools are distinct, complete, and draw fairly without repeated neighbors',()=>{
+ const a=CHAPTER_BIOMES[1].monsters,b=CHAPTER_BIOMES[2].monsters;assert.equal(a.length,8);assert.equal(b.length,8);assert.equal(new Set([...a,...b]).size,16);for(const id of [...a,...b])assert(MONSTERS.some(m=>m.id===id));
+ for(const chapter of [1,2]){let state=null,last=null;for(let cycle=0;cycle<5;cycle++){const drawn=[];for(let i=0;i<8;i++){const pick=nextChapterEncounter(chapter,state,()=>.37);assert.notEqual(pick.monsterId,last);drawn.push(pick.monsterId);last=pick.monsterId;state=pick.state;const fight=makeBattle('enemy',{level:1,ftp:280,monsterId:pick.monsterId});assert.equal(fight.monsterId,pick.monsterId);}assert.equal(new Set(drawn).size,8);}}
+ assert.equal(nextChapterEncounter(3,null),null);
+});
+
+test('battle continues beyond old deadlines and ends exactly at 1 HP',()=>{
+ let b={kind:'boss',hp:50000,max:50000,dps:.25,reward:600,time:30},hp=100;
+ let r=advanceBattle(b,hp,150,60);assert.equal(r.outcome,null);assert.equal(r.battle.hp,41000);assert.equal(r.hp,85);
+ r=advanceBattle(r.battle,r.hp,0,400);assert.equal(r.outcome,'loss');assert.equal(r.hp,1);
+});
+test('group has three full individual health bars and damage rolls to the next enemy',()=>{
+ const e={hp:11250,max:11250,name:'GOBLIN'},b={kind:'enemy',hp:33750,max:33750,dps:.25,reward:60,enemies:[e,e,e]};
+ const r=advanceBattle(b,100,187.5,100);assert.equal(r.outcome,null);assert.deepEqual(r.battle.enemies.map(x=>x.hp),[0,3750,11250]);assert.equal(r.killed,1);assert.equal(r.hp,75);
+ const end=advanceBattle(r.battle,r.hp,187.5,80);assert.equal(end.outcome,'win');assert.equal(end.killed,2);
+});
+test('simultaneous boss defeat and 1 HP is a loss',()=>{const r=advanceBattle({hp:990,max:990,dps:1},100,10,100);assert.equal(r.outcome,'loss');assert.equal(r.hp,1);});
+test('rider can set a ceiling and coasting uses a minimum target',()=>{const b=makeBattle('enemy',{level:1,ftp:280,entryPower:250,ceilingPercent:100});assert.equal(b.targetWatts,280);assert.equal(b.hp,16800);const c=makeBattle('enemy',{level:1,ftp:280,entryPower:0,ceilingPercent:100});assert.equal(c.targetWatts,154);});
