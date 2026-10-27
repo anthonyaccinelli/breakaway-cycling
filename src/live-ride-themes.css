@@ -104,3 +104,31 @@ body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide 
 body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{padding:4px 10px!important}
 body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .survive-game-hud{padding:3px 8px!important}
 }
+
+/* Classic and Survival ride styling from the supplied Cycle Quest layouts. */
+body[data-ride-experience="classic"][data-breakaway-screen="ride"]{--live-bg:#07132e;--live-panel:#11245a;--live-raised:#101d43;--live-border:#98a8d4;--live-text:#f6f2ef;--live-muted:#c6d4ed;--live-accent:#a8ecdc;--reference-chart:#091936;color-scheme:dark}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"]{--live-bg:#37071b;--live-panel:#79001c;--live-raised:#72091f;--live-border:#d7a4b3;--live-text:#fff0f1;--live-muted:#f3d1dc;--live-accent:#a0f5d5;--reference-chart:#40000e;color-scheme:dark}
+body[data-breakaway-screen="ride"]:is([data-ride-experience="classic"],[data-ride-experience="survival"]){font-family:"Courier New",monospace!important;background:var(--live-bg)!important}
+body[data-breakaway-screen="ride"]:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(main,.ride-workspace,.ride-stage,#screenRide){background:var(--live-bg)!important;color:var(--live-text)!important}
+body[data-breakaway-screen="ride"]:is([data-ride-experience="classic"],[data-ride-experience="survival"]) .breakaway-brand-bar{background:transparent!important;border:0!important;border-bottom:1px solid var(--live-border)!important;border-radius:0!important;color:var(--live-text)!important;box-shadow:none!important}
+body[data-breakaway-screen="ride"] .app-brand{font-family:"Courier New",monospace!important;font-weight:400!important;letter-spacing:.14em!important;color:var(--live-text)!important;text-transform:uppercase}
+body[data-breakaway-screen="ride"] .breakaway-tagline{color:var(--live-muted)!important;letter-spacing:.2em!important}
+body[data-breakaway-screen="ride"] #screenRide{padding:12px 18px!important}
+body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar{display:flex!important;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px!important;margin:0 0 12px!important;background:var(--live-panel)!important;border:2px solid var(--live-border)!important;border-radius:4px!important;color:var(--live-text)!important}
+body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar>strong{font:normal 20px "Courier New",monospace!important;letter-spacing:.1em!important}
+body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar .ride-screen-actions{display:flex!important;align-items:center;gap:6px;flex-wrap:wrap}
+body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar button{background:var(--live-raised)!important;color:var(--live-text)!important;border:1px solid var(--live-border)!important;border-radius:0!important;box-shadow:none!important;font:14px "Courier New",monospace!important;padding:8px 10px!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{gap:12px!important}
+body[data-breakaway-screen="ride"] #screenRide #profileSection,body[data-breakaway-screen="ride"] #screenRide .ride-dashboard{background:var(--live-panel)!important;border:2px solid var(--live-border)!important;border-radius:4px!important;color:var(--live-text)!important}
+body[data-breakaway-screen="ride"] #screenRide #profileSection{padding:12px 18px!important}
+body[data-breakaway-screen="ride"] #screenRide .profile-heading h2{font:normal clamp(16px,1.5vw,21px) "Courier New",monospace!important;letter-spacing:.12em!important;color:var(--live-text)!important}
+body[data-breakaway-screen="ride"] #screenRide #chart{height:clamp(200px,30vh,335px)!important}
+body[data-breakaway-screen="ride"] #screenRide #chart svg{background:var(--reference-chart)!important;border:1px solid var(--live-border)!important}
+body[data-breakaway-screen="ride"] #screenRide .profile-inspector,body[data-breakaway-screen="ride"] #screenRide :is(.profile-editor,.profile-zoom){background:transparent!important;color:var(--live-muted)!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{padding:8px 16px!important;min-height:55px!important;background:transparent!important;border-color:var(--live-border)!important;font-family:"Courier New",monospace!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric small{font:normal 12px "Courier New",monospace!important;letter-spacing:.08em!important;color:var(--live-muted)!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric b{font:normal clamp(21px,2vw,29px)/1.1 "Courier New",monospace!important;letter-spacing:.08em!important;color:var(--live-text)!important;margin:3px 0 0!important}
+body[data-breakaway-screen="ride"] #screenRide .metric:has(#power){order:1}body[data-breakaway-screen="ride"] #screenRide .metric:has(#heartRate){order:2}body[data-breakaway-screen="ride"] #screenRide .metric:has(#cadence){order:3}body[data-breakaway-screen="ride"] #screenRide .metric:has(#speed){order:4}body[data-breakaway-screen="ride"] #screenRide .metric:has(#elapsedTime){order:5}body[data-breakaway-screen="ride"] #screenRide .metric:has(#distance){order:6}body[data-breakaway-screen="ride"] #screenRide .metric:has(#totalGain){order:7}body[data-breakaway-screen="ride"] #screenRide .metric:has(#referenceRideGear){order:8}body[data-breakaway-screen="ride"] #screenRide .metric:has(#remaining){order:9}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .survive-game-hud{background:var(--live-panel)!important;border-color:var(--live-border)!important;color:var(--live-text)!important}
+@media(max-width:750px){body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}body[data-breakaway-screen="ride"] #screenRide #chart{height:200px!important}}
