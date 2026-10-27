@@ -2858,3 +2858,14 @@ window.setInterval(()=>{
 mountSurvivalCockpit();
 mountClassicCockpit();
 
+// Preview-only: show the real Classic layout with idle values, without
+// claiming a trainer connection or starting a ride. Remove before merging.
+if(new URLSearchParams(location.search).get('previewClassicRide')==='1'){
+ chooseRideExperience('classic');
+ showBreakawayScreen('ride');
+ const notice=document.createElement('div');
+ notice.textContent='LAYOUT PREVIEW · IDLE VALUES · CONNECT A TRAINER TO RIDE';
+ notice.style.cssText='padding:6px 12px;background:#e8f1ff;color:#173a72;border:1px solid #a6bbdf;font:700 11px system-ui;text-align:center';
+ screenRide.prepend(notice);
+}
+
