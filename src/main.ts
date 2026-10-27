@@ -2642,7 +2642,8 @@ generateRouteButton?.addEventListener('click',()=>{
 const uploadRouteInput=document.querySelector<HTMLInputElement>('input[type="file"]');
 uploadRouteInput?.addEventListener('change',()=>{studioRouteFeedback.textContent='Route uploaded — review the route preview below.';});
 
-function chooseRideExperience(mode:RideExperience){
+function chooseRideExperience(mode:RideExperience,recordHistory=true){
+ if(recordHistory)history.pushState({...(history.state||{}),breakawayPage:'mode',breakawayMode:mode},'');
  rideExperience=mode;
  modeLanding.hidden=true;
  modeHomeButton.hidden=false;
@@ -2658,22 +2659,33 @@ function chooseRideExperience(mode:RideExperience){
  if(routeTitle)routeTitle.textContent=mode==='survival'?'GENERATE YOUR ESCAPE ROUTE':'ROUTE STUDIO';
 }
 function openModeLanding(){
+ if(surviveOn){status('End your current Survival session before changing modes.');return false;}
  const host=document.getElementById('cycleQuestHost');if(host)host.hidden=true;
- if(document.body.dataset.rideExperience==='cyclequest'){if(running)pauseRide();cycleQuestHold=false;}
- if(surviveOn){status('End your current Survival session before changing modes.');return;}
+ if(running)pauseRide();
+ if(document.body.dataset.rideExperience==='cyclequest')cycleQuestHold=false;
  modeLanding.hidden=false;
  modeHomeButton.hidden=true;
  screenRoute.hidden=true;screenSetup.hidden=true;screenRide.hidden=true;
  document.body.dataset.breakawayScreen='home';
  window.scrollTo(0,0);
+ return true;
 }
 modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
 modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
-modeHomeButton.addEventListener('click',openModeLanding);
+modeHomeButton.addEventListener('click',()=>{if(surviveOn){status('End your current Survival session before changing modes.');return;}if(history.state?.breakawayPage==='mode')history.back();else openModeLanding();});
 modeLanding.querySelector('#chooseCycleQuest')!.addEventListener('click',enterCycleQuest);
 const originalEnterRideScreen=enterRideScreen;
 // Preview starts with mode selection, not the existing route editor.
 openModeLanding();
+history.replaceState({...(history.state||{}),breakawayPage:'home'},'');
+window.addEventListener('popstate',event=>{
+ const state=event.state;
+ if(state?.breakawayPage==='mode'){
+  if(surviveOn){status('End your current Survival session before changing modes.');return;}
+  if(state.breakawayMode==='cyclequest'){if(questAuthenticated)launchCycleQuest(false);else enterCycleQuest();}
+  else if(state.breakawayMode==='classic'||state.breakawayMode==='survival')chooseRideExperience(state.breakawayMode,false);
+ }else if(!openModeLanding())history.pushState({...(state||{}),breakawayPage:'mode',breakawayMode:rideExperience},'');
+});
 
 // Trainer Test Lab is a separate offline simulator, never connected to live ride state.
 const trainerLabLink=document.createElement('a');
@@ -2707,7 +2719,7 @@ async function enterCycleQuest(){
  try{const response=await fetch('/api/cycle-quest?asset=status',{credentials:'same-origin',cache:'no-store'});if(response.ok){launchCycleQuest();return;}}catch{}
  questGate.showModal();questPassword.focus();
 }
-function launchCycleQuest(){questAuthenticated=true;rideExperience='cyclequest';document.body.dataset.rideExperience='cyclequest';survivalStudio.hidden=true;cycleQuestHold=false;questReward=false;if(!questFrame.src)questFrame.src='/api/cycle-quest?asset=index.html';showCycleQuest();}
+function launchCycleQuest(recordHistory=true){if(recordHistory)history.pushState({...(history.state||{}),breakawayPage:'mode',breakawayMode:'cyclequest'},'');questAuthenticated=true;rideExperience='cyclequest';document.body.dataset.rideExperience='cyclequest';survivalStudio.hidden=true;cycleQuestHold=false;questReward=false;if(!questFrame.src)questFrame.src='/api/cycle-quest?asset=index.html';showCycleQuest();}
 const questGate=document.createElement('dialog');questGate.className='quest-access-dialog';questGate.id='questAccessGate';questGate.innerHTML='<form id="questAccessForm"><span>PRIVATE BETA</span><h2>CYCLE QUEST</h2><p>Enter the beta password to begin.</p><label for="questPassword">Password</label><input id="questPassword" type="password" autocomplete="off" required maxlength="200"><p id="questAccessError" role="alert"></p><div><button type="submit">UNLOCK CYCLE QUEST</button><button type="button" id="questAccessCancel">CANCEL</button></div></form>';document.body.append(questGate);
 const questPassword=questGate.querySelector<HTMLInputElement>('#questPassword')!;
 questGate.querySelector('#questAccessCancel')!.addEventListener('click',()=>questGate.close());
