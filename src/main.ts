@@ -2557,7 +2557,11 @@ function updateSetupReadiness(){
  refreshSetupDeviceCards();
 }
 function showBreakawayScreen(screen:BreakawayScreen){
- if(document.body.dataset.rideExperience==='cyclequest'&&screen==='ride'){showCycleQuest();return;}
+ if(document.body.dataset.rideExperience==='cyclequest'&&(screen==='ride'||screen==='route')){showCycleQuest();return;}
+ const questSetup=document.body.dataset.rideExperience==='cyclequest';
+ const routeStep=document.getElementById('stepRoute')!;routeStep.textContent=questSetup?'← Cycle Quest':'1 · Create Route';routeStep.setAttribute('aria-label',questSetup?'Return to Cycle Quest':'Go to Create Route');
+ const editRoute=document.getElementById('backToRoute')!;editRoute.textContent=questSetup?'← Cycle Quest':'← Edit route';
+ const rideStep=document.getElementById('stepRide')!;rideStep.textContent=questSetup?'3 · Cycle Quest':'3 · Enjoy the Ride';rideStep.setAttribute('aria-label',questSetup?'Return to Cycle Quest':'Go to Enjoy the Ride');
  const questHost=document.getElementById('cycleQuestHost');if(questHost)questHost.hidden=true;
  breakawayScreen=screen;
  // One shared navigation component, mounted inside the active screen's header.
@@ -2599,7 +2603,7 @@ document.getElementById('goToRide')!.addEventListener('click',enterRideScreen);
 // Navigation is free between planning and devices; entering the active ride requires a trainer.
 document.getElementById('stepRoute')!.addEventListener('click',()=>{stopRideCountdown();if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
 document.getElementById('stepSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');checkAutomaticRideCountdown();});
-document.getElementById('stepRide')!.addEventListener('click',()=>{if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
+document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
 document.getElementById('backToRoute')!.addEventListener('click',()=>{stopRideCountdown();showBreakawayScreen('route');});
 document.getElementById('backToSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');});
 document.getElementById('backToStudio')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});

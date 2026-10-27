@@ -104,3 +104,26 @@ body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide 
 body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{padding:4px 10px!important}
 body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .survive-game-hud{padding:3px 8px!important}
 }
+
+
+/* Cycle Quest trainer setup uses the game's palette and type while retaining shared device controls. */
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"]{background:#05091a!important;color:#f5f4ff!important;color-scheme:dark}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] :is(main,#screenSetup){background:#05091a!important;color:#f5f4ff!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] :is(.app-brand,#screenSetup h2,#screenSetup h3,#screenSetup label,#screenSetup button,#screenSetup select,#screenSetup input,#screenSetup summary,#screenSetup p,#screenSetup .screen-step){font-family:'VT323',monospace!important;letter-spacing:.02em}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] .app-brand{font-size:0!important;color:#fff!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] .app-brand::after{content:'CYCLE QUEST';font-size:32px;letter-spacing:.12em;color:#fff}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] .breakaway-tagline{color:#b5c4ef!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.breakaway-integrated-step-header,.connection-strip){background:#0a1538!important;border-color:#8699c7!important;color:#fff!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.setup-device-tile,.setup-advanced-settings,.setup-rider-settings,.ride-shifting-column,#drivetrainSection,.setup-utility-details,.bluetooth-auto){background:linear-gradient(135deg,#243c91,#132057)!important;border:1px solid #a4b5df!important;color:#fff!important;border-radius:4px!important;box-shadow:inset 0 0 0 1px #485d95!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.setup-rider-settings,.ride-shifting-column){background:transparent!important;box-shadow:none!important;border:0!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(h2,h3,label,summary,span){color:#f5f4ff!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.note,.integrated-step-hint,.device-status){color:#c6d4f2!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(button,select,input:not([type="checkbox"])){background:#102158!important;color:#fff!important;border:1px solid #a4b5df!important;border-radius:2px!important;box-shadow:none!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup button{font-size:20px!important;line-height:1.05!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(button:hover,button:focus-visible){background:#304c9f!important;outline-color:#ffe777!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.screen-step.active,button[aria-pressed="true"]){background:#314994!important;color:#ffe777!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.route-kicker,#status){color:#ffe777!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup button:disabled{opacity:.5!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.setup-device-tile h3,.setup-advanced-settings h3,#drivetrainSection h2){font-size:25px!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(label,p,summary,input,select){font-size:18px!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.setup-next,#setupReadiness){color:#fff!important}
