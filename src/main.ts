@@ -772,8 +772,8 @@ function refreshHeartRateProfile(){
  }
 }
 
-const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#397fa0'],[-6,'#4bb4c4'],[-3,'#69d1cb'],[0,'#a8e9d9'],[3,'#c9eeb0'],[6,'#f6e46f'],[9,'#ffb33d'],[12,'#ff6839'],[16,'#ff374c']];
-const SURVIVAL_GRADE_STOPS:[number,string][]=[[-12,'#829a85'],[-6,'#6f9473'],[-3,'#9b9b64'],[0,'#c0a45c'],[3,'#d48a40'],[6,'#e06b31'],[9,'#e74528'],[12,'#ff3027'],[16,'#ffac49']];
+const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#267fa8'],[-6,'#267fa8'],[0,'#19b5c2'],[3,'#87e5c9'],[6,'#f9dc52'],[9,'#ff8a25'],[12,'#f13737'],[16,'#f13737']];
+const SURVIVAL_GRADE_STOPS:[number,string][]=[[-12,'#66877b'],[-6,'#66877b'],[0,'#879762'],[3,'#b2a252'],[6,'#b87835'],[9,'#ac422b'],[12,'#e43926'],[16,'#e43926']];
 function gradeColor(g:number){
  const stops=document.body.dataset.rideExperience==='survival'?SURVIVAL_GRADE_STOPS:CLASSIC_GRADE_STOPS;
  if(!Number.isFinite(g))return stops[3][1];
