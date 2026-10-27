@@ -179,7 +179,7 @@ body.survival-overlay-theme .survive-hud-metric b{
  color:#fff1ef!important;font-size:clamp(18px,2.6vw,34px)!important;
  font-weight:900!important;line-height:1.1!important;
 }
-body.survival-overlay-theme .survive-hud-grid>.survive-hud-metric:nth-child(3) b{
+body.survival-overlay-theme .survive-hud-grid>.survive-hud-metric:nth-child(4) b{
  color:var(--undead-blood)!important;
 }
 body.survival-overlay-theme .survive-hud-profile{
