@@ -1,0 +1,30 @@
+/* Cycle Quest-inspired live ride UI. Presentation only: original BLE, chart, recording and Survival logic remain mounted. */
+body[data-ride-experience="classic"][data-breakaway-screen="ride"]{--live-bg:#f5f5f7;--live-panel:#fff;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#6e7484;--live-accent:#007aff;color-scheme:light}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"]{--live-bg:#060408;--live-panel:#180a10;--live-border:#8d263a;--live-text:#f9e8eb;--live-muted:#d29aa5;--live-accent:#ff304b;color-scheme:dark}
+body[data-breakaway-screen="ride"]:is([data-ride-experience="classic"],[data-ride-experience="survival"]){background:var(--live-bg)!important;color:var(--live-text)!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif!important}
+body[data-breakaway-screen="ride"] #screenRide{background:var(--live-bg)!important;color:var(--live-text)!important;padding:8px 12px 20px!important;max-width:none!important;width:100%!important;overflow:visible!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{display:flex!important;flex-direction:column!important;gap:12px!important;width:100%!important;max-width:none!important;min-height:0!important}
+body[data-breakaway-screen="ride"] #screenRide #profileSection{width:100%!important;max-width:none!important;flex:none!important;margin:0!important;padding:14px 18px!important;background:var(--live-panel)!important;color:var(--live-text)!important;border:2px solid var(--live-border)!important;border-radius:6px!important;box-shadow:none!important;min-height:0!important}
+body[data-breakaway-screen="ride"] #screenRide #chart{width:100%!important;min-width:0!important;max-width:none!important;height:clamp(210px,33vh,340px)!important;overflow:hidden!important}
+body[data-breakaway-screen="ride"] #screenRide #chart svg{width:100%!important;height:100%!important;max-width:none!important;background:var(--live-bg)!important}
+body[data-breakaway-screen="ride"] #screenRide .profile-heading{color:var(--live-text)!important}
+body[data-breakaway-screen="ride"] #screenRide .profile-heading h2{color:var(--live-text)!important;letter-spacing:1px!important;text-transform:uppercase!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard{display:block!important;flex:none!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important;background:var(--live-panel)!important;border:2px solid var(--live-border)!important;border-radius:6px!important;color:var(--live-text)!important;min-height:0!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard>h2{display:none!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:0!important;padding:0!important;margin:0!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{display:flex!important;flex-direction:column-reverse!important;align-items:flex-start!important;justify-content:center!important;min-width:0!important;padding:12px 18px!important;margin:0!important;background:transparent!important;border-radius:0!important;border-right:1px solid var(--live-border)!important;color:var(--live-text)!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:nth-child(4n){border-right:0!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:nth-child(-n+4){border-bottom:1px solid var(--live-border)!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric small{order:0!important;color:var(--live-muted)!important;text-transform:uppercase!important;letter-spacing:1.2px!important;font-size:11px!important;font-weight:800!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric b{order:1!important;font-size:clamp(23px,2.9vw,42px)!important;line-height:1.1!important;color:var(--live-text)!important;font-variant-numeric:tabular-nums!important;white-space:nowrap!important;margin:7px 0 0!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .readout-options{display:none!important}
+body[data-breakaway-screen="ride"] #screenRide .profile-editor,body[data-breakaway-screen="ride"] #screenRide .profile-zoom{background:transparent!important;color:var(--live-muted)!important}
+body[data-breakaway-screen="ride"] #screenRide button{border-radius:4px!important}
+body[data-breakaway-screen="ride"] #screenRide .profile-start-ride{background:var(--live-accent)!important;color:#fff!important}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .survive-game-hud{background:var(--live-panel)!important;border:2px solid var(--live-border)!important;color:var(--live-text)!important;border-radius:6px!important}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .survive-game-hud strong{color:var(--live-accent)!important}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide.survive-playing .ride-dashboard{display:block!important}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .survive-game-hud.is-chase{border-color:#ff304b!important;box-shadow:inset 0 0 24px #ff304b18!important}
+body[data-breakaway-screen="ride"] #screenRide .profile-inspector{color:var(--live-text)!important}
+body[data-breakaway-screen="ride"] #screenRide .profile-inspector b{color:var(--live-accent)!important}
+@media(max-width:750px){body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:nth-child(2n){border-right:0!important}body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:nth-child(-n+6){border-bottom:1px solid var(--live-border)!important}body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{padding:10px!important}}
