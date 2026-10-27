@@ -1,5 +1,6 @@
 import './style.css';
 import './live-ride-themes.css';
+import {mountSurvivalCockpit} from './survival-cockpit';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
@@ -2800,3 +2801,6 @@ window.setInterval(()=>{
  }
  questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade,gain:c.gain,elevation:at(c.end).elevation})),summitBoss:!endless?questHighestSummit():null,connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
 },200);
+
+// Survival v2 is UI-only; initialize after the original controls/listeners exist.
+mountSurvivalCockpit();
