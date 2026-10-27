@@ -772,8 +772,8 @@ function refreshHeartRateProfile(){
  }
 }
 
-const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#76D7E8'],[-6,'#55B9F5'],[-3,'#79A9FF'],[0,'#C5C9D2'],[3,'#A6A0FF'],[6,'#8B70F4'],[9,'#C477E8'],[12,'#F095C7'],[16,'#F4A86A']];
-const SURVIVAL_GRADE_STOPS:[number,string][]=[[-12,'#374253'],[-6,'#53627A'],[-3,'#756777'],[0,'#B8A6A9'],[3,'#B9798A'],[6,'#C34B63'],[9,'#E72D4C'],[12,'#FF4350'],[16,'#FF9A68']];
+const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#b4eed3'],[-6,'#5cc9ad'],[-3,'#009d9d'],[0,'#0aacb8'],[3,'#00788f'],[6,'#009d9d'],[9,'#5cc9ad'],[12,'#b4eed3'],[16,'#e7e6f0']];
+const SURVIVAL_GRADE_STOPS:[number,string][]=[[-12,'#a0efd0'],[-6,'#4cc69e'],[-3,'#a984a5'],[0,'#916181'],[3,'#cf7fc5'],[6,'#a984a5'],[9,'#4cc69e'],[12,'#a0efd0'],[16,'#cf7fc5']];
 function gradeColor(g:number){
  const stops=document.body.dataset.rideExperience==='survival'?SURVIVAL_GRADE_STOPS:CLASSIC_GRADE_STOPS;
  if(!Number.isFinite(g))return stops[3][1];
@@ -2715,7 +2715,7 @@ offerRideRecovery();
 if(location.hostname.endsWith('.vercel.app')){
  const visualMode=new URLSearchParams(location.search).get('ridePreview');
  if(visualMode==='classic'||visualMode==='survival')queueMicrotask(()=>{
-  chooseRideExperience(visualMode,false);showBreakawayScreen('ride');svg();
+  chooseRideExperience(visualMode,false);showBreakawayScreen('ride');svg();const notice=document.getElementById('browserCompatibility');if(notice)notice.hidden=true;
   if(visualMode==='survival'){surviveGameHud.hidden=false;screenRide.classList.add('survive-playing');}
  });
 }
