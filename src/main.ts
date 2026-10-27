@@ -684,7 +684,7 @@ function refreshInspection(){
  $('profileRouteGain').textContent=Math.round(gainLossThrough(fullLength).gain*FEET_PER_METER)+' feet';
  // During editing, the dashboard elevation readout follows the inspected terrain.
  // Dashboard shows elapsed time; elevation remains available in the profile inspector.
- updateRiderDot($('marker'),distance);
+ updateRiderDot($('marker'),rideExperience==='cyclequest'?d:distance);
 }
 $('inspectReset').addEventListener('click',()=>{inspectDistance=null;update();refreshInspection();});
 
