@@ -666,8 +666,8 @@ function updateRiderDot(marker:Element|null,position:number){
  const d=Math.max(start,Math.min(max,position));
  const x=12+(d-start)/Math.max(1,max-start)*876;
  const y=210-12-(overviewAt(d).elevation-min)/range*(210-24);
- marker.setAttribute('cx',x.toFixed(2));
- marker.setAttribute('cy',y.toFixed(2));
+ marker.setAttribute('x1',x.toFixed(2));
+ marker.setAttribute('x2',x.toFixed(2));
 }
 function refreshInspection(){
  if(!points.length)return;
@@ -813,7 +813,7 @@ function svg(){
   return `<rect x="${x(d0).toFixed(2)}" y="0" width="${(x(d1)-x(d0)+0.3).toFixed(2)}" height="${h}" fill="${gradeColor(grade)}"/>`;
  }).join('');
  const terrainPath=`M ${x(start)} ${h-pad} L ${line.replaceAll(' ',' L ')} L ${x(max)} ${h-pad} Z`;
- $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><div class="profile-telemetry"><span class="profile-gear-readout"></span><span class="profile-hr-readout">— bpm</span></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><circle id="marker" cx="${pad}" cy="${h-pad}" r="6" fill="#ffc85c" stroke="#fff1b8" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="none"/><circle id="surviveProfileThreat" cx="${pad}" cy="${h-pad}" r="8" fill="#f04452" stroke="#fff" stroke-width="2.5" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/></svg>`;
+ $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><div class="profile-telemetry"><span class="profile-gear-readout"></span><span class="profile-hr-readout">— bpm</span></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><line id="marker" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3.5" vector-effect="non-scaling-stroke" pointer-events="none"/><line id="surviveProfileThreat" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ff304b" stroke-width="3.5" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/></svg>`;
  zoomDisplay();syncProfileCharts();refreshHeartRateProfile();refreshInspection();
 }
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
@@ -1943,7 +1943,7 @@ function surviveAdvanceEnemy(dt:number){
  surviveGap=Math.max(0,distance-surviveEnemyDistance);
 }
 function surviveUpdateProfileThreat(){
- const marker=document.getElementById('surviveProfileThreat') as unknown as SVGCircleElement|null;
+ const marker=document.getElementById('surviveProfileThreat') as unknown as SVGLineElement|null;
  if(!marker)return;
  const visible=surviveOn&&survivePrepRemaining<=0&&points.length>0;
  marker.style.display=visible?'':'none';
@@ -1952,8 +1952,9 @@ function surviveUpdateProfileThreat(){
  const pos=Math.max(start,Math.min(max,surviveEnemyDistance));
  const elevations=[overviewAt(start),...overviewPoints().filter(p=>p.distance>start&&p.distance<max),overviewAt(max)].map(p=>p.elevation);
  const min=Math.min(...elevations),range=Math.max(1,Math.max(...elevations)-min);
- marker.setAttribute('cx',String(pad+(pos-start)/Math.max(1,max-start)*(w-2*pad)));
- marker.setAttribute('cy',String(h-pad-(overviewAt(pos).elevation-min)/range*(h-2*pad)));
+ const threatX=String(pad+(pos-start)/Math.max(1,max-start)*(w-2*pad));
+ marker.setAttribute('x1',threatX);
+ marker.setAttribute('x2',threatX);
  marker.setAttribute('opacity',surviveEnemyDistance<start?'0.55':'1');
 }
 let surviveGapHistory:{t:number;gap:number}[]=[];
@@ -2256,6 +2257,7 @@ function syncStudioRoutePreview(){
      el.setAttribute('clip-path',`url(#${previewClipId})`);
    });
   }
+  copy.querySelectorAll('#marker, #surviveProfileThreat').forEach(el=>el.remove());
   copy.querySelectorAll('[id]').forEach(el=>{
    if(el!==clip)el.removeAttribute('id');
   });
