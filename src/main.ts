@@ -2710,6 +2710,14 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('pagehide',saveRideRecovery);
 // All ride UI and handlers are initialized by this point.
 offerRideRecovery();
+// Preview-only visual inspection without connecting a trainer; remove before release.
+if(location.hostname.endsWith('.vercel.app')){
+ const visualMode=new URLSearchParams(location.search).get('ridePreview');
+ if(visualMode==='classic'||visualMode==='survival')queueMicrotask(()=>{
+  chooseRideExperience(visualMode,false);showBreakawayScreen('ride');svg();
+  if(visualMode==='survival'){surviveGameHud.hidden=false;screenRide.classList.add('survive-playing');}
+ });
+}
 
 
 // Cycle Quest keeps the existing Bluetooth/physics engine as the sole trainer owner.
