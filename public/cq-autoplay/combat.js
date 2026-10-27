@@ -21,14 +21,14 @@ export function creatureFactors(monster){
  const mean=key=>peers.reduce((n,m)=>n+m[key],0)/peers.length;
  return {health:clamp(1+.16*Math.log2(monster.hp/mean('hp')),.82,1.18),attack:clamp(1+.12*Math.log2((monster.damage+Math.max(0,monster.attack))/(mean('damage')+Math.max(0,mean('attack')))),.8,1.2)};
 }
-export function makeBattle(kind,{level,ftp,chapterLevel=level,random=Math.random}){
+export function makeBattle(kind,{level,ftp,entryPower=0,chapterLevel=level,random=Math.random}){
  const reference=kind==='boss'?chapterLevel:level;
  const target=kind==='enemy'?Math.max(1,level-2):kind==='summit'?level+5:chapterLevel;
  const monster=selectMonster(target,kind,random),f=creatureFactors(monster);
  const watts=Number.isFinite(ftp)&&ftp>0?ftp:280;
  // Regular fights: roughly 10–16 seconds at 50% FTP. Bosses retain fixed stats.
- const hp=kind==='enemy'?watts*.5*13*f.health*attackAt(reference):kind==='summit'?watts*1.25*60*f.health*attackAt(reference):watts*.75*240*f.health*attackAt(reference);
- const dps=kind==='enemy'?Math.min(1,.8*f.attack):kind==='summit'?0:.8*hpAt(reference)/240*f.attack;
- return {kind,name:(target>92?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:monster.id,level:reference,sourceCR:monster.cr,sourceHP:monster.hp,sourceAttack:monster.attack,hp:Math.round(hp),max:Math.round(hp),dps,time:kind==='enemy'?30:kind==='summit'?60:300,reward:kind==='enemy'?60:kind==='summit'?1200:600};
+ const hp=kind==='enemy'?(entryPower>0?entryPower*1.25:watts*.625)*20*f.health*attackAt(reference):kind==='summit'?watts*1.25*60*f.health*attackAt(reference):watts*.75*240*f.health*attackAt(reference);
+ const dps=kind==='enemy'?Math.min(1,.8*f.attack):kind==='summit'?.8*hpAt(reference)/120*f.attack:.8*hpAt(reference)/240*f.attack;
+ return {kind,name:(target>92?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:monster.id,level:reference,sourceCR:monster.cr,sourceHP:monster.hp,sourceAttack:monster.attack,hp:Math.round(hp),max:Math.round(hp),dps,time:kind==='enemy'?30:kind==='summit'?60:300,reward:kind==='enemy'?60:kind==='summit'?600:600};
 }
 export function chapterRandom(chapter){let n=Math.imul(chapter,0x9e3779b1);n=Math.imul(n^(n>>>16),0x7feb352d);return ((n^(n>>>16))>>>0)/4294967296;}

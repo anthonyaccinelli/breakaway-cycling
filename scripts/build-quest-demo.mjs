@@ -8,7 +8,7 @@ for(const name of ['index.html','game.js','routes.js','monsters.js','combat.js',
   const at=s.indexOf(" if(m.type==='telemetry')");s=s.slice(0,at)+` if(m.type==='demo-action'){
  const action=m.action;rewardChoice=null;if(action==='claim'){choose('xp');return;}if(action==='win'||action==='lose'){if(s.battle)finish(action==='win');render();return;}
  if(action==='reset'){levelUps.clear();levelUp=null;s=fresh();s.route=generateRoute(15,'rolling',null,42077);s.routeMiles=0;lastLiveDistance=0;parentSend({type:'route',route:s.route});message='Autoplay preview reset.';}
- else{s.battle=null;s.reward=false;s.hp=maxHP();if(action==='level'){levelUps.clear();levelUp=null;award(threshold(level()+1)-s.xp);s.nextEncounter=20;}else if(action==='reward'){s.reward=true;message='Victory! Choose healing or bonus XP.';}else if(['enemy','summit','boss'].includes(action))encounter(action);}
+ else{s.battle=null;s.reward=false;if(action==='level'){levelUps.clear();levelUp=null;award(threshold(level()+1)-s.xp);s.nextEncounter=20;}else if(action==='reward'){s.reward=true;message='Victory! Choose healing or bonus XP.';}else if(['enemy','summit','boss'].includes(action))encounter(action);}
  save();render();return;
  }
 `+s.slice(at);
