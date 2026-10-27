@@ -776,33 +776,22 @@ function refreshHeartRateProfile(){
  }
 }
 
-const CLASSIC_GRADE_STOPS:[number,string][]=[[-12,'#76D7E8'],[-6,'#55B9F5'],[-3,'#79A9FF'],[0,'#C5C9D2'],[3,'#A6A0FF'],[6,'#8B70F4'],[9,'#C477E8'],[12,'#F095C7'],[16,'#F4A86A']];
-// Four exact user-selected swatches: descending, flat, climbing, steep climbing.
-// No interpolation or intermediate colors in Survival.
+// Distinct grade colors keep the changing terrain readable at a glance.
+const CLASSIC_GRADE_COLORS={
+ descent:'#55B9F5',flat:'#C5C9D2',climb:'#8B70F4',steep:'#F4A86A'
+} as const;
+// Survival uses the four swatches selected for its zombie theme.
 const SURVIVAL_GRADE_COLORS={
  descent:'#394252',flat:'#B5A7A9',climb:'#D54051',steep:'#F19F71'
 } as const;
 function gradeColor(g:number){
- if(document.body.dataset.rideExperience==='survival'){
-  if(!Number.isFinite(g))return SURVIVAL_GRADE_COLORS.flat;
-  if(g< -1)return SURVIVAL_GRADE_COLORS.descent;
-  if(g<3)return SURVIVAL_GRADE_COLORS.flat;
-  if(g<9)return SURVIVAL_GRADE_COLORS.climb;
-  return SURVIVAL_GRADE_COLORS.steep;
- }
- // Preserve the existing smoothly interpolated Classic palette.
- const stops=CLASSIC_GRADE_STOPS;
- if(!Number.isFinite(g))return stops[3][1];
- if(g<=stops[0][0])return stops[0][1];
- for(let i=1;i<stops.length;i++){
-  const [end,hex]=stops[i], [start,from]=stops[i-1];
-  if(g<=end){
-   const t=(g-start)/(end-start);
-   const rgb=(a:string,b:string)=>Math.round(parseInt(a,16)+(parseInt(b,16)-parseInt(a,16))*t).toString(16).padStart(2,'0');
-   return '#'+rgb(from.slice(1,3),hex.slice(1,3))+rgb(from.slice(3,5),hex.slice(3,5))+rgb(from.slice(5,7),hex.slice(5,7));
-  }
- }
- return stops[stops.length-1][1];
+ const survival=document.body.dataset.rideExperience==='survival';
+ const colors=survival?SURVIVAL_GRADE_COLORS:CLASSIC_GRADE_COLORS;
+ if(!Number.isFinite(g))return colors.flat;
+ if(g< -1)return colors.descent;
+ if(g<3)return colors.flat;
+ if(g<(survival?9:6))return colors.climb;
+ return colors.steep;
 }
 
 function svg(){
@@ -1654,10 +1643,10 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  const reduced=samples.filter((_,i)=>i%stride===0);
  if(reduced.at(-1)!==samples.at(-1))reduced.push(samples.at(-1)!);
  // Each colored vertical strip represents the grade of the segment ahead.
- // The full descent-to-climb palette blends continuously between grade stops.
+ // Each strip uses the current mode's discrete grade palette.
  const x=(d:number)=>pad+(d-start)/Math.max(1,stop-start)*(w-2*pad);
  const y=(e:number)=>h-pad-(e-min)/range*(h-2*pad);
- // Use the shared continuous gradient palette.
+ // Use the same discrete grade palette as the main profile.
  const clipId='breakaway-terrain-clip-'+Math.random().toString(36).slice(2,10);
  const terrain=reduced.map(p=>`${x(p.distance)},${y(p.elevation)}`).join(' ');
  const fillPath=`M ${x(start)} ${h-pad} L ${terrain.replaceAll(' ', ' L ')} L ${x(stop)} ${h-pad} Z`;
