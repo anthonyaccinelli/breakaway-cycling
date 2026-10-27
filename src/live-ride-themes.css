@@ -139,3 +139,10 @@ body:is([data-ride-experience="classic"],[data-ride-experience="survival"]):is([
 body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(.device-connect-card,.setup-advanced-settings,#drivetrainSection,.setup-utility-details,.route-builder,.route-studio-live-preview){background:var(--live-panel)!important;color:var(--live-text)!important;border-color:var(--live-border)!important}
 body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(h2,h3,label,summary){color:var(--live-text)!important}
 body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(.note,.integrated-step-hint){color:var(--live-muted)!important}
+
+/* Keep setup labels readable against each mode's surfaces. */
+body[data-ride-experience="classic"][data-breakaway-screen="setup"] #screenSetup :is(.integrated-step-title h2,.connection-strip>h2){color:#1d1d1f!important}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"])[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings h3{color:var(--live-text)!important}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"])[data-breakaway-screen="setup"] #screenSetup .setup-connection-indicator{color:var(--live-muted)!important}
+body[data-ride-experience="survival"][data-breakaway-screen="setup"] #screenSetup .bluetooth-auto{background:#270e17!important;border-color:#8d263a!important}
+body[data-ride-experience="survival"][data-breakaway-screen="setup"] #screenSetup .bluetooth-auto label{color:#f9e8eb!important}
