@@ -144,3 +144,21 @@ body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar [hidden]{
 body[data-breakaway-screen="ride"] .app-brand{font-size:0!important}
 body[data-ride-experience="classic"][data-breakaway-screen="ride"] .app-brand::after{content:"BREAKAWAY CLASSIC";font:normal clamp(20px,2.5vw,34px) "Courier New",monospace;letter-spacing:.14em;color:var(--live-text)}
 body[data-ride-experience="survival"][data-breakaway-screen="ride"] .app-brand::after{content:"BREAKAWAY SURVIVAL";font:normal clamp(20px,2.5vw,34px) "Courier New",monospace;letter-spacing:.14em;color:var(--live-text)}
+
+body[data-ride-experience="classic"][data-breakaway-screen="ride"] #screenRide .survive-beta{display:none!important}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide.survive-playing .survive-beta{display:none!important}
+body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar{height:auto!important;min-height:55px!important;position:relative!important;overflow:visible!important}
+body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar .ride-screen-actions,body[data-breakaway-screen="ride"] #screenRide .reference-ride-toolbar .screen-progress{position:static!important;transform:none!important;margin:0!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics{grid-template-rows:repeat(2,minmax(62px,auto))!important;grid-auto-rows:minmax(62px,auto)!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#power){order:1!important;background:transparent!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#heartRate){order:2!important;background:transparent!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#cadence){order:3!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#speed){order:4!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#elapsedTime){order:5!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#distance){order:6!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#totalGain){order:7!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric:has(#referenceRideGear){order:8!important}
+body[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric :is(#power,#heartRate){background:transparent!important;color:var(--live-text)!important}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .survive-game-hud{padding:4px 10px!important;margin-bottom:5px!important}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .survive-game-metrics strong{font-size:20px!important}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide #chart{height:clamp(140px,21vh,235px)!important}
