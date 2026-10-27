@@ -127,3 +127,15 @@ body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSe
 body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.setup-device-tile h3,.setup-advanced-settings h3,#drivetrainSection h2){font-size:25px!important}
 body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(label,p,summary,input,select){font-size:18px!important}
 body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.setup-next,#setupReadiness){color:#fff!important}
+
+/* Shared mode selector device shortcut. */
+.mode-device-shortcut{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;margin:12px auto 0;color:#b5c4df;font:14px system-ui,sans-serif}
+.mode-device-shortcut button{background:#102158;color:#fff;border:1px solid #8fa5d4;border-radius:5px;padding:10px 16px;font:700 13px system-ui,sans-serif;cursor:pointer}
+.mode-device-shortcut button:hover,.mode-device-shortcut button:focus-visible{background:#263e80;outline-color:#ffe777}
+/* Route and setup use the same surface colors as their active ride mode. */
+body[data-ride-experience="classic"]:not([data-breakaway-screen="home"]){--live-bg:#f5f5f7;--live-panel:#fff;--live-raised:#edf3fb;--live-subtle:#edf3fb;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#626b7b;--live-accent:#007aff;--live-accent-text:#fff;color-scheme:light}
+body[data-ride-experience="survival"]:not([data-breakaway-screen="home"]){--live-bg:#060408;--live-panel:#180a10;--live-raised:#270e17;--live-subtle:#270e17;--live-border:#8d263a;--live-text:#f9e8eb;--live-muted:#d29aa5;--live-accent:#ff304b;--live-accent-text:#fff;color-scheme:dark}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"]):is([data-breakaway-screen="route"],[data-breakaway-screen="setup"]){background:var(--live-bg)!important;color:var(--live-text)!important}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(.device-connect-card,.setup-advanced-settings,#drivetrainSection,.setup-utility-details,.route-builder,.route-studio-live-preview){background:var(--live-panel)!important;color:var(--live-text)!important;border-color:var(--live-border)!important}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(h2,h3,label,summary){color:var(--live-text)!important}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(.note,.integrated-step-hint){color:var(--live-muted)!important}

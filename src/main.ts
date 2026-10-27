@@ -1502,7 +1502,15 @@ $('nativeProfile').addEventListener('click',async()=>{
    .survive-hud-grid>.survive-hud-metric:nth-child(4){grid-column:1;grid-row:2}
    .survive-hud-grid>.survive-hud-metric:nth-child(6){grid-column:3;grid-row:2}
    @media(max-width:800px){.tile b{font-size:17px}.tile small{font-size:9px}#overlayTop strong{font-size:9px}}
-  </style>`;
+  
+   body[data-ride-experience="classic"]{background:#f5f5f7;color:#1d1d1f}
+   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile{background:#fff!important;border-color:#d2d2d7!important;color:#1d1d1f!important}
+   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) :is(.tile b,.tile small,#overlayTop strong,#overlayLabel){color:#1d1d1f!important}
+   body[data-ride-experience="classic"] #overlayChart{background:#e5ebf5!important}
+   body[data-ride-experience="survival"]{background:#060408;color:#f9e8eb}
+   body[data-ride-experience="survival"] #overlayContent:not(.survive-overlay) .tile{background:#180a10!important;border-color:#8d263a!important;color:#f9e8eb!important}
+   body[data-ride-experience="survival"] #overlayChart{background:#180a10!important}
+</style>`;
   pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><div id="overlayZoomControls" role="group" aria-label="Elevation zoom"><button type="button" data-zoom="1">1×</button><button type="button" data-zoom="2">2×</button><button type="button" data-zoom="5">5×</button><button type="button" data-zoom="10">10×</button></div><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
   const modeButton=pip.document.getElementById('overlayMode') as HTMLButtonElement;
   const settingsButton=pip.document.getElementById('overlaySettingsToggle') as HTMLButtonElement;
@@ -1802,6 +1810,7 @@ function publishDesktopOverlay(){
  window.breakawayDesktop?.updateOverlay(snapshot);
  if(overlayWindow&&!overlayWindow.closed){
   const doc=overlayWindow.document;
+  doc.body.dataset.rideExperience=rideExperience;
   const chase=surviveData(),root=doc.getElementById('overlayContent');if(root){root.classList.toggle('survive-overlay',chase.active||chase.caught);root.classList.toggle('survive-phase-chase',chase.active&&!chase.warming&&chase.phase==='CHASE');root.classList.toggle('survive-phase-recover',chase.active&&!chase.warming&&chase.phase==='RECOVER');root.classList.toggle('survive-phase-prepare',chase.active&&chase.warming);root.classList.toggle('survive-danger',chase.active&&!chase.warming&&chase.gap<65);root.classList.toggle('survive-critical',chase.active&&!chase.warming&&chase.gap<25);let hud=doc.getElementById('surviveHud');if(chase.active||chase.caught){if(!hud){hud=doc.createElement('div');hud.id='surviveHud';root.append(hud);}hud.innerHTML='<div class="survive-hud-head"><strong>☣ SURVIVE · '+(chase.warming?'THREAT STARTS SOON':chase.phase==='RECOVER'?'RECOVERY MODE':'THREAT PURSUING')+'</strong><span>'+chase.theme+'</span></div><div class="survive-hud-grid"><div class="survive-hud-metric"><small>YOU MPH</small><b>'+chase.you.toFixed(1)+'</b></div><div class="survive-hud-profile">'+snapshot.detailChart+'<div class="survive-hud-dots"><i class="threat" style="left:'+Math.max(0,Math.min(100,(surviveEnemyDistance-snapshot.profileStart)/Math.max(1,snapshot.profileStop-snapshot.profileStart)*100))+'%"></i><i class="rider" style="left:'+Math.max(0,Math.min(100,(distance-snapshot.profileStart)/Math.max(1,snapshot.profileStop-snapshot.profileStart)*100))+'%"></i></div><div class="survive-hud-timer"><div><small>'+(chase.warming?'THREAT STARTS':'CHASE ELAPSED')+'</small><strong>'+surviveFormatTime(chase.warming?chase.remaining:surviveElapsed)+'</strong></div><div><small>GAP</small><strong class="survive-hud-gap">'+chase.gap+' m</strong></div><div><small>'+(surviveMode==='finish'?'EST. TIME LEFT':'WAVE')+'</small><strong>'+(surviveMode==='finish'?surviveFormatTime(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):String(chase.wave))+'</strong></div></div></div><div class="survive-hud-metric"><small>WATTS</small><b>'+(snapshot.power??'—')+'</b></div><div class="survive-hud-metric"><small>THREAT MPH</small><b>'+chase.enemy.toFixed(1)+'</b></div><div class="survive-hud-spacer"></div><div class="survive-hud-metric"><small>WAVE #</small><b>'+chase.wave+'</b></div></div>';}else hud?.remove();}
   const chart=doc.getElementById('overlayChart');if(chart)chart.innerHTML=snapshot.climbComplete?'<div style="height:210px;display:grid;place-items:center;font:900 45px system-ui;color:#6cf5c9;text-align:center;text-shadow:0 3px 18px #000">⛰ CLIMB COMPLETE!</div>':snapshot.detailChart;
   const label=doc.getElementById('overlayLabel');if(label)label.textContent=(running?'● RIDING · ':rideStart&&!rideEnd?'Ⅱ PAUSED · ':'')+snapshot.detailLabel;
@@ -2549,19 +2558,23 @@ for(const entry of setupDeviceDefinitions){
 }
 function updateSetupReadiness(){
  const ready=trainerReadyForRide();
+ const fromHome=document.body.dataset.deviceShortcut==='true';
  const button=document.getElementById('goToRide') as HTMLButtonElement;
- button.disabled=!ready;
- button.textContent=ready?'Start Riding →':'Connect Trainer to Continue';
+ button.disabled=fromHome?false:!ready;
+ button.textContent=fromHome?'Choose a mode →':ready?'Start Riding →':'Connect Trainer to Continue';
  const label=document.getElementById('setupReadiness')!;
- label.textContent=ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.';
+ label.textContent=fromHome?(ready?'✓ Trainer ready · choose a mode when you’re ready.':'Connect devices now, or choose a mode and connect later.'):ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.';
  refreshSetupDeviceCards();
 }
 function showBreakawayScreen(screen:BreakawayScreen){
+ if(document.body.dataset.deviceShortcut==='true'&&screen!=='setup'){openModeLanding();return;}
  if(document.body.dataset.rideExperience==='cyclequest'&&(screen==='ride'||screen==='route')){showCycleQuest();return;}
- const questSetup=document.body.dataset.rideExperience==='cyclequest';
- const routeStep=document.getElementById('stepRoute')!;routeStep.textContent=questSetup?'← Cycle Quest':'1 · Create Route';routeStep.setAttribute('aria-label',questSetup?'Return to Cycle Quest':'Go to Create Route');
- const editRoute=document.getElementById('backToRoute')!;editRoute.textContent=questSetup?'← Cycle Quest':'← Edit route';
- const rideStep=document.getElementById('stepRide')!;rideStep.textContent=questSetup?'3 · Cycle Quest':'3 · Enjoy the Ride';rideStep.setAttribute('aria-label',questSetup?'Return to Cycle Quest':'Go to Enjoy the Ride');
+ const questSetup=document.body.dataset.rideExperience==='cyclequest'&&document.body.dataset.deviceShortcut!=='true';
+ const homeSetup=document.body.dataset.deviceShortcut==='true';
+ const questReturnButton=document.getElementById('questReturn') as HTMLButtonElement|null;if(questReturnButton&&screen==='setup')questReturnButton.hidden=!questSetup;
+ const routeStep=document.getElementById('stepRoute')!;routeStep.textContent=homeSetup?'← Choose mode':questSetup?'← Cycle Quest':'1 · Create Route';routeStep.setAttribute('aria-label',homeSetup?'Return to mode selection':questSetup?'Return to Cycle Quest':'Go to Create Route');
+ const editRoute=document.getElementById('backToRoute')!;editRoute.textContent=homeSetup?'← Choose mode':questSetup?'← Cycle Quest':'← Edit route';
+ const rideStep=document.getElementById('stepRide')!;rideStep.textContent=homeSetup?'Choose mode →':questSetup?'3 · Cycle Quest':'3 · Enjoy the Ride';rideStep.setAttribute('aria-label',homeSetup?'Return to mode selection':questSetup?'Return to Cycle Quest':'Go to Enjoy the Ride');
  const questHost=document.getElementById('cycleQuestHost');if(questHost)questHost.hidden=true;
  breakawayScreen=screen;
  // One shared navigation component, mounted inside the active screen's header.
@@ -2583,6 +2596,7 @@ function showBreakawayScreen(screen:BreakawayScreen){
  if(screen==='ride')requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));
 }
 function enterRideScreen(){
+ if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}
  stopRideCountdown();
  if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
  // Start the ride from the Connect Trainer action itself. FTMS power and
@@ -2603,7 +2617,7 @@ document.getElementById('goToRide')!.addEventListener('click',enterRideScreen);
 // Navigation is free between planning and devices; entering the active ride requires a trainer.
 document.getElementById('stepRoute')!.addEventListener('click',()=>{stopRideCountdown();if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
 document.getElementById('stepSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');checkAutomaticRideCountdown();});
-document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
+document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
 document.getElementById('backToRoute')!.addEventListener('click',()=>{stopRideCountdown();showBreakawayScreen('route');});
 document.getElementById('backToSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');});
 document.getElementById('backToStudio')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
@@ -2616,7 +2630,7 @@ let rideExperience:RideExperience='classic';
 const modeLanding=document.createElement('section');
 modeLanding.id='modeLanding';
 modeLanding.className='mode-landing';
-modeLanding.innerHTML='<div class="mode-landing-brand"><span>RIDE BREAKAWAY</span><small>CREATE. CONNECT. RIDE.</small></div><div class="mode-landing-intro"><span>YOUR RIDE. YOUR RULES.</span><h1>CHOOSE YOUR RIDE.</h1><p>Three ways to experience Breakaway. One smart trainer.</p></div><div class="mode-landing-cards"><button type="button" id="chooseClassic" class="mode-card mode-card-classic"><span class="mode-card-number">01 / THE ORIGINAL</span><span class="mode-card-visual">⌁</span><strong>CLASSIC</strong><span class="mode-card-description">Create a route. Conquer the climbs. Ride your way.</span><span class="mode-card-action">START CLASSIC ↗</span></button><button type="button" id="chooseSurvival" class="mode-card mode-card-survival"><span class="mode-card-number">02 / THE CHALLENGE</span><span class="mode-card-visual">☣</span><strong>SURVIVOR</strong><span class="mode-card-description">Build an escape route. Stay ahead of the threat. Reach the finish.</span><span class="mode-card-action">ENTER SURVIVOR ↗</span></button><button type="button" id="chooseCycleQuest" class="mode-card mode-card-quest"><span class="mode-card-number">03 / PRIVATE BETA</span><span class="mode-card-visual">✦</span><strong>CYCLE QUEST</strong><span class="mode-card-description">Ride. Level up. Battle random enemies. Defeat the next boss.</span><span class="mode-card-action">UNLOCK CYCLE QUEST ↗</span></button></div><p class="mode-landing-footer">SMART TRAINER REQUIRED · NO ACCOUNT NECESSARY TO PREVIEW MODES</p>';
+modeLanding.innerHTML='<div class="mode-landing-brand"><span>RIDE BREAKAWAY</span><small>CREATE. CONNECT. RIDE.</small></div><div class="mode-landing-intro"><span>YOUR RIDE. YOUR RULES.</span><h1>CHOOSE YOUR RIDE.</h1><p>Three ways to experience Breakaway. One smart trainer.</p></div><div class="mode-landing-cards"><button type="button" id="chooseClassic" class="mode-card mode-card-classic"><span class="mode-card-number">01 / THE ORIGINAL</span><span class="mode-card-visual">⌁</span><strong>CLASSIC</strong><span class="mode-card-description">Create a route. Conquer the climbs. Ride your way.</span><span class="mode-card-action">START CLASSIC ↗</span></button><button type="button" id="chooseSurvival" class="mode-card mode-card-survival"><span class="mode-card-number">02 / THE CHALLENGE</span><span class="mode-card-visual">☣</span><strong>SURVIVOR</strong><span class="mode-card-description">Build an escape route. Stay ahead of the threat. Reach the finish.</span><span class="mode-card-action">ENTER SURVIVOR ↗</span></button><button type="button" id="chooseCycleQuest" class="mode-card mode-card-quest"><span class="mode-card-number">03 / PRIVATE BETA</span><span class="mode-card-visual">✦</span><strong>CYCLE QUEST</strong><span class="mode-card-description">Ride. Level up. Battle random enemies. Defeat the next boss.</span><span class="mode-card-action">UNLOCK CYCLE QUEST ↗</span></button></div><p class="mode-landing-footer">SMART TRAINER REQUIRED · NO ACCOUNT NECESSARY TO PREVIEW MODES</p><div class="mode-device-shortcut"><button type="button" id="modeDevices">CONNECT DEVICES</button><span>Optional — connect now or after choosing a mode.</span></div>';
 document.body.append(modeLanding);
 const modeHomeButton=document.createElement('button');
 modeHomeButton.type='button';modeHomeButton.id='modeHomeButton';modeHomeButton.textContent='← CHANGE MODE';
@@ -2652,6 +2666,7 @@ const uploadRouteInput=document.querySelector<HTMLInputElement>('input[type="fil
 uploadRouteInput?.addEventListener('change',()=>{studioRouteFeedback.textContent='Route uploaded — review the route preview below.';});
 
 function chooseRideExperience(mode:RideExperience,recordHistory=true){
+ delete document.body.dataset.deviceShortcut;
  if(recordHistory)history.pushState({...(history.state||{}),breakawayPage:'mode',breakawayMode:mode},'');
  rideExperience=mode;
  modeLanding.hidden=true;
@@ -2669,6 +2684,7 @@ function chooseRideExperience(mode:RideExperience,recordHistory=true){
 }
 function openModeLanding(){
  if(surviveOn){status('End your current Survival session before changing modes.');return false;}
+ delete document.body.dataset.deviceShortcut;
  const host=document.getElementById('cycleQuestHost');if(host)host.hidden=true;
  if(running)pauseRide();
  if(document.body.dataset.rideExperience==='cyclequest')cycleQuestHold=false;
@@ -2679,6 +2695,11 @@ function openModeLanding(){
  window.scrollTo(0,0);
  return true;
 }
+modeLanding.querySelector('#modeDevices')!.addEventListener('click',()=>{
+ document.body.dataset.deviceShortcut='true';
+ rideExperience='classic';document.body.dataset.rideExperience='classic';
+ modeLanding.hidden=true;modeHomeButton.hidden=false;showBreakawayScreen('setup');
+});
 modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
 modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
 modeHomeButton.addEventListener('click',()=>{if(surviveOn){status('End your current Survival session before changing modes.');return;}if(history.state?.breakawayPage==='mode')history.back();else openModeLanding();});
@@ -2728,7 +2749,7 @@ async function enterCycleQuest(){
  try{const response=await fetch('/api/cycle-quest?asset=status',{credentials:'same-origin',cache:'no-store'});if(response.ok){launchCycleQuest();return;}}catch{}
  questGate.showModal();questPassword.focus();
 }
-function launchCycleQuest(recordHistory=true){if(recordHistory)history.pushState({...(history.state||{}),breakawayPage:'mode',breakawayMode:'cyclequest'},'');questAuthenticated=true;rideExperience='cyclequest';document.body.dataset.rideExperience='cyclequest';survivalStudio.hidden=true;cycleQuestHold=false;questReward=false;if(!questFrame.src)questFrame.src='/api/cycle-quest?asset=index.html';showCycleQuest();}
+function launchCycleQuest(recordHistory=true){delete document.body.dataset.deviceShortcut;if(recordHistory)history.pushState({...(history.state||{}),breakawayPage:'mode',breakawayMode:'cyclequest'},'');questAuthenticated=true;rideExperience='cyclequest';document.body.dataset.rideExperience='cyclequest';survivalStudio.hidden=true;cycleQuestHold=false;questReward=false;if(!questFrame.src)questFrame.src='/api/cycle-quest?asset=index.html';showCycleQuest();}
 const questGate=document.createElement('dialog');questGate.className='quest-access-dialog';questGate.id='questAccessGate';questGate.innerHTML='<form id="questAccessForm"><span>PRIVATE BETA</span><h2>CYCLE QUEST</h2><p>Enter the beta password to begin.</p><label for="questPassword">Password</label><input id="questPassword" type="password" autocomplete="off" required maxlength="200"><p id="questAccessError" role="alert"></p><div><button type="submit">UNLOCK CYCLE QUEST</button><button type="button" id="questAccessCancel">CANCEL</button></div></form>';document.body.append(questGate);
 const questPassword=questGate.querySelector<HTMLInputElement>('#questPassword')!;
 questGate.querySelector('#questAccessCancel')!.addEventListener('click',()=>questGate.close());
