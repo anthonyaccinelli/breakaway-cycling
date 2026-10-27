@@ -104,3 +104,45 @@ body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide 
 body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .ride-dashboard .metric{padding:4px 10px!important}
 body[data-ride-experience="survival"][data-breakaway-screen="ride"] #screenRide .survive-game-hud{padding:3px 8px!important}
 }
+
+
+/* Cycle Quest trainer setup uses the game's palette and type while retaining shared device controls. */
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"]{background:#05091a!important;color:#f5f4ff!important;color-scheme:dark}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] :is(main,#screenSetup){background:#05091a!important;color:#f5f4ff!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] :is(.app-brand,#screenSetup h2,#screenSetup h3,#screenSetup label,#screenSetup button,#screenSetup select,#screenSetup input,#screenSetup summary,#screenSetup p,#screenSetup .screen-step){font-family:'VT323',monospace!important;letter-spacing:.02em}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] .app-brand{font-size:0!important;color:#fff!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] .app-brand::after{content:'CYCLE QUEST';font-size:32px;letter-spacing:.12em;color:#fff}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] .breakaway-tagline{color:#b5c4ef!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.breakaway-integrated-step-header,.connection-strip){background:#0a1538!important;border-color:#8699c7!important;color:#fff!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.setup-device-tile,.setup-advanced-settings,.setup-rider-settings,.ride-shifting-column,#drivetrainSection,.setup-utility-details,.bluetooth-auto){background:linear-gradient(135deg,#243c91,#132057)!important;border:1px solid #a4b5df!important;color:#fff!important;border-radius:4px!important;box-shadow:inset 0 0 0 1px #485d95!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.setup-rider-settings,.ride-shifting-column){background:transparent!important;box-shadow:none!important;border:0!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(h2,h3,label,summary,span){color:#f5f4ff!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.note,.integrated-step-hint,.device-status){color:#c6d4f2!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(button,select,input:not([type="checkbox"])){background:#102158!important;color:#fff!important;border:1px solid #a4b5df!important;border-radius:2px!important;box-shadow:none!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup button{font-size:20px!important;line-height:1.05!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(button:hover,button:focus-visible){background:#304c9f!important;outline-color:#ffe777!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.screen-step.active,button[aria-pressed="true"]){background:#314994!important;color:#ffe777!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.route-kicker,#status){color:#ffe777!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup button:disabled{opacity:.5!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.setup-device-tile h3,.setup-advanced-settings h3,#drivetrainSection h2){font-size:25px!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(label,p,summary,input,select){font-size:18px!important}
+body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSetup :is(.setup-next,#setupReadiness){color:#fff!important}
+
+/* Shared mode selector device shortcut. */
+.mode-device-shortcut{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;margin:12px auto 0;color:#b5c4df;font:14px system-ui,sans-serif}
+.mode-device-shortcut button{background:#102158;color:#fff;border:1px solid #8fa5d4;border-radius:5px;padding:10px 16px;font:700 13px system-ui,sans-serif;cursor:pointer}
+.mode-device-shortcut button:hover,.mode-device-shortcut button:focus-visible{background:#263e80;outline-color:#ffe777}
+/* Route and setup use the same surface colors as their active ride mode. */
+body[data-ride-experience="classic"]:not([data-breakaway-screen="home"]){--live-bg:#f5f5f7;--live-panel:#fff;--live-raised:#edf3fb;--live-subtle:#edf3fb;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#626b7b;--live-accent:#007aff;--live-accent-text:#fff;color-scheme:light}
+body[data-ride-experience="survival"]:not([data-breakaway-screen="home"]){--live-bg:#060408;--live-panel:#180a10;--live-raised:#270e17;--live-subtle:#270e17;--live-border:#8d263a;--live-text:#f9e8eb;--live-muted:#d29aa5;--live-accent:#ff304b;--live-accent-text:#fff;color-scheme:dark}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"]):is([data-breakaway-screen="route"],[data-breakaway-screen="setup"]){background:var(--live-bg)!important;color:var(--live-text)!important}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(.device-connect-card,.setup-advanced-settings,#drivetrainSection,.setup-utility-details,.route-builder,.route-studio-live-preview){background:var(--live-panel)!important;color:var(--live-text)!important;border-color:var(--live-border)!important}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(h2,h3,label,summary){color:var(--live-text)!important}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(.note,.integrated-step-hint){color:var(--live-muted)!important}
+
+/* Keep setup labels readable against each mode's surfaces. */
+body[data-ride-experience="classic"][data-breakaway-screen="setup"] #screenSetup :is(.integrated-step-title h2,.connection-strip>h2){color:#1d1d1f!important}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"])[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings h3{color:var(--live-text)!important}
+body:is([data-ride-experience="classic"],[data-ride-experience="survival"])[data-breakaway-screen="setup"] #screenSetup .setup-connection-indicator{color:var(--live-muted)!important}
+body[data-ride-experience="survival"][data-breakaway-screen="setup"] #screenSetup .bluetooth-auto{background:#270e17!important;border-color:#8d263a!important}
+body[data-ride-experience="survival"][data-breakaway-screen="setup"] #screenSetup .bluetooth-auto label{color:#f9e8eb!important}
