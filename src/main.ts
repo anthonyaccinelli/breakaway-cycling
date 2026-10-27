@@ -2646,6 +2646,9 @@ function chooseRideExperience(mode:RideExperience){
  modeHomeButton.hidden=false;
  survivalStudio.hidden=mode!=='survival';
  document.body.dataset.rideExperience=mode;
+ // The studio preview clones the live chart SVG. Repaint its grade strips after
+ // switching modes; otherwise it retains the previous mode's cached colors.
+ if(points.length)svg();
  syncSurvivalStudio();
  survivalStudio.querySelector('select')?.dispatchEvent(new Event('change'));
  showBreakawayScreen('route');
