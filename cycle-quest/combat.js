@@ -9,6 +9,15 @@ export const CHAPTER_BIOMES=Object.freeze({
  1:{name:'THE VERDANT WILDS',biome:'forest',monsters:['giant-rat','stirge','kobold','goblin','wolf','giant-fire-beetle','giant-spider','worg']},
  2:{name:'THE HAUNTED MOOR',biome:'moor',monsters:['skeleton','zombie','ghoul','shadow','specter','death-dog','gnoll','harpy']}
 });
+// Dedicated summit lineup: one original boss and eleven fixed random roster picks.
+export const SUMMIT_BOSSES=Object.freeze(['lifted-dually','oni','silver-dragon-wyrmling','kraken','ancient-green-dragon','young-bronze-dragon','doppelganger','behir','remorhaz','roc','storm-giant','wyvern']);
+export const SUMMIT_VARIANTS=Object.freeze([{suffix:'',minLevel:1,scale:1},{suffix:' EXTREME',minLevel:10,scale:1.2},{suffix:' PSYCHO',minLevel:20,scale:1.4}]);
+export function selectSummit(level,random=Math.random){
+ const pick=list=>list[Math.min(list.length-1,Math.max(0,Math.floor(random()*list.length)))];
+ const id=pick(SUMMIT_BOSSES),variant=pick(SUMMIT_VARIANTS.filter(v=>level>=v.minLevel));
+ const monster=id==='lifted-dually'?null:MONSTERS.find(m=>m.id===id);
+ return {id,name:(monster?.name||'Lifted Dually').toUpperCase()+variant.suffix,variant,monster};
+}
 export function nextChapterEncounter(chapter,previousState,random=Math.random){
  const config=CHAPTER_BIOMES[chapter];if(!config)return null;
  const valid=new Set(config.monsters),state=previousState?.chapter===chapter?previousState:null;
@@ -39,14 +48,15 @@ export function creatureFactors(monster){
 export function makeBattle(kind,{level,ftp,entryPower=null,chapterLevel=level,random=Math.random,monsterId=null,ceilingPercent=100}){
  const reference=kind==='boss'?chapterLevel:level;
  const target=kind==='enemy'?Math.max(1,level-2):kind==='summit'?level+5:chapterLevel;
- const monster=(kind==='enemy'&&monsterId?MONSTERS.find(m=>m.id===monsterId):null)||selectMonster(target,kind,random),f=creatureFactors(monster);
+ const summit=kind==='summit'?selectSummit(level,random):null;
+ const monster=summit?summit.monster:((kind==='enemy'&&monsterId?MONSTERS.find(m=>m.id===monsterId):null)||selectMonster(target,kind,random)),f=monster?creatureFactors(monster):{health:1,attack:1};
  const watts=Number.isFinite(ftp)&&ftp>0?ftp:280;
  // Regular enemies each have 60 seconds of damage at the chosen target.
  const ceiling=watts*clamp(Number.isFinite(ceilingPercent)?ceilingPercent:100,55,150)/100;
  const targetWatts=clamp(Number.isFinite(entryPower)?entryPower*1.25:watts*.55,watts*.55,ceiling);
- const hp=kind==='enemy'?targetWatts*60*attackAt(reference):kind==='summit'?watts*1.25*60*f.health*attackAt(reference):watts*.75*240*f.health*attackAt(reference);
- const dps=kind==='enemy'?.25:kind==='summit'?.8*hpAt(reference)/120*f.attack:.8*hpAt(reference)/240*f.attack;
- return {kind,name:(target>92&&!monsterId?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:monster.id,level:reference,sourceCR:monster.cr,sourceHP:monster.hp,sourceAttack:monster.attack,hp:Math.round(hp),max:Math.round(hp),dps,targetWatts:kind==='enemy'?targetWatts:null,reward:kind==='enemy'?60:kind==='summit'?600:600};
+ const hp=kind==='enemy'?targetWatts*60*attackAt(reference):kind==='summit'?watts*1.25*60*f.health*attackAt(reference)*summit.variant.scale:watts*.75*240*f.health*attackAt(reference);
+ const dps=kind==='enemy'?.25:kind==='summit'?.8*hpAt(reference)/120*f.attack*summit.variant.scale:.8*hpAt(reference)/240*f.attack;
+ return {kind,name:summit?summit.name:(target>92&&!monsterId?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:summit?summit.id:monster.id,summitVariant:summit?summit.variant.suffix.trim()||'BASE':null,level:reference,sourceCR:monster?.cr??null,sourceHP:monster?.hp??null,sourceAttack:monster?.attack??null,hp:Math.round(hp),max:Math.round(hp),dps,targetWatts:kind==='enemy'?targetWatts:null,reward:kind==='enemy'?60:kind==='summit'?600:600};
 }
 export function chapterRandom(chapter){let n=Math.imul(chapter,0x9e3779b1);n=Math.imul(n^(n>>>16),0x7feb352d);return ((n^(n>>>16))>>>0)/4294967296;}
 
