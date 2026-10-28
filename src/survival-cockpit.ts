@@ -94,7 +94,7 @@ export function mountSurvivalCockpit():void {
  const gradeMetric=document.createElement('div');
  gradeMetric.className='metric sc-grade-metric';
  gradeMetric.innerHTML='<b id="svGrade">—</b><small>Grade</small>';
- const showPreview=()=>new URLSearchParams(location.search).get('survivalPreview')==='ride';
+ const showPreview=()=>['setup','ride'].includes(new URLSearchParams(location.search).get('survivalPreview')||'');
 
  function mount():void {
   if(document.body.classList.contains('sc-cockpit-mounted'))return;
