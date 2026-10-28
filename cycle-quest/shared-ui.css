@@ -2,7 +2,8 @@
    Applies only inside the password-protected Cycle Quest iframe.
    Uses original indigo/cobalt/gold, VT323 font, monster art, HP/XP and bosses.
 */
-html,body{margin:0!important;padding:0!important;background:#05091a!important}
+/* Scope the body reset: this sheet is now shared by the RPG iframe and the native Devices screen. */
+body:has(#cq-preview){margin:0!important;padding:0!important;background:#05091a!important}
 #cq-preview{--cq-ink:#f6f7ff;--cq-soft:#b5c4ef;--cq-gold:#ffe777;--cq-navy:#060b20;--cq-line:#9aadd8;max-width:none!important;width:100%!important;height:100dvh!important;min-height:0!important}
 #cq-preview .cq-game{height:100dvh!important;max-height:100dvh!important;min-height:0!important;max-width:none!important;margin:0!important;padding:0 24px 12px!important;border:0!important;box-shadow:none!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;background:radial-gradient(ellipse at 30% 2%,#1a306e 0%,#08132d 60%,#05091a 100%)!important}
 #cq-preview .cq-unified-head{display:grid;grid-template-columns:minmax(250px,1fr) minmax(475px,660px) minmax(190px,1fr);align-items:center;gap:15px;min-height:100px;flex:none;width:100%;border-bottom:1px solid #5876b3;background:linear-gradient(180deg,#101e42cc,#08112acc);position:relative;z-index:3}
