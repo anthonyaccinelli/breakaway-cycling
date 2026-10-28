@@ -51,7 +51,7 @@ body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-scree
  padding:0!important;margin:0!important;white-space:nowrap!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-brand small{
- display:block!important;font-size:calc(26 * var(--cp-u))!important;
+ display:block!important;font-size:calc(20.8 * var(--cp-u))!important;
  line-height:1.1!important;font-weight:800!important;letter-spacing:normal!important;
  color:var(--cp-blue)!important;
 }
@@ -62,7 +62,7 @@ body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-scree
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-subhead strong {
  display:block!important;color:#000!important;text-transform:none!important;
- font-size:calc(19 * var(--cp-u))!important;font-weight:700!important;line-height:1.1!important;letter-spacing:normal!important;
+ font-size:calc(15.2 * var(--cp-u))!important;font-weight:700!important;line-height:1.1!important;letter-spacing:normal!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-tabs {
  display:grid!important;position:absolute!important;top:calc(31 * var(--cp-u))!important;
@@ -78,7 +78,7 @@ body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-scree
  padding:0!important;margin:0!important;border:calc(4 * var(--cp-u)) solid var(--cp-blue)!important;
  border-radius:calc(5 * var(--cp-u))!important;box-shadow:none!important;
  background:var(--cp-paper)!important;color:var(--cp-blue)!important;
- font-size:calc(27 * var(--cp-u))!important;line-height:1!important;font-weight:800!important;
+ font-size:calc(21.6 * var(--cp-u))!important;line-height:1!important;font-weight:800!important;
  white-space:nowrap!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-tabs button.sc-active:not(.secondary){
@@ -96,7 +96,7 @@ body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-scree
  min-height:0!important;margin:0!important;padding:0!important;
  background:var(--cp-blue)!important;color:#fff!important;border:0!important;
  border-radius:calc(5 * var(--cp-u))!important;box-shadow:none!important;
- font-size:calc(27 * var(--cp-u))!important;line-height:1!important;font-weight:800!important;
+ font-size:calc(21.6 * var(--cp-u))!important;line-height:1!important;font-weight:800!important;
 }
 
 /* Shared controls: ink blue, signal yellow, paper white. */
@@ -109,7 +109,7 @@ body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-scree
  color:#000!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) :is(#screenSetup,#screenRide) .note{
- font-size:12px!important;line-height:1.35!important;
+ font-size:9.6px!important;line-height:1.35!important;
 }
 
 /* SETUP: three bold hardware tiles over two option cards. */
@@ -124,17 +124,17 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="s
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-strip>h2 {
  display:flex!important;align-items:center!important;gap:12px!important;flex:0 0 auto!important;
  margin:0!important;padding:0!important;
- color:#fff!important;font-size:calc(30 * var(--cp-u))!important;font-weight:800!important;
+ color:#fff!important;font-size:calc(24 * var(--cp-u))!important;font-weight:800!important;
  line-height:1.1!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-strip>h2::before{
  content:"2";display:inline-grid;place-items:center;flex:none;
  width:calc(44 * var(--cp-u));height:calc(44 * var(--cp-u));border-radius:50%;
- background:#fff;color:var(--cp-blue);font-size:calc(31 * var(--cp-u));font-weight:800;
+ background:#fff;color:var(--cp-blue);font-size:calc(24.8 * var(--cp-u));font-weight:800;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-strip>#setupInstructions{
  flex:0 0 auto!important;margin:0!important;
- font-size:calc(17 * var(--cp-u))!important;line-height:1.2!important;
+ font-size:calc(13.6 * var(--cp-u))!important;line-height:1.2!important;
  color:#fff!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles {
@@ -152,11 +152,11 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="s
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-device-tile h3{
  margin:0!important;padding:0!important;
- color:#000!important;font-size:calc(29 * var(--cp-u))!important;font-weight:800!important;line-height:1.15!important;
+ color:#000!important;font-size:calc(23.2 * var(--cp-u))!important;font-weight:800!important;line-height:1.15!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-device-tile .setup-connection-indicator{
  margin:calc(13 * var(--cp-u)) 0 calc(13 * var(--cp-u))!important;
- color:#3d5268!important;font-size:calc(17 * var(--cp-u))!important;
+ color:#3d5268!important;font-size:calc(13.6 * var(--cp-u))!important;
  font-weight:700!important;line-height:1.2!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-device-tile[data-connection-state="connected"] .setup-connection-indicator{color:var(--cp-blue)!important}
@@ -165,14 +165,14 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="s
  display:block!important;flex:1 1 0!important;min-width:0!important;min-height:calc(48 * var(--cp-u))!important;
  margin:0!important;padding:calc(8 * var(--cp-u))!important;
  border:0!important;border-radius:calc(10 * var(--cp-u))!important;
- font-size:calc(22 * var(--cp-u))!important;font-weight:800!important;line-height:1.1!important;
+ font-size:calc(17.6 * var(--cp-u))!important;font-weight:800!important;line-height:1.1!important;
  background:var(--cp-yellow)!important;color:#000!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-device-tile .device-button-row button.secondary{
  background:#e1e5e8!important;color:var(--cp-blue)!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup :is(.setup-device-tile .note,.trainer-diagnostic){
- font-size:11px!important;color:#1d3551!important;
+ font-size:8.8px!important;color:#1d3551!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .trainer-diagnostic[hidden]{display:none!important}
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row {
@@ -191,7 +191,7 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="s
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>h3,
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #drivetrainSection>h2 {
- margin:0 0 calc(13 * var(--cp-u))!important;font-size:calc(26 * var(--cp-u))!important;
+ margin:0 0 calc(13 * var(--cp-u))!important;font-size:calc(20.8 * var(--cp-u))!important;
  line-height:1.2!important;font-weight:800!important;color:var(--cp-blue)!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings{
@@ -203,14 +203,14 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="s
  flex-direction:column!important;gap:6px!important;
  min-width:calc(155 * var(--cp-u))!important;width:29%!important;
  margin:0 2% calc(10 * var(--cp-u)) 0!important;
- font-size:calc(17 * var(--cp-u))!important;font-weight:700!important;
+ font-size:calc(13.6 * var(--cp-u))!important;font-weight:700!important;
  color:#000!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-rider-settings>label:nth-of-type(n+4){display:none!important}
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-rider-settings>label input {
  display:block!important;width:100%!important;min-height:calc(45 * var(--cp-u))!important;
  border:1px solid #b5c3cf!important;background:#fff!important;
- color:#000!important;font-size:calc(21 * var(--cp-u))!important;
+ color:#000!important;font-size:calc(16.8 * var(--cp-u))!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #drivetrainSection{
  margin:0!important;padding:0!important;border:0!important;background:transparent!important;
@@ -225,34 +225,34 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="s
  margin:0!important;padding:0!important;border:calc(2 * var(--cp-u)) solid var(--cp-blue)!important;
  border-radius:calc(11 * var(--cp-u))!important;
  background:var(--cp-paper)!important;color:var(--cp-blue)!important;
- font-size:calc(20 * var(--cp-u))!important;font-weight:800!important;
+ font-size:calc(16 * var(--cp-u))!important;font-weight:800!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-shifting-choice.active{
  background:var(--cp-yellow)!important;color:#000!important;border-color:var(--cp-yellow)!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #drivetrainHelp{
  margin:calc(6 * var(--cp-u)) 0!important;line-height:1.25!important;
- color:#334c62!important;font-size:calc(15 * var(--cp-u))!important;
+ color:#334c62!important;font-size:calc(12 * var(--cp-u))!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #virtualShiftingSettings {
  padding:0!important;margin:0!important;color:#000!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #virtualShiftingSettings h3{
- color:var(--cp-blue)!important;margin:4px 0!important;font-size:17px!important;
+ color:var(--cp-blue)!important;margin:4px 0!important;font-size:13.6px!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup :is(#virtualShiftingSettings label,#fixedErgSettings label){
- font-size:14px!important;color:#000!important;margin:6px 0!important;
+ font-size:11.2px!important;color:#000!important;margin:6px 0!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #virtualShiftingSettings select{
- width:100%!important;max-width:100%!important;font-size:14px!important;
+ width:100%!important;max-width:100%!important;font-size:11.2px!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup :is(#down,#up,#applyErgWatts){
  min-height:35px!important;margin:4px!important;padding:6px 9px!important;
  background:var(--cp-yellow)!important;color:#000!important;border:0!important;
- border-radius:8px!important;font-size:13px!important;
+ border-radius:8px!important;font-size:10.4px!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup :is(.setup-shifting-help,.setup-utility-details){
- font-size:13px!important;color:#223a51!important;
+ font-size:10.4px!important;color:#223a51!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-utility-details {
  display:block!important;flex:0 0 auto!important;max-height:90px!important;
@@ -260,13 +260,13 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="s
  border:1px solid #fff!important;border-radius:10px!important;color:#000!important;overflow:auto!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>h3{
- margin:0 0 4px!important;font-size:15px!important;color:var(--cp-blue)!important;
+ margin:0 0 4px!important;font-size:12px!important;color:var(--cp-blue)!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>.bluetooth-auto{
- margin:0!important;padding:0!important;font-size:12px!important;
+ margin:0!important;padding:0!important;font-size:9.6px!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-utility-details .bluetooth-auto label{
- color:#000!important;font-size:12px!important;
+ color:#000!important;font-size:9.6px!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-next{
  display:flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:space-between!important;
@@ -275,26 +275,26 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="s
  background:transparent!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #setupReadiness{
- color:#fff!important;font-size:calc(18 * var(--cp-u))!important;font-weight:700!important;
+ color:#fff!important;font-size:calc(14.4 * var(--cp-u))!important;font-weight:700!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #goToRide {
  min-width:calc(370 * var(--cp-u))!important;min-height:calc(62 * var(--cp-u))!important;
  margin:0!important;padding:calc(12 * var(--cp-u)) calc(22 * var(--cp-u))!important;
  color:#000!important;background:var(--cp-yellow)!important;
  border:0!important;border-radius:calc(10 * var(--cp-u))!important;
- font-size:calc(25 * var(--cp-u))!important;font-weight:800!important;
+ font-size:calc(20 * var(--cp-u))!important;font-weight:800!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #backToRoute{
  background:#fff!important;color:var(--cp-blue)!important;
  border:2px solid var(--cp-blue)!important;border-radius:9px!important;
- padding:9px 14px!important;font-size:16px!important;
+ padding:9px 14px!important;font-size:12.8px!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #status{
  flex:0 0 auto!important;margin:0!important;color:#fff!important;
- font-size:12px!important;line-height:1.25!important;
+ font-size:9.6px!important;line-height:1.25!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-help{
- flex:0 0 auto!important;color:#fff!important;margin:0!important;font-size:12px!important;
+ flex:0 0 auto!important;color:#fff!important;margin:0!important;font-size:9.6px!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-help summary{color:#fff!important}
 
@@ -321,10 +321,10 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="r
  color:#fff!important;line-height:1.05!important;font-weight:800!important;white-space:nowrap!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .cc-status small{
- font-size:calc(17 * var(--cp-u))!important;letter-spacing:normal!important;
+ font-size:calc(13.6 * var(--cp-u))!important;letter-spacing:normal!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .cc-status strong{
- font-size:calc(37 * var(--cp-u))!important;
+ font-size:calc(29.6 * var(--cp-u))!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #profileSection{
  display:flex!important;flex:1 1 0!important;flex-direction:column!important;
@@ -339,14 +339,14 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="r
  flex:0 0 auto!important;margin:0 0 calc(9 * var(--cp-u))!important;gap:12px!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #profileSection .profile-heading h2{
- color:#000!important;font-size:calc(32 * var(--cp-u))!important;font-weight:800!important;
+ color:#000!important;font-size:calc(25.6 * var(--cp-u))!important;font-weight:800!important;
  letter-spacing:normal!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #profileSection .profile-heading-actions :is(button,summary){
  min-height:calc(39 * var(--cp-u))!important;margin:0!important;
  padding:calc(7 * var(--cp-u)) calc(12 * var(--cp-u))!important;
  color:#000!important;background:var(--cp-yellow)!important;border:0!important;
- border-radius:8px!important;font-size:calc(18 * var(--cp-u))!important;font-weight:800!important;
+ border-radius:8px!important;font-size:calc(14.4 * var(--cp-u))!important;font-weight:800!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #profileSection .profile-zoom{
  display:flex!important;align-items:center!important;flex-wrap:wrap!important;
@@ -356,10 +356,10 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="r
  display:block!important;min-height:calc(34 * var(--cp-u))!important;margin:0!important;
  padding:calc(5 * var(--cp-u)) calc(12 * var(--cp-u))!important;
  color:var(--cp-blue)!important;background:#fff!important;border:2px solid var(--cp-blue)!important;
- border-radius:calc(8 * var(--cp-u))!important;font-size:calc(17 * var(--cp-u))!important;
+ border-radius:calc(8 * var(--cp-u))!important;font-size:calc(13.6 * var(--cp-u))!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #profileSection #zoomLabel{
- font-size:calc(17 * var(--cp-u))!important;color:var(--cp-blue)!important;font-weight:700!important;
+ font-size:calc(13.6 * var(--cp-u))!important;color:var(--cp-blue)!important;font-weight:700!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #chart {
  display:block!important;flex:1 1 0!important;min-height:100px!important;max-height:none!important;
@@ -379,7 +379,7 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="r
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #chart .profile-live-grade{
  color:var(--cp-blue)!important;text-shadow:none!important;
  background:var(--cp-paper)!important;border-radius:6px!important;padding:4px 8px!important;
- font-weight:800!important;font-size:25px!important;
+ font-weight:800!important;font-size:20px!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #chart .profile-telemetry{
  color:var(--cp-blue)!important;
@@ -404,12 +404,12 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="r
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics .metric small{
  display:block!important;min-width:0!important;
- color:var(--cp-blue)!important;font-size:calc(19 * var(--cp-u))!important;font-weight:800!important;
+ color:var(--cp-blue)!important;font-size:calc(15.2 * var(--cp-u))!important;font-weight:800!important;
  letter-spacing:normal!important;line-height:1!important;white-space:normal!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics .metric b{
  display:block!important;margin:0!important;
- color:#000!important;font-size:calc(39 * var(--cp-u))!important;font-weight:800!important;
+ color:#000!important;font-size:calc(31.2 * var(--cp-u))!important;font-weight:800!important;
  line-height:1.05!important;white-space:nowrap!important;
  font-variant-numeric:tabular-nums!important;
 }
@@ -422,14 +422,14 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="r
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .sc-ride-control-label{
  display:block!important;margin-right:auto!important;color:var(--cp-blue)!important;
- font-size:calc(21 * var(--cp-u))!important;font-weight:800!important;letter-spacing:normal!important;
+ font-size:calc(16.8 * var(--cp-u))!important;font-weight:800!important;letter-spacing:normal!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .sc-ride-controls button{
  display:block!important;min-width:calc(178 * var(--cp-u))!important;min-height:calc(48 * var(--cp-u))!important;
  padding:calc(9 * var(--cp-u)) calc(17 * var(--cp-u))!important;margin:0!important;
  background:#fff!important;color:var(--cp-blue)!important;border:calc(2 * var(--cp-u)) solid var(--cp-blue)!important;
  border-radius:calc(9 * var(--cp-u))!important;
- font-size:calc(22 * var(--cp-u))!important;font-weight:800!important;
+ font-size:calc(17.6 * var(--cp-u))!important;font-weight:800!important;
 }
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .sc-ride-controls #start{
  background:var(--cp-yellow)!important;color:#000!important;border-color:var(--cp-yellow)!important;
@@ -450,7 +450,7 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="r
  body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-tabs{
   left:50%!important;width:min(58vw,650px)!important;gap:6px!important;
  }
- body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-tabs button:not(.secondary){font-size:16px!important;border-width:2px!important}
+ body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-tabs button:not(.secondary){font-size:12.8px!important;border-width:2px!important}
  body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-mode-change {font-size:16px!important}
  body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .cc-status>div{flex-wrap:wrap!important}
  body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .cc-status small{font-size:12px!important}
@@ -485,7 +485,7 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="r
  body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-subhead{top:42px!important}
  body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-head-right{top:15px!important}
  body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-mode-change{
-  width:auto!important;height:40px!important;padding:0 10px!important;font-size:13px!important;
+  width:auto!important;height:40px!important;padding:0 10px!important;font-size:10.4px!important;
  }
  body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-tabs{
   position:absolute!important;top:92px!important;left:50%!important;width:100%!important;
