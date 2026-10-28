@@ -257,7 +257,7 @@
    Shared .cr-reference nodes are the native Classic controls, not copies. */
 @layer classicRouteReference {
  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted{
-  --cr-u:min(calc(100vw / 2184),calc(100dvh / 1044));
+  --cr-u:min(calc(100vw / 2048),calc(100dvh / 1044));
   --cr-blue:#0053ad;
   --cr-yellow:#ffd000;
   --cr-bg:#f4f4f4;
@@ -318,31 +318,34 @@
   border:0!important;border-radius:0!important;background:#f4f4f4!important;
   overflow:hidden!important;
  }
- /* Re-create the reference screenshot's vertical rhythm. */
+ /* The three selection boxes share the GPX upload's exact horizontal
+    baseline, height and width. A half-upload-bar (374/2 = 187 units) gap
+    separates the *GPX button* and the first game-mode selection box.
+    The numbered step marker stays inside the gap, without moving a box. */
  body.sr-reference-mounted #screenRoute .cr-upload-row{
-  position:absolute!important;left:calc(90 * var(--cr-u))!important;
-  top:calc(82 * var(--cr-u))!important;
-  width:calc(400 * var(--cr-u))!important;
-  height:calc(47 * var(--cr-u))!important;
-  margin:0!important;padding:0!important;
-  display:block!important;
+  position:absolute!important;left:calc(41 * var(--cr-u))!important;
+  top:calc(137 * var(--cr-u))!important;
+  width:calc(374 * var(--cr-u))!important;
+  height:calc(44 * var(--cr-u))!important;
+  margin:0!important;padding:0!important;display:block!important;
  }
  body.sr-reference-mounted #screenRoute .cr-upload{
   width:100%!important;height:100%!important;
-  border:calc(3 * var(--cr-u)) solid #0053ad!important;
-  border-radius:0!important;background:#f4f4f4!important;
-  color:#0053ad!important;text-transform:uppercase!important;
-  font-size:calc(21.6 * var(--cr-u))!important;
-  font-weight:500!important;
+  border:0!important;border-radius:calc(4 * var(--cr-u))!important;
+  background:#0053ad!important;color:#fff!important;
+  text-transform:none!important;
+  font-size:calc(21.6 * var(--cr-u))!important;font-weight:800!important;
  }
  body.sr-reference-mounted #screenRoute .sr-mode-row{
-  position:absolute!important;left:calc(35 * var(--cr-u))!important;
-  top:calc(145 * var(--cr-u))!important;
-  width:calc(1320 * var(--cr-u))!important;
-  height:calc(47 * var(--cr-u))!important;
+  position:absolute!important;
+  /* First box at x=602; preceding numbered marker x=547, offset 44+11. */
+  left:calc(547 * var(--cr-u))!important;
+  top:calc(137 * var(--cr-u))!important;
+  width:calc(1210 * var(--cr-u))!important;
+  height:calc(44 * var(--cr-u))!important;
   margin:0!important;padding:0!important;
-  display:flex!important;align-items:center!important;gap:calc(11 * var(--cr-u))!important;
-  z-index:2!important;
+  display:flex!important;align-items:center!important;
+  gap:calc(11 * var(--cr-u))!important;z-index:2!important;
  }
  body.sr-reference-mounted #screenRoute .sr-mode-row[hidden]{display:none!important}
  body.sr-reference-mounted #screenRoute .sr-mode-step{
@@ -352,14 +355,14 @@
   font-size:calc(32 * var(--cr-u))!important;font-weight:750!important;
  }
  body.sr-reference-mounted #screenRoute .sr-mode-controls{
-  display:grid!important;grid-template-columns:repeat(3,calc(400 * var(--cr-u)))!important;
-  gap:calc(30 * var(--cr-u))!important;
+  display:grid!important;grid-template-columns:repeat(3,calc(374 * var(--cr-u)))!important;
+  gap:calc(16 * var(--cr-u))!important;
   margin:0!important;padding:0!important;min-width:0!important;
  }
  body.sr-reference-mounted #screenRoute .sr-mode-controls label{
   display:flex!important;align-items:center!important;justify-content:center!important;
   position:relative!important;flex:none!important;
-  width:calc(400 * var(--cr-u))!important;height:calc(47 * var(--cr-u))!important;
+  width:calc(374 * var(--cr-u))!important;height:calc(44 * var(--cr-u))!important;
   min-width:0!important;max-width:none!important;
   margin:0!important;padding:0!important;
   background:#0053ad!important;color:#fff!important;
@@ -389,21 +392,21 @@
  body.sr-reference-mounted #screenRoute .sr-mode-controls label:hover{background:#1764cf!important}
  body.sr-reference-mounted #screenRoute .cr-heading{
   position:absolute!important;left:calc(35 * var(--cr-u))!important;
-  top:calc(207 * var(--cr-u))!important;
+  top:calc(196 * var(--cr-u))!important;
   height:calc(46 * var(--cr-u))!important;
   margin:0!important;padding:0!important;
  }
  body.sr-reference-mounted #screenRoute .cr-config{
-  position:absolute!important;top:calc(267 * var(--cr-u))!important;
+  position:absolute!important;top:calc(257 * var(--cr-u))!important;
   left:calc(35 * var(--cr-u))!important;right:calc(32 * var(--cr-u))!important;
-  width:auto!important;height:calc(400 * var(--cr-u))!important;
+  width:auto!important;height:calc(385 * var(--cr-u))!important;
   margin:0!important;overflow:visible!important;
  }
  body.sr-reference-mounted #screenRoute .cr-profile{
   position:absolute!important;left:calc(35 * var(--cr-u))!important;
   right:calc(32 * var(--cr-u))!important;
-  top:calc(676 * var(--cr-u))!important;
-  bottom:calc(36 * var(--cr-u))!important;
+  top:calc(652 * var(--cr-u))!important;
+  bottom:calc(75 * var(--cr-u))!important;
   width:auto!important;height:auto!important;min-height:0!important;
   margin:0!important;
  }
@@ -442,7 +445,7 @@
    bottom:auto!important;margin:0!important;
   }
   body.sr-reference-mounted #screenRoute .cr-upload-row{width:100%!important;height:46px!important}
-  body.sr-reference-mounted #screenRoute .cr-upload{width:min(400px,100%)!important}
+  body.sr-reference-mounted #screenRoute .cr-upload{width:min(374px,100%)!important}
   body.sr-reference-mounted #screenRoute .sr-mode-row{
    width:100%!important;height:auto!important;align-items:flex-start!important;gap:9px!important;
   }
