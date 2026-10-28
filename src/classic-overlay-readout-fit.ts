@@ -15,7 +15,7 @@ export function fitClassicOverlayNumbers(doc:Document){
    ||doc.getElementById('overlayContent')?.classList.contains('survive-overlay'))return;
  const context=doc.createElement('canvas').getContext('2d');
  if(!context)return;
- for(const tile of metrics.querySelectorAll<HTMLElement>('.tile')){
+ for(const tile of Array.from(metrics.querySelectorAll<HTMLElement>('.tile'))){
   if(tile.style.display==='none')continue;
   const number=tile.querySelector<HTMLElement>('b');
   const label=tile.querySelector<HTMLElement>('small');
