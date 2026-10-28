@@ -2630,7 +2630,7 @@ function updateSetupReadiness(){
 }
 function showBreakawayScreen(screen:BreakawayScreen){
  if(document.body.dataset.deviceShortcut==='true'&&screen!=='setup'){openModeLanding();return;}
- if(document.body.dataset.rideExperience==='cyclequest'&&(screen==='ride'||screen==='route')){showCycleQuest();questSend({type:'navigate',page:screen});return;}
+ if(document.body.dataset.rideExperience==='cyclequest'&&['setup','ride','route'].includes(screen)){showCycleQuest();questSend({type:'navigate',page:screen==='setup'?'devices':screen});return;}
  const questSetup=document.body.dataset.rideExperience==='cyclequest'&&document.body.dataset.deviceShortcut!=='true';
  const homeSetup=document.body.dataset.deviceShortcut==='true';
  const questReturnButton=document.getElementById('questReturn') as HTMLButtonElement|null;if(questReturnButton&&screen==='setup')questReturnButton.hidden=!questSetup;
