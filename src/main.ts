@@ -789,7 +789,17 @@ const SURVIVAL_GRADE_COLORS={
  descent:'#394252',flat:'#B5A7A9',climb:'#D54051',steep:'#F19F71'
 } as const;
 function gradeColor(g:number){
- if(document.body.dataset.rideExperience==='classic'){
+ // All Survival pages now use the five exact colors from the supplied palette.
+ // Classic retains its original green/yellow/orange/red/purple elevation bands.
+ if(document.body.dataset.rideExperience==='survival'){
+  if(!Number.isFinite(g)||g<=0.25)return '#39354f'; // flat: charcoal violet
+  if(g<3)return '#515076';                         // gentle: steel violet
+  if(g<6)return '#aea9cc';                         // moderate: fog lavender
+  if(g<12)return '#92323c';                        // hard: dried blood
+  return '#c74343';                                // extreme: scarlet
+ }
+ const sharedTheme=['classic','survival'].includes(document.body.dataset.rideExperience||'');
+ if(sharedTheme){
   if(!Number.isFinite(g)||g<=0.25)return CLASSIC_GRADE_COLORS.flat;
   if(g<3)return CLASSIC_GRADE_COLORS.gentle;
   if(g<6)return CLASSIC_GRADE_COLORS.moderate;
@@ -1429,7 +1439,7 @@ function updateFloatingProfile(){
  const p=at(distance),max=points.at(-1)?.distance||0;
  $('floatDistance').textContent=(distance/METERS_PER_MILE).toFixed(2)+' mi';
  $('floatGrade').textContent=displayGrade().toFixed(1)+'%';
- const floatingHud=$('floatLiveGrade');if(floatingHud){const hud=gradeHud(displayGrade());floatingHud.textContent=hud.label;floatingHud.style.color=hud.color;floatingHud.style.fontSize=(document.body.dataset.rideExperience==='classic'?hud.size*.8:hud.size)+'px';floatingHud.innerHTML=hud.label+climbHud(climbNow());}
+ const floatingHud=$('floatLiveGrade');if(floatingHud){const hud=gradeHud(displayGrade());floatingHud.textContent=hud.label;floatingHud.style.color=hud.color;floatingHud.style.fontSize=(['classic','survival'].includes(document.body.dataset.rideExperience||'')?hud.size*.8:hud.size)+'px';floatingHud.innerHTML=hud.label+climbHud(climbNow());}
  $('floatElevation').textContent=Math.round(p.elevation*FEET_PER_METER)+' ft';
  if(Date.now()<climbAwardUntil){const ch=$('floatChart');ch.innerHTML='<div style="min-height:180px;display:grid;place-items:center;font:900 36px system-ui;color:#6cf5c9;text-align:center">⛰ CLIMB COMPLETE!</div>'; }else if(!$('floatMarker'))syncProfileCharts();
  updateRiderDot($('floatMarker'),distance);
@@ -1517,33 +1527,31 @@ $('nativeProfile').addEventListener('click',async()=>{
    .survive-hud-grid>.survive-hud-metric:nth-child(6){grid-column:3;grid-row:2}
    @media(max-width:800px){.tile b{font-size:17px}.tile small{font-size:9px}#overlayTop strong{font-size:9px}}
   
-   body[data-ride-experience="classic"]{background:#f5f5f7;color:#1d1d1f}
-   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile{background:#fff!important;border-color:#d2d2d7!important;color:#1d1d1f!important}
-   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) :is(.tile b,.tile small,#overlayTop strong,#overlayLabel){color:#1d1d1f!important}
-   body[data-ride-experience="classic"] #overlayChart{background:#e5ebf5!important}
-   body[data-ride-experience="classic"] .overlay-profile-grade{background:#e5ebf5!important;color:#142449!important;text-shadow:none!important;box-shadow:none!important}
-   body[data-ride-experience="classic"] .overlay-profile-grade .climb-hud-details{color:#142449!important;text-shadow:none!important}
-   body[data-ride-experience="survival"]{background:#060408;color:#f9e8eb}
-   body[data-ride-experience="survival"] #overlayContent:not(.survive-overlay) .tile{background:#180a10!important;border-color:#8d263a!important;color:#f9e8eb!important}
-   body[data-ride-experience="survival"] #overlayChart{background:#180a10!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]){background:#f5f5f7;color:#1d1d1f}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile{background:#fff!important;border-color:#d2d2d7!important;color:#1d1d1f!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) :is(.tile b,.tile small,#overlayTop strong,#overlayLabel){color:#1d1d1f!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayChart{background:#e5ebf5!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) .overlay-profile-grade{background:#e5ebf5!important;color:#142449!important;text-shadow:none!important;box-shadow:none!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) .overlay-profile-grade .climb-hud-details{color:#142449!important;text-shadow:none!important}
+   /* Survival shares the exact Classic base palette until recoloring begins. */
    /* Classic preview: typography 20% smaller; retain overlay geometry and controls. */
-   body[data-ride-experience="classic"] #overlayTop strong,
-   body[data-ride-experience="classic"] #overlayLabel{font-size:8px!important}
-   body[data-ride-experience="classic"] #overlayActions button{font-size:8px!important}
-   body[data-ride-experience="classic"] #overlaySettings{font-size:9.6px!important}
-   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile b{
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayTop strong,
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayLabel{font-size:8px!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayActions button{font-size:8px!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlaySettings{font-size:9.6px!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile b{
      font-size:clamp(10.4px,1.2vw,19.2px)!important
    }
-   body.expanded[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile b{
+   body.expanded:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile b{
      font-size:clamp(12.8px,1.44vw,20.8px)!important
    }
-   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile[data-metric-key="elapsedTime"] b{
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile[data-metric-key="elapsedTime"] b{
      font-size:clamp(11.2px,1.32vw,20px)!important
    }
-   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile small{
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile small{
      font-size:clamp(6.4px,.56vw,8px)!important
    }
-   body[data-ride-experience="classic"] .overlay-profile-grade .climb-hud-details{
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) .overlay-profile-grade .climb-hud-details{
      font-size:10.4px!important
    }
 </style>`;
@@ -1699,7 +1707,7 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  // Opaque label matches the overlay profile background, even on tall peaks.
  // A solid yellow outline replaces all text shadow. Classic uses dark text
  // against its light background; Survival keeps the current thematic color.
- const classicOverlay=document.body.dataset.rideExperience==='classic';
+ const classicOverlay=['classic','survival'].includes(document.body.dataset.rideExperience||'');
  const gradeBackdrop=classicOverlay?'#e5ebf5':'#141019';
  const labelColor=classicOverlay?'#142449':hud.color;
  return `<div class="overlay-profile-graphic" style="position:relative;width:100%;overflow:hidden"><div class="overlay-profile-grade" aria-label="Current gradient" style="position:absolute;z-index:3;top:12px;left:16px;pointer-events:none;box-sizing:border-box;max-width:calc(100% - 32px);padding:6px 10px;border:3px solid #ffd000;border-radius:8px;background:${gradeBackdrop};box-shadow:none;text-shadow:none!important;font-weight:850;line-height:1.05;letter-spacing:-.045em;color:${labelColor};font-size:${classicOverlay?hud.size*.8:hud.size}px">${hud.label}${climbHud(climbNow())}</div><svg viewBox="0 0 ${w} ${h}" style="display:block;width:100%;height:210px" preserveAspectRatio="none">${segments}<polyline points="${terrain}" fill="none" stroke="#e9f0f2" stroke-width="1.6" opacity=".85"/>${threatLine}<line x1="${markerX}" x2="${markerX}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg></div>`;
@@ -2671,7 +2679,7 @@ document.getElementById('goToRide')!.addEventListener('click',enterRideScreen);
 // Navigation is free between planning and devices; entering the active ride requires a trainer.
 document.getElementById('stepRoute')!.addEventListener('click',()=>{stopRideCountdown();if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
 document.getElementById('stepSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');checkAutomaticRideCountdown();});
-document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else if(document.body.dataset.rideExperience==='classic'&&['setup','ride'].includes(new URLSearchParams(location.search).get('classicPreview')||'')){showBreakawayScreen('ride');}else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
+document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else if(document.body.dataset.rideExperience==='classic'&&['setup','ride'].includes(new URLSearchParams(location.search).get('classicPreview')||'')){showBreakawayScreen('ride');}else if(document.body.dataset.rideExperience==='survival'&&['setup','ride'].includes(new URLSearchParams(location.search).get('survivalPreview')||'')){showBreakawayScreen('ride');}else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
 document.getElementById('backToRoute')!.addEventListener('click',()=>{stopRideCountdown();showBreakawayScreen('route');});
 document.getElementById('backToSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');});
 document.getElementById('backToStudio')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
@@ -2904,3 +2912,20 @@ if(classicPreviewScreen==='setup'||classicPreviewScreen==='ride'){
 }
 
 
+
+// Preview-branch entry points are design-only and never start a trainer,
+// spoof BLE sensor data or bypass the live ride's safety checks.
+const survivalPreviewScreen=new URLSearchParams(location.search).get('survivalPreview');
+if(['route','setup','ride'].includes(survivalPreviewScreen||'')){
+ chooseRideExperience('survival',false);
+ if(!points.length){
+  ($('generatedDifficulty') as HTMLSelectElement).value='1.35';
+  ($('generatedTerrain') as HTMLSelectElement).value='flat';
+  ($('generatedMiles') as HTMLInputElement).value='5.6';
+  ($('generatedGain') as HTMLInputElement).value='170';
+  ($('generatedSeed') as HTMLInputElement).value='760757387';
+  ($('generateRoute') as HTMLButtonElement).click();
+ }
+ showBreakawayScreen(survivalPreviewScreen as BreakawayScreen);
+ if(survivalPreviewScreen==='route')requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
+}

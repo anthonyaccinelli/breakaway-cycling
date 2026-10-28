@@ -1,6 +1,6 @@
 /* Cycle Quest-inspired live ride UI. Presentation only: original BLE, chart, recording and Survival logic remain mounted. */
 body[data-ride-experience="classic"][data-breakaway-screen="ride"]{--live-bg:#f5f5f7;--live-panel:#fff;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#6e7484;--live-accent:#007aff;color-scheme:light}
-body[data-ride-experience="survival"][data-breakaway-screen="ride"]{--live-bg:#060408;--live-panel:#180a10;--live-border:#8d263a;--live-text:#f9e8eb;--live-muted:#d29aa5;--live-accent:#ff304b;color-scheme:dark}
+body[data-ride-experience="survival"][data-breakaway-screen="ride"]{--live-bg:#f5f5f7;--live-panel:#fff;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#626b7b;--live-accent:#007aff;color-scheme:light}
 body[data-breakaway-screen="ride"]:is([data-ride-experience="classic"],[data-ride-experience="survival"]){background:var(--live-bg)!important;color:var(--live-text)!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif!important}
 body[data-breakaway-screen="ride"] #screenRide{background:var(--live-bg)!important;color:var(--live-text)!important;padding:8px 12px 20px!important;max-width:none!important;width:100%!important;overflow:visible!important}
 body[data-breakaway-screen="ride"] #screenRide .ride-screen-content{display:flex!important;flex-direction:column!important;gap:12px!important;width:100%!important;max-width:none!important;min-height:0!important}
@@ -33,7 +33,7 @@ body[data-breakaway-screen="ride"] #screenRide .profile-inspector b{color:var(--
 /* Unified Classic / Survival design system across route, trainer setup and ride.
    Scoped to the selected experience; landing and Cycle Quest stay independent. */
 body[data-ride-experience="classic"]:not([data-breakaway-screen="home"]){--live-bg:#f5f5f7;--live-panel:#ffffff;--live-raised:#edf3fb;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#626b7b;--live-accent:#007aff;--live-accent-text:#fff;--live-shadow:#d9dfe8;color-scheme:light}
-body[data-ride-experience="survival"]:not([data-breakaway-screen="home"]){--live-bg:#060408;--live-panel:#180a10;--live-raised:#270e17;--live-border:#8d263a;--live-text:#f9e8eb;--live-muted:#d29aa5;--live-accent:#ff304b;--live-accent-text:#fff;--live-shadow:#050204;color-scheme:dark}
+body[data-ride-experience="survival"]:not([data-breakaway-screen="home"]){--live-bg:#f5f5f7;--live-panel:#fff;--live-raised:#edf3fb;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#626b7b;--live-accent:#007aff;--live-accent-text:#fff;--live-shadow:#d9dfe8;color-scheme:light}
 body[data-ride-experience]:is([data-breakaway-screen="route"],[data-breakaway-screen="setup"],[data-breakaway-screen="ride"]):is([data-ride-experience="classic"],[data-ride-experience="survival"]){background:var(--live-bg)!important;color:var(--live-text)!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif!important}
 body:is([data-ride-experience="classic"],[data-ride-experience="survival"]):is([data-breakaway-screen="route"],[data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) main,
 body:is([data-ride-experience="classic"],[data-ride-experience="survival"]):is([data-breakaway-screen="route"],[data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .ride-workspace,
@@ -62,7 +62,7 @@ body[data-ride-experience="survival"] :is(#screenRoute,#screenSetup,#screenRide)
 
 /* Unified visual system: home, route creation, device setup and active ride. */
 body[data-ride-experience="classic"]{--live-bg:#f5f5f7;--live-panel:#fff;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#6e7484;--live-accent:#007aff;--live-subtle:#edf3fb;color-scheme:light}
-body[data-ride-experience="survival"]{--live-bg:#060408;--live-panel:#180a10;--live-border:#8d263a;--live-text:#f9e8eb;--live-muted:#d29aa5;--live-accent:#ff304b;--live-subtle:#270e17;color-scheme:dark}
+body[data-ride-experience="survival"]{--live-bg:#f5f5f7;--live-panel:#fff;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#626b7b;--live-accent:#007aff;--live-subtle:#edf3fb;color-scheme:light}
 body[data-ride-experience="classic"],body[data-ride-experience="survival"]{background:var(--live-bg)!important;color:var(--live-text)!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif!important}
 body[data-ride-experience="classic"] main,body[data-ride-experience="survival"] main{background:var(--live-bg)!important;color:var(--live-text)!important}
 body[data-ride-experience="classic"] :is(#screenRoute,#screenSetup,#screenRide),body[data-ride-experience="survival"] :is(#screenRoute,#screenSetup,#screenRide){background:var(--live-bg)!important;color:var(--live-text)!important;max-width:none!important;width:100%!important}
@@ -134,7 +134,7 @@ body[data-ride-experience="cyclequest"][data-breakaway-screen="setup"] #screenSe
 .mode-device-shortcut button:hover,.mode-device-shortcut button:focus-visible{background:#263e80;outline-color:#ffe777}
 /* Route and setup use the same surface colors as their active ride mode. */
 body[data-ride-experience="classic"]:not([data-breakaway-screen="home"]){--live-bg:#f5f5f7;--live-panel:#fff;--live-raised:#edf3fb;--live-subtle:#edf3fb;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#626b7b;--live-accent:#007aff;--live-accent-text:#fff;color-scheme:light}
-body[data-ride-experience="survival"]:not([data-breakaway-screen="home"]){--live-bg:#060408;--live-panel:#180a10;--live-raised:#270e17;--live-subtle:#270e17;--live-border:#8d263a;--live-text:#f9e8eb;--live-muted:#d29aa5;--live-accent:#ff304b;--live-accent-text:#fff;color-scheme:dark}
+body[data-ride-experience="survival"]:not([data-breakaway-screen="home"]){--live-bg:#f5f5f7;--live-panel:#fff;--live-raised:#edf3fb;--live-subtle:#edf3fb;--live-border:#d2d2d7;--live-text:#1d1d1f;--live-muted:#626b7b;--live-accent:#007aff;--live-accent-text:#fff;color-scheme:light}
 body:is([data-ride-experience="classic"],[data-ride-experience="survival"]):is([data-breakaway-screen="route"],[data-breakaway-screen="setup"]){background:var(--live-bg)!important;color:var(--live-text)!important}
 body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(.device-connect-card,.setup-advanced-settings,#drivetrainSection,.setup-utility-details,.route-builder,.route-studio-live-preview){background:var(--live-panel)!important;color:var(--live-text)!important;border-color:var(--live-border)!important}
 body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) :is(#screenRoute,#screenSetup) :is(h2,h3,label,summary){color:var(--live-text)!important}

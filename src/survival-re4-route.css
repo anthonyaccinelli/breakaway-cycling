@@ -1,0 +1,394 @@
+/* SURVIVAL ROUTE / RESIDENT EVIL 4-INSPIRED DESIGN STUDY
+ * Palette is sampled from the owner's five-stripe image:
+ * scarlet #C74343 | dried blood #92323C | steel violet #515076
+ * charcoal violet #39354F | fog lavender #AEA9CC
+ *
+ * Recolors page 01 only. Route generation, GPX inputs, selects, scrubber,
+ * navigation, and BLE flows are the original functional controls.
+ * Decorative textures are pure CSS; no game assets or logos are copied.
+ */
+@layer classicRouteReference {
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted{
+  --re4-scarlet:#c74343!important;
+  --re4-blood:#92323c!important;
+  --re4-steel:#515076!important;
+  --re4-charcoal:#39354f!important;
+  --re4-fog:#aea9cc!important;
+  --re4-void:#171521!important;
+  --re4-surface:#252235!important;
+  --re4-highlight:#eee9f8!important;
+  --re4-edge:rgba(174,169,204,.32)!important;
+  --cr-blue:var(--re4-blood)!important;
+  --cr-yellow:var(--re4-scarlet)!important;
+  --cr-bg:var(--re4-void)!important;
+  --ch-background:var(--re4-void)!important;
+  --ch-text:var(--re4-highlight)!important;
+  --ch-tab:var(--re4-fog)!important;
+  --ch-active:var(--re4-blood)!important;
+  --ch-mode:var(--re4-scarlet)!important;
+  --sc-bg:var(--re4-void)!important;
+  --sc-panel:var(--re4-surface)!important;
+  --sc-raised:var(--re4-charcoal)!important;
+  --sc-text:var(--re4-highlight)!important;
+  --sc-border:var(--re4-steel)!important;
+  --sc-red:var(--re4-scarlet)!important;
+  --live-bg:var(--re4-void)!important;
+  --live-panel:var(--re4-surface)!important;
+  --live-raised:var(--re4-charcoal)!important;
+  --live-subtle:var(--re4-charcoal)!important;
+  --live-border:var(--re4-steel)!important;
+  --live-text:var(--re4-highlight)!important;
+  --live-muted:var(--re4-fog)!important;
+  --live-accent:var(--re4-scarlet)!important;
+  --live-accent-text:var(--re4-highlight)!important;
+  background:var(--re4-void)!important;
+  color:var(--re4-highlight)!important;
+  color-scheme:dark!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted main,
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted main>.ride-workspace,
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute{
+  color:var(--re4-highlight)!important;
+  border-color:var(--re4-steel)!important;
+  background:var(--re4-void)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.cr-reference{
+  color:var(--re4-highlight)!important;
+  background:
+   radial-gradient(ellipse 85% 60% at 95% 12%,rgba(146,50,60,.17),transparent 66%),
+   radial-gradient(ellipse 65% 80% at 4% 95%,rgba(81,80,118,.29),transparent 70%),
+   repeating-linear-gradient(0deg,rgba(174,169,204,.017) 0,rgba(174,169,204,.017) 1px,transparent 1px,transparent 4px),
+   #171521!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.cr-reference::after{
+  content:"";pointer-events:none;position:absolute;
+  left:calc(35 * var(--cr-u));right:calc(32 * var(--cr-u));
+  top:calc(134 * var(--cr-u));height:calc(2 * var(--cr-u));
+  background:linear-gradient(90deg,#c74343 0 12%,#92323c 12% 29%,#515076 29% 49%,#39354f 49% 72%,#aea9cc 72% 100%);
+  opacity:.85;z-index:0;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.cr-reference::before{
+  content:"SURVIVAL OPERATIONS     /     ESCAPE ROUTE CONFIGURATION";
+  position:absolute;top:calc(117 * var(--cr-u));left:calc(40 * var(--cr-u));
+  pointer-events:none;
+  font:700 calc(12 * var(--cr-u))/1.2 Consolas,"Courier New",monospace;
+  letter-spacing:.13em;
+  color:var(--re4-fog);opacity:.9;
+ }
+ /* Top navigation: a worn steel menu, not a bright web-app toolbar. */
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead{
+  background:linear-gradient(180deg,#292637 0%,#191721 92%,transparent 100%)!important;
+  border-bottom:1px solid rgba(174,169,204,.2)!important;
+  color:var(--re4-highlight)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-brand small {
+  color:var(--re4-highlight)!important;
+  font-family:"Arial Narrow","Bahnschrift Condensed",Impact,sans-serif!important;
+  font-stretch:condensed!important;letter-spacing:.08em!important;
+  text-shadow:0 1px 0 #171521!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-subhead strong{
+  color:var(--re4-fog)!important;
+  letter-spacing:.12em!important;text-transform:uppercase!important;
+  font-family:Consolas,"Courier New",monospace!important;
+  font-size:calc(13 * var(--ch-u))!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs{
+  border-bottom:1px solid rgba(174,169,204,.23)!important;
+  background:rgba(23,21,33,.35)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:not(.secondary){
+  border:1px solid transparent!important;
+  border-bottom:2px solid transparent!important;
+  background:transparent!important;
+  color:var(--re4-fog)!important;
+  border-radius:1px!important;
+  font-family:"Arial Narrow",Arial,sans-serif!important;
+  font-weight:800!important;letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button.sc-active:not(.secondary){
+  color:var(--re4-highlight)!important;
+  background:linear-gradient(180deg,#92323c,#512934)!important;
+  border:1px solid #c74343!important;border-bottom:2px solid #c74343!important;
+  box-shadow:inset 0 0 0 1px rgba(174,169,204,.09)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:hover:not(.sc-active){
+  color:var(--re4-highlight)!important;
+  background:#39354f!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-mode-change{
+  background:linear-gradient(165deg,#92323c,#622b38)!important;
+  color:var(--re4-highlight)!important;
+  border:1px solid #c74343!important;border-radius:2px!important;
+  box-shadow:inset 0 0 0 1px rgba(174,169,204,.16)!important;
+  font-family:"Arial Narrow",Arial,sans-serif!important;
+  text-transform:uppercase!important;letter-spacing:.06em!important;
+ }
+ /* Escape selection / actual native dropdowns remain click targets. */
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute button.cr-upload{
+  background:linear-gradient(140deg,#38334b,#242033)!important;
+  color:var(--re4-highlight)!important;
+  border:1px solid var(--re4-steel)!important;
+  border-left:calc(5 * var(--cr-u)) solid var(--re4-fog)!important;
+  border-radius:2px!important;
+  box-shadow:inset 0 0 0 1px rgba(174,169,204,.12)!important;
+  font-family:"Arial Narrow",Arial,sans-serif!important;
+  text-transform:uppercase!important;letter-spacing:.07em!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute button.cr-upload:hover{
+  border-color:var(--re4-scarlet)!important;
+  background:#39354f!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .sr-mode-step{
+  background:linear-gradient(145deg,#c74343,#92323c)!important;
+  border:1px solid #aea9cc!important;
+  color:var(--re4-highlight)!important;
+  border-radius:3px!important;
+  font:900 calc(24 * var(--cr-u))/1 "Arial Narrow",Arial,sans-serif!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .sr-mode-controls label{
+  display:flex!important;flex-direction:column!important;
+  align-items:flex-start!important;justify-content:center!important;
+  gap:calc(2 * var(--cr-u))!important;
+  background:linear-gradient(105deg,#39354f,#252235 95%)!important;
+  border:1px solid #515076!important;
+  border-left:calc(4 * var(--cr-u)) solid #92323c!important;
+  border-radius:2px!important;
+  padding:0 calc(16 * var(--cr-u))!important;
+  box-shadow:inset 0 1px rgba(174,169,204,.12)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .sr-mode-controls label::before{
+  color:var(--re4-fog)!important;
+  font:700 calc(12 * var(--cr-u))/1.1 Consolas,"Courier New",monospace!important;
+  letter-spacing:.12em!important;
+  text-align:left!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .sr-mode-controls label::after{
+  content:attr(data-choice) "  ⌄"!important;
+  color:var(--re4-highlight)!important;
+  font:800 calc(16.8 * var(--cr-u))/1.1 "Arial Narrow",Arial,sans-serif!important;
+  text-transform:uppercase!important;
+  white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%!important;pointer-events:none!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .sr-mode-controls label:hover,
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .sr-mode-controls label:focus-within{
+  border-color:var(--re4-scarlet)!important;
+  border-left-color:var(--re4-scarlet)!important;
+  background:#515076!important;
+  outline-color:var(--re4-scarlet)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .sr-mode-controls label:hover::before{
+  color:var(--re4-highlight)!important;
+ }
+ /* Section numbers: stamped metal badges, not Classic circles. */
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-heading{
+  color:var(--re4-highlight)!important;
+  font-family:"Arial Narrow","Bahnschrift Condensed",Impact,sans-serif!important;
+  font-weight:900!important;letter-spacing:.04em!important;
+  text-transform:uppercase!important;
+  text-shadow:0 2px 9px rgba(0,0,0,.4)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-heading>span,
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-summary .route-step{
+  background:#92323c!important;
+  color:var(--re4-highlight)!important;
+  border:1px solid var(--re4-scarlet)!important;
+  border-radius:2px!important;
+  box-shadow:inset 0 0 0 1px rgba(174,169,204,.16)!important;
+  font-family:"Arial Narrow",Arial,sans-serif!important;
+ }
+ /* Main dossier / equipment workbench. */
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-config{
+  background:
+    linear-gradient(90deg,rgba(199,67,67,.3),transparent 7%) top left/100% 2px no-repeat,
+    repeating-linear-gradient(90deg,rgba(174,169,204,.023) 0 1px,transparent 1px 31px),
+    linear-gradient(115deg,#302b42 0%,#201d2c 60%,#30283d 100%)!important;
+  border:1px solid var(--re4-steel)!important;
+  box-shadow:0 15px 44px rgba(0,0,0,.35),inset 0 0 0 1px rgba(174,169,204,.09)!important;
+  border-radius:3px!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-config::before{
+  content:"";position:absolute;z-index:0;pointer-events:none;
+  left:0;right:0;top:0;height:calc(3 * var(--cr-u));
+  background:linear-gradient(90deg,#c74343,#92323c 34%,transparent 88%);
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-controls,
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-summary,
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-actions{position:relative!important;z-index:1!important;}
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-controls .route-fields label{
+  color:var(--re4-fog)!important;
+  font-family:Consolas,"Courier New",monospace!important;
+  font-weight:700!important;letter-spacing:.04em!important;
+  text-transform:uppercase!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-controls .route-fields :is(input,select){
+  color:var(--re4-highlight)!important;
+  background:#191622!important;
+  border:1px solid #515076!important;
+  border-bottom:2px solid #aea9cc!important;
+  border-radius:2px!important;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.3)!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-controls .route-fields :is(input,select):focus-visible{
+  outline:2px solid #c74343!important;
+  outline-offset:1px!important;
+  border-color:#c74343!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-reference :is(.route-actions,.quick-preset-bar) button,
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-tools button{
+  color:var(--re4-highlight)!important;
+  background:linear-gradient(180deg,#515076,#39354f)!important;
+  border:1px solid #aea9cc!important;
+  border-bottom:2px solid #272338!important;
+  border-radius:2px!important;
+  box-shadow:inset 0 1px rgba(238,233,248,.1)!important;
+  font-family:"Arial Narrow",Arial,sans-serif!important;
+  font-weight:800!important;letter-spacing:.02em!important;
+  text-transform:uppercase!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-reference :is(.route-actions,.quick-preset-bar) button:hover,
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-tools button:hover{
+  background:#92323c!important;
+  border-color:#c74343!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute #generateRoute,
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute #studioEditElevation{
+  background:linear-gradient(175deg,#c74343,#92323c)!important;
+  border:1px solid #c74343!important;
+  color:#fff0f4!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-reference .quick-preset-bar button{
+  background:#242132!important;
+  color:#aea9cc!important;
+  border-color:#515076!important;
+ }
+ /* Route report card / stats. */
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-summary>.route-studio-live-preview{
+  background:linear-gradient(160deg,#39354f,#211e31 66%)!important;
+  color:var(--re4-highlight)!important;
+  border:1px solid #aea9cc!important;
+  border-left:calc(5 * var(--cr-u)) solid #c74343!important;
+  border-radius:3px!important;
+  box-shadow:inset 0 0 0 1px rgba(174,169,204,.13)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-summary .route-studio-live-heading{
+  padding-top:calc(16 * var(--cr-u))!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-summary h2{
+  color:var(--re4-highlight)!important;
+  font-family:"Arial Narrow","Bahnschrift Condensed",Impact,sans-serif!important;
+  letter-spacing:.04em!important;text-transform:uppercase!important;
+  text-shadow:none!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-summary .studio-live-stats{
+  color:var(--re4-fog)!important;
+  font-family:Consolas,"Courier New",monospace!important;
+  font-weight:700!important;
+  margin-top:calc(37 * var(--cr-u))!important;
+  line-height:1.35!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-summary .studio-live-stats>span{
+  color:var(--re4-fog)!important;
+  font:inherit!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-summary .studio-live-stats b{
+  color:var(--re4-highlight)!important;
+  font:inherit!important;
+ }
+ /* Mission hand-off card */
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-callout #enjoyRide{
+  background:
+    linear-gradient(150deg,rgba(199,67,67,.24),transparent 72%),
+    linear-gradient(180deg,#39354f,#211e2e)!important;
+  color:var(--re4-highlight)!important;
+  border:1px solid #c74343!important;
+  border-left:calc(7 * var(--cr-u)) solid #c74343!important;
+  border-radius:2px!important;
+  box-shadow:inset 0 0 0 1px rgba(174,169,204,.2),0 0 25px rgba(146,50,60,.13)!important;
+  font-family:"Arial Narrow","Bahnschrift Condensed",Impact,sans-serif!important;
+  text-transform:uppercase!important;
+  letter-spacing:.02em!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-callout #enjoyRide span:nth-child(1){
+  color:var(--re4-fog)!important;
+  font-size:.74em!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-callout #enjoyRide span:nth-child(2){
+  color:var(--re4-highlight)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-callout #enjoyRide:hover{
+  background:linear-gradient(150deg,#92323c,#39354f)!important;
+  border-color:#aea9cc!important;
+ }
+ /* Route scan / topography uses 5 exact supplied colors. */
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile{
+  background:#171521!important;
+  border-radius:2px!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile #studioLiveChart{
+  background:
+    linear-gradient(180deg,rgba(174,169,204,.06),rgba(23,21,33,.88)),
+    repeating-linear-gradient(0deg,transparent 0,transparent 34px,rgba(174,169,204,.09) 34px,rgba(174,169,204,.09) 35px),
+    repeating-linear-gradient(90deg,transparent 0,transparent 69px,rgba(174,169,204,.055) 69px,rgba(174,169,204,.055) 70px),
+    #171521!important;
+  border:1px solid #515076!important;
+  border-top:3px solid #92323c!important;
+  border-radius:2px!important;
+  box-shadow:inset 0 0 0 1px rgba(174,169,204,.14)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile #studioLiveChart::before{
+  content:"TERRAIN SCAN  /  THREAT TOPOGRAPHY";
+  position:absolute!important;
+  z-index:3!important;top:calc(12 * var(--cr-u));right:calc(17 * var(--cr-u));
+  pointer-events:none!important;
+  color:var(--re4-fog)!important;
+  font:700 calc(12 * var(--cr-u))/1.2 Consolas,"Courier New",monospace!important;
+  letter-spacing:.12em!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile #studioLiveChart svg{
+  background:transparent!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile svg .studio-scrub-marker{
+  stroke:#aea9cc!important;
+  stroke-width:calc(5 * var(--cr-u))!important;
+  filter:drop-shadow(0 0 3px #171521);
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout{
+  background:linear-gradient(90deg,#39354f,#242033)!important;
+  color:var(--re4-highlight)!important;
+  border:1px solid #515076!important;
+  border-left:calc(5 * var(--cr-u)) solid #c74343!important;
+  border-radius:2px!important;
+  box-shadow:inset 0 0 0 1px rgba(174,169,204,.12)!important;
+  font-family:Consolas,"Courier New",monospace!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout :is(span,b),
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>.note{
+  color:var(--re4-highlight)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>.note{
+  color:var(--re4-fog)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-reference .cr-error{
+  color:#ffbdc1!important;
+  font-family:Consolas,"Courier New",monospace!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-reference button:focus-visible{
+  outline:2px solid #aea9cc!important;outline-offset:2px!important;
+ }
+ @media(max-width:1100px){
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.cr-reference::before,
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.cr-reference::after{display:none!important}
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-summary .studio-live-stats{margin-top:20px!important}
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .sr-mode-controls label::before{font-size:10px!important}
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .sr-mode-controls label::after{font-size:14px!important}
+ }
+ @media(max-width:570px){
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .sr-mode-controls label{padding:0 12px!important}
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile #studioLiveChart::before{font-size:9px!important}
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>.note{display:none!important}
+ }
+}

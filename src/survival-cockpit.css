@@ -243,35 +243,35 @@ body.sc-cockpit-mounted #screenSetup .connection-strip{
  overflow:auto!important;
 }
 body.sc-cockpit-mounted #screenSetup .connection-strip>h2{color:#fff!important;font-size:20px!important;margin:0!important}
-body.sc-cockpit-mounted #screenSetup .connection-strip>#setupInstructions{font-size:12px!important;color:#d7aab5!important}
+body.sc-cockpit-mounted #screenSetup .connection-strip>#setupInstructions{font-size:12px!important;color:#fff!important}
 body.sc-cockpit-mounted #screenSetup .setup-device-tiles{
  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
  gap:11px!important;margin:0!important;min-height:0!important;
 }
 body.sc-cockpit-mounted #screenSetup .setup-device-tile{
- border:1px solid #794050!important;border-radius:6px!important;
- background:#290f1a!important;min-width:0!important;box-shadow:none!important;
+ border:4px double #fff!important;border-radius:19px!important;
+ background:#f4f4f4!important;color:#000!important;min-width:0!important;box-shadow:none!important;
  padding:15px!important;
 }
-body.sc-cockpit-mounted #screenSetup .setup-device-tile h3{color:#fff!important;font-size:16px!important}
+body.sc-cockpit-mounted #screenSetup .setup-device-tile h3{color:#000!important;font-size:16px!important}
 body.sc-cockpit-mounted #screenSetup .setup-device-tile button{
- background:var(--sc-red)!important;color:#fff!important;
- border:1px solid var(--sc-red)!important;font-size:12px!important;
+ background:#ffd000!important;color:#000!important;
+ border:1px solid #ffd000!important;font-size:12px!important;
 }
 body.sc-cockpit-mounted #screenSetup .setup-settings-row{
  display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;min-height:0!important;
 }
 body.sc-cockpit-mounted #screenSetup .setup-settings-row>section,
 body.sc-cockpit-mounted #screenSetup .setup-settings-row>.ride-shifting-column{
- background:#210e16!important;border:1px solid #683446!important;border-radius:6px!important;
+ background:#f4f4f4!important;color:#000!important;border:1px solid #fff!important;border-radius:6px!important;
  min-width:0!important;padding:10px!important;
 }
 body.sc-cockpit-mounted #screenSetup .setup-next{
  display:flex!important;align-items:center!important;justify-content:space-between!important;
  flex-wrap:wrap!important;gap:10px!important;margin:0!important;padding:10px 0!important;
 }
-body.sc-cockpit-mounted #screenSetup #goToRide{background:var(--sc-red)!important;color:#fff!important;padding:11px 20px!important;min-height:40px!important}
-body.sc-cockpit-mounted #screenSetup #setupReadiness{color:#e5b2bc!important;font-size:12px!important}
+body.sc-cockpit-mounted #screenSetup #goToRide{background:#ffd000!important;color:#000!important;padding:11px 20px!important;min-height:40px!important}
+body.sc-cockpit-mounted #screenSetup #setupReadiness{color:#fff!important;font-size:12px!important}
 /* Live cockpit: elevation -> chase cards -> 8 readouts -> ride controls. */
 body.sc-cockpit-mounted #screenRide .ride-screen-header,
 body.sc-cockpit-mounted #screenRide>.survive-beta{display:none!important}
