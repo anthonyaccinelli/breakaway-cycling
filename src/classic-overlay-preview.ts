@@ -1,5 +1,5 @@
 /** Classic design-system overlay only. Survival and Cycle Quest untouched. */
-export const CLASSIC_DESIGN_OVERLAY_CSS=String.raw\`
+export const CLASSIC_DESIGN_OVERLAY_CSS=String.raw`
 body.classic-design-overlay {
  --dp-color-ground:#fcfcfd;--dp-color-panel:#fff;--dp-color-rule:#dde0e6;
  --dp-color-ink:#16191f;--dp-color-ink-secondary:#454c58;
@@ -69,4 +69,4 @@ body.classic-design-overlay button:focus-visible{
 }
 @media(prefers-reduced-motion:reduce){
  body.classic-design-overlay *{transition:none!important;animation:none!important}
-}\`;
+}`;
