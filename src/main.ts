@@ -1432,7 +1432,7 @@ function updateFloatingProfile(){
  const p=at(distance),max=points.at(-1)?.distance||0;
  $('floatDistance').textContent=(distance/METERS_PER_MILE).toFixed(2)+' mi';
  $('floatGrade').textContent=displayGrade().toFixed(1)+'%';
- const floatingHud=$('floatLiveGrade');if(floatingHud){const hud=gradeHud(displayGrade());floatingHud.textContent=hud.label;floatingHud.style.color=hud.color;floatingHud.style.fontSize=(document.body.dataset.rideExperience==='classic'?hud.size*.8:hud.size)+'px';floatingHud.innerHTML=hud.label+climbHud(climbNow());}
+ const floatingHud=$('floatLiveGrade');if(floatingHud){const hud=gradeHud(displayGrade());floatingHud.textContent=hud.label;floatingHud.style.color=hud.color;floatingHud.style.fontSize=(['classic','survival'].includes(document.body.dataset.rideExperience||'')?hud.size*.8:hud.size)+'px';floatingHud.innerHTML=hud.label+climbHud(climbNow());}
  $('floatElevation').textContent=Math.round(p.elevation*FEET_PER_METER)+' ft';
  if(Date.now()<climbAwardUntil){const ch=$('floatChart');ch.innerHTML='<div style="min-height:180px;display:grid;place-items:center;font:900 36px system-ui;color:#6cf5c9;text-align:center">⛰ CLIMB COMPLETE!</div>'; }else if(!$('floatMarker'))syncProfileCharts();
  updateRiderDot($('floatMarker'),distance);
@@ -1520,33 +1520,31 @@ $('nativeProfile').addEventListener('click',async()=>{
    .survive-hud-grid>.survive-hud-metric:nth-child(6){grid-column:3;grid-row:2}
    @media(max-width:800px){.tile b{font-size:17px}.tile small{font-size:9px}#overlayTop strong{font-size:9px}}
   
-   body[data-ride-experience="classic"]{background:#f5f5f7;color:#1d1d1f}
-   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile{background:#fff!important;border-color:#d2d2d7!important;color:#1d1d1f!important}
-   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) :is(.tile b,.tile small,#overlayTop strong,#overlayLabel){color:#1d1d1f!important}
-   body[data-ride-experience="classic"] #overlayChart{background:#e5ebf5!important}
-   body[data-ride-experience="classic"] .overlay-profile-grade{background:#e5ebf5!important;color:#142449!important;text-shadow:none!important;box-shadow:none!important}
-   body[data-ride-experience="classic"] .overlay-profile-grade .climb-hud-details{color:#142449!important;text-shadow:none!important}
-   body[data-ride-experience="survival"]{background:#060408;color:#f9e8eb}
-   body[data-ride-experience="survival"] #overlayContent:not(.survive-overlay) .tile{background:#180a10!important;border-color:#8d263a!important;color:#f9e8eb!important}
-   body[data-ride-experience="survival"] #overlayChart{background:#180a10!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]){background:#f5f5f7;color:#1d1d1f}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile{background:#fff!important;border-color:#d2d2d7!important;color:#1d1d1f!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) :is(.tile b,.tile small,#overlayTop strong,#overlayLabel){color:#1d1d1f!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayChart{background:#e5ebf5!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) .overlay-profile-grade{background:#e5ebf5!important;color:#142449!important;text-shadow:none!important;box-shadow:none!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) .overlay-profile-grade .climb-hud-details{color:#142449!important;text-shadow:none!important}
+   /* Survival shares the exact Classic base palette until recoloring begins. */
    /* Classic preview: typography 20% smaller; retain overlay geometry and controls. */
-   body[data-ride-experience="classic"] #overlayTop strong,
-   body[data-ride-experience="classic"] #overlayLabel{font-size:8px!important}
-   body[data-ride-experience="classic"] #overlayActions button{font-size:8px!important}
-   body[data-ride-experience="classic"] #overlaySettings{font-size:9.6px!important}
-   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile b{
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayTop strong,
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayLabel{font-size:8px!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayActions button{font-size:8px!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlaySettings{font-size:9.6px!important}
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile b{
      font-size:clamp(10.4px,1.2vw,19.2px)!important
    }
-   body.expanded[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile b{
+   body.expanded:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile b{
      font-size:clamp(12.8px,1.44vw,20.8px)!important
    }
-   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile[data-metric-key="elapsedTime"] b{
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile[data-metric-key="elapsedTime"] b{
      font-size:clamp(11.2px,1.32vw,20px)!important
    }
-   body[data-ride-experience="classic"] #overlayContent:not(.survive-overlay) .tile small{
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile small{
      font-size:clamp(6.4px,.56vw,8px)!important
    }
-   body[data-ride-experience="classic"] .overlay-profile-grade .climb-hud-details{
+   body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) .overlay-profile-grade .climb-hud-details{
      font-size:10.4px!important
    }
 </style>`;
@@ -1702,7 +1700,7 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  // Opaque label matches the overlay profile background, even on tall peaks.
  // A solid yellow outline replaces all text shadow. Classic uses dark text
  // against its light background; Survival keeps the current thematic color.
- const classicOverlay=document.body.dataset.rideExperience==='classic';
+ const classicOverlay=['classic','survival'].includes(document.body.dataset.rideExperience||'');
  const gradeBackdrop=classicOverlay?'#e5ebf5':'#141019';
  const labelColor=classicOverlay?'#142449':hud.color;
  return `<div class="overlay-profile-graphic" style="position:relative;width:100%;overflow:hidden"><div class="overlay-profile-grade" aria-label="Current gradient" style="position:absolute;z-index:3;top:12px;left:16px;pointer-events:none;box-sizing:border-box;max-width:calc(100% - 32px);padding:6px 10px;border:3px solid #ffd000;border-radius:8px;background:${gradeBackdrop};box-shadow:none;text-shadow:none!important;font-weight:850;line-height:1.05;letter-spacing:-.045em;color:${labelColor};font-size:${classicOverlay?hud.size*.8:hud.size}px">${hud.label}${climbHud(climbNow())}</div><svg viewBox="0 0 ${w} ${h}" style="display:block;width:100%;height:210px" preserveAspectRatio="none">${segments}<polyline points="${terrain}" fill="none" stroke="#e9f0f2" stroke-width="1.6" opacity=".85"/>${threatLine}<line x1="${markerX}" x2="${markerX}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg></div>`;
