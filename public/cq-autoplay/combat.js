@@ -19,6 +19,8 @@ export function selectSummit(level,random=Math.random){
  return {id,name:(monster?.name||'Lifted Dually').toUpperCase()+variant.suffix,variant,monster};
 }
 export function nextChapterEncounter(chapter,previousState,random=Math.random){
+ // Recurring enemies supplement every biome without consuming its shuffle bag.
+ if(random()<.1)return {monsterId:'headwind',state:previousState?.chapter===chapter?previousState:null};
  const config=CHAPTER_BIOMES[chapter];if(!config)return null;
  const valid=new Set(config.monsters),state=previousState?.chapter===chapter?previousState:null;
  let bag=Array.isArray(state?.bag)?state.bag.filter((id,i,a)=>valid.has(id)&&a.indexOf(id)===i):[];
@@ -31,8 +33,8 @@ export function nextChapterEncounter(chapter,previousState,random=Math.random){
 // Source damage is a strongest basic attack average, not a claim of tabletop DPR.
 export function monsterPool(target){
  const highest=Math.max(...MONSTERS.map(m=>m.level));
- let pool=MONSTERS.filter(m=>target>highest?m.level>=highest-20:m.level>=Math.max(1,target-4)&&m.level<=target+1);
- if(!pool.length){const nearest=Math.min(...MONSTERS.map(m=>Math.abs(m.level-target)));pool=MONSTERS.filter(m=>Math.abs(m.level-target)===nearest);}
+ let pool=MONSTERS.filter(m=>m.id!=='headwind').filter(m=>target>highest?m.level>=highest-20:m.level>=Math.max(1,target-4)&&m.level<=target+1);
+ if(!pool.length){const nearest=Math.min(...MONSTERS.map(m=>Math.abs(m.level-target)));pool=MONSTERS.filter(m=>m.id!=='headwind'&&Math.abs(m.level-target)===nearest);}
  return pool;
 }
 export function selectMonster(target,random=Math.random){
@@ -40,7 +42,8 @@ export function selectMonster(target,random=Math.random){
  return pool[Math.min(pool.length-1,Math.max(0,Math.floor(random()*pool.length)))];
 }
 export function creatureFactors(monster){
- const peers=MONSTERS.filter(m=>m.cr===monster.cr);
+ if(monster.id==='headwind')return {health:1,attack:1};
+ const peers=MONSTERS.filter(m=>m.id!=='headwind'&&m.cr===monster.cr);
  const mean=key=>peers.reduce((n,m)=>n+m[key],0)/peers.length;
  return {health:clamp(1+.16*Math.log2(monster.hp/mean('hp')),.82,1.18),attack:clamp(1+.12*Math.log2((monster.damage+Math.max(0,monster.attack))/(mean('damage')+Math.max(0,mean('attack')))),.8,1.2)};
 }

@@ -7,8 +7,8 @@ import {gradeColor,GRADE_COLORS,elevationSVG} from '../cycle-quest/profile.js';
 import {generateRoute,sample} from '../cycle-quest/routes.js';
 const source=(await readFile(new URL('../cycle-quest/combat.js',import.meta.url),'utf8')).replace("'/api/cycle-quest?asset=monsters.js'",JSON.stringify(new URL('../cycle-quest/monsters.js',import.meta.url).href));
 const {makeBattle,monsterPool,chapterRandom,CHAPTER_BIOMES,nextChapterEncounter,advanceBattle,SUMMIT_BOSSES,SUMMIT_VARIANTS}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
-test('roster contains unique numerical SRD creatures at appropriate progression tiers',()=>{
- assert.equal(MONSTERS.length,314);assert.equal(new Set(MONSTERS.map(m=>m.id)).size,314);
+test('roster contains unique SRD and original creatures at appropriate progression tiers',()=>{
+ assert.equal(MONSTERS.filter(m=>m.id!=='headwind').length,314);assert.equal(MONSTERS.length,315);assert.equal(new Set(MONSTERS.map(m=>m.id)).size,315);
  for(const m of MONSTERS)assert(m.hp>0&&Number.isFinite(m.attack)&&m.damage>=0&&m.level>=1);
  assert(MONSTERS.find(m=>m.id==='goblin').level<MONSTERS.find(m=>m.id==='adult-red-dragon').level);
 });
@@ -45,7 +45,7 @@ test('new monster modules remain behind the beta password gate',async()=>{
 test('first two chapter pools are distinct, complete, and draw fairly without repeated neighbors',()=>{
  const a=CHAPTER_BIOMES[1].monsters,b=CHAPTER_BIOMES[2].monsters;assert.equal(a.length,8);assert.equal(b.length,8);assert.equal(new Set([...a,...b]).size,16);for(const id of [...a,...b])assert(MONSTERS.some(m=>m.id===id));
  for(const chapter of [1,2]){let state=null,last=null;for(let cycle=0;cycle<5;cycle++){const drawn=[];for(let i=0;i<8;i++){const pick=nextChapterEncounter(chapter,state,()=>.37);assert.notEqual(pick.monsterId,last);drawn.push(pick.monsterId);last=pick.monsterId;state=pick.state;const fight=makeBattle('enemy',{level:1,ftp:280,monsterId:pick.monsterId});assert.equal(fight.monsterId,pick.monsterId);}assert.equal(new Set(drawn).size,8);}}
- assert.equal(nextChapterEncounter(3,null),null);
+ assert.equal(nextChapterEncounter(3,null,()=>.37),null);
 });
 
 test('battle continues beyond old deadlines and ends exactly at 1 HP',()=>{
@@ -66,4 +66,16 @@ test('summit roster has twelve fixed bosses and three variants with level unlock
  assert.deepEqual(SUMMIT_VARIANTS.map(v=>v.minLevel),[1,10,20]);
  const names=new Set();for(let i=0;i<12;i++)for(let j=0;j<3;j++){let calls=0;const random=()=>calls++===0?(i+.1)/12:(j+.1)/3;const b=makeBattle('summit',{level:20,ftp:280,random});assert.equal(b.monsterId,SUMMIT_BOSSES[i]);assert(Number.isFinite(b.hp)&&Number.isFinite(b.dps));names.add(b.name);}
  assert.equal(names.size,36);for(const [level,expected] of [[1,'BASE'],[10,'EXTREME'],[20,'PSYCHO']]){const b=makeBattle('summit',{level,ftp:280,random:()=>.99999});assert.equal(b.summitVariant,expected);}
+});
+
+
+test('Headwind recurs across all chapters without consuming biome draws or becoming a boss',()=>{
+ for(const chapter of [1,2,3,50,1000]){
+  const state={chapter,bag:['goblin'],last:'wolf'};
+  const pick=nextChapterEncounter(chapter,state,()=>.05);
+  assert.equal(pick.monsterId,'headwind');assert.equal(pick.state,state);
+  const fight=makeBattle('enemy',{level:20,ftp:280,monsterId:pick.monsterId});
+  assert.equal(fight.name,'HEADWIND');assert.equal(fight.level,20);assert.equal(fight.reward,150);assert(fight.hp>0&&fight.dps>0);
+ }
+ for(const level of [1,20,100])assert(!monsterPool(level).some(m=>m.id==='headwind'));
 });
