@@ -45,12 +45,7 @@ export function mountClassicRouteReference():void {
   // The reference runs terrain to both edges and the bottom of the chart.
   svg.setAttribute('preserveAspectRatio','none');
   svg.setAttribute('viewBox','12 0 876 198');
-  const terrain=svg.querySelector('clipPath path');
-  if(terrain&&!svg.querySelector('.cr-terrain')){
-   const fill=document.createElementNS('http://www.w3.org/2000/svg','path');
-   fill.classList.add('cr-terrain');fill.setAttribute('d',terrain.getAttribute('d')||'');
-   svg.insertBefore(fill,svg.querySelector('.studio-scrub-marker'));
-  }
+
  }
  function mount(){
   if(document.body.classList.contains('cr-reference-mounted'))return;
