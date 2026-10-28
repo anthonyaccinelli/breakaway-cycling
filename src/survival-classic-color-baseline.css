@@ -1,0 +1,201 @@
+/* Survival baseline: identical hues to the current Classic theme.
+   Change colors HERE when the new Survival palette is approved.
+   This file is imported last so it neutralizes legacy zombie styling,
+   WITHOUT changing layout, active gameplay, sensors, or route behavior. */
+body[data-ride-experience="survival"].sc-cockpit-mounted{
+ --classic-blue:#0053ad;
+ --classic-yellow:#ffd000;
+ --classic-paper:#f4f4f4;
+ --classic-ink:#000;
+ --classic-white:#fff;
+ --classic-tab:#243956;
+ --classic-active:#1665cf;
+ --classic-mode-button:#007aff;
+ --cp-blue:var(--classic-blue);
+ --cp-yellow:var(--classic-yellow);
+ --cp-paper:var(--classic-paper);
+ --cr-blue:var(--classic-blue);
+ --cr-yellow:var(--classic-yellow);
+ --cr-bg:var(--classic-paper);
+ --ch-background:var(--classic-paper);
+ --ch-text:#080808;
+ --ch-tab:var(--classic-tab);
+ --ch-active:var(--classic-active);
+ --ch-mode:var(--classic-mode-button);
+ --sc-bg:var(--classic-paper);
+ --sc-panel:var(--classic-paper);
+ --sc-raised:var(--classic-white);
+ --sc-text:var(--classic-ink);
+ --sc-muted:var(--classic-tab);
+ --sc-border:var(--classic-blue);
+ --sc-red:var(--classic-blue);
+ --sc-yellow:var(--classic-yellow);
+ --sv-background:var(--classic-paper);
+ --sv-primary:var(--classic-blue);
+ --sv-action:var(--classic-yellow);
+ --sv-ink:#080808;
+ background:var(--classic-paper)!important;
+ color:var(--classic-ink)!important;
+ color-scheme:light!important;
+ font-family:Arial,Helvetica,sans-serif!important;
+}
+
+/* The same white/blue/yellow hierarchy in Classic applies on every page.
+   Keep opaque light controls in the trainer connection workspace. */
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup :is(.setup-advanced-settings,.ride-shifting-column,.setup-device-tile){
+ background:var(--classic-paper)!important;
+ color:var(--classic-ink)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup :is(.setup-advanced-settings,.ride-shifting-column) :is(h2,h3){
+ color:var(--classic-blue)!important;
+ text-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup :is(.setup-advanced-settings,.ride-shifting-column,.setup-device-tile) :is(label,small,p,span){
+ color:var(--classic-ink)!important;
+ text-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup .setup-device-tile .setup-connection-indicator{
+ color:#3d5268!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup .setup-device-tile[data-connection-state="connected"] .setup-connection-indicator{
+ color:var(--classic-blue)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup .setup-device-tile .device-button-row button:not(.secondary),
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup #goToRide{
+ background:var(--classic-yellow)!important;
+ color:var(--classic-ink)!important;
+ border-color:var(--classic-yellow)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup .connection-strip{
+ background:var(--classic-blue)!important;
+ border-color:var(--classic-blue)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup .connection-strip>h2,
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup #setupInstructions,
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup #status,
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup #setupReadiness{
+ color:var(--classic-white)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup :is(input:not([type=checkbox]),select){
+ background:var(--classic-paper)!important;
+ color:var(--classic-ink)!important;
+ border-color:#a9b7c5!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup .setup-shifting-choice.active{
+ background:var(--classic-yellow)!important;
+ color:var(--classic-ink)!important;
+ border-color:var(--classic-yellow)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenSetup .setup-utility-details{
+ background:var(--classic-paper)!important;
+ color:var(--classic-ink)!important;
+}
+
+/* Chase elements use Classic's blue container and light readout cards.
+   Their numerical values and game states remain entirely live. */
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide :is(.survive-game-hud,.survive-game-hud.is-chase,.survive-game-hud.is-recovery,.survive-game-hud.is-critical,.sv-preview-chase){
+ background:var(--classic-blue)!important;
+ border-color:var(--classic-blue)!important;
+ color:var(--classic-white)!important;
+ box-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide .survive-game-top :is(strong,small,span),
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide .sv-preview-chase header :is(strong,span){
+ color:var(--classic-white)!important;
+ text-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide :is(.sc-chase-card,.sv-preview-chase>div>span){
+ background:var(--classic-paper)!important;
+ border-color:transparent!important;
+ color:var(--classic-ink)!important;
+ box-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide :is(.sc-chase-card,.sv-preview-chase>div>span) :is(small,span,b,strong){
+ color:var(--classic-ink)!important;
+ text-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide :is(.sc-preflight,.sc-ride-controls){
+ background:var(--classic-paper)!important;
+ border-color:var(--classic-blue)!important;
+ color:var(--classic-ink)!important;
+ box-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide .sc-ride-control-label{
+ color:var(--classic-blue)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide #scStartSurvival,
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide .sc-ride-controls #start{
+ background:var(--classic-yellow)!important;
+ color:var(--classic-ink)!important;
+ border-color:var(--classic-yellow)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide .sc-ride-controls #rideFinishNow{
+ background:var(--classic-blue)!important;
+ color:var(--classic-white)!important;
+ border-color:var(--classic-blue)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide .ride-dashboard{
+ background:var(--classic-blue)!important;
+ border:0!important;
+ box-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide .ride-dashboard .metric{
+ background:var(--classic-paper)!important;
+ border:0!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide .ride-dashboard .metric b{
+ color:var(--classic-ink)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide .ride-dashboard .metric small{
+ color:var(--classic-blue)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide #profileSection{
+ background:var(--classic-paper)!important;
+ color:var(--classic-ink)!important;
+ border-color:var(--classic-blue)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide #chart{
+ background:var(--classic-paper)!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide #chart :is(.profile-live-grade,.profile-telemetry){
+ color:var(--classic-blue)!important;
+ text-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted #screenRide #chart svg #marker{
+ stroke:var(--classic-yellow)!important;
+}
+
+/* Remove the separate zombie-colored in-page overlay chrome.
+   The overlay is the same Classic floating panel, including its backing. */
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfile{
+ background:#142434!important;color:#e9f0f2!important;
+ border:1px solid #45d6aa!important;border-radius:12px!important;
+ box-shadow:0 16px 48px #000a!important;
+ padding:0 12px 8px!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfileHandle{
+ border-bottom:1px solid #294152!important;color:#e9f0f2!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfileHandle>strong{
+ font-size:13px!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfileHandle>strong::after{
+ content:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfileHandle button{
+ border-radius:5px!important;border-color:#537087!important;
+ background:#20374c!important;color:#e8f4ff!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfile .float-stats{
+ color:#e9f0f2!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfile .float-stats b{
+ color:#45d6aa!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatChart{
+ background:#0c1c2b!important;
+ border:0!important;border-radius:8px!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted #floatingProfile .float-help{
+ color:#a9beca!important;
+}
