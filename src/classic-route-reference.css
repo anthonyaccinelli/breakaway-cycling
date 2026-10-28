@@ -120,7 +120,7 @@
     grid-template-columns:repeat(4,minmax(0,1fr))!important;
     position:absolute!important;
     top:calc(31 * var(--cr-u))!important;
-    left:50%!important;
+    left:calc(50% + 18 * var(--cr-u))!important;
     transform:translateX(-50%)!important;
     gap:calc(13 * var(--cr-u))!important;
     width:calc(785 * var(--cr-u))!important;
@@ -252,7 +252,7 @@
   }
   body.cr-reference-mounted #screenRoute .cr-config {
     display:grid!important;
-    grid-template-columns:minmax(0,760fr) minmax(0,502fr) minmax(0,586fr)!important;
+    grid-template-columns:minmax(0,770fr) minmax(0,502fr) minmax(0,576fr)!important;
     column-gap:calc(43 * var(--cr-u))!important;
     align-items:stretch!important;
     min-height:0!important;
@@ -437,7 +437,7 @@
     border:0!important;
     background:transparent!important;
     color:#000!important;
-    font-size:calc(34 * var(--cr-u))!important;
+    font-size:calc(32 * var(--cr-u))!important;
     font-weight:700!important;
     line-height:1.26!important;
   }
