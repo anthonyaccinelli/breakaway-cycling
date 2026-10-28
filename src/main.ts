@@ -789,10 +789,10 @@ const SURVIVAL_GRADE_COLORS={
  descent:'#394252',flat:'#B5A7A9',climb:'#D54051',steep:'#F19F71'
 } as const;
 function gradeColor(g:number){
- // Survival's route-design screen uses Classic's bright grade bands;
- // the active Survival ride retains its existing themed colors.
- const classicRoute=document.body.dataset.rideExperience==='survival'&&document.body.dataset.breakawayScreen==='route';
- if(document.body.dataset.rideExperience==='classic'||classicRoute){
+ // Classic and Survival share the same five solid grade-color bands on
+ // all three pages until the final Survival palette is assigned.
+ const sharedTheme=['classic','survival'].includes(document.body.dataset.rideExperience||'');
+ if(sharedTheme){
   if(!Number.isFinite(g)||g<=0.25)return CLASSIC_GRADE_COLORS.flat;
   if(g<3)return CLASSIC_GRADE_COLORS.gentle;
   if(g<6)return CLASSIC_GRADE_COLORS.moderate;
