@@ -1,5 +1,6 @@
 import './classic-route-reference.css';
 import './classic-unified-header.css';
+import './survival-route-reference.css';
 
 /** Reference route studio. Move the original controls so every existing listener stays attached. */
 export function mountClassicRouteReference():void {
@@ -27,7 +28,6 @@ export function mountClassicRouteReference():void {
  const profile=shell.querySelector<HTMLElement>('.cr-profile')!;
  const survivalRow=shell.querySelector<HTMLElement>('.sr-mode-row')!;
  const survivalChoices=shell.querySelector<HTMLElement>('.sr-mode-controls')!;
- const survivalStudio=document.getElementById('survivalStudio');
  const survivalSelectIds=['studioChallenge','studioDifficulty','studioThreat'] as const;
  function syncSurvivalChoices(){
   survivalChoices.querySelectorAll<HTMLLabelElement>('label').forEach(label=>{
@@ -61,12 +61,19 @@ export function mountClassicRouteReference():void {
  function mount(){
   if(document.body.classList.contains('cr-reference-mounted'))return;
   document.body.classList.add('cr-reference-mounted');
+  const isSurvival=document.body.dataset.rideExperience==='survival';
+  document.body.classList.toggle('sr-reference-mounted',isSurvival);
   error.hidden=true;
   route!.append(shell);
   const survival=document.body.dataset.rideExperience==='survival';
   survivalRow.hidden=!survival;
   if(survival){
-   for(const id of survivalSelectIds){const select=document.getElementById(id);const label=select?.closest<HTMLElement>('label');if(label)move(label,survivalChoices);}
+   const prompts=['CHOOSE GAME MODE','CHOOSE DIFFICULTY','CHOOSE THREAT'];
+   for(const [index,id] of survivalSelectIds.entries()){
+    const select=document.getElementById(id);
+    const label=select?.closest<HTMLElement>('label');
+    if(label){label.dataset.prompt=prompts[index];move(label,survivalChoices);}
+   }
    syncSurvivalChoices();
   }
   move(builder!,controls);move(summary!,summaryHost);move(edit!,tools);move(next!,callout);
@@ -93,7 +100,7 @@ export function mountClassicRouteReference():void {
  const statText:{node:Node;text:string}[]=[];
  function unmount(){
   if(!document.body.classList.contains('cr-reference-mounted'))return;
-  document.body.classList.remove('cr-reference-mounted');
+  document.body.classList.remove('cr-reference-mounted','sr-reference-mounted');
   for(const {node,home} of moves.reverse()){home.replaceWith(node);}
   moves.length=0;
   for(const {node,html} of copies)node.innerHTML=html;
@@ -108,7 +115,11 @@ export function mountClassicRouteReference():void {
  }
  function sync(){
   const active=['classic','survival'].includes(document.body.dataset.rideExperience||'')&&document.body.dataset.breakawayScreen==='route';
-  if(active)mount();else unmount();
+  if(!active){unmount();return;}
+  const survival=document.body.dataset.rideExperience==='survival';
+  if(document.body.classList.contains('cr-reference-mounted') &&
+     document.body.classList.contains('sr-reference-mounted')!==survival)unmount();
+  mount();
  }
  for(const id of survivalSelectIds)document.getElementById(id)?.addEventListener('change',syncSurvivalChoices);
  const navigationObserver=new MutationObserver(sync);
