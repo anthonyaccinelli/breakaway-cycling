@@ -1,4 +1,6 @@
 import './style.css';
+import {bindFullscreenButton} from './ride-fullscreen';
+import './ride-fullscreen.css';
 import {timeWeightedPower, slewGrade} from './trainer-smoothing';
 import './live-ride-themes.css';
 import { CLASSIC_DESIGN_OVERLAY_CSS } from './classic-overlay-preview';
@@ -2828,8 +2830,9 @@ offerRideRecovery();
 // Cycle Quest keeps the existing Bluetooth/physics engine as the sole trainer owner.
 const cycleQuestHost=document.createElement('section');
 cycleQuestHost.id='cycleQuestHost';cycleQuestHost.hidden=true;
-cycleQuestHost.innerHTML='<div class="quest-host-bar"><button id="questHome" type="button">← HOME</button><span>CYCLE QUEST · PRIVATE BETA</span><button id="questDevices" type="button">TRAINER / DEVICES</button></div><iframe id="cycleQuestFrame" title="Cycle Quest cycling RPG" allow="picture-in-picture"></iframe>';
+cycleQuestHost.innerHTML='<div class="quest-host-bar"><button id="questHome" type="button">← HOME</button><span>CYCLE QUEST · PRIVATE BETA</span><div class="quest-host-actions"><button id="questFullscreen" type="button" aria-pressed="false">FULL SCREEN</button><button id="questDevices" type="button">TRAINER / DEVICES</button></div></div><iframe id="cycleQuestFrame" title="Cycle Quest cycling RPG" allow="picture-in-picture"></iframe>';
 document.body.append(cycleQuestHost);
+bindFullscreenButton(cycleQuestHost.querySelector<HTMLButtonElement>('#questFullscreen')!,document,message=>{status(message);questSend({type:'notice',message});});
 const questFrame=cycleQuestHost.querySelector<HTMLIFrameElement>('iframe')!;
 questFrame.setAttribute('allow','picture-in-picture; bluetooth');
 const questPreviewPage=new URLSearchParams(location.search).get('cycleQuestPreview');
