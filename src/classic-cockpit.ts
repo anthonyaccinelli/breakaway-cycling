@@ -1,5 +1,6 @@
 import './classic-cockpit.css';
 import './classic-companion-preview.css';
+import './cycle-quest-setup.css';
 
 /** Arrange the existing Classic controls in the shared cockpit layout. */
 export function mountClassicCockpit():void {
@@ -31,7 +32,7 @@ export function mountClassicCockpit():void {
  const cells=arrangement.map(id=>get(id)?.closest<HTMLElement>('.metric')).filter((node):node is HTMLElement=>!!node);
  const gainCell=get('totalGain')?.closest<HTMLElement>('.metric');
  const remainingCell=get('remaining')?.closest<HTMLElement>('.metric');
- const active=()=>document.body.dataset.rideExperience==='classic'&&document.body.dataset.breakawayScreen!=='home'&&document.body.dataset.deviceShortcut!=='true';
+ const active=()=>((document.body.dataset.rideExperience==='classic'&&document.body.dataset.breakawayScreen!=='home')||(document.body.dataset.rideExperience==='cyclequest'&&document.body.dataset.breakawayScreen==='setup'))&&document.body.dataset.deviceShortcut!=='true';
  function mount(){
   if(document.body.classList.contains('cc-cockpit-mounted'))return;
   document.body.classList.add('cc-cockpit-mounted');
@@ -70,7 +71,7 @@ export function mountClassicCockpit():void {
   const host=screen==='setup'?setup:screen==='ride'?ride:route;
   if(header.parentElement!==host)host!.prepend(header);
   const brandLabel=header.querySelector<HTMLElement>('.sc-brand small');
-  if(brandLabel)brandLabel.textContent='RIDE BREAKAWAY / CLASSIC MODE';
+  if(brandLabel)brandLabel.textContent=document.body.dataset.rideExperience==='cyclequest'?'RIDE BREAKAWAY / CYCLE QUEST':'RIDE BREAKAWAY / CLASSIC MODE';
   const title=get('ccTitle');if(title)title.textContent=screen==='setup'?'connect your trainer':screen==='ride'?'enjoy the ride':'create your route';
   const overlayTab=header.querySelector<HTMLButtonElement>('[data-cc-step="overlay"]');
   if(overlayTab)overlayTab.textContent='OVERLAY';
