@@ -88,7 +88,7 @@
   body.cr-reference-mounted #screenRoute>.sc-masthead .sc-brand small {
     display:block!important;
     color:var(--cr-blue)!important;
-    font-size:calc(26 * var(--cr-u))!important;
+    font-size:calc(20.8 * var(--cr-u))!important;
     font-weight:800!important;
     line-height:1.05!important;
   }
@@ -111,7 +111,7 @@
   body.cr-reference-mounted #screenRoute>.sc-masthead .sc-subhead strong {
     color:#000!important;
     text-transform:none!important;
-    font-size:calc(18 * var(--cr-u))!important;
+    font-size:calc(14.4 * var(--cr-u))!important;
     font-weight:700!important;
     line-height:1!important;
   }
@@ -146,7 +146,7 @@
     background:var(--cr-bg)!important;
     color:var(--cr-blue)!important;
     box-shadow:none!important;
-    font-size:calc(27 * var(--cr-u))!important;
+    font-size:calc(21.6 * var(--cr-u))!important;
     font-weight:800!important;
     line-height:1!important;
     white-space:nowrap!important;
@@ -180,7 +180,7 @@
     border-radius:calc(5 * var(--cr-u))!important;
     background:var(--cr-blue)!important;
     color:#fff!important;
-    font-size:calc(27 * var(--cr-u))!important;
+    font-size:calc(21.6 * var(--cr-u))!important;
     font-weight:800!important;
     line-height:1!important;
     cursor:pointer!important;
@@ -217,7 +217,7 @@
     border-radius:calc(4 * var(--cr-u))!important;
     background:var(--cr-blue)!important;
     color:#fff!important;
-    font-size:calc(27 * var(--cr-u))!important;
+    font-size:calc(21.6 * var(--cr-u))!important;
     font-weight:750!important;
     line-height:1!important;
     cursor:pointer!important;
@@ -229,7 +229,7 @@
     margin:0!important;
     padding:0!important;
     color:#000!important;
-    font-size:calc(30 * var(--cr-u))!important;
+    font-size:calc(24 * var(--cr-u))!important;
     font-weight:750!important;
     line-height:1!important;
   }
@@ -247,7 +247,7 @@
     border-radius:50%!important;
     background:var(--cr-blue)!important;
     color:#fff!important;
-    font-size:calc(32 * var(--cr-u))!important;
+    font-size:calc(25.6 * var(--cr-u))!important;
     font-weight:750!important;
   }
   body.cr-reference-mounted #screenRoute .cr-config {
@@ -317,7 +317,7 @@
     margin:0!important;
     padding:0!important;
     gap:calc(2 * var(--cr-u))!important;
-    font-size:calc(18 * var(--cr-u))!important;
+    font-size:calc(14.4 * var(--cr-u))!important;
     font-weight:750!important;
     line-height:calc(19 * var(--cr-u))!important;
     color:#fff!important;
@@ -334,7 +334,7 @@
     border-radius:calc(11 * var(--cr-u))!important;
     background:var(--cr-bg)!important;
     color:#000!important;
-    font-size:calc(21 * var(--cr-u))!important;
+    font-size:calc(16.8 * var(--cr-u))!important;
     font-weight:400!important;
     line-height:normal!important;
     outline-offset:2px!important;
@@ -378,7 +378,7 @@
     background:var(--cr-yellow)!important;
     color:#000!important;
     box-shadow:none!important;
-    font-size:calc(27 * var(--cr-u))!important;
+    font-size:calc(21.6 * var(--cr-u))!important;
     font-weight:800!important;
     line-height:1!important;
     white-space:nowrap!important;
@@ -425,7 +425,7 @@
     margin:0!important;
     padding:0!important;
     color:#000!important;
-    font-size:calc(29 * var(--cr-u))!important;
+    font-size:calc(23.2 * var(--cr-u))!important;
     font-weight:750!important;
     line-height:1.1!important;
   }
@@ -437,7 +437,7 @@
     border:0!important;
     background:transparent!important;
     color:#000!important;
-    font-size:calc(32 * var(--cr-u))!important;
+    font-size:calc(25.6 * var(--cr-u))!important;
     font-weight:700!important;
     line-height:1.26!important;
   }
@@ -469,7 +469,7 @@
     background:transparent!important;
   }
   body.cr-reference-mounted #screenRoute .cr-tools button {
-    font-size:calc(27 * var(--cr-u))!important;
+    font-size:calc(21.6 * var(--cr-u))!important;
   }
   body.cr-reference-mounted #screenRoute .cr-callout {
     margin:calc(52 * var(--cr-u)) calc(22 * var(--cr-u)) 0 calc(23 * var(--cr-u))!important;
@@ -492,7 +492,7 @@
     background:var(--cr-bg)!important;
     color:#000!important;
     text-align:left!important;
-    font-size:calc(46 * var(--cr-u))!important;
+    font-size:calc(36.8 * var(--cr-u))!important;
     font-weight:750!important;
     line-height:1.23!important;
     white-space:nowrap!important;
@@ -538,9 +538,7 @@
     height:100%!important;
     background:var(--cr-bg)!important;
   }
-  body.cr-reference-mounted #screenRoute .cr-profile svg g[clip-path] rect {
-    fill:#999!important;
-  }
+  /* Preserve route preview's four per-grade SVG fills (no gray override). */
   body.cr-reference-mounted #screenRoute .cr-profile svg polyline {
     display:none!important;
   }
@@ -567,7 +565,7 @@
     background:var(--cr-yellow)!important;
     color:var(--cr-blue)!important;
     box-shadow:none!important;
-    font-size:calc(28 * var(--cr-u))!important;
+    font-size:calc(22.4 * var(--cr-u))!important;
     font-weight:750!important;
     line-height:1!important;
     white-space:nowrap!important;
@@ -608,7 +606,7 @@
     margin:0!important;
     padding:0!important;
     color:#fff!important;
-    font-size:calc(16 * var(--cr-u))!important;
+    font-size:calc(12.8 * var(--cr-u))!important;
     font-weight:700!important;
   }
   body.cr-reference-mounted #screenRoute .cr-error[hidden] {display:none!important}
@@ -650,7 +648,7 @@
       width:auto!important;
       height:42px!important;
       padding:0 16px!important;
-      font-size:16px!important;
+      font-size:12.8px!important;
     }
     body.cr-reference-mounted #screenRoute>.sc-masthead .sc-tabs {
       order:3!important;
@@ -661,7 +659,7 @@
     }
     body.cr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button {
       height:51px!important;
-      font-size:15px!important;
+      font-size:12px!important;
       border-width:2px!important;
     }
     body.cr-reference-mounted #screenRoute>.sc-masthead .sc-subhead {
@@ -693,7 +691,7 @@
     }
     body.cr-reference-mounted #screenRoute .cr-summary .studio-live-stats {
       margin:25px 0 25px!important;
-      font-size:26px!important;
+      font-size:20.8px!important;
     }
     body.cr-reference-mounted #screenRoute .cr-tools .studio-elevation-controls {
       margin-top:0!important;
@@ -702,11 +700,11 @@
     body.cr-reference-mounted #screenRoute .cr-callout #enjoyRide {
       height:auto!important;
       min-height:120px!important;
-      font-size:36px!important;
+      font-size:28.8px!important;
     }
     body.cr-reference-mounted #screenRoute .cr-profile {height:340px!important}
     body.cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout {
-      font-size:16px!important;
+      font-size:12.8px!important;
     }
   }
   @media (max-width:540px) {
@@ -717,14 +715,14 @@
       margin-top:35px!important;
     }
     body.cr-reference-mounted #screenRoute>.sc-masthead .sc-mode-change {
-      font-size:13px!important;
+      font-size:10.4px!important;
       padding:0 10px!important;
     }
     body.cr-reference-mounted #screenRoute .cr-controls .route-fields {
       grid-template-columns:repeat(2,minmax(0,1fr))!important;
     }
     body.cr-reference-mounted #screenRoute .cr-reference :is(.route-actions,.quick-preset-bar) button {
-      font-size:14px!important;
+      font-size:11.2px!important;
       height:45px!important;
       padding:0 3px!important;
     }

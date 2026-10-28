@@ -112,7 +112,14 @@ body.survival-overlay-theme .survive-hud-profile::after{
  font-size:64px;line-height:1;color:#b5a7a911;pointer-events:none;
 }
 body.survival-overlay-theme .overlay-profile-grade{
- text-shadow:0 2px 7px #08060b,0 0 6px #08060b!important;
+ /* Opaque backing stops terrain from passing visually behind the grade. */
+ text-shadow:none!important;
+ border:3px solid #ffd000!important;
+ background:#141019!important;
+ box-shadow:none!important;
+}
+body.survival-overlay-theme .overlay-profile-grade .climb-hud-details{
+ text-shadow:none!important;
 }
 body.survival-overlay-theme #overlayMetrics .tile:focus-visible,
 body.survival-overlay-theme #overlayActions button:focus-visible{

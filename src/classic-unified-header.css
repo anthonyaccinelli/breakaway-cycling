@@ -1,0 +1,251 @@
+/* One screenshot-matched masthead for the three Classic screens.
+   Header reference: 2048 x 115, #f4f4f4 background, black brand,
+   simple navy tabs, blue active tab, bright-blue change-mode control.
+   Scoped to Classic; Survival and Cycle Quest are unaffected. */
+@layer classicRouteReference {
+  body[data-ride-experience="classic"].cc-cockpit-mounted {
+    --ch-u:clamp(.72px,calc(100vw / 2048),1px);
+    --ch-background:#f4f4f4;
+    --ch-text:#080808;
+    --ch-tab:#243956;
+    --ch-active:#1665cf;
+    --ch-mode:#007aff;
+  }
+
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead {
+    display:block!important;
+    z-index:10!important;
+    flex:0 0 calc(115 * var(--ch-u))!important;
+    width:100%!important;
+    height:calc(115 * var(--ch-u))!important;
+    min-height:calc(115 * var(--ch-u))!important;
+    max-height:calc(115 * var(--ch-u))!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:var(--ch-background)!important;
+    color:var(--ch-text)!important;
+    overflow:visible!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted #screenRoute>.sc-masthead {
+    position:absolute!important;
+    inset:0 0 auto 0!important;
+    margin:0!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenSetup,#screenRide)>.sc-masthead {
+    position:relative!important;
+    margin:0 0 0 calc(-34 * var(--cp-u))!important;
+    width:calc(100% + 68 * var(--cp-u))!important;
+    max-width:none!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead,
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead * {
+    font-family:Arial,Helvetica,sans-serif!important;
+    text-shadow:none!important;
+    letter-spacing:normal!important;
+    box-sizing:border-box!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-head {
+    display:block!important;
+    position:relative!important;
+    width:100%!important;
+    height:100%!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    background:transparent!important;
+    overflow:visible!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-brand {
+    position:absolute!important;
+    display:block!important;
+    top:calc(25 * var(--ch-u))!important;
+    left:calc(10 * var(--ch-u))!important;
+    margin:0!important;
+    padding:0!important;
+    white-space:nowrap!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-brand small {
+    display:block!important;
+    color:var(--ch-text)!important;
+    font-size:calc(20.8 * var(--ch-u))!important;
+    line-height:1.1!important;
+    font-weight:800!important;
+    text-transform:uppercase!important;
+    white-space:nowrap!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead :is(.sc-brand strong,.sc-brand-mark,.sc-phase,.sc-subhead span) {
+    display:none!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-subhead {
+    position:absolute!important;
+    display:block!important;
+    left:calc(10 * var(--ch-u))!important;
+    top:calc(61 * var(--ch-u))!important;
+    margin:0!important;
+    padding:0!important;
+    background:transparent!important;
+    border:0!important;
+    border-radius:0!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-subhead strong {
+    display:block!important;
+    color:var(--ch-text)!important;
+    font-size:calc(14.4 * var(--ch-u))!important;
+    line-height:1.05!important;
+    font-weight:800!important;
+    text-transform:none!important;
+    white-space:nowrap!important;
+    margin:0!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs {
+    display:grid!important;
+    position:absolute!important;
+    top:calc(26 * var(--ch-u))!important;
+    left:calc(50% + 0 * var(--ch-u))!important;
+    transform:translateX(-50%)!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:calc(15 * var(--ch-u))!important;
+    width:calc(820 * var(--ch-u))!important;
+    height:calc(69 * var(--ch-u))!important;
+    flex:none!important;
+    align-items:stretch!important;
+    justify-content:stretch!important;
+    min-width:0!important;
+    max-width:none!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    overflow:visible!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs button:not(.secondary) {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:calc(69 * var(--ch-u))!important;
+    min-height:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:calc(5 * var(--ch-u))!important;
+    box-shadow:none!important;
+    background:transparent!important;
+    color:var(--ch-tab)!important;
+    font-size:calc(13.6 * var(--ch-u))!important;
+    font-weight:800!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+    text-transform:uppercase!important;
+    cursor:pointer!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs button.sc-active:not(.secondary) {
+    background:var(--ch-active)!important;
+    color:#fff!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs button:not(.sc-active):hover {
+    background:#e3ebf7!important;
+    color:var(--ch-tab)!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-head-right {
+    display:block!important;
+    position:absolute!important;
+    top:calc(26 * var(--ch-u))!important;
+    right:calc(14 * var(--ch-u))!important;
+    margin:0!important;
+    padding:0!important;
+    background:transparent!important;
+    border:0!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-mode-change {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:calc(271 * var(--ch-u))!important;
+    height:calc(69 * var(--ch-u))!important;
+    min-height:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:calc(5 * var(--ch-u))!important;
+    background:var(--ch-mode)!important;
+    color:#fff!important;
+    box-shadow:none!important;
+    font-size:calc(23.2 * var(--ch-u))!important;
+    font-weight:800!important;
+    line-height:1!important;
+    text-transform:uppercase!important;
+    white-space:nowrap!important;
+    cursor:pointer!important;
+  }
+  body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead button:focus-visible{
+    outline:3px solid #000!important;
+    outline-offset:3px!important;
+  }
+  /* Previously the route form started underneath the new taller masthead. */
+  body[data-ride-experience="classic"].cc-cockpit-mounted.cr-reference-mounted #screenRoute .cr-reference {
+    padding-top:max(calc(137 * var(--cr-u)),calc(123 * var(--ch-u)))!important;
+  }
+
+  /* The desktop screenshot is the fixed reference. Smaller screens
+     keep the same styling, but reflow tabs so nothing overlaps. */
+  @media(max-width:1350px) {
+    body[data-ride-experience="classic"].cc-cockpit-mounted {
+      --ch-u:1px;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead {
+      height:166px!important;min-height:166px!important;max-height:166px!important;
+      flex-basis:166px!important;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-brand {
+      top:15px!important;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-brand small {font-size:20px!important}
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-subhead {top:43px!important}
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-subhead strong {font-size:15px!important}
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-head-right {top:13px!important}
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-mode-change {
+      width:160px!important;height:44px!important;font-size:13.6px!important;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs {
+      top:84px!important;left:50%!important;
+      width:calc(100% - 20px)!important;height:60px!important;gap:8px!important;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs button:not(.secondary) {
+      height:60px!important;font-size:12px!important;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted.cr-reference-mounted #screenRoute .cr-reference {
+      padding-top:177px!important;
+    }
+  }
+  @media(max-width:650px) {
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead {
+      height:188px!important;min-height:188px!important;max-height:188px!important;flex-basis:188px!important;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-brand small {
+      font-size:clamp(9.6px,2.88vw,14.4px)!important;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-mode-change {
+      width:auto!important;min-width:108px!important;height:39px!important;
+      padding:0 10px!important;font-size:9.6px!important;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs {
+      top:90px!important;height:84px!important;
+      grid-template-columns:repeat(2,minmax(0,1fr))!important;
+      grid-template-rows:repeat(2,38px)!important;gap:7px!important;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs button:not(.secondary) {
+      height:38px!important;font-size:10.4px!important;
+    }
+    body[data-ride-experience="classic"].cc-cockpit-mounted.cr-reference-mounted #screenRoute .cr-reference {
+      padding-top:199px!important;
+    }
+  }
+}
