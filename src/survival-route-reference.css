@@ -284,6 +284,21 @@
  body.sr-reference-mounted main>a[href="/trainer-lab.html"]{
   display:none!important;
  }
+ /* The upload button intentionally shares the upper header band in the
+    screenshot. Keep the masthead visually transparent so it doesn't cover
+    the real GPX control, and pass clicks through the empty header area. */
+ body.sr-reference-mounted #screenRoute>.sc-masthead{
+  background:transparent!important;pointer-events:none!important;
+ }
+ body.sr-reference-mounted #screenRoute>.sc-masthead .sc-head{
+  background:transparent!important;pointer-events:none!important;
+ }
+ body.sr-reference-mounted #screenRoute>.sc-masthead :is(.sc-tabs,.sc-head-right){
+  pointer-events:none!important;
+ }
+ body.sr-reference-mounted #screenRoute>.sc-masthead :is(.sc-tabs button,.sc-mode-change){
+  pointer-events:auto!important;
+ }
  /* Header dimensions mirror the supplied desktop screenshot. */
  @media(min-width:1101px){
   body.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs{
