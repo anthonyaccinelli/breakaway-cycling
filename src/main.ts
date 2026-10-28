@@ -789,9 +789,9 @@ const SURVIVAL_GRADE_COLORS={
  descent:'#394252',flat:'#B5A7A9',climb:'#D54051',steep:'#F19F71'
 } as const;
 function gradeColor(g:number){
- // Page 01 only: five exact stripes from the user-supplied survival palette.
- // Classic and Survival's Ride/Devices retain their previously approved colors.
- if(document.body.dataset.rideExperience==='survival'&&document.body.dataset.breakawayScreen==='route'){
+ // All Survival pages now use the five exact colors from the supplied palette.
+ // Classic retains its original green/yellow/orange/red/purple elevation bands.
+ if(document.body.dataset.rideExperience==='survival'){
   if(!Number.isFinite(g)||g<=0.25)return '#39354f'; // flat: charcoal violet
   if(g<3)return '#515076';                         // gentle: steel violet
   if(g<6)return '#aea9cc';                         // moderate: fog lavender
