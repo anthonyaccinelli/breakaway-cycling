@@ -1,7 +1,8 @@
 import './classic-cockpit.css';
 import './classic-companion-preview.css';
 import './cycle-quest-setup.css';
-import './cycle-quest-devices-shell.css';
+import '../cycle-quest/shared-ui.css';
+import './cycle-quest-native-frame.css';
 
 /** Arrange the existing Classic controls in the shared cockpit layout. */
 export function mountClassicCockpit():void {
@@ -23,15 +24,35 @@ export function mountClassicCockpit():void {
  header.innerHTML='<div class="sc-head"><div class="sc-brand"><small>RIDE BREAKAWAY / ORIGINAL MODE</small><strong>CLASSIC<span class="sc-brand-mark"> / 01</span></strong></div><nav class="sc-tabs" aria-label="Classic navigation"><button type="button" data-cc-step="route">01 ROUTE</button><button type="button" data-cc-step="setup">02 DEVICES</button><button type="button" data-cc-step="ride">03 RIDE</button><button type="button" data-cc-step="overlay">OVERLAY ↗</button></nav><div class="sc-head-right"><div class="sc-phase"><i aria-hidden="true"></i><span>YOUR RIDE</span></div><button type="button" class="sc-mode-change" id="ccModeChange">CHANGE MODE</button></div></div><div class="sc-subhead"><strong id="ccTitle">BUILD YOUR ROUTE</strong><span>CREATE. CONNECT. RIDE.</span></div>';
  // Cycle Quest's device workflow stays in the native BLE document but
  // matches the embedded RPG's utility/character/footer chrome.
+ // Share Cycle Quest's ACTUAL DOM classes and CSS, not a painted copy of
+ // Classic's screen. Bluetooth stays in this parent document for user-gesture
+ // permissions; the live device controls are physically moved, never cloned.
  const questUtility=document.createElement('div');
- questUtility.className='cq-device-utility';
+ questUtility.className='quest-host-bar cq-device-utility';
  questUtility.innerHTML='<button type="button" data-cq-utility="home">← HOME</button><span>CYCLE QUEST · PRIVATE BETA</span><button type="button" data-cq-utility="devices">TRAINER / DEVICES</button>';
- const questSubnav=document.createElement('div');
- questSubnav.className='cq-device-subnav';
- questSubnav.innerHTML='<strong>CYCLE QUEST</strong><nav aria-label="Cycle Quest game panels"><button type="button" data-cq-destination="ride">Ride</button><button type="button" data-cq-destination="character">Status</button><button type="button" data-cq-destination="overlay">Overlay</button></nav><span>SAVE 01<br><small>Local character</small></span>';
+ const questShell=document.createElement('div');
+ questShell.id='cq-preview';
+ questShell.className='cq-device-preview';
+ questShell.innerHTML='<div class="cq-game cq-device-game" data-cq-page="devices"><section class="cq-unified-head"><div class="cq-unified-brand"><strong>RIDE BREAKAWAY / CYCLE QUEST</strong><small>connect your trainer</small></div><nav class="cq-unified-nav" aria-label="Ride workflow"><button type="button" data-cq-native="route">01 ROUTE</button><button type="button" data-cq-native="devices" class="cq-unified-active" aria-current="page">02 DEVICES</button><button type="button" data-cq-native="ride">03 RIDE</button><button type="button" data-cq-native="overlay">OVERLAY</button></nav><button type="button" class="cq-change-mode">CHANGE MODE</button></section></div>';
+ const questGame=questShell.querySelector<HTMLElement>('.cq-game')!;
+ const questSubnav=document.createElement('header');
+ questSubnav.className='cq-header';
+ questSubnav.innerHTML='<div class="cq-brand"><span class="cq-kicker">RIDE BREAKAWAY PRESENTS</span><strong>CYCLE QUEST</strong></div><nav aria-label="Game navigation"><button data-cq-destination="ride">Ride</button><button data-cq-destination="character">Status</button><button data-cq-destination="overlay">Overlay</button></nav><span class="cq-slot">SAVE 01<br><span>Local character</span></span>';
+ const questFull=document.createElement('div');
+ questFull.className='cq-full cq-devices-full';
  const questFooter=document.createElement('footer');
- questFooter.className='cq-device-footer';
- questFooter.innerHTML='<span>LIVE TRAINER <b aria-hidden="true">●</b></span><span>The road ahead is yours.</span><span>CYCLE QUEST · PRIVATE BETA</span>';
+ questFooter.className='cq-footer';
+ questFooter.innerHTML='<span>LIVE TRAINER <span class="cq-gold">●</span></span><span class="cq-message">The road ahead is yours.</span><span><b>CYCLE QUEST · PRIVATE BETA</b></span>';
+ questGame.append(questSubnav,questFull,questFooter);
+ const nativeConnections=setup?.querySelector<HTMLElement>('.connection-strip')||null;
+ const nativeConnectionsParent=nativeConnections?.parentElement||null;
+ const nativeConnectionsNext=nativeConnections?.nextSibling||null;
+ const restoreNativeConnections=()=>{
+  if(!nativeConnections||!nativeConnectionsParent||nativeConnections.parentElement!==questFull)return;
+  if(nativeConnectionsNext?.parentNode===nativeConnectionsParent)
+   nativeConnectionsParent.insertBefore(nativeConnections,nativeConnectionsNext);
+  else nativeConnectionsParent.append(nativeConnections);
+ };
  const status=document.createElement('section');
  status.className='cc-status';
  status.setAttribute('aria-label','Route status');
@@ -64,7 +85,7 @@ export function mountClassicCockpit():void {
  function unmount(){
   if(!document.body.classList.contains('cc-cockpit-mounted'))return;
   document.body.classList.remove('cc-cockpit-mounted','cq-native-shell');
-  questUtility.remove();questSubnav.remove();questFooter.remove();
+  restoreNativeConnections();questUtility.remove();questShell.remove();
   header.remove();status.remove();footer.remove();
   if(survivalPanel){if(previousSurvivalDisplay)survivalPanel.style.setProperty('display',previousSurvivalDisplay,previousSurvivalPriority);else survivalPanel.style.removeProperty('display');}
   for(const button of buttons)actions!.append(button);
@@ -84,13 +105,16 @@ export function mountClassicCockpit():void {
   mount();
   const screen=document.body.dataset.breakawayScreen;
   const host=screen==='setup'?setup:screen==='ride'?ride:route;
-  if(header.parentElement!==host)host!.prepend(header);
-  if(document.body.dataset.rideExperience==='cyclequest'&&screen==='setup'){
+  const isQuestDevices=document.body.dataset.rideExperience==='cyclequest'&&screen==='setup';
+  if(isQuestDevices){
+   header.remove();
    if(questUtility.parentElement!==setup)setup!.prepend(questUtility);
-   if(questSubnav.parentElement!==setup)header.after(questSubnav);
-   if(questFooter.parentElement!==setup)setup!.append(questFooter);
+   if(questShell.parentElement!==setup)setup!.append(questShell);
+   if(nativeConnections&&nativeConnections.parentElement!==questFull)questFull.append(nativeConnections);
   }else{
-   questUtility.remove();questSubnav.remove();questFooter.remove();
+   restoreNativeConnections();
+   questUtility.remove();questShell.remove();
+   if(header.parentElement!==host)host!.prepend(header);
   }
   const brandLabel=header.querySelector<HTMLElement>('.sc-brand small');
   if(brandLabel)brandLabel.textContent=document.body.dataset.rideExperience==='cyclequest'?'RIDE BREAKAWAY / CYCLE QUEST':'RIDE BREAKAWAY / CLASSIC MODE';
@@ -113,6 +137,17 @@ export function mountClassicCockpit():void {
  questUtility.addEventListener('click',event=>{
   const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-cq-utility]');
   if(button?.dataset.cqUtility==='home')(get('modeHomeButton') as HTMLButtonElement|null)?.click();
+ });
+ questShell.addEventListener('click',event=>{
+  const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-cq-native],.cq-change-mode');
+  if(!button)return;
+  if(button.classList.contains('cq-change-mode')){
+   (get('modeHomeButton') as HTMLButtonElement|null)?.click();return;
+  }
+  const dest=button.dataset.cqNative;
+  if(dest==='route')(get('stepRoute') as HTMLButtonElement|null)?.click();
+  else if(dest==='ride')(get('stepRide') as HTMLButtonElement|null)?.click();
+  else if(dest==='overlay')window.dispatchEvent(new CustomEvent('cyclequest-navigate',{detail:{page:'overlay'}}));
  });
  questSubnav.addEventListener('click',event=>{
   const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-cq-destination]');
