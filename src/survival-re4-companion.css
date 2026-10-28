@@ -359,3 +359,47 @@
   }
  }
 }
+
+
+/* Same visual system for the in-page floating mini-overlay (not PiP).
+   This remains distinct from the separate always-on-top document. */
+@layer classicRouteReference {
+ body[data-ride-experience="survival"].sc-cockpit-mounted[data-breakaway-screen="ride"] #floatingProfile{
+  background:linear-gradient(145deg,#302b42,#171521)!important;
+  color:#eee9f8!important;border:1px solid #515076!important;
+  border-top:3px solid #92323c!important;border-radius:3px!important;
+  box-shadow:0 14px 40px rgba(0,0,0,.4)!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted[data-breakaway-screen="ride"] #floatingProfileHandle{
+  background:#252235!important;color:#eee9f8!important;
+  border-bottom:1px solid #515076!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted[data-breakaway-screen="ride"] #floatingProfileHandle :is(strong,span){
+  color:#eee9f8!important;text-shadow:none!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted[data-breakaway-screen="ride"] #floatingProfileHandle button{
+  background:#39354f!important;color:#eee9f8!important;
+  border:1px solid #aea9cc!important;border-radius:2px!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted[data-breakaway-screen="ride"] #floatingProfile .float-stats{
+  background:transparent!important;color:#aea9cc!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted[data-breakaway-screen="ride"] #floatingProfile .float-stats b{
+  color:#eee9f8!important;text-shadow:none!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted[data-breakaway-screen="ride"] #floatChart{
+  background:#171521!important;border:1px solid #515076!important;
+  border-radius:2px!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted[data-breakaway-screen="ride"] #floatChart .profile-live-grade{
+  background:#171521!important;color:#eee9f8!important;
+  border:3px solid #aea9cc!important;border-radius:2px!important;
+  box-shadow:none!important;text-shadow:none!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted[data-breakaway-screen="ride"] #floatChart .profile-live-grade .climb-hud-details{
+  color:#aea9cc!important;text-shadow:none!important;
+ }
+ body[data-ride-experience="survival"].sc-cockpit-mounted[data-breakaway-screen="ride"] #floatingProfile .float-help{
+  color:#aea9cc!important;
+ }
+}
