@@ -1,6 +1,7 @@
 import './classic-route-reference.css';
 import './classic-unified-header.css';
 import './survival-route-reference.css';
+import './survival-companion-preview.css';
 
 /** Reference route studio. Move the original controls so every existing listener stays attached. */
 export function mountClassicRouteReference():void {
