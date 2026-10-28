@@ -1,5 +1,7 @@
 import './style.css';
 import './live-ride-themes.css';
+import { CLASSIC_DESIGN_OVERLAY_CSS } from './classic-overlay-preview';
+import { fitClassicOverlayNumbers, fitSurvivalOverlayNumbers } from './classic-overlay-readout-fit';
 import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
 import {mountSurvivalCockpit} from './survival-cockpit';
 import {mountClassicCockpit} from './classic-cockpit';
@@ -1480,7 +1482,14 @@ $('nativeProfile').addEventListener('click',async()=>{
  }
  if(!('documentPictureInPicture' in window)){status('Always-on-top requires a recent desktop Chrome or Edge. Use Pop out window as a fallback.');return;}
  try{
-  const pip=await (window as any).documentPictureInPicture.requestWindow({width:Math.max(760,Math.min(1800,window.screen.availWidth-24)),height:245});
+  // Classic and Survival use Cycle Quest's compact floating dimensions:
+  // 170px high, 80% of available screen width, clamped to 600–1600px.
+  // Keep Cycle Quest and other modes' existing window behavior unchanged.
+  const questSizedOverlay=document.body.dataset.rideExperience==='classic'||document.body.dataset.rideExperience==='survival';
+  const questWidth=Math.max(600,Math.min(1600,Math.round(window.screen.availWidth*.8)));
+  const pip=await (window as any).documentPictureInPicture.requestWindow(questSizedOverlay
+   ?{width:questWidth,height:170,preferInitialWindowPlacement:true}
+   :{width:Math.max(760,Math.min(1800,window.screen.availWidth-24)),height:245});
   const savedOverlayOpacity=Math.max(20,Math.min(100,Number(localStorage.getItem('breakaway-overlay-opacity')||'100')||100));
   pip.document.head.innerHTML=`<title>Breakaway Cycling Overlay</title><style>
    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1520;color:#f4f8ff;font:12px system-ui,sans-serif}
@@ -1560,8 +1569,19 @@ $('nativeProfile').addEventListener('click',async()=>{
   const zombieOverlayStyle=pip.document.createElement('style');
   zombieOverlayStyle.textContent=SURVIVAL_OVERLAY_CSS;
   pip.document.head.append(zombieOverlayStyle);
+  // Standalone Picture-in-Picture windows do not inherit the main page fonts.
+  // Load Classic's scoped stylesheet even when Survival opens first, so an
+  // already-open overlay can switch to Classic without missing its design.
+  const classicFont=pip.document.createElement('link');
+  classicFont.rel='stylesheet';
+  classicFont.href='https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700;800&family=Instrument+Sans:wght@400;500;600;700;800&display=swap';
+  pip.document.head.append(classicFont);
+  const classicTheme=pip.document.createElement('style');
+  classicTheme.textContent=CLASSIC_DESIGN_OVERLAY_CSS;
+  pip.document.head.append(classicTheme);
   pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><div id="overlayZoomControls" role="group" aria-label="Elevation zoom"><button type="button" data-zoom="1">1×</button><button type="button" data-zoom="2">2×</button><button type="button" data-zoom="5">5×</button><button type="button" data-zoom="10">10×</button></div><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
   pip.document.body.classList.toggle('survival-overlay-theme',document.body.dataset.rideExperience==='survival');
+  pip.document.body.classList.toggle('classic-design-overlay',document.body.dataset.rideExperience==='classic');
   const modeButton=pip.document.getElementById('overlayMode') as HTMLButtonElement;
   const settingsButton=pip.document.getElementById('overlaySettingsToggle') as HTMLButtonElement;
   const settingsPanel=pip.document.getElementById('overlaySettings') as HTMLElement;
@@ -1569,12 +1589,14 @@ $('nativeProfile').addEventListener('click',async()=>{
   const refreshZoomButtons=()=>{zoomControls.querySelectorAll<HTMLButtonElement>('button').forEach(button=>{const active=Number(button.dataset.zoom)===overlayZoomFactor;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});};
   zoomControls.addEventListener('click',event=>{const button=(event.target as HTMLElement).closest<HTMLButtonElement>('button[data-zoom]');if(!button)return;overlayZoomFactor=Number(button.dataset.zoom)||1;try{localStorage.setItem('breakaway-overlay-zoom',String(overlayZoomFactor));}catch{}refreshZoomButtons();lastOverlayPush=0;publishDesktopOverlay();});
   refreshZoomButtons();
-  const savedMode=localStorage.getItem('breakaway-overlay-mode')==='expanded'?'expanded':'compact';
+  // Classic and Survival start compact at 170px; expanded is always optional.
+  const savedMode=questSizedOverlay?'compact':localStorage.getItem('breakaway-overlay-mode')==='expanded'?'expanded':'compact';
   const setMode=(mode:'compact'|'expanded')=>{
    pip.document.body.classList.toggle('expanded',mode==='expanded');
    modeButton.textContent=mode==='expanded'?'Compact':'Expand';
-   try{localStorage.setItem('breakaway-overlay-mode',mode);}catch{}
-   try{pip.resizeTo(pip.outerWidth,mode==='expanded'?315:245);}catch{}
+   if(!questSizedOverlay){try{localStorage.setItem('breakaway-overlay-mode',mode);}catch{}}
+   try{pip.resizeTo(pip.outerWidth,mode==='expanded'?315:questSizedOverlay?170:245);}catch{}
+   pip.requestAnimationFrame(()=>{fitClassicOverlayNumbers(pip.document);fitSurvivalOverlayNumbers(pip.document);});
   };
   modeButton.addEventListener('click',()=>setMode(pip.document.body.classList.contains('expanded')?'compact':'expanded'));
   settingsButton.addEventListener('click',()=>settingsPanel.classList.toggle('open'));
@@ -1592,6 +1614,12 @@ $('nativeProfile').addEventListener('click',async()=>{
   opacityInput.addEventListener('input',applyOpacity);
   applyOpacity();
   overlayWindow=pip;applyReadoutSize();
+  // Keep the largest safe numeric font when compact tiles are resized,
+  // the optional expanded layout is chosen, or the webfont finishes loading.
+  pip.addEventListener('resize',()=>{fitClassicOverlayNumbers(pip.document);fitSurvivalOverlayNumbers(pip.document);});
+  void pip.document.fonts.ready.then(()=>{
+   if(overlayWindow===pip){fitClassicOverlayNumbers(pip.document);fitSurvivalOverlayNumbers(pip.document);}
+  });
   const pipMetrics=pip.document.getElementById('overlayMetrics') as HTMLElement;
   // Compact slots are independently customizable: drag/drop or click two tiles to swap.
   // The wide elapsed-time slot stays reserved to prevent its clock from being clipped.
@@ -1871,6 +1899,9 @@ function publishDesktopOverlay(){
   doc.body.dataset.rideExperience=rideExperience;
   const survivalOverlay=snapshot.rideExperience==='survival';
   doc.body.classList.toggle('survival-overlay-theme',survivalOverlay);
+  // A reused PiP window follows the active game mode; Classic-only styles
+  // must not leak into Survival if the rider changes modes.
+  doc.body.classList.toggle('classic-design-overlay',snapshot.rideExperience==='classic');
   const overlayBrand=doc.querySelector('#overlayTop>strong');
   if(overlayBrand)overlayBrand.textContent=survivalOverlay?'SURVIVAL / UNDEAD':'BREAKAWAY';
   const chase=surviveData(),root=doc.getElementById('overlayContent');if(root){root.classList.toggle('survive-overlay',chase.active||chase.caught);root.classList.toggle('survive-phase-chase',chase.active&&!chase.warming&&chase.phase==='CHASE');root.classList.toggle('survive-phase-recover',chase.active&&!chase.warming&&chase.phase==='RECOVER');root.classList.toggle('survive-phase-prepare',chase.active&&chase.warming);root.classList.toggle('survive-danger',chase.active&&!chase.warming&&chase.gap<65);root.classList.toggle('survive-critical',chase.active&&!chase.warming&&chase.gap<25);let hud=doc.getElementById('surviveHud');if(chase.active||chase.caught){if(!hud){hud=doc.createElement('div');hud.id='surviveHud';root.append(hud);}hud.innerHTML='<div class="survive-hud-head"><strong>☣ UNDEAD PURSUIT · '+(chase.warming?'THREAT STARTS SOON':chase.phase==='RECOVER'?'RECOVERY MODE':'THREAT PURSUING')+'</strong><span>'+chase.theme+' · WAVE '+chase.wave+'</span></div><div class="survive-hud-grid"><div class="survive-hud-metric"><small>YOU MPH</small><b>'+chase.you.toFixed(1)+'</b></div><div class="survive-hud-profile">'+snapshot.detailChart+'<div class="survive-hud-timer"><div><small>'+(chase.warming?'THREAT STARTS':'CHASE ELAPSED')+'</small><strong>'+surviveFormatTime(chase.warming?chase.remaining:surviveElapsed)+'</strong></div><div><small>GAP</small><strong class="survive-hud-gap">'+chase.gap+' m</strong></div><div><small>'+(surviveMode==='finish'?'EST. TIME LEFT':'WAVE')+'</small><strong>'+(surviveMode==='finish'?surviveFormatTime(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):String(chase.wave))+'</strong></div></div></div><div class="survive-hud-metric"><small>WATTS</small><b>'+(snapshot.power??'—')+'</b></div><div class="survive-hud-metric"><small>THREAT MPH</small><b>'+chase.enemy.toFixed(1)+'</b></div><div class="survive-hud-spacer"></div><div class="survive-hud-metric"><small>WAVE #</small><b>'+chase.wave+'</b></div></div>';}else hud?.remove();}
@@ -1906,7 +1937,10 @@ function publishDesktopOverlay(){
     tile.style.gridRow=expanded?String(2+Math.floor(index/4)):(position?.[1]||'auto');
     tile.style.removeProperty('order');
    }
-
+   // Size only the values—not the labels—for the tile's actual width/height.
+   // Recalculate after live wattage, speed, gear and elapsed-time updates.
+   fitClassicOverlayNumbers(doc);
+   fitSurvivalOverlayNumbers(doc);
   }
  }
 
@@ -2968,24 +3002,6 @@ window.setInterval(()=>{
 mountSurvivalCockpit();
 mountClassicCockpit();
 mountClassicRouteReference();
-
-// Preview-branch design review only: expose both Classic layouts without
-// requiring a physical trainer. Riding still requires live FTMS telemetry.
-const classicPreviewScreen=new URLSearchParams(location.search).get('classicPreview');
-if(classicPreviewScreen==='setup'||classicPreviewScreen==='ride'){
- chooseRideExperience('classic',false);
- if(classicPreviewScreen==='ride'){
-  if(!points.length){
-   ($('generatedMiles') as HTMLInputElement).value='14.9';
-   ($('generatedGain') as HTMLInputElement).value='334';
-   ($('generatedSeed') as HTMLInputElement).value='4821';
-   ($('generatedTerrain') as HTMLSelectElement).value='flat';
-   ($('generateRoute') as HTMLButtonElement).click();
-  }
-  showBreakawayScreen('ride');
- }else showBreakawayScreen('setup');
-}
-
 
 
 // Preview-branch entry points are design-only and never start a trainer,
