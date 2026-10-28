@@ -40,6 +40,7 @@ export function mountClassicCockpit():void {
  questSubnav.innerHTML='<div class="cq-brand"><span class="cq-kicker">RIDE BREAKAWAY PRESENTS</span><strong>CYCLE QUEST</strong></div><nav aria-label="Game navigation"><button data-cq-destination="ride">Ride</button><button data-cq-destination="character">Status</button><button data-cq-destination="overlay">Overlay</button></nav><span class="cq-slot">SAVE 01<br><span>Local character</span></span>';
  const questFull=document.createElement('div');
  questFull.className='cq-full cq-devices-full';
+ questFull.innerHTML='<div class="cq-topline"><span><span class="cq-gold">CHAPTER I</span> &nbsp; EQUIPMENT CHECK</span><span class="cq-statuslabel">TRAINER SETUP</span></div>';
  const questFooter=document.createElement('footer');
  questFooter.className='cq-footer';
  questFooter.innerHTML='<span>LIVE TRAINER <span class="cq-gold">●</span></span><span class="cq-message">The road ahead is yours.</span><span><b>CYCLE QUEST · PRIVATE BETA</b></span>';
