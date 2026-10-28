@@ -371,7 +371,7 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="r
  display:block!important;width:100%!important;height:100%!important;
  border:0!important;border-radius:0!important;background:var(--cp-paper)!important;
 }
-body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #chart svg g[clip-path] rect{fill:#999!important}
+/* Let each SVG strip keep its discrete gradeColor() fill, including in Classic. */
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #chart svg polyline{display:none!important}
 body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide #chart svg #marker{
  stroke:var(--cp-yellow)!important;stroke-width:4px!important;
@@ -503,4 +503,20 @@ body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="r
  body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .ride-dashboard .metrics .metric{min-height:97px!important}
  body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .sc-ride-controls{flex-wrap:wrap!important}
  body[data-ride-experience="classic"].cc-cockpit-mounted[data-breakaway-screen="ride"] #screenRide .sc-ride-controls button{min-width:140px!important}
+}
+
+/* The in-page floating overlay receives the same readable grade label as PiP. */
+body[data-ride-experience="classic"] #floatChart .profile-live-grade {
+ display:block!important;
+ box-sizing:border-box!important;
+ max-width:calc(100% - 26px)!important;
+ padding:6px 10px!important;
+ border:3px solid #ffd000!important;
+ border-radius:8px!important;
+ background:#111827!important;
+ box-shadow:none!important;
+ text-shadow:none!important;
+}
+body[data-ride-experience="classic"] #floatChart .profile-live-grade .climb-hud-details {
+ text-shadow:none!important;
 }
