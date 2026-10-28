@@ -107,6 +107,8 @@ export function mountClassicCockpit():void {
   const screen=document.body.dataset.breakawayScreen;
   const host=screen==='setup'?setup:screen==='ride'?ride:route;
   const isQuestDevices=document.body.dataset.rideExperience==='cyclequest'&&screen==='setup';
+  // Prevent stale Quest-only shell classes if the mounted cockpit changes modes.
+  document.body.classList.toggle('cq-native-shell',isQuestDevices);
   if(isQuestDevices){
    header.remove();
    if(questUtility.parentElement!==setup)setup!.prepend(questUtility);
