@@ -2813,6 +2813,13 @@ questFrame.addEventListener('load',()=>{
 });
 let questAuthenticated=false,questReward=false,questButtonLatch=false;
 function questSend(data:Record<string,unknown>){questFrame.contentWindow?.postMessage({source:'breakaway',...data},location.origin);}
+window.addEventListener('cyclequest-navigate',(event:Event)=>{
+ const page=(event as CustomEvent<{page?:string}>).detail?.page;
+ if(rideExperience!=='cyclequest'||!questAuthenticated)return;
+ if(!['route','ride','overlay','character'].includes(page||''))return;
+ showCycleQuest();
+ questSend({type:'navigate',page});
+});
 function showCycleQuest(){modeLanding.hidden=true;modeHomeButton.hidden=true;screenRoute.hidden=true;screenSetup.hidden=true;screenRide.hidden=true;cycleQuestHost.hidden=false;document.body.dataset.breakawayScreen='quest';document.body.classList.remove('ride-focus-active');window.scrollTo(0,0);}
 async function enterCycleQuest(){
  try{const response=await fetch('/api/cycle-quest?asset=status',{credentials:'same-origin',cache:'no-store'});if(response.ok){launchCycleQuest();return;}}catch{}
