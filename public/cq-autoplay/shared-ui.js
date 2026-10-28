@@ -8,7 +8,7 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,rou
  const top=document.createElement('section');
  top.className='cq-unified-head';
  top.setAttribute('aria-label','Cycle Quest navigation');
- top.innerHTML='<div class="cq-unified-brand"><img class="cq-wordmark" src="/branding/cycle-quest-wordmark.png" alt="Cycle Quest" width="632" height="102"></div><nav class="cq-unified-nav" aria-label="Ride workflow"><button type="button" data-cq-page="route">01 ROUTE</button><button type="button" data-cq-page="devices">02 DEVICES</button><button type="button" data-cq-page="ride">03 RIDE</button><button type="button" data-cq-page="overlay">OVERLAY</button></nav><button type="button" class="cq-change-mode">CHANGE MODE</button>';
+ top.innerHTML='<div class="cq-unified-brand"><svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><filter id="cq-wordmark-gold" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  5 0 0 0 -1"/></filter></defs></svg><img class="cq-wordmark" src="/branding/cycle-quest-wordmark.png" alt="Cycle Quest" width="632" height="102"></div><nav class="cq-unified-nav" aria-label="Ride workflow"><button type="button" data-cq-page="route">01 ROUTE</button><button type="button" data-cq-page="devices">02 DEVICES</button><button type="button" data-cq-page="ride">03 RIDE</button><button type="button" data-cq-page="overlay">OVERLAY</button></nav><button type="button" class="cq-change-mode">CHANGE MODE</button>';
  game.prepend(top);
  const section=document.createElement('section');
  section.className='cq-unified-route';
