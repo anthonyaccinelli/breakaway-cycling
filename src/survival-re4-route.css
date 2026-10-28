@@ -63,13 +63,13 @@
  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.cr-reference::after{
   content:"";pointer-events:none;position:absolute;
   left:calc(35 * var(--cr-u));right:calc(32 * var(--cr-u));
-  top:calc(119 * var(--cr-u));height:calc(3 * var(--cr-u));
+  top:calc(134 * var(--cr-u));height:calc(2 * var(--cr-u));
   background:linear-gradient(90deg,#c74343 0 12%,#92323c 12% 29%,#515076 29% 49%,#39354f 49% 72%,#aea9cc 72% 100%);
   opacity:.85;z-index:0;
  }
  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.cr-reference::before{
   content:"SURVIVAL OPERATIONS     /     ESCAPE ROUTE CONFIGURATION";
-  position:absolute;top:calc(97 * var(--cr-u));left:calc(40 * var(--cr-u));
+  position:absolute;top:calc(117 * var(--cr-u));left:calc(40 * var(--cr-u));
   pointer-events:none;
   font:700 calc(12 * var(--cr-u))/1.2 Consolas,"Courier New",monospace;
   letter-spacing:.13em;
