@@ -21,6 +21,16 @@ const CONTROL='00002ad9-0000-1000-8000-00805f9b34fb';
 const STATUS='00002ada-0000-1000-8000-00805f9b34fb';
 const BIKE='00002ad2-0000-1000-8000-00805f9b34fb';
 let cycleQuestHold=false;let cycleQuestHeldSpeed=0;
+let cycleQuestHeldGrade:number|null=null,cycleQuestHeldRequestedGrade=0,cycleQuestHeldErgTarget=0,cycleQuestHeldGear=6;
+function setCycleQuestHold(hold:boolean){
+ if(hold&&!cycleQuestHold){
+  cycleQuestHeldRequestedGrade=simRequestedGrade();
+  cycleQuestHeldGrade=Number.isFinite(trainerGrade)?trainerGrade:cycleQuestHeldRequestedGrade;
+  cycleQuestHeldSpeed=speed;cycleQuestHeldErgTarget=lastTarget;cycleQuestHeldGear=gear;
+ }
+ cycleQuestHold=hold;
+ if(!hold)cycleQuestHeldGrade=null;
+}
 let drivetrainMode:'traditional'|'virtual'='traditional';let realTelemetry=false;let trainerMode:'sim'|'erg'|'target'='sim';let lastTarget=0;let targetErgWatts=180;let lastFixedErgCommand=0;let controlResponseWaiter:((v:DataView)=>void)|null=null;let controlQueue=Promise.resolve();let points:Point[]=[];let distance=0;let speed=0;let power=0;let cadence=0;let gear=6;let running=false;let last=0;let device:BLEDevice;let control:any;let connected=false;let controlGranted=false;let pending=false;let trainerGrade=NaN;
 // Procedural routes: deterministic, streaming terrain; never allocate the entire endless route.
 type Terrain = 'flat'|'rolling'|'mountain'|'punchy';
@@ -169,17 +179,17 @@ function prepareProcedural(isEndless:boolean){
 // 24% assumed gross efficiency; 150 kcal per illustrative beer (not alcohol guidance).
 const POWER_WINDOW_MS=3000, BEER_KCAL=150, GROSS_EFFICIENCY=0.24;
 let powerHistory:{time:number;watts:number}[]=[];
-let energyKcal=0, activeRideMs=0, lastActiveTick=0;
+let energyKcal=0, activeRideMs=0, lastActiveTick=0, rideSessionStartDistance=0;
 type RideSample={seconds:number; distance:number; elevation:number; power:number; cadence:number; heartRate:number|null};
 let rideSamples:RideSample[]=[];let lastSampleSecond=-1;
 // v409: local, versioned crash-recovery checkpoint. Never stores Bluetooth credentials.
 const RIDE_RECOVERY_KEY='breakaway-ride-recovery-v409';
-type RideCheckpoint={version:1;savedAt:number;rideStart:string;rideEnd:string|null;routeName:string;points:Point[];distance:number;speed:number;procedural:boolean;endless:boolean;proceduralSeed:number;proceduralTerrain:Terrain;proceduralIntensity:number;routeLimit:number;generatedThrough:number;gainScale:number;plannedGainFeet:number|null;retiredGainMeters:number;retiredLossMeters:number;elevationHistory:HistoryPoint[];historyStride:number;activeRideMs:number;energyKcal:number;avgPowerEnergy:number;avgPowerDuration:number;rideSamples:RideSample[]};
+type RideCheckpoint={rideSessionStartDistance?:number;version:1;savedAt:number;rideStart:string;rideEnd:string|null;routeName:string;points:Point[];distance:number;speed:number;procedural:boolean;endless:boolean;proceduralSeed:number;proceduralTerrain:Terrain;proceduralIntensity:number;routeLimit:number;generatedThrough:number;gainScale:number;plannedGainFeet:number|null;retiredGainMeters:number;retiredLossMeters:number;elevationHistory:HistoryPoint[];historyStride:number;activeRideMs:number;energyKcal:number;avgPowerEnergy:number;avgPowerDuration:number;rideSamples:RideSample[]};
 let recoveryWriteFailed=false;
 function clearRideRecovery(){try{localStorage.removeItem(RIDE_RECOVERY_KEY);}catch{}}
 function saveRideRecovery(){
  if(!rideStart||!points.length)return;
- const checkpoint:RideCheckpoint={version:1,savedAt:Date.now(),rideStart,rideEnd,routeName,points,distance,speed,procedural,endless,proceduralSeed,proceduralTerrain,proceduralIntensity,routeLimit: Number.isFinite(routeLimit)?routeLimit:-1,generatedThrough,gainScale,plannedGainFeet,retiredGainMeters,retiredLossMeters,elevationHistory,historyStride,activeRideMs,energyKcal,avgPowerEnergy,avgPowerDuration,rideSamples};
+ const checkpoint:RideCheckpoint={rideSessionStartDistance,version:1,savedAt:Date.now(),rideStart,rideEnd,routeName,points,distance,speed,procedural,endless,proceduralSeed,proceduralTerrain,proceduralIntensity,routeLimit: Number.isFinite(routeLimit)?routeLimit:-1,generatedThrough,gainScale,plannedGainFeet,retiredGainMeters,retiredLossMeters,elevationHistory,historyStride,activeRideMs,energyKcal,avgPowerEnergy,avgPowerDuration,rideSamples};
  try{localStorage.setItem(RIDE_RECOVERY_KEY,JSON.stringify(checkpoint));recoveryWriteFailed=false;}
  catch(error){if(!recoveryWriteFailed){console.warn('Ride autosave unavailable',error);status('Ride autosave unavailable — storage full or blocked. Export your TCX when finished.');}recoveryWriteFailed=true;}
 }
@@ -194,7 +204,7 @@ function restoreRideRecovery(c:RideCheckpoint){
  running=false;rideStart=c.rideStart;rideEnd=c.rideEnd||null;routeName=c.routeName;points=c.points;distance=c.distance;speed=0;
  procedural=c.procedural;endless=c.endless;proceduralSeed=c.proceduralSeed;proceduralTerrain=c.proceduralTerrain;proceduralIntensity=c.proceduralIntensity;routeLimit=c.routeLimit===-1?Infinity:c.routeLimit;generatedThrough=c.generatedThrough;gainScale=c.gainScale;plannedGainFeet=c.plannedGainFeet;
  retiredGainMeters=c.retiredGainMeters||0;retiredLossMeters=c.retiredLossMeters||0;elevationHistory=c.elevationHistory||[];historyStride=c.historyStride||400;
- activeRideMs=c.activeRideMs;energyKcal=c.energyKcal;avgPowerEnergy=c.avgPowerEnergy;avgPowerDuration=c.avgPowerDuration;rideSamples=c.rideSamples;lastSampleSecond=rideSamples.at(-1)?.seconds??-1;powerHistory=[];lastActiveTick=0;stationarySince=0;stationaryPromptShown=false;
+ rideSessionStartDistance=Number.isFinite(c.rideSessionStartDistance)?Math.max(0,c.rideSessionStartDistance!):c.rideSamples[0]?.distance||0;activeRideMs=c.activeRideMs;energyKcal=c.energyKcal;avgPowerEnergy=c.avgPowerEnergy;avgPowerDuration=c.avgPowerDuration;rideSamples=c.rideSamples;lastSampleSecond=rideSamples.at(-1)?.seconds??-1;powerHistory=[];lastActiveTick=0;stationarySince=0;stationaryPromptShown=false;
  resetSimController();setRideFocus(false);$('start').textContent=rideEnd?'Let’s Ride!':'Resume ride';syncManualFinishButton();svg();update();showBreakawayScreen('ride');if(rideEnd){showRideSummary();status('Finished ride summary recovered.');}else status('Ride recovered and paused. Reconnect trainer, then resume or finish.');
 }
 function offerRideRecovery(){
@@ -276,7 +286,7 @@ async function archiveFinishedRide(){
  }catch(e){status('Could not save ride locally: '+String(e));throw e;}
 }
 
-function resetRideMetrics(){rideSamples=[];lastSampleSecond=-1;powerHistory=[];energyKcal=0;activeRideMs=0;lastActiveTick=0;avgPowerEnergy=0;avgPowerDuration=0;}
+function resetRideMetrics(){rideSessionStartDistance=distance;rideSamples=[];lastSampleSecond=-1;powerHistory=[];energyKcal=0;activeRideMs=0;lastActiveTick=0;avgPowerEnergy=0;avgPowerDuration=0;}
 function threeSecondWatts(){
  return realTelemetry?timeWeightedPower(powerHistory,performance.now(),POWER_WINDOW_MS):null;
 }
@@ -883,7 +893,7 @@ const CLIMB_ASSIST=[0.10,0.15,0.21,0.28,0.36,0.45,0.56,0.70] as const;
 function climbingAssist():number{return gear<=8?CLIMB_ASSIST[gear-1]:1;}
 function simRequestedGrade():number{
  const routeGrade=at(distance).grade*num('difficulty')/100;
- if(drivetrainMode==='traditional')return Math.max(-12,Math.min(12,routeGrade));
+ if(drivetrainMode==='traditional')return cycleQuestHold&&cycleQuestHeldGrade!==null?cycleQuestHeldGrade:Math.max(-12,Math.min(12,routeGrade));
  const ratio=zwiftGearMultiplier();
  const effectiveLoad=4+Math.max(0,(cycleQuestHold?cycleQuestHeldSpeed:speed)**2*0.08);
  const shifted=routeGrade+(ratio-1)*effectiveLoad;
@@ -893,7 +903,8 @@ function simRequestedGrade():number{
  const assist=climbingAssist();
  const requested=gear<=8 ? -5+(shifted+5)*assist : shifted;
  // Do not feed delayed power readings back into SIM grade; that oscillates.
- return Math.max(-12,Math.min(12,requested));
+ const heldOffset=cycleQuestHold&&cycleQuestHeldGrade!==null?cycleQuestHeldGrade-cycleQuestHeldRequestedGrade:0;
+ return Math.max(-12,Math.min(12,requested+heldOffset));
 }
 function resetSimController(){simAppliedGrade=NaN;simLastTime=0;trainerGrade=NaN;}
 async function updateSimResistance(now:number,immediate=false){
@@ -919,7 +930,8 @@ async function setVirtualGearResistance(){
  const ratio=zwiftGearMultiplier();
  const base=1.5*(90+Math.max(-12,slope)*11)*ratio*rpm/85;
  // Low gears must also be easier in experimental virtual-gear ERG.
- const watts=Math.round(Math.max(30,Math.min(32767,gear<=8?base*climbingAssist():base)));
+ const heldTarget=cycleQuestHeldErgTarget*(ZWIFT_GEAR_RATIOS[gear-1]/ZWIFT_GEAR_RATIOS[cycleQuestHeldGear-1])*(climbingAssist()/(cycleQuestHeldGear<=8?CLIMB_ASSIST[cycleQuestHeldGear-1]:1));
+ const watts=Math.round(Math.max(30,Math.min(32767,cycleQuestHold&&cycleQuestHeldErgTarget>0?heldTarget:gear<=8?base*climbingAssist():base)));
  if(Math.abs(watts-lastTarget)<5)return;
  if(await command([0x05,watts&255,watts>>8]))lastTarget=watts;
 }
@@ -2958,7 +2970,7 @@ window.addEventListener('message',event=>{
  else if(data.type==='route')routeFromQuest(data);
  else if(data.type==='ready'){void savedRides().then(rides=>questSend({type:'indoor-history',workouts:rides.slice(0,5000).map(r=>({start:r.start,end:r.end}))})).catch(()=>{});}
  else if(data.type==='summit-resolved'){questFinalSummitResolved=true;}
- else if(data.type==='hold'){if(data.hold&&!cycleQuestHold)cycleQuestHeldSpeed=speed;cycleQuestHold=!!data.hold;questReward=!!data.reward;questButtonLatch=plusPressed||minusPressed;}
+ else if(data.type==='hold'){setCycleQuestHold(!!data.hold);questReward=!!data.reward;questButtonLatch=plusPressed||minusPressed;}
  else if(data.type==='reward-state')questReward=!!data.reward;
  else if(data.type==='quest-summary'&&rideEnd){
   const root=$('rideSummary');if(root.querySelector('#quest-summary-section'))return;
@@ -2987,7 +2999,7 @@ window.setInterval(()=>{
    routeProfile={endless:true,windowStart:start,distance:visible.at(-1)!.distance-start,hasElevation:true,gain:visible.slice(1).reduce((sum,p,i)=>sum+Math.max(0,p.elevation-visible[i].elevation),0),points:visible.map(p=>({d:p.distance-start,e:p.elevation}))};
   }
  }
- questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade,gain:c.gain,elevation:at(c.end).elevation})),summitBoss:!endless?questHighestSummit():null,connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),displayPower:threeSecondWatts(),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
+ questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade,gain:c.gain,elevation:at(c.end).elevation})),summitBoss:!endless?questHighestSummit():null,connected:connected&&realTelemetry&&controlGranted,running,sessionSeconds:activeRideMs/1000,sessionDistanceM:Math.max(0,distance-rideSessionStartDistance),power:Math.max(0,power),displayPower:threeSecondWatts(),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
 },200);
 
 // Survival v2 is UI-only; initialize after the original controls/listeners exist.

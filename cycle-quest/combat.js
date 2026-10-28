@@ -56,7 +56,7 @@ export function makeBattle(kind,{level,ftp,entryPower=null,chapterLevel=level,ra
  const targetWatts=clamp(Number.isFinite(entryPower)?entryPower*1.25:watts*.55,watts*.55,ceiling);
  const hp=kind==='enemy'?targetWatts*60*attackAt(reference):kind==='summit'?watts*1.25*60*f.health*attackAt(reference)*summit.variant.scale:watts*.75*240*f.health*attackAt(reference);
  const dps=kind==='enemy'?.25:kind==='summit'?.8*hpAt(reference)/120*f.attack*summit.variant.scale:.8*hpAt(reference)/240*f.attack;
- return {kind,name:summit?summit.name:(target>92&&!monsterId?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:summit?summit.id:monster.id,summitVariant:summit?summit.variant.suffix.trim()||'BASE':null,level:reference,sourceCR:monster?.cr??null,sourceHP:monster?.hp??null,sourceAttack:monster?.attack??null,hp:Math.round(hp),max:Math.round(hp),dps,targetWatts:kind==='enemy'?targetWatts:null,reward:kind==='enemy'?60:kind==='summit'?600:600};
+ return {kind,name:summit?summit.name:(target>92&&!monsterId?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:summit?summit.id:monster.id,summitVariant:summit?summit.variant.suffix.trim()||'BASE':null,level:reference,sourceCR:monster?.cr??null,sourceHP:monster?.hp??null,sourceAttack:monster?.attack??null,hp:Math.round(hp),max:Math.round(hp),dps,targetWatts:kind==='enemy'?targetWatts:null,reward:kind==='enemy'?150:kind==='summit'?600:600};
 }
 export function chapterRandom(chapter){let n=Math.imul(chapter,0x9e3779b1);n=Math.imul(n^(n>>>16),0x7feb352d);return ((n^(n>>>16))>>>0)/4294967296;}
 

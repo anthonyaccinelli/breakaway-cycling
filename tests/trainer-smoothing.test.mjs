@@ -48,3 +48,24 @@ test('battle holds preserve momentum and route mileage; exiting resumes without 
  vm.runInContext('advanceRide(2000)',context);assert.equal(context.speed,8);assert.equal(context.distance,100);
  context.cycleQuestHold=false;vm.runInContext('advanceRide(2010)',context);assert(context.speed>7.9);assert(context.distance>100);
 });
+
+test('battle holds the applied SIM load even when the route target has moved, and shifting still works',()=>{
+ const hold=main.slice(main.indexOf('function setCycleQuestHold('),main.indexOf("let drivetrainMode:"));
+ const requested=main.slice(main.indexOf('function simRequestedGrade('),main.indexOf('function resetSimController('));
+ for(const mode of ['traditional','virtual']){
+  const c={cycleQuestHold:false,cycleQuestHeldSpeed:0,cycleQuestHeldGrade:null,cycleQuestHeldRequestedGrade:0,cycleQuestHeldErgTarget:0,cycleQuestHeldGear:6,speed:8,trainerGrade:2,lastTarget:180,gear:12,distance:100,drivetrainMode:mode,at:()=>({grade:-3}),num:()=>100,zwiftGearMultiplier:()=>c.gear/12,climbingAssist:()=>1};
+  vm.createContext(c);vm.runInContext(transpile(hold+'\n'+requested),c);
+  vm.runInContext('setCycleQuestHold(true)',c);assert.equal(c.simRequestedGrade(),2);
+  c.speed=0;assert.equal(c.simRequestedGrade(),2,'transient speed changes cannot change battle load');
+  c.gear=13;if(mode==='virtual')assert(c.simRequestedGrade()>2);
+  vm.runInContext('setCycleQuestHold(false)',c);assert.equal(c.cycleQuestHeldGrade,null);assert.equal(c.cycleQuestHold,false);
+ }
+});
+
+test('experimental virtual ERG holds the existing target rather than chasing battle cadence',async()=>{
+ const fn=main.slice(main.indexOf('async function setVirtualGearResistance('),main.indexOf('// True constant-wattage ERG'));
+ const sent=[];const c={drivetrainMode:'virtual',connected:true,controlGranted:true,running:true,realTelemetry:true,trainerMode:'erg',cycleQuestHold:true,cycleQuestHeldErgTarget:180,cycleQuestHeldGear:12,gear:12,lastTarget:180,cadence:30,distance:0,ZWIFT_GEAR_RATIOS:Array.from({length:24},(_,i)=>i+1),CLIMB_ASSIST:[.1,.15,.21,.28,.36,.45,.56,.7],at:()=>({grade:-5}),num:()=>100,zwiftGearMultiplier:()=>1,climbingAssist:()=>1,command:async bytes=>{sent.push(bytes);return true;}};
+ vm.createContext(c);vm.runInContext(transpile(fn),c);await vm.runInContext('setVirtualGearResistance()',c);assert.equal(sent.length,0);
+ c.cadence=110;await vm.runInContext('setVirtualGearResistance()',c);assert.equal(sent.length,0);
+ c.gear=14;await vm.runInContext('setVirtualGearResistance()',c);assert.equal(c.lastTarget,210);assert.equal(sent.length,1);
+});
