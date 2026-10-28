@@ -1,6 +1,7 @@
 import './classic-cockpit.css';
 import './classic-companion-preview.css';
-import './cycle-quest-setup.css';
+// Removed legacy 65KB Classic-derived Cycle Quest setup CSS: it overrides
+// RPG text, navigation and layout even inside the shared Cycle Quest frame.
 import '../cycle-quest/shared-ui.css';
 import './cycle-quest-native-frame.css';
 
@@ -110,6 +111,13 @@ export function mountClassicCockpit():void {
   // Prevent stale Quest-only shell classes if the mounted cockpit changes modes.
   document.body.classList.toggle('cq-native-shell',isQuestDevices);
   if(isQuestDevices){
+   // Native Devices must be the single selected step. Explicitly synchronize
+   // rather than carrying the last native Classic header state into the Quest.
+   questShell.querySelectorAll<HTMLButtonElement>('[data-cq-native]').forEach(button=>{
+    const selected=button.dataset.cqNative==='devices';
+    button.classList.toggle('cq-unified-active',selected);
+    button.setAttribute('aria-current',selected?'page':'false');
+   });
    header.remove();
    if(questUtility.parentElement!==setup)setup!.prepend(questUtility);
    if(questShell.parentElement!==setup)setup!.append(questShell);
