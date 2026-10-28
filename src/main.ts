@@ -2842,6 +2842,15 @@ function questDeviceAuthorized(){return questAuthenticated&&rideExperience==='cy
  activate:(id:string,value?:string|boolean)=>{
   if(!questDeviceAuthorized())return false;
   if(questDeviceIds.has(id)){
+   // Zwift Click can only pair in Virtual shifting mode. On Cycle Quest,
+   // switch modes in THIS SAME user-activation stack before opening the native
+   // Web Bluetooth chooser. Do not await or postMessage before requestDevice.
+   if(id==='connectClick'&&drivetrainMode!=='virtual'){
+    const shifting=document.getElementById('drivetrainMode') as HTMLSelectElement|null;
+    if(!shifting)return false;
+    shifting.value='virtual';
+    shifting.dispatchEvent(new Event('change',{bubbles:true}));
+   }
    const nativeButton=document.getElementById(id) as HTMLButtonElement|null;
    if(!nativeButton||nativeButton.disabled)return false;
    nativeButton.click();return true;
