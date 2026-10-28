@@ -29,15 +29,14 @@ export function nextChapterEncounter(chapter,previousState,random=Math.random){
 
 // CR establishes progression. HP and attack distinguish creatures within a tier.
 // Source damage is a strongest basic attack average, not a claim of tabletop DPR.
-export function monsterPool(target,kind='enemy'){
+export function monsterPool(target){
  const highest=Math.max(...MONSTERS.map(m=>m.level));
  let pool=MONSTERS.filter(m=>target>highest?m.level>=highest-20:m.level>=Math.max(1,target-4)&&m.level<=target+1);
  if(!pool.length){const nearest=Math.min(...MONSTERS.map(m=>Math.abs(m.level-target)));pool=MONSTERS.filter(m=>Math.abs(m.level-target)===nearest);}
- if(kind==='summit'){const summit=pool.filter(m=>['dragon','giant','elemental','monstrosity'].includes(m.type));if(summit.length)pool=summit;}
  return pool;
 }
-export function selectMonster(target,kind='enemy',random=Math.random){
- const pool=monsterPool(target,kind);
+export function selectMonster(target,random=Math.random){
+ const pool=monsterPool(target);
  return pool[Math.min(pool.length-1,Math.max(0,Math.floor(random()*pool.length)))];
 }
 export function creatureFactors(monster){
@@ -49,14 +48,14 @@ export function makeBattle(kind,{level,ftp,entryPower=null,chapterLevel=level,ra
  const reference=kind==='boss'?chapterLevel:level;
  const target=kind==='enemy'?Math.max(1,level-2):kind==='summit'?level+5:chapterLevel;
  const summit=kind==='summit'?selectSummit(level,random):null;
- const monster=summit?summit.monster:((kind==='enemy'&&monsterId?MONSTERS.find(m=>m.id===monsterId):null)||selectMonster(target,kind,random)),f=monster?creatureFactors(monster):{health:1,attack:1};
+ const monster=summit?summit.monster:((kind==='enemy'&&monsterId?MONSTERS.find(m=>m.id===monsterId):null)||selectMonster(target,random)),f=monster?creatureFactors(monster):{health:1,attack:1};
  const watts=Number.isFinite(ftp)&&ftp>0?ftp:280;
  // Regular enemies each have 60 seconds of damage at the chosen target.
  const ceiling=watts*clamp(Number.isFinite(ceilingPercent)?ceilingPercent:100,55,150)/100;
  const targetWatts=clamp(Number.isFinite(entryPower)?entryPower*1.25:watts*.55,watts*.55,ceiling);
  const hp=kind==='enemy'?targetWatts*60*attackAt(reference):kind==='summit'?watts*1.25*60*f.health*attackAt(reference)*summit.variant.scale:watts*.75*240*f.health*attackAt(reference);
  const dps=kind==='enemy'?.25:kind==='summit'?.8*hpAt(reference)/120*f.attack*summit.variant.scale:.8*hpAt(reference)/240*f.attack;
- return {kind,name:summit?summit.name:(target>92&&!monsterId?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:summit?summit.id:monster.id,summitVariant:summit?summit.variant.suffix.trim()||'BASE':null,level:reference,sourceCR:monster?.cr??null,sourceHP:monster?.hp??null,sourceAttack:monster?.attack??null,hp:Math.round(hp),max:Math.round(hp),dps,targetWatts:kind==='enemy'?targetWatts:null,reward:kind==='enemy'?60:kind==='summit'?600:600};
+ return {kind,name:summit?summit.name:(target>92&&!monsterId?'ASCENDED ':'')+monster.name.toUpperCase(),monsterId:summit?summit.id:monster.id,summitVariant:summit?summit.variant.suffix.trim()||'BASE':null,level:reference,sourceCR:monster?.cr??null,sourceHP:monster?.hp??null,sourceAttack:monster?.attack??null,hp:Math.round(hp),max:Math.round(hp),dps,targetWatts:kind==='enemy'?targetWatts:null,reward:kind==='enemy'?150:600};
 }
 export function chapterRandom(chapter){let n=Math.imul(chapter,0x9e3779b1);n=Math.imul(n^(n>>>16),0x7feb352d);return ((n^(n>>>16))>>>0)/4294967296;}
 

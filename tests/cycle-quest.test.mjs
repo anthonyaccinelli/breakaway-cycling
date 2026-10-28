@@ -1,3 +1,4 @@
+import {QUEST_ASSETS} from '../cycle-quest/assets.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -15,7 +16,7 @@ test('regular encounter effort scales with FTP and combat has no timeout',()=>{
  for(let level=1;level<=200;level++)for(const random of [()=>0,()=>.5,()=>.999999]){
   assert(monsterPool(level).length>0);
   const enemy=makeBattle('enemy',{level,ftp:280,entryPower:150,random});const seconds=enemy.hp/(187.5*1.08**(level-1));
-  assert(Math.abs(seconds-60)<.01);assert.equal(enemy.dps,.25);assert.equal(enemy.time,undefined);assert.equal(enemy.reward,60);
+  assert(Math.abs(seconds-60)<.01);assert.equal(enemy.dps,.25);assert.equal(enemy.time,undefined);assert.equal(enemy.reward,150);
   const summit=makeBattle('summit',{level,ftp:280,random});assert.equal(summit.time,undefined);assert.equal(summit.reward,600);assert(summit.dps>0);assert(summit.hp>enemy.hp);
   const boss=makeBattle('boss',{level,chapterLevel:level,ftp:280,random});assert.equal(boss.time,undefined);assert(boss.hp>enemy.hp&&boss.dps>0);
  }
@@ -37,7 +38,7 @@ test('new monster modules remain behind the beta password gate',async()=>{
  const {default:handler}=await import('../api/cycle-quest.js');
  const oldPassword=process.env.CYCLE_QUEST_PASSWORD,oldSecret=process.env.CYCLE_QUEST_SESSION_SECRET;
  process.env.CYCLE_QUEST_PASSWORD='test-fixture';process.env.CYCLE_QUEST_SESSION_SECRET='test-signing-key';
- try{for(const asset of ['monsters.js','combat.js','profile.js','level-up.js','workouts.js','workout-ui.js','fit-decoder.js']){let status;const res={setHeader(){},status(n){status=n;return this;},json(){return this;},end(){}};await handler({method:'GET',url:'/api/cycle-quest?asset='+asset,headers:{host:'localhost'}},res);assert.equal(status,401);}}
+ try{for(const asset of Object.keys(QUEST_ASSETS)){let status;const res={setHeader(){},status(n){status=n;return this;},json(){return this;},end(){}};await handler({method:'GET',url:'/api/cycle-quest?asset='+asset,headers:{host:'localhost'}},res);assert.equal(status,401);}}
  finally{if(oldPassword===undefined)delete process.env.CYCLE_QUEST_PASSWORD;else process.env.CYCLE_QUEST_PASSWORD=oldPassword;if(oldSecret===undefined)delete process.env.CYCLE_QUEST_SESSION_SECRET;else process.env.CYCLE_QUEST_SESSION_SECRET=oldSecret;}
 });
 

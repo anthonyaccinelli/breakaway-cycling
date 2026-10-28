@@ -1,17 +1,24 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {QUEST_ASSETS} from '../cycle-quest/assets.js';
 const out='public/cq-autoplay';await mkdir(out,{recursive:true});
-for(const name of ['index.html','game.js','routes.js','monsters.js','combat.js','profile.js','level-up.js','reward-gesture.js','workouts.js','workout-ui.js']){
- let s=(await readFile('cycle-quest/'+name,'utf8')).replace(/\/api\/cycle-quest\?asset=([A-Za-z0-9.-]+)/g,'./$1');
- if(name==='index.html')s=s.replace('Cycle Quest | Ride Breakaway','Cycle Quest — Autoplay Preview');
+const scenes=await readFile('scripts/quest-demo-scenes.js','utf8');
+function replaceOnce(source,before,after){
+ if(source.split(before).length!==2)throw Error('Autoplay source hook changed: '+before);
+ return source.replace(before,after);
+}
+for(const name of Object.keys(QUEST_ASSETS)){
+ let source=(await readFile('cycle-quest/'+name,'utf8')).replace(/\/api\/cycle-quest\?asset=([A-Za-z0-9.-]+)/g,'./$1');
+ if(name==='index.html')source=source.replace('Cycle Quest | Ride Breakaway','Cycle Quest — Autoplay Preview');
  if(name==='game.js'){
-  s=s.replace("key='cycle-quest-character-v1'","key='cycle-quest-autoplay-preview-v1'").replace('version:1,xp:0,hp:100','version:1,xp:570,hp:100').replace('nextEncounter:260','nextEncounter:8').replace('dt=lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0','dt=Number.isFinite(m.demoSeconds)?Math.min(30,m.demoSeconds):(lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0)').replace('s.nextEncounter=240+Math.random()*180','s.nextEncounter=35+Math.random()*20');
-  const at=s.indexOf(" if(m.type==='telemetry')");s=s.slice(0,at)+` if(m.type==='demo-action'){
- const action=m.action;rewardChoice=null;if(/^crab-[123]$/.test(action)){levelUps.clear();levelUp=null;s.reward=false;const count=Number(action.slice(-1)),one=makeBattle('enemy',{level:level(),ftp:live.ftp,monsterId:'crab'}),enemies=Array.from({length:count},()=>({id:'crab',name:'CRAB',hp:one.hp,max:one.max}));s.battle={...one,name:count===1?'CRAB':count+' CRABS',enemies,hp:one.hp*count,max:one.max*count};view='ride';message=count+' crab artwork preview';render();return;}if(action==='rats-2'){levelUps.clear();levelUp=null;s.reward=false;const one=makeBattle('enemy',{level:level(),ftp:live.ftp,monsterId:'rat'}),enemies=Array.from({length:2},()=>({id:'rat',name:'RAT',hp:one.hp,max:one.max}));s.battle={...one,name:'2 RATS',enemies,hp:one.hp*2,max:one.max*2};view='ride';message='Two-rat artwork preview';render();return;}if(action==='rats'){levelUps.clear();levelUp=null;s.reward=false;const one=makeBattle('enemy',{level:level(),ftp:live.ftp,monsterId:'rat'});const enemies=Array.from({length:3},()=>({id:'rat',name:'RAT',hp:one.hp,max:one.max}));s.battle={...one,name:'3 RATS',enemies,hp:one.hp*3,max:one.max*3};view='ride';message='Three-rat artwork preview';render();return;}if(action==='rat'){levelUps.clear();levelUp=null;s.reward=false;s.battle=makeBattle('enemy',{level:level(),ftp:live.ftp,monsterId:'rat'});view='ride';message='Rat artwork preview';render();return;}if(action==='group'){s.battle=null;s.reward=false;encounter('enemy',3);return;}if(action==='chapter-1'||action==='chapter-2'){s.battle=null;s.reward=false;s.chapter=action==='chapter-1'?1:2;s.miles=0;s.boss=null;s.chapterEncounter=null;message='Previewing '+CHAPTER_BIOMES[s.chapter].name;save();render();return;}if(action==='claim'){choose('xp');return;}if(action==='win'||action==='lose'){if(s.battle)finish(action==='win');render();return;}
- if(action==='reset'){levelUps.clear();levelUp=null;s=fresh();s.route=generateRoute(15,'rolling',null,42077);s.routeMiles=0;lastLiveDistance=0;parentSend({type:'route',route:s.route});message='Autoplay preview reset.';}
- else{s.battle=null;s.reward=false;if(action==='level'){levelUps.clear();levelUp=null;award(threshold(level()+1)-s.xp);s.nextEncounter=20;}else if(action==='reward'){s.reward=true;message='Victory! Choose healing or bonus XP.';}else if(['enemy','summit','boss'].includes(action))encounter(action);}
- save();render();return;
+  for(const [before,after] of [
+   ["key='cycle-quest-character-v1'","key='cycle-quest-autoplay-preview-v1'"],
+   ['version:1,xp:0,hp:100','version:1,xp:570,hp:100'],
+   ['nextEncounter:260','nextEncounter:8'],
+   ['dt=lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0','dt=Number.isFinite(m.demoSeconds)?Math.min(30,m.demoSeconds):(lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0)'],
+   ['s.nextEncounter=240+Math.random()*180','s.nextEncounter=35+Math.random()*20'],
+   ["window.addEventListener('message',e=>",scenes+"\nwindow.addEventListener('message',e=>"],
+   ["if(m.type==='telemetry')","if(m.type==='demo-action'){handleDemoAction(m.action);return;}\n if(m.type==='telemetry')"]
+  ])source=replaceOnce(source,before,after);
  }
-`+s.slice(at);
- }
- await writeFile(out+'/'+(name==='index.html'?'ride.html':name),s);
+ await writeFile(out+'/'+(name==='index.html'?'ride.html':name),source);
 }
