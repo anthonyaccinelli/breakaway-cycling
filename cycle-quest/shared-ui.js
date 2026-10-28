@@ -20,16 +20,16 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,rou
  +'<div class="cq-big-profile"><div class="cq-big-profile-head"><strong>ROUTE SCANNER</strong><span class="cq-quest-route-caption">CHAPTER TERRAIN / ACTUAL SAVED ROUTE</span></div><div class="cq-route-actual-profile" role="img" aria-label="Current generated route elevation profile"></div></div><div class="cq-route-inspector"><span class="cq-route-footnote">THE ROUTE IS REAL · DRAG THE YELLOW MARKER IN RIDE TO INSPECT TERRAIN</span><span>✦ CYCLE QUEST</span></div>';
  game.querySelector('.cq-header').after(section);
  const setPage=next=>{
-  if(!['route','ride','overlay'].includes(next))return;
+  if(!['route','ride','overlay','character'].includes(next))return;
   page=next;game.dataset.cqPage=page;
   top.querySelectorAll('[data-cq-page]').forEach(button=>{
-   const current=button.dataset.cqPage===page;
+   const current=button.dataset.cqPage===(page==='character'?'ride':page);
    button.classList.toggle('cq-unified-active',current);
    if(current)button.setAttribute('aria-current','page');
    else button.removeAttribute('aria-current');
   });
   const sub=top.querySelector('#cq-unified-subtitle');
-  if(sub)sub.textContent=page==='route'?'create your route':page==='overlay'?'always-on-top overlay':'enjoy the ride';
+  if(sub)sub.textContent=page==='route'?'create your route':page==='overlay'?'always-on-top overlay':page==='character'?'character status':'enjoy the ride';
  };
  const oldAction=id=>root.querySelector('#'+id)?.click();
  const preset=(distance,terrain)=>{
