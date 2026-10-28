@@ -1,6 +1,7 @@
 import './style.css';
 import './live-ride-themes.css';
 import { CLASSIC_DESIGN_OVERLAY_CSS } from './classic-overlay-preview';
+import { fitClassicOverlayNumbers } from './classic-overlay-readout-fit';
 import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
 import {mountSurvivalCockpit} from './survival-cockpit';
 import {mountClassicCockpit} from './classic-cockpit';
@@ -1597,6 +1598,7 @@ $('nativeProfile').addEventListener('click',async()=>{
    modeButton.textContent=mode==='expanded'?'Compact':'Expand';
    if(!classicCompactOverlay){try{localStorage.setItem('breakaway-overlay-mode',mode);}catch{}}
    try{pip.resizeTo(pip.outerWidth,mode==='expanded'?315:classicCompactOverlay?170:245);}catch{}
+   if(classicCompactOverlay)pip.requestAnimationFrame(()=>fitClassicOverlayNumbers(pip.document));
   };
   modeButton.addEventListener('click',()=>setMode(pip.document.body.classList.contains('expanded')?'compact':'expanded'));
   settingsButton.addEventListener('click',()=>settingsPanel.classList.toggle('open'));
@@ -1614,6 +1616,12 @@ $('nativeProfile').addEventListener('click',async()=>{
   opacityInput.addEventListener('input',applyOpacity);
   applyOpacity();
   overlayWindow=pip;applyReadoutSize();
+  // Keep the largest safe numeric font when compact tiles are resized,
+  // the optional expanded layout is chosen, or the webfont finishes loading.
+  pip.addEventListener('resize',()=>fitClassicOverlayNumbers(pip.document));
+  void pip.document.fonts.ready.then(()=>{
+   if(overlayWindow===pip)fitClassicOverlayNumbers(pip.document);
+  });
   const pipMetrics=pip.document.getElementById('overlayMetrics') as HTMLElement;
   // Compact slots are independently customizable: drag/drop or click two tiles to swap.
   // The wide elapsed-time slot stays reserved to prevent its clock from being clipped.
@@ -1931,7 +1939,9 @@ function publishDesktopOverlay(){
     tile.style.gridRow=expanded?String(2+Math.floor(index/4)):(position?.[1]||'auto');
     tile.style.removeProperty('order');
    }
-
+   // Size only the values—not the labels—for the tile's actual width/height.
+   // Recalculate after live wattage, speed, gear and elapsed-time updates.
+   fitClassicOverlayNumbers(doc);
   }
  }
 
