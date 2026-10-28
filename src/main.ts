@@ -2980,7 +2980,8 @@ if(['route','setup','ride'].includes(classicPreviewScreen||'')){
    ($('generatedSeed') as HTMLInputElement).value='4821';
    ($('generatedTerrain') as HTMLSelectElement).value='flat';
    ($('generateRoute') as HTMLButtonElement).click();
-  showBreakawayScreen(classicPreviewScreen as BreakawayScreen);
+ }
+ showBreakawayScreen(classicPreviewScreen as BreakawayScreen);
   if(classicPreviewScreen==='route')requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
 }
 
