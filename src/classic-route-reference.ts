@@ -1,4 +1,5 @@
 import './classic-route-reference.css';
+import './classic-unified-header.css';
 
 /** Reference route studio. Move the original controls so every existing listener stays attached. */
 export function mountClassicRouteReference():void {
