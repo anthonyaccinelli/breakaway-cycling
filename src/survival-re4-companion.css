@@ -32,37 +32,37 @@
   color:#eee9f8!important;
  }
  /* 02 and 03 share the precise feel of Route's masthead */
- body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead{
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) :is(#screenSetup,#screenRide)>.sc-masthead{
   background:linear-gradient(180deg,#292637 0%,#191721 92%,transparent)!important;
   color:#eee9f8!important;border-bottom:1px solid rgba(174,169,204,.24)!important;
  }
- body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-brand small{
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) :is(#screenSetup,#screenRide)>.sc-masthead .sc-brand small{
   color:#eee9f8!important;font-family:"Arial Narrow","Bahnschrift Condensed",Impact,sans-serif!important;
   letter-spacing:.08em!important;text-shadow:0 1px 0 #171521!important;
  }
- body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-subhead strong{
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) :is(#screenSetup,#screenRide)>.sc-masthead .sc-subhead strong{
   color:#aea9cc!important;font-family:Consolas,"Courier New",monospace!important;
   font-size:calc(13 * var(--ch-u))!important;text-transform:uppercase!important;
   letter-spacing:.12em!important;
  }
- body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-tabs{
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) :is(#screenSetup,#screenRide)>.sc-masthead .sc-tabs{
   background:rgba(23,21,33,.35)!important;border-bottom:1px solid rgba(174,169,204,.23)!important;
  }
- body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-tabs button:not(.secondary){
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) :is(#screenSetup,#screenRide)>.sc-masthead .sc-tabs button:not(.secondary){
   background:transparent!important;color:#aea9cc!important;
   border:1px solid transparent!important;border-bottom:2px solid transparent!important;
   border-radius:1px!important;text-transform:uppercase!important;
   font-family:"Arial Narrow",Arial,sans-serif!important;letter-spacing:.08em!important;
  }
- body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-tabs button.sc-active:not(.secondary){
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) :is(#screenSetup,#screenRide)>.sc-masthead .sc-tabs button.sc-active:not(.secondary){
   background:linear-gradient(180deg,#92323c,#512934)!important;color:#eee9f8!important;
   border:1px solid #c74343!important;border-bottom:2px solid #c74343!important;
   box-shadow:inset 0 0 0 1px rgba(174,169,204,.09)!important;
  }
- body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-tabs button:not(.sc-active):hover{
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) :is(#screenSetup,#screenRide)>.sc-masthead .sc-tabs button:not(.sc-active):hover{
   background:#39354f!important;color:#eee9f8!important;
  }
- body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) .sc-masthead .sc-mode-change{
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]) :is(#screenSetup,#screenRide)>.sc-masthead .sc-mode-change{
   background:linear-gradient(165deg,#92323c,#622b38)!important;
   color:#eee9f8!important;border:1px solid #c74343!important;
   border-radius:2px!important;box-shadow:inset 0 0 0 1px rgba(174,169,204,.16)!important;
