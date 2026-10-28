@@ -786,14 +786,10 @@ const SURVIVAL_GRADE_COLORS={
  descent:'#394252',flat:'#B5A7A9',climb:'#D54051',steep:'#F19F71'
 } as const;
 function gradeColor(g:number){
- if(document.body.dataset.rideExperience==='classic'){
-  if(!Number.isFinite(g))return '#34c759';
-  if(g<0)return '#007aff';
-  if(g<3)return '#34c759';
-  if(g<6)return '#ffcc00';
-  if(g<9)return '#ff3b30';
-  return '#af52de';
- }
+ // Exactly four hard-edged terrain swatches per mode; no blending.
+ // Classic uses the four selected blue/gray/violet/orange colors, never
+ // the old green/yellow/red/purple fallback. The renderer shares these
+ // swatches between its main chart, route preview and always-on-top overlay.
  const survival=document.body.dataset.rideExperience==='survival';
  const colors=survival?SURVIVAL_GRADE_COLORS:CLASSIC_GRADE_COLORS;
  if(!Number.isFinite(g))return colors.flat;
@@ -1673,7 +1669,7 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  const markerX=x(Math.max(start,Math.min(stop,markerDistance)));
  const threatLine=surviveOn&&survivePrepRemaining<=0?`<line x1="${x(Math.max(start,Math.min(stop,surviveEnemyDistance)))}" x2="${x(Math.max(start,Math.min(stop,surviveEnemyDistance)))}" y1="0" y2="${h}" stroke="#ff304b" stroke-width="3"/>`:"";
  const hud=gradeHud(markerDistance<=0?displayGrade():at(markerDistance).grade);
- return `<div class="overlay-profile-graphic" style="position:relative;width:100%;overflow:hidden"><div class="overlay-profile-grade" aria-label="Current gradient" style="position:absolute;z-index:3;top:12px;left:16px;pointer-events:none;font-weight:850;line-height:1;letter-spacing:-.045em;text-shadow:0 2px 6px #061019,0 0 3px #061019;color:${hud.color};font-size:${hud.size}px">${hud.label}${climbHud(climbNow())}</div><svg viewBox="0 0 ${w} ${h}" style="display:block;width:100%;height:210px" preserveAspectRatio="none">${segments}<polyline points="${terrain}" fill="none" stroke="#e9f0f2" stroke-width="1.6" opacity=".85"/>${threatLine}<line x1="${markerX}" x2="${markerX}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg></div>`;
+ return `<div class="overlay-profile-graphic" style="position:relative;width:100%;overflow:hidden"><div class="overlay-profile-grade" aria-label="Current gradient" style="position:absolute;z-index:3;top:12px;left:16px;pointer-events:none;box-sizing:border-box;max-width:calc(100% - 32px);padding:6px 10px;border:3px solid #ffd000;border-radius:8px;background:#111827;box-shadow:none;text-shadow:none!important;font-weight:850;line-height:1.05;letter-spacing:-.045em;color:${hud.color};font-size:${hud.size}px">${hud.label}${climbHud(climbNow())}</div><svg viewBox="0 0 ${w} ${h}" style="display:block;width:100%;height:210px" preserveAspectRatio="none">${segments}<polyline points="${terrain}" fill="none" stroke="#e9f0f2" stroke-width="1.6" opacity=".85"/>${threatLine}<line x1="${markerX}" x2="${markerX}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3"/></svg></div>`;
 }
 let overlayZoomFactor=[1,2,5,10].includes(Number(localStorage.getItem('breakaway-overlay-zoom')))?Number(localStorage.getItem('breakaway-overlay-zoom')):1;
 function desktopOverlayProfiles(){
