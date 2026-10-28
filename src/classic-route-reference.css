@@ -1,3 +1,5 @@
+/* Important reference rules are layered so legacy mode overrides cannot repaint this screen. */
+@layer classicRouteReference {
 /* Classic route creation: dimensions correspond to the supplied 2040 × 954 reference. */
 body[data-ride-experience="classic"][data-breakaway-screen="route"].cr-reference-mounted{
  --cr-u:clamp(.65px,calc(100vw / 2040),1px);
@@ -152,6 +154,8 @@ body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profi
  display:block!important;width:100%!important;height:100%!important;background:var(--cr-blue)!important;
 }
 body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile svg :is(rect,polygon){fill:#999!important;stroke:none!important}
+body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile svg g[clip-path]{display:none!important}
+body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile svg .cr-terrain{fill:#999!important;stroke:none!important}
 body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile svg polyline{display:none!important}
 body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile .studio-scrub-marker{stroke:var(--cr-yellow)!important;stroke-width:calc(5 * var(--cr-u))!important}
 body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout{
@@ -177,4 +181,6 @@ body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-refer
  body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-builder{margin:0!important}
  body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary>.route-studio-live-preview{min-height:240px!important}
  body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>.note{display:none!important}
+}
+
 }
