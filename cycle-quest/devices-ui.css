@@ -1,0 +1,49 @@
+/* 02 Devices lives in THE SAME Cycle Quest iframe, .cq-game and theme as
+   Route and Ride. No parent Classic layout, duplicate header, or font cascade. */
+#cq-preview .cq-unified-devices{display:none;flex:1 1 auto;min-height:0;min-width:0;overflow:hidden;flex-direction:column;gap:9px;padding:4px 0 0;color:#f6f7ff;font-family:'VT323','Courier New',monospace}
+#cq-preview .cq-game[data-cq-page="devices"] .cq-unified-devices{display:flex!important}
+#cq-preview .cq-game[data-cq-page="devices"] .cq-full,#cq-preview .cq-game[data-cq-page="devices"]>.cq-overlay{display:none!important}
+#cq-preview .cq-dev-topline{flex:none;display:flex;justify-content:space-between;align-items:center;gap:8px;font:17px/1 'VT323',monospace;color:#d4ddff;min-height:26px}
+#cq-preview .cq-dev-heading{display:flex;align-items:center;gap:12px;margin:0 0 10px}
+#cq-preview .cq-dev-heading h1{margin:0;color:#f6f7ff;font:800 clamp(18px,1.55vw,26px)/1.1 Arial,Helvetica,sans-serif}
+#cq-preview .cq-dev-heading p{margin:4px 0 0;font:17px/1.1 'VT323',monospace;color:#d9e4ff}
+#cq-preview .cq-dev-number{width:38px;height:38px;border-radius:50%;border:2px solid #ffe777;background:#294da0;color:#ffe777;display:grid;place-items:center;flex:none;font:800 21px Arial,sans-serif}
+#cq-preview .cq-dev-workbench{display:flex;flex-direction:column;flex:1 1 0;min-height:0;gap:10px;padding:15px;background:linear-gradient(125deg,#173c8b,#0b2256 60%,#152d6a);border:2px solid #7795ca;overflow:auto;scrollbar-color:#7896ce #08183b}
+#cq-preview .cq-dev-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;flex:0 0 auto}
+#cq-preview .cq-dev-card{box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:4px;min-height:144px;min-width:0;margin:0;padding:12px!important;border:2px solid #849dd0!important;border-radius:4px;background:linear-gradient(145deg,#213b84,#101f56)!important;box-shadow:inset 0 0 0 1px #6d85b855}
+#cq-preview .cq-dev-card .cq-windowtitle,#cq-preview .cq-dev-settings .cq-windowtitle,#cq-preview .cq-dev-tools .cq-windowtitle{font:700 17px/1 'VT323',monospace;color:#ffe777;letter-spacing:.06em;margin:0 0 4px}
+#cq-preview .cq-dev-card h2{font:700 clamp(19px,1.5vw,26px)/1 'VT323',monospace;text-align:center;margin:2px 0;color:#f6f7ff}
+#cq-preview .cq-dev-card h2 small{font:17px 'VT323',monospace;color:#d4e0ff}
+#cq-preview .cq-dev-status{text-align:center;color:#d9e4ff;font:18px/1.05 'VT323',monospace;min-height:22px;overflow-wrap:anywhere;margin:0 0 4px}
+#cq-preview .cq-dev-card>button,#cq-preview .cq-dev-buttons button,#cq-preview .cq-dev-actions>button,#cq-preview .cq-dev-tools>button{border:1px solid #fff4b8!important;border-radius:3px;padding:5px 8px!important;min-height:37px!important;background:#ffe777!important;color:#081638!important;font:800 clamp(14px,1vw,18px)/1 'VT323',monospace!important;cursor:pointer}
+#cq-preview .cq-dev-card>button{margin-top:auto}
+#cq-preview .cq-dev-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:auto}
+#cq-preview .cq-dev-buttons button{min-width:0}
+#cq-preview .cq-dev-buttons button.cq-dev-secondary,#cq-preview .cq-dev-actions .cq-dev-secondary,#cq-preview .cq-dev-tools .cq-dev-secondary{background:#223c82!important;color:#f6f7ff!important;border:1px solid #8ca7d7!important}
+#cq-preview .cq-dev-setting-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;flex:1 1 auto;min-height:165px}
+#cq-preview .cq-dev-settings{min-width:0;min-height:0;overflow:auto;box-sizing:border-box;padding:12px!important;background:linear-gradient(145deg,#213b84,#101f56)!important;border:2px solid #849dd0!important;border-radius:4px!important}
+#cq-preview .cq-dev-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#cq-preview .cq-dev-fields label{display:flex;flex-direction:column;gap:5px;min-width:0;color:#d9e4ff!important;font:17px/1 'VT323',monospace!important}
+#cq-preview .cq-dev-fields input{box-sizing:border-box;width:100%;min-width:0;max-width:none;background:#f6f7ff;color:#0e1c49;border:1px solid #a8bde1;border-radius:3px;padding:6px 8px;font:16px/1 Arial,sans-serif;min-height:34px}
+#cq-preview .cq-dev-help{font:16px/1.2 'VT323',monospace;color:#d9e4ff;margin:10px 0 0}
+#cq-preview .cq-dev-shifting{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#cq-preview .cq-dev-shifting button{min-height:37px;padding:5px 8px;border:1px solid #849dd0;border-radius:3px;background:#273f85;color:#f6f7ff;font:800 17px/1 'VT323',monospace}
+#cq-preview .cq-dev-shifting button.cq-dev-selected{background:#ffe777;color:#081638;border-color:#ffe777}
+#cq-preview .cq-dev-auto{display:flex;align-items:center;gap:6px;margin:12px 0 0;font:17px/1 'VT323',monospace;color:#e4edff!important}
+#cq-preview .cq-dev-auto input{accent-color:#ffe777;flex:none}
+#cq-preview .cq-dev-bottom{display:flex;flex-direction:column;gap:8px;flex:0 0 auto}
+#cq-preview .cq-dev-tools{display:flex;align-items:center;gap:10px;min-height:58px;padding:9px 11px!important;margin:0;background:#182f70!important;border:1px solid #7898d0!important;border-radius:4px}
+#cq-preview .cq-dev-tools .cq-windowtitle{margin:0;min-width:160px}
+#cq-preview .cq-dev-tools p{margin:0;flex:1;min-width:0;font:16px/1 'VT323',monospace;color:#e0e8ff}
+#cq-preview .cq-dev-tools>button{flex:0 0 auto;min-height:30px!important;font-size:15px!important}
+#cq-preview .cq-dev-actions{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1.5fr) minmax(180px,1fr);align-items:center;gap:10px;min-height:43px}
+#cq-preview .cq-dev-actions>div{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
+#cq-preview .cq-dev-actions>div strong{color:#ffe777;font:800 17px/1 'VT323',monospace}
+#cq-preview .cq-dev-actions>div small{color:#d4e0ff;font:14px/1 'VT323',monospace}
+#cq-preview .cq-dev-actions button:disabled{opacity:.62;cursor:not-allowed}
+#cq-preview .cq-dev-routebar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:34px;padding:5px 13px;background:#ffe777;color:#0e1b43;border:1px solid #f6e89d;border-radius:4px;font:700 17px/1 'VT323',monospace;flex:none}
+#cq-preview .cq-dev-routebar strong{white-space:nowrap}
+#cq-preview .cq-game[data-cq-page="devices"] .cq-header nav button[data-state="ride"]{background:#122455!important;border-color:#506a9f!important;color:#e2ebff!important}
+@media(max-width:1100px){#cq-preview .cq-dev-card{min-height:133px}#cq-preview .cq-dev-setting-grid{min-height:170px}#cq-preview .cq-dev-tools .cq-windowtitle{min-width:auto}#cq-preview .cq-dev-tools p{font-size:14px}}
+@media(max-width:900px),(max-height:690px){#cq-preview .cq-unified-devices{flex:0 0 auto;min-height:650px;overflow:visible}#cq-preview .cq-dev-workbench{overflow:visible}#cq-preview .cq-dev-setting-grid{min-height:200px}#cq-preview .cq-dev-bottom{margin-top:2px}}
+@media(max-width:670px){#cq-preview .cq-dev-cards,#cq-preview .cq-dev-setting-grid{grid-template-columns:1fr}#cq-preview .cq-dev-card{min-height:125px}#cq-preview .cq-dev-fields{grid-template-columns:repeat(2,minmax(0,1fr))}#cq-preview .cq-dev-tools{flex-wrap:wrap}#cq-preview .cq-dev-actions{grid-template-columns:1fr}#cq-preview .cq-dev-heading h1{font-size:19px}#cq-preview .cq-dev-card h2{text-align:left}}
