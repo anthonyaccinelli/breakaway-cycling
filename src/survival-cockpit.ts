@@ -21,6 +21,7 @@ export function mountSurvivalCockpit():void {
  const originalActions=profile.querySelector<HTMLElement>('.profile-ride-actions')!;
  const originalHudParent=hud?.parentElement;
  const originalHudNext=hud?.nextSibling;
+ const originalProfileTitle=profile.querySelector<HTMLElement>('.profile-heading h2')?.textContent||'Elevation profile';
  const waveSettings=byId('surviveWaveSettings');
  const legacyControls=el('#screenRide .survive-beta .survive-controls');
  const studioControls=studio?.querySelector<HTMLElement>('.survival-studio-controls');
@@ -51,6 +52,14 @@ export function mountSurvivalCockpit():void {
  const footer=document.createElement('div');
  footer.className='sc-ride-controls';
  footer.innerHTML='<span class="sc-ride-control-label">RIDE CONTROLS</span>';
+ const status=document.createElement('section');
+ status.className='cc-status sv-ride-status';
+ status.setAttribute('aria-label','Survival route information');
+ status.innerHTML='<div><small>DISTANCE REMAINING</small><strong id="svRemaining">—</strong><span>MI</span></div><div><small>ELEVATION GAIN</small><strong id="svGain">—</strong><span>FT</span></div><div><small>ESTIMATED TIME LEFT</small><strong id="svEta">—</strong></div>';
+ const previewChase=document.createElement('section');
+ previewChase.className='sv-preview-chase';
+ previewChase.innerHTML='<header><strong>SURVIVAL · GAMEPLAY PREVIEW</strong><span>LIVE READOUTS APPEAR WHEN SURVIVAL BEGINS</span></header><div><span>YOU MPH<strong>—</strong></span><span>THREAT MPH<strong>—</strong></span><span>THREAT GAP<strong>—</strong></span><span>NEXT SURGE<strong>—</strong></span><span>WAVE / PHASE<strong>—</strong></span></div>';
+
 
  const statusDetail=document.createElement('div');
  statusDetail.className='sc-distance-card';
@@ -78,21 +87,29 @@ export function mountSurvivalCockpit():void {
  const gearMetric=document.createElement('div');
  gearMetric.className='metric sc-gear-metric';
  gearMetric.innerHTML='<b id="scGear">—</b><small>Virtual gear</small>';
- const arrangement=['power','heartRate','cadence','speed','elapsedTime','distance','totalGain'];
+ const arrangement=['power','heartRate','cadence','speed','elapsedTime','distance'];
  const orderedMetrics=arrangement.map(id=>byId(id)?.closest<HTMLElement>('.metric')).filter((x):x is HTMLElement=>!!x);
  const remainingCell=byId('remaining')?.closest<HTMLElement>('.metric')||null;
+ const gainCell=byId('totalGain')?.closest<HTMLElement>('.metric')||null;
+ const gradeMetric=document.createElement('div');
+ gradeMetric.className='metric sc-grade-metric';
+ gradeMetric.innerHTML='<b id="svGrade">—</b><small>Grade</small>';
+ const showPreview=()=>new URLSearchParams(location.search).get('survivalPreview')==='ride';
 
  function mount():void {
   if(document.body.classList.contains('sc-cockpit-mounted'))return;
-  document.body.classList.add('sc-cockpit-mounted');
+  document.body.classList.add('sc-cockpit-mounted','sv-companion-mounted');
   if(waveSettings&&studioControls)studioControls.append(waveSettings);
   if(remainingCell)hiddenMetric.append(remainingCell);
+  if(gainCell)hiddenMetric.append(gainCell);
   for(const cell of orderedMetrics)metrics.append(cell);
-  metrics.append(gearMetric);
+  metrics.append(gradeMetric,gearMetric);
   dashboard.append(hiddenMetric);
+  rideView.insertBefore(status,profile);
   rideView.insertBefore(hud,dashboard);
-  rideView.insertBefore(preflight,hud);
+  rideView.insertBefore(previewChase,dashboard);
   rideView.append(footer);
+  footer.append(preflight);
   for(const button of originalButtons)footer.append(button);
   const title=el('#screenRoute .route-studio-heading h2');
   if(title)title.textContent='YOUR ESCAPE ROUTE';
@@ -102,35 +119,41 @@ export function mountSurvivalCockpit():void {
 
  function unmount():void {
   if(!document.body.classList.contains('sc-cockpit-mounted'))return;
-  document.body.classList.remove('sc-cockpit-mounted');
+  document.body.classList.remove('sc-cockpit-mounted','sv-companion-mounted');
   masthead.remove();
   if(waveSettings&&legacyControls)legacyControls.insertBefore(waveSettings,byId('surviveStart'));
   for(const button of originalButtons)originalActions.append(button);
-  preflight.remove();footer.remove();
+  preflight.remove();footer.remove();status.remove();previewChase.remove();
   if(originalHudParent){
    if(originalHudNext&&originalHudNext.parentNode===originalHudParent)originalHudParent.insertBefore(hud,originalHudNext);
    else originalHudParent.prepend(hud);
   }
   for(const cell of originalMetricNodes)metrics.append(cell);
-  gearMetric.remove();hiddenMetric.remove();
+  gearMetric.remove();gradeMetric.remove();hiddenMetric.remove();
   const profileTitle=el('#screenRide #profileSection .profile-heading h2');
-  if(profileTitle)profileTitle.textContent='Elevation profile';
+  if(profileTitle)profileTitle.textContent=originalProfileTitle;
  }
 
  function modeActive():boolean {
   return document.body.dataset.rideExperience==='survival'&&document.body.dataset.breakawayScreen!=='home';
  }
  function syncReadouts():void {
-  const gear=(byId('gear')?.textContent||'—').trim();
-  const gearLabel=byId('scGear');
-  if(gearLabel&&gearLabel.textContent!==gear)gearLabel.textContent=gear;
-  const remaining=(byId('remaining')?.textContent||'—').trim();
-  const distance=byId('scDistanceLeft');
-  if(distance&&distance.textContent!==remaining)distance.textContent=remaining;
+  const raw=(id:string)=>(byId(id)?.textContent||'—').trim();
+  const set=(id:string,value:string)=>{const node=byId(id);if(node&&node.textContent!==value)node.textContent=value;};
+  set('scGear',raw('profileBarGear'));
+  set('svGrade',raw('profileBarGrade'));
+  set('scDistanceLeft',raw('remaining'));
+  set('svRemaining',raw('remaining'));
+  set('svGain',raw('totalGain'));
+  const remaining=Number.parseFloat(raw('remaining'));
+  const speed=Number.parseFloat(raw('speed'));
+  const eta=Number.isFinite(remaining)&&Number.isFinite(speed)&&speed>=1?Math.ceil(remaining/speed*60):null;
+  set('svEta',eta===null?'—':Math.floor(eta/60)+'h '+String(eta%60).padStart(2,'0')+'m');
  }
  function syncChase():void {
   const active=modeActive()&&!hud.hidden;
   preflight.hidden=active;
+  previewChase.hidden=!showPreview()||active;
   const phase=byId('scPhase');
   if(phase){
    const next=active?(byId('surviveGameState')?.textContent||'CHASE ACTIVE'):'MISSION READY';
@@ -149,7 +172,7 @@ export function mountSurvivalCockpit():void {
   const label=masthead.querySelector<HTMLElement>('.sc-brand small');
   if(label)label.textContent='RIDE BREAKAWAY / SURVIVAL MODE';
   const title=byId('scSectionTitle');
-  if(title)title.textContent=screen==='route'?'create your route':screen==='setup'?'PAIR YOUR EQUIPMENT':'ESCAPE IN PROGRESS';
+  if(title)title.textContent=screen==='route'?'create your route':screen==='setup'?'connect your trainer':'enjoy the ride';
   const overlay=masthead.querySelector<HTMLButtonElement>('[data-sc-step="overlay"]');
   if(overlay)overlay.textContent='OVERLAY';
   masthead.querySelectorAll<HTMLButtonElement>('[data-sc-step]').forEach(button=>{
@@ -188,9 +211,8 @@ export function mountSurvivalCockpit():void {
  const chaseObserver=new MutationObserver(syncChase);
  chaseObserver.observe(hud,{attributes:true,attributeFilter:['hidden','class'],childList:true,subtree:true,characterData:true});
  const readoutObserver=new MutationObserver(syncReadouts);
- const gear=byId('gear');
- const remaining=byId('remaining');
- if(gear)readoutObserver.observe(gear,{childList:true,characterData:true,subtree:true});
- if(remaining)readoutObserver.observe(remaining,{childList:true,characterData:true,subtree:true});
+ for(const id of ['profileBarGear','profileBarGrade','remaining','totalGain','speed']){
+  const node=byId(id);if(node)readoutObserver.observe(node,{childList:true,characterData:true,subtree:true});
+ }
  syncShell();
 }
