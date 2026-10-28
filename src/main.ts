@@ -1,5 +1,6 @@
 import './style.css';
 import './live-ride-themes.css';
+import { CLASSIC_DESIGN_OVERLAY_CSS } from './classic-overlay-preview';
 import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
 import {mountSurvivalCockpit} from './survival-cockpit';
 import {mountClassicCockpit} from './classic-cockpit';
@@ -1560,8 +1561,20 @@ $('nativeProfile').addEventListener('click',async()=>{
   const zombieOverlayStyle=pip.document.createElement('style');
   zombieOverlayStyle.textContent=SURVIVAL_OVERLAY_CSS;
   pip.document.head.append(zombieOverlayStyle);
+  // Standalone Picture-in-Picture documents do not inherit the page's fonts.
+  // Explicitly load Host Grotesk and Instrument Sans for Classic here too.
+  if(document.body.dataset.rideExperience==='classic'){
+   const classicFont=pip.document.createElement('link');
+   classicFont.rel='stylesheet';
+   classicFont.href='https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700;800&family=Instrument+Sans:wght@400;500;600;700;800&display=swap';
+   pip.document.head.append(classicFont);
+   const classicTheme=pip.document.createElement('style');
+   classicTheme.textContent=CLASSIC_DESIGN_OVERLAY_CSS;
+   pip.document.head.append(classicTheme);
+  }
   pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><div id="overlayZoomControls" role="group" aria-label="Elevation zoom"><button type="button" data-zoom="1">1×</button><button type="button" data-zoom="2">2×</button><button type="button" data-zoom="5">5×</button><button type="button" data-zoom="10">10×</button></div><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
   pip.document.body.classList.toggle('survival-overlay-theme',document.body.dataset.rideExperience==='survival');
+  pip.document.body.classList.toggle('classic-design-overlay',document.body.dataset.rideExperience==='classic');
   const modeButton=pip.document.getElementById('overlayMode') as HTMLButtonElement;
   const settingsButton=pip.document.getElementById('overlaySettingsToggle') as HTMLButtonElement;
   const settingsPanel=pip.document.getElementById('overlaySettings') as HTMLElement;
