@@ -451,3 +451,31 @@ body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted[da
   overflow-x:hidden!important;overflow-y:visible!important;
  }
 }
+
+
+/* Complete Classic's color hierarchy on interactive Ride controls. */
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted[data-breakaway-screen="ride"] #screenRide .ride-dashboard .ride-readout-toggle{
+ background:#ffd000!important;color:#000!important;border:0!important;
+ border-radius:8px!important;box-shadow:none!important;text-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted[data-breakaway-screen="ride"] #screenRide #profileSection #profileDisplayOptions>summary,
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted[data-breakaway-screen="ride"] #screenRide #profileSection #profileDisplayOptions[open]>summary{
+ background:#ffd000!important;
+ color:#000!important;
+ border-color:#ffd000!important;
+ box-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted[data-breakaway-screen="ride"] #screenRide #profileSection #profileDisplayOptions .profile-display-menu {
+ background:#f4f4f4!important;
+ color:#000!important;
+ border:2px solid #0053ad!important;
+ box-shadow:none!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted[data-breakaway-screen="ride"] #screenRide #profileSection #profileDisplayOptions .profile-display-menu button{
+ background:#fff!important;
+ color:#0053ad!important;
+ border:1px solid #0053ad!important;
+}
+body[data-ride-experience="survival"].sc-cockpit-mounted.sv-companion-mounted[data-breakaway-screen="ride"] #screenRide #profileSection #entertainmentView {
+ background:#ffd000!important;color:#000!important;border-color:#ffd000!important;box-shadow:none!important;
+}
