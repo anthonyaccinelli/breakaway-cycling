@@ -284,6 +284,16 @@
  body.sr-reference-mounted main>a[href="/trainer-lab.html"]{
   display:none!important;
  }
+ /* Header dimensions mirror the supplied desktop screenshot. */
+ body.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs{
+  width:calc(660 * var(--ch-u))!important;height:calc(56 * var(--ch-u))!important;
+ }
+ body.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:not(.secondary){
+  height:calc(56 * var(--ch-u))!important;
+ }
+ body.sr-reference-mounted #screenRoute>.sc-masthead .sc-mode-change{
+  width:calc(215 * var(--ch-u))!important;height:calc(56 * var(--ch-u))!important;
+ }
  body.sr-reference-mounted #screenRoute>.cr-reference{
   display:block!important;position:relative!important;
   width:100%!important;height:100dvh!important;max-height:100dvh!important;
