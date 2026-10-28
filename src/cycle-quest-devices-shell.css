@@ -1,0 +1,287 @@
+/*
+ * Cycle Quest 02 Devices — shared RPG shell.
+ * Keep the original native FTMS device buttons, settings and readiness gating.
+ * The design and geometry mirror Cycle Quest 01/03 (inside its protected iframe).
+ * Import AFTER cycle-quest-setup.css to resolve older Classic-mode overrides.
+ */
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"]{
+ --cq-deep:#05091a;--cq-frame:#07122c;--cq-panel:#101e49;
+ --cq-panel-raised:#172d68;--cq-outline:#7898d0;
+ --cq-ink:#f6f7ff;--cq-muted:#d3dfff;--cq-gold:#ffe777;
+ --cp-blue:#193f98;--cp-yellow:#ffe777;--cp-paper:#101e49;
+ background:var(--cq-deep)!important;color:var(--cq-ink)!important;
+ color-scheme:dark!important;font-family:'VT323',monospace!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] main,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] main>.ride-workspace{
+ width:100%!important;max-width:none!important;margin:0!important;padding:0!important;
+ min-width:0!important;height:100dvh!important;max-height:100dvh!important;
+ overflow:hidden!important;background:#05091a!important;color:#f6f7ff!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup{
+ display:flex!important;flex-direction:column!important;gap:0!important;
+ box-sizing:border-box!important;position:relative!important;
+ width:calc(100% - 32px)!important;max-width:none!important;
+ height:calc(100dvh - 30px)!important;min-height:0!important;max-height:calc(100dvh - 30px)!important;
+ margin:15px 16px!important;padding:16px 19px 12px!important;
+ border:2px solid #30486f!important;border-radius:15px!important;
+ background:linear-gradient(175deg,#0b1836,#06102a 75%,#05091a)!important;
+ box-shadow:0 8px 0 #05091a,inset 0 0 0 1px #101e49!important;
+ overflow:hidden!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.cq-device-utility{
+ display:grid!important;grid-template-columns:1fr auto 1fr!important;align-items:center!important;
+ flex:0 0 35px!important;min-height:35px!important;width:100%!important;
+ padding:0 15px!important;margin:0!important;background:#101e40!important;
+ color:#d8e4ff!important;box-sizing:border-box!important;
+ font:500 12px/1 Arial,Helvetica,sans-serif!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] .cq-device-utility>span{
+ text-align:center!important;white-space:nowrap!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] .cq-device-utility button{
+ justify-self:start!important;min-height:26px!important;margin:0!important;
+ padding:4px 13px!important;background:#3b579d!important;color:#f6f7ff!important;
+ border:0!important;border-radius:9px!important;box-shadow:none!important;
+ font:500 12px/1 Arial,Helvetica,sans-serif!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] .cq-device-utility button:last-child{
+ justify-self:end!important;
+}
+/* The primary navigation adopts the actual 01/03 game frame dimensions. */
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead{
+ box-sizing:border-box!important;position:relative!important;flex:0 0 101px!important;
+ display:block!important;width:calc(100% - 48px)!important;max-width:none!important;
+ height:101px!important;min-height:101px!important;max-height:101px!important;
+ margin:0 24px!important;padding:0!important;
+ border:0!important;border-bottom:1px solid #5876b3!important;
+ border-radius:0!important;background:linear-gradient(180deg,#15264d,#0b1739)!important;
+ box-shadow:none!important;overflow:visible!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-head{
+ display:block!important;position:relative!important;width:100%!important;height:100%!important;
+ background:transparent!important;overflow:visible!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-brand{
+ position:absolute!important;left:0!important;top:29px!important;white-space:nowrap!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-brand small{
+ display:block!important;color:#f6f7ff!important;
+ font:800 clamp(17px,1.65vw,27px)/1.05 Arial,Helvetica,sans-serif!important;
+ letter-spacing:-.035em!important;text-shadow:none!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-subhead{
+ position:absolute!important;top:64px!important;left:0!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-subhead strong{
+ color:#ffe777!important;font:800 13px/1 Arial,Helvetica,sans-serif!important;
+ letter-spacing:.01em!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-tabs{
+ position:absolute!important;left:50%!important;top:16px!important;
+ transform:translateX(-50%)!important;display:grid!important;
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;
+ width:min(43vw,660px)!important;max-width:660px!important;
+ height:58px!important;margin:0!important;padding:0!important;
+ border:0!important;background:transparent!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-tabs button:not(.secondary){
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ width:100%!important;height:58px!important;min-height:0!important;
+ padding:7px 3px!important;margin:0!important;
+ border:2px solid transparent!important;border-radius:4px!important;
+ background:transparent!important;color:#b5c4ef!important;
+ font:800 clamp(12px,.9vw,15px)/1 Arial,Helvetica,sans-serif!important;white-space:nowrap!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-tabs button.sc-active:not(.secondary){
+ background:linear-gradient(150deg,#304da5,#172e77)!important;
+ border-color:#789cea!important;color:#fff!important;
+ box-shadow:inset 0 -3px #ffe77766!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-head-right{
+ position:absolute!important;top:17px!important;right:0!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-mode-change{
+ display:block!important;min-width:165px!important;width:auto!important;
+ height:56px!important;min-height:56px!important;padding:10px 18px!important;
+ border:2px solid #fff2a6!important;border-radius:5px!important;
+ background:linear-gradient(165deg,#f2d770,#c9a94e)!important;color:#06102b!important;
+ box-shadow:none!important;font:800 clamp(15px,1.35vw,22px)/1 Arial,Helvetica,sans-serif!important;
+ white-space:nowrap!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.cq-device-subnav{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;
+ box-sizing:border-box!important;flex:0 0 42px!important;min-height:42px!important;
+ width:calc(100% - 48px)!important;margin:0 24px!important;padding:0!important;
+ background:linear-gradient(90deg,#142a5c,#0d1a3e)!important;
+ color:#ffe777!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] .cq-device-subnav>strong{
+ font:800 19px 'VT323',monospace!important;letter-spacing:.1em!important;color:#ffe777!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] .cq-device-subnav nav{
+ margin-left:auto!important;display:flex!important;align-items:center!important;gap:6px!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] .cq-device-subnav nav button{
+ background:#152653!important;border:1px solid #4d68a8!important;border-radius:3px!important;
+ color:#e2ebff!important;padding:3px 11px!important;margin:0!important;
+ min-height:27px!important;font:700 16px/1 'VT323',monospace!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] .cq-device-subnav>span{
+ min-width:85px!important;text-align:right!important;font:14px/1 'VT323',monospace!important;
+ color:#c1cdee!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] .cq-device-subnav>span small{
+ color:#b5c4ef!important;font:13px/1 'VT323',monospace!important;
+}
+/* Native hardware controls now live inside the RPG's blue framed workbench. */
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .connection-strip{
+ box-sizing:border-box!important;display:flex!important;flex:1 1 0!important;
+ flex-direction:column!important;gap:9px!important;
+ width:calc(100% - 48px)!important;max-width:none!important;
+ min-height:0!important;max-height:none!important;height:auto!important;
+ margin:0 24px!important;padding:11px 15px 8px!important;
+ border:2px solid #7795ca!important;border-radius:3px!important;
+ background:linear-gradient(120deg,#17397f,#0d2358 64%,#122b68)!important;
+ box-shadow:inset 0 0 0 1px #1d3b80!important;overflow:auto!important;
+ scrollbar-width:thin;scrollbar-color:#637eae #08132d;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .connection-strip>h2{
+ flex:0 0 auto!important;margin:0!important;padding:0!important;
+ font:800 24px/1 Arial,Helvetica,sans-serif!important;
+ text-transform:uppercase!important;color:#f6f7ff!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .connection-strip>h2::before{
+ width:34px!important;height:34px!important;border:2px solid #ffe777!important;
+ background:#294da0!important;color:#ffe777!important;
+ font:800 21px Arial,Helvetica,sans-serif!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .connection-strip>#setupInstructions{
+ flex:0 0 auto!important;color:#d9e4ff!important;
+ font:16px/1.2 'VT323',monospace!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ flex:0 0 auto!important;gap:12px!important;margin:3px 0 0!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile{
+ box-sizing:border-box!important;min-width:0!important;min-height:137px!important;
+ max-height:none!important;height:auto!important;padding:13px 14px!important;
+ border:2px solid #8aa4d6!important;border-radius:4px!important;
+ background:linear-gradient(145deg,#213c86,#12265c)!important;
+ box-shadow:inset 0 0 0 1px #3b5696!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile>h3{
+ color:#f6f7ff!important;font:700 24px/1 'VT323',monospace!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile>.setup-connection-indicator{
+ color:#d5e3ff!important;font:16px/1 'VT323',monospace!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-settings-row{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:12px!important;flex:1 1 auto!important;min-height:190px!important;
+ margin:2px 0 0!important;padding:0!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.ride-shifting-column{
+ box-sizing:border-box!important;min-width:0!important;min-height:0!important;
+ padding:12px 16px!important;margin:0!important;
+ border:2px solid #8aa4d6!important;border-radius:4px!important;
+ background:linear-gradient(145deg,#213c86,#12265c)!important;
+ box-shadow:inset 0 0 0 1px #3b5696!important;
+ overflow:auto!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings>h3,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.ride-shifting-column #drivetrainSection>h2,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>h3{
+ color:#ffe777!important;font:700 23px/1 'VT323',monospace!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-settings-row :is(label,small,span,.note,p),
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-utility-details :is(label,small,span,.note,p){
+ color:#d9e4ff!important;text-shadow:none!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-settings-row .setup-rider-settings input{
+ background:#f6f7ff!important;color:#101e49!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-utility-details{
+ box-sizing:border-box!important;flex:0 0 auto!important;
+ margin:0!important;padding:7px 11px!important;
+ min-height:66px!important;max-height:92px!important;
+ border:2px solid #8aa4d6!important;border-radius:4px!important;
+ background:linear-gradient(145deg,#213c86,#12265c)!important;
+ overflow:auto!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-next{
+ flex:0 0 auto!important;min-height:62px!important;margin:0!important;
+ padding:4px 4px!important;background:transparent!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup #goToRide{
+ background:#ffe777!important;color:#081531!important;border:1px solid #ffe777!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.cq-device-footer{
+ display:flex!important;justify-content:space-between!important;align-items:center!important;
+ box-sizing:border-box!important;flex:0 0 24px!important;min-height:24px!important;
+ margin:0 24px!important;padding:0!important;color:#b5c4ef!important;
+ font:13px 'VT323',monospace!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] .cq-device-footer>b,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] .cq-device-footer b{
+ color:#ffe777!important;
+}
+/* Small viewport fallback: allow panels to scroll, never clip controls. */
+@media(max-width:1150px){
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-tabs{
+  left:52%!important;width:43vw!important;gap:5px!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-brand small{
+  font-size:17px!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-mode-change{
+  min-width:135px!important;font-size:16px!important;
+ }
+}
+@media(max-width:900px),(max-height:680px){
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] main,
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] main>.ride-workspace{
+  height:auto!important;min-height:100dvh!important;max-height:none!important;overflow:visible!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup{
+  height:auto!important;min-height:calc(100dvh - 30px)!important;
+  max-height:none!important;overflow:visible!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead{
+  flex-basis:150px!important;height:150px!important;min-height:150px!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-tabs{
+  top:84px!important;left:50%!important;width:100%!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .connection-strip{
+  flex:0 0 auto!important;height:auto!important;max-height:none!important;overflow:visible!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-settings-row{
+  min-height:250px!important;
+ }
+}
+@media(max-width:620px){
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup{
+  width:calc(100% - 12px)!important;margin:6px!important;padding:9px!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead,
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.cq-device-subnav,
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .connection-strip{
+  width:100%!important;margin-left:0!important;margin-right:0!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-brand{
+  left:0!important;top:15px!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-head-right{
+  top:12px!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-mode-change{
+  min-width:105px!important;font-size:12px!important;height:43px!important;
+ }
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles,
+ body[data-ride-experience="cyclequest"].cc-cockpit-mounted.cq-native-shell[data-breakaway-screen="setup"] #screenSetup .setup-settings-row{
+  grid-template-columns:1fr!important;
+ }
+}
