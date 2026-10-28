@@ -19,6 +19,7 @@ export function mountClassicRouteReference():void {
  uploadButton.addEventListener('click',()=>upload.click());
  upload.addEventListener('change',()=>{uploadButton.title=upload.files?.[0]?.name||'Upload a GPX or TCX route';});
  const controls=shell.querySelector<HTMLElement>('.cr-controls')!;
+ const error=document.createElement('p');error.className='cr-error';error.hidden=true;error.setAttribute('role','alert');controls.append(error);
  const summaryHost=shell.querySelector<HTMLElement>('.cr-summary')!;
  const tools=shell.querySelector<HTMLElement>('.cr-tools')!;
  const callout=shell.querySelector<HTMLElement>('.cr-callout')!;
@@ -97,5 +98,15 @@ export function mountClassicRouteReference():void {
  navigationObserver.observe(document.body,{attributes:true,attributeFilter:['data-ride-experience','data-breakaway-screen']});
  const chartObserver=new MutationObserver(()=>{formatChart();editingLabel();});
  chartObserver.observe(chart,{childList:true,attributes:true,attributeFilter:['class']});
+ const status=document.getElementById('status');
+ if(status){
+  const statusObserver=new MutationObserver(()=>{
+   if(!document.body.classList.contains('cr-reference-mounted'))return;
+   const message=status.textContent||'';
+   const invalid=/error|could not|invalid|must|exceeds|enter a valid|failed/i.test(message);
+   error.hidden=!invalid;if(invalid)error.textContent=message;
+  });
+  statusObserver.observe(status,{childList:true,characterData:true,subtree:true});
+ }
  sync();
 }
