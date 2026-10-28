@@ -14,6 +14,13 @@ function fn(name){const start=game.indexOf('function '+name+'('),end=game.indexO
 const fresh=()=>({version:1,xp:450,hp:50,miles:2,chapter:1,mode:'adventure',rideSeconds:100,rideMiles:2,nextEncounter:0,reward:false,boss:null});
 const battle=()=>({kind:'enemy',name:'GOBLIN',hp:100,max:100,dps:.25,reward:150,enemies:[{id:'goblin',name:'GOBLIN',hp:100,max:100}]});
 
+test('encounters preserve Overlay and synchronize the Ride tab when leaving Status',()=>{
+ const pages=[],c={view:'overlay',questBaseline:{setPage:page=>pages.push(page)}};
+ vm.createContext(c);vm.runInContext(fn('showEncounterView'),c);vm.runInContext('showEncounterView()',c);
+ assert.equal(c.view,'overlay');assert.deepEqual(pages,[]);
+ c.view='character';vm.runInContext('showEncounterView()',c);assert.equal(c.view,'ride');assert.deepEqual(pages,['ride']);
+});
+
 test('saved encounters with the old negative timer recover rather than losing the character',()=>{
  const saved={...fresh(),nextEncounter:-.18,battle:battle()};
  const repaired=readCharacter(JSON.stringify(saved));assert.equal(repaired.xp,450);assert.equal(repaired.nextEncounter,0);assert.equal(repaired.battle.name,'GOBLIN');assert(validCharacter(repaired));

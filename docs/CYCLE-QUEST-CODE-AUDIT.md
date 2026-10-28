@@ -39,6 +39,8 @@ Generated FIT/capture libraries and the monster data catalogue were not rewritte
   collections no longer crash the gallery.
 - Character Status now hides the ride panel correctly despite shared layout rules,
   and rider W/kg uses actual FTP/weight rather than a hardcoded example.
+- Encounter navigation keeps inline Overlay active and synchronizes the Ride tab
+  when an encounter brings the rider back from Character Status.
 - Unknown asset names cannot match inherited object properties in the allowlist.
 
 ## Redundancy removed

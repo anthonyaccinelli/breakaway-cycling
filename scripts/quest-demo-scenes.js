@@ -11,7 +11,7 @@ function handleDemoAction(action){
   const one=makeBattle('enemy',{level:level(),ftp:live.ftp,monsterId:id});
   const enemies=Array.from({length:count},()=>({id,name:id.toUpperCase(),hp:one.hp,max:one.max}));
   s.battle={...one,name:count===1?one.name:count+' '+id.toUpperCase()+'S',reward:150*count,enemies,hp:one.hp*count,max:one.max*count};
-  view='ride';message=count+' '+id+' artwork preview';
+  showEncounterView();message=count+' '+id+' artwork preview';
  }else if(action==='group'){encounter('enemy',3);return;}
  else if(action==='chapter-1'||action==='chapter-2'){
   s.chapter=action==='chapter-1'?1:2;s.miles=0;s.boss=null;s.chapterEncounter=null;message='Previewing '+CHAPTER_BIOMES[s.chapter].name;
