@@ -8,7 +8,7 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,rou
  const top=document.createElement('section');
  top.className='cq-unified-head';
  top.setAttribute('aria-label','Cycle Quest navigation');
- top.innerHTML='<div class="cq-unified-brand"><img class="cq-wordmark" src="/branding/cycle-quest-wordmark.png" alt="Cycle Quest" width="632" height="102"><small id="cq-unified-subtitle">create your route</small></div><nav class="cq-unified-nav" aria-label="Ride workflow"><button type="button" data-cq-page="route">01 ROUTE</button><button type="button" data-cq-page="devices">02 DEVICES</button><button type="button" data-cq-page="ride">03 RIDE</button><button type="button" data-cq-page="overlay">OVERLAY</button></nav><button type="button" class="cq-change-mode">CHANGE MODE</button>';
+ top.innerHTML='<div class="cq-unified-brand"><img class="cq-wordmark" src="/branding/cycle-quest-wordmark.png" alt="Cycle Quest" width="632" height="102"></div><nav class="cq-unified-nav" aria-label="Ride workflow"><button type="button" data-cq-page="route">01 ROUTE</button><button type="button" data-cq-page="devices">02 DEVICES</button><button type="button" data-cq-page="ride">03 RIDE</button><button type="button" data-cq-page="overlay">OVERLAY</button></nav><button type="button" class="cq-change-mode">CHANGE MODE</button>';
  game.prepend(top);
  const section=document.createElement('section');
  section.className='cq-unified-route';
@@ -29,8 +29,6 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,rou
    if(current)button.setAttribute('aria-current','page');
    else button.removeAttribute('aria-current');
   });
-  const sub=top.querySelector('#cq-unified-subtitle');
-  if(sub)sub.textContent=page==='route'?'create your route':page==='devices'?'connect your trainer':page==='overlay'?'always-on-top overlay':page==='character'?'character status':'enjoy the ride';
  };
  const oldAction=id=>root.querySelector('#'+id)?.click();
  const preset=(distance,terrain)=>{
