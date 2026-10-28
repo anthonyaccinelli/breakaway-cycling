@@ -1,3 +1,4 @@
+import {QUEST_ASSETS} from '../cycle-quest/assets.js';
 import {createHmac,createHash,timingSafeEqual} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
@@ -20,7 +21,7 @@ export default async function handler(req,res){
  const cookie=(req.headers.cookie||'').split(';').map(v=>v.trim()).find(v=>v.startsWith(COOKIE+'='))?.slice(COOKIE.length+1);
  if(!validSession(cookie,secret))return res.status(401).json({error:'Cycle Quest requires the beta password.'});
  if(asset==='status')return res.status(200).json({ok:true});
- const assets={'rewards.js':'text/javascript; charset=utf-8','summary-capture.js':'text/javascript; charset=utf-8','SUMMARY-CAPTURE-LICENSE.txt':'text/plain; charset=utf-8','reward-gesture.js':'text/javascript; charset=utf-8','index.html':'text/html; charset=utf-8','shared-ui.css':'text/css; charset=utf-8','devices-ui.css':'text/css; charset=utf-8','devices-ui.js':'text/javascript; charset=utf-8','shared-ui.js':'text/javascript; charset=utf-8','game.js':'text/javascript; charset=utf-8','routes.js':'text/javascript; charset=utf-8','monsters.js':'text/javascript; charset=utf-8','combat.js':'text/javascript; charset=utf-8','profile.js':'text/javascript; charset=utf-8','level-up.js':'text/javascript; charset=utf-8','workout-ui.js':'text/javascript; charset=utf-8','workouts.js':'text/javascript; charset=utf-8','fit-decoder.js':'text/javascript; charset=utf-8','FIT-PARSER-LICENSE.txt':'text/plain; charset=utf-8'};
- if(!assets[asset])return res.status(404).end();
+ const assets=QUEST_ASSETS;
+ if(!Object.hasOwn(assets,asset))return res.status(404).end();
  try{const content=await readFile(path.join(process.cwd(),'cycle-quest',asset),'utf8');res.setHeader('Content-Type',assets[asset]);res.setHeader('Content-Security-Policy',"frame-ancestors 'self'");return res.status(200).send(content);}catch{return res.status(500).json({error:'Cycle Quest could not be loaded.'});}
 }

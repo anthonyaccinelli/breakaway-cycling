@@ -26,7 +26,7 @@ export function fromFIT(data,name='Workout.fit'){
   const records=(data.records||data.recordMesgs||[]).map(r=>({t:time(r.timestamp),speed:r.enhanced_speed??r.enhancedSpeed??r.speed,distance:r.distance}));
   const events=(data.events||data.eventMesgs||[]).filter(e=>e.event==='timer').map(e=>({t:time(e.timestamp),on:(e.event_type??e.eventType)==='start'}));
   const recorded=s.total_moving_time??s.totalMovingTime,estimated=movingFromRecords(records,events),moving=finite(recorded)?Math.floor(recorded):estimated.seconds||null;
-  return {...base,kind:'outdoor',family:'cycling',movingSeconds:moving,distanceM:Number(s.total_distance??s.totalDistance)||Math.max(0,...records.map(r=>Number(r.distance)||0)),method:finite(recorded)?'Recorded moving time':'Estimated from movement samples; stops excluded',note:estimated.gaps?'Long recording gaps excluded from the estimate.':''};
+  return {...base,kind:'outdoor',family:'cycling',movingSeconds:moving,distanceM:Number(s.total_distance??s.totalDistance)||records.reduce((max,r)=>Math.max(max,Number(r.distance)||0),0),method:finite(recorded)?'Recorded moving time':'Estimated from movement samples; stops excluded',note:estimated.gaps?'Long recording gaps excluded from the estimate.':''};
  }
  if(sub==='strengthtraining'||(data.sets||data.setMesgs||[]).length>0){
   const sets=data.sets||data.setMesgs||[];let volumeLb=0,used=0,missing=0;
@@ -39,8 +39,8 @@ export function fromTCX(doc,name='Workout.tcx'){
  const list=(node,tag)=>Array.from(node.getElementsByTagNameNS('*',tag)),text=(node,tag)=>list(node,tag)[0]?.textContent||'';
  if(list(doc,'parsererror').length)throw Error('This TCX file is not valid XML.');const acts=list(doc,'Activity');if(acts.length!==1||!/^biking$/i.test(acts[0].getAttribute('Sport')||''))throw Error('Choose a single cycling activity TCX file. Strength uses FIT or manual entry.');
  const a=acts[0],records=list(a,'Trackpoint').map(r=>({t:time(text(r,'Time')),speed:text(r,'Speed')===''?NaN:Number(text(r,'Speed')),distance:text(r,'DistanceMeters')===''?NaN:Number(text(r,'DistanceMeters'))}));
- const start=time(text(a,'Id')),stamps=records.map(r=>r.t).filter(finite),end=Math.max(...stamps);if(!finite(start)||!finite(end)||end<=start)throw Error('This TCX needs timestamped trackpoints to calculate moving time.');
- const estimate=movingFromRecords(records);return {name,kind:'outdoor',family:'cycling',start,end,day:dayAt(start),source:'TCX',fileHash:null,movingSeconds:estimate.seconds||null,distanceM:list(a,'Lap').reduce((n,l)=>n+Number(text(l,'DistanceMeters')||0),0),method:'Estimated from movement samples; stops excluded',note:estimate.gaps?'Long recording gaps excluded from the estimate.':''};
+ const start=time(text(a,'Id')),stamps=records.map(r=>r.t).filter(finite),end=stamps.reduce((max,stamp)=>Math.max(max,stamp),-Infinity);if(!finite(start)||!finite(end)||end<=start)throw Error('This TCX needs timestamped trackpoints to calculate moving time.');
+ const estimate=movingFromRecords(records);return {name,kind:'outdoor',family:'cycling',start,end,day:dayAt(start),source:'TCX',fileHash:null,movingSeconds:estimate.seconds||null,distanceM:list(a,'Lap').reduce((n,l)=>n+Number(text(l,'DistanceMeters')||0),0)||records.reduce((max,r)=>Math.max(max,Number(r.distance)||0),0),method:'Estimated from movement samples; stops excluded',note:estimate.gaps?'Long recording gaps excluded from the estimate.':''};
 }
 export function duplicateOf(w,ledger=[]){return ledger.find(e=>{
  if(w.fileHash&&e.fileHash===w.fileHash)return true;if(w.family!==e.family)return false;
