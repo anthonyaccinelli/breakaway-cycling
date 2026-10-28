@@ -5,6 +5,7 @@ import './survival-companion-preview.css';
 import './survival-classic-color-baseline.css';
 import './survival-re4-route.css';
 import './survival-re4-companion.css';
+import './classic-design-preview.css';
 
 /** Reference route studio. Move the original controls so every existing listener stays attached. */
 export function mountClassicRouteReference():void {
