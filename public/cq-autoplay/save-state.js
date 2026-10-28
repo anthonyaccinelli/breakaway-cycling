@@ -51,5 +51,11 @@ export function readCharacter(text){
  if(state&&Number.isFinite(state.xp)&&state.xp>MAX_XP)state.xp=MAX_XP;
  if(state&&Number.isFinite(state.nextEncounter)&&state.nextEncounter<0)state.nextEncounter=0;
  if(!validCharacter(state))throw Error('Invalid Cycle Quest save');
+ // Keep existing encounters and their stats while updating the retired display name.
+ for(const battle of [state.battle,state.boss]){
+  if(!battle)continue;
+  if(battle.monsterId==='giant-rat'&&battle.name==='GIANT RAT')battle.name='RAT';
+  for(const enemy of battle.enemies||[])if(enemy.id==='giant-rat'&&enemy.name==='GIANT RAT')enemy.name='RAT';
+ }
  return state;
 }
