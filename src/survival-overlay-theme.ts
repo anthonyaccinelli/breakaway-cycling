@@ -280,4 +280,140 @@ body.survival-overlay-theme #overlayContent.survive-overlay .survive-hud-timer>d
 @media(prefers-reduced-motion:reduce){
  body.survival-overlay-theme #overlayContent{transition:none!important;animation:none!important}
 }
+
+/* CLASSIC COLOR BASELINE (preview).
+   Keep Survival's functional chase HUD and navigation, but make every
+   background, card, border, and typography color match the Classic PiP
+   overlay and the blue/yellow/gray Classic UI. */
+body.survival-overlay-theme {
+ --undead-slate:#d2d2d7;
+ --undead-ash:#1d1d1f;
+ --undead-blood:#0053ad;
+ --undead-ember:#ffd000;
+ --undead-bg:#f5f5f7;
+ --undead-panel:#fff;
+ --undead-raise:#f5f5f7;
+ background:#f5f5f7!important;
+ color:#1d1d1f!important;
+ font-family:system-ui,sans-serif!important;
+}
+body.survival-overlay-theme #overlayContent,
+body.survival-overlay-theme #overlayContent.survive-overlay,
+body.survival-overlay-theme #overlayContent.survive-overlay:is(.survive-danger,.survive-critical,.survive-phase-prepare,.survive-phase-chase,.survive-phase-recover){
+ background:#f5f5f7!important;
+ color:#1d1d1f!important;
+ border-color:#d2d2d7!important;
+ box-shadow:none!important;
+}
+body.survival-overlay-theme #overlayContent::before,
+body.survival-overlay-theme #overlayContent::after,
+body.survival-overlay-theme #overlayChart::after,
+body.survival-overlay-theme .survive-hud-profile::after {
+ content:none!important;
+ background:none!important;
+ border:0!important;
+ box-shadow:none!important;
+}
+body.survival-overlay-theme #overlayTop,
+body.survival-overlay-theme #overlayLabel,
+body.survival-overlay-theme #overlayTop>strong {
+ color:#1d1d1f!important;
+ text-shadow:none!important;
+ letter-spacing:normal!important;
+}
+body.survival-overlay-theme #overlayTop>strong::before {content:none!important}
+body.survival-overlay-theme #overlayContent.survive-overlay #overlayTop {
+ border-bottom:1px solid #d2d2d7!important;
+}
+body.survival-overlay-theme #overlayActions button,
+body.survival-overlay-theme #overlayActions button:hover {
+ background:#20374c!important;
+ color:#e8f4ff!important;
+ border-color:#446079!important;
+ box-shadow:none!important;
+ text-shadow:none!important;
+}
+body.survival-overlay-theme #overlayZoomControls button.active {
+ background:#8db6ff!important;
+ color:#0b1520!important;
+ border-color:#8db6ff!important;
+}
+body.survival-overlay-theme #overlaySettings {
+ background:#20374c!important;
+ color:#e8f4ff!important;
+ border-color:#537087!important;
+ box-shadow:0 6px 18px #0008!important;
+}
+body.survival-overlay-theme #overlayOpacity{accent-color:#45d6aa!important}
+body.survival-overlay-theme #overlayContent .tile {
+ background:#fff!important;
+ color:#1d1d1f!important;
+ border:1px solid #d2d2d7!important;
+ box-shadow:none!important;
+}
+body.survival-overlay-theme #overlayContent .tile:nth-child(3n+1) {
+ box-shadow:none!important;
+}
+body.survival-overlay-theme #overlayContent .tile :is(b,small),
+body.survival-overlay-theme #overlayContent .tile[data-metric-key="heartRate"] b,
+body.survival-overlay-theme #overlayContent .tile[data-metric-key="grade"] b {
+ color:#1d1d1f!important;
+ text-shadow:none!important;
+ letter-spacing:normal!important;
+}
+body.survival-overlay-theme #overlayChart,
+body.survival-overlay-theme .survive-hud-profile,
+body.survival-overlay-theme .survive-hud-profile .overlay-profile-graphic{
+ background:#e5ebf5!important;
+ border-color:#d2d2d7!important;
+ box-shadow:none!important;
+}
+body.survival-overlay-theme .overlay-profile-grade{
+ background:#e5ebf5!important;
+ color:#142449!important;
+ border:3px solid #ffd000!important;
+ text-shadow:none!important;
+ box-shadow:none!important;
+}
+body.survival-overlay-theme .overlay-profile-grade .climb-hud-details{
+ color:#142449!important;
+ text-shadow:none!important;
+}
+body.survival-overlay-theme .survive-hud-head :is(strong,span),
+body.survival-overlay-theme #overlayContent.survive-overlay:is(.survive-phase-chase,.survive-phase-recover,.survive-phase-prepare) .survive-hud-head strong{
+ color:#0053ad!important;
+ text-shadow:none!important;
+}
+body.survival-overlay-theme .survive-hud-metric,
+body.survival-overlay-theme #overlayContent.survive-overlay .survive-hud-metric,
+body.survival-overlay-theme .survive-hud-timer>div,
+body.survival-overlay-theme #overlayContent.survive-overlay .survive-hud-timer>div{
+ background:#fff!important;
+ color:#1d1d1f!important;
+ border:1px solid #d2d2d7!important;
+ box-shadow:none!important;
+}
+body.survival-overlay-theme .survive-hud-metric :is(small,b),
+body.survival-overlay-theme .survive-hud-grid>.survive-hud-metric:nth-child(4) b,
+body.survival-overlay-theme .survive-hud-timer :is(small,strong,span),
+body.survival-overlay-theme .survive-hud-timer strong.survive-hud-gap{
+ color:#1d1d1f!important;
+ text-shadow:none!important;
+}
+body.survival-overlay-theme .survive-hud-timer{
+ background:#f5f5f7!important;
+ border-top:1px solid #d2d2d7!important;
+ box-shadow:none!important;
+}
+body.survival-overlay-theme .survive-hud-dots i{
+ box-shadow:none!important;
+}
+body.survival-overlay-theme .survive-hud-dots .threat{
+ background:#ff3b30!important;
+ border:0!important;
+}
+body.survival-overlay-theme .survive-hud-dots .rider{
+ background:#ffd000!important;
+}
+
 `;
