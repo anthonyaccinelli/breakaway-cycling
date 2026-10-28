@@ -34,12 +34,6 @@
     inset:0 0 auto 0!important;
     margin:0!important;
   }
-  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead {
-    position:relative!important;
-    margin:0 0 0 calc(-34 * var(--cp-u))!important;
-    width:calc(100% + 68 * var(--cp-u))!important;
-    max-width:none!important;
-  }
   body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead,
   body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead * {
     font-family:Arial,Helvetica,sans-serif!important;
@@ -190,10 +184,6 @@
     outline:3px solid #000!important;
     outline-offset:3px!important;
   }
-  /* Previously the route form started underneath the new taller masthead. */
-  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted.sr-reference-mounted #screenRoute .cr-reference {
-    padding-top:max(calc(137 * var(--cr-u)),calc(123 * var(--ch-u)))!important;
-  }
 
   /* The desktop screenshot is the fixed reference. Smaller screens
      keep the same styling, but reflow tabs so nothing overlaps. */
@@ -222,9 +212,6 @@
     body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:not(.secondary) {
       height:60px!important;font-size:12px!important;
     }
-    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted.sr-reference-mounted #screenRoute .cr-reference {
-      padding-top:177px!important;
-    }
   }
   @media(max-width:650px) {
     body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead {
@@ -244,9 +231,6 @@
     }
     body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:not(.secondary) {
       height:38px!important;font-size:10.4px!important;
-    }
-    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted.sr-reference-mounted #screenRoute .cr-reference {
-      padding-top:199px!important;
     }
   }
 }
@@ -311,9 +295,21 @@
    width:calc(215 * var(--ch-u))!important;height:calc(56 * var(--ch-u))!important;
   }
  }
+ /* The masthead is an overlay; the route canvas fills the viewport exactly.
+    Do not lay a 100dvh content panel after a flow-positioned masthead:
+    flex shrink would otherwise clip the elevation panel's lower edge. */
+ body.sr-reference-mounted #screenRoute>.sc-masthead {
+  position:absolute!important;top:0!important;right:0!important;bottom:auto!important;left:0!important;
+  width:100%!important;max-width:100%!important;margin:0!important;
+  flex:none!important;transform:none!important;
+  background:transparent!important;pointer-events:none!important;
+ }
  body.sr-reference-mounted #screenRoute>.cr-reference{
-  display:block!important;position:relative!important;
-  width:100%!important;height:100dvh!important;max-height:100dvh!important;
+  display:block!important;position:absolute!important;
+  inset:0!important;box-sizing:border-box!important;
+  flex:none!important;align-self:stretch!important;
+  width:100%!important;max-width:100%!important;
+  height:100%!important;max-height:100%!important;
   min-height:0!important;margin:0!important;padding:0!important;
   border:0!important;border-radius:0!important;background:#f4f4f4!important;
   overflow:hidden!important;
@@ -435,10 +431,16 @@
    min-height:100dvh!important;height:auto!important;max-height:none!important;
    overflow:visible!important;
   }
+  body.sr-reference-mounted #screenRoute>.sc-masthead{
+   position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;
+   left:auto!important;flex:0 0 166px!important;max-height:166px!important;
+   width:100%!important;
+  }
   body.sr-reference-mounted #screenRoute>.cr-reference{
+   position:relative!important;inset:auto!important;flex:0 0 auto!important;
    display:flex!important;flex-direction:column!important;gap:12px!important;
    height:auto!important;max-height:none!important;overflow:visible!important;
-   padding:170px 18px 22px!important;
+   padding:10px 18px 22px!important;
   }
   body.sr-reference-mounted #screenRoute :is(.cr-upload-row,.sr-mode-row,.cr-heading,.cr-config,.cr-profile){
    position:relative!important;top:auto!important;left:auto!important;right:auto!important;
@@ -469,7 +471,8 @@
   body.sr-reference-mounted #screenRoute .cr-profile{width:100%!important;height:300px!important;flex:none!important}
  }
  @media(max-width:570px){
-  body.sr-reference-mounted #screenRoute>.cr-reference{padding:195px 12px 20px!important}
+  body.sr-reference-mounted #screenRoute>.sc-masthead{flex-basis:188px!important;max-height:188px!important}
+  body.sr-reference-mounted #screenRoute>.cr-reference{padding:10px 12px 20px!important}
   body.sr-reference-mounted #screenRoute .sr-mode-row{flex-direction:column!important}
   body.sr-reference-mounted #screenRoute .sr-mode-controls{grid-template-columns:minmax(0,1fr)!important}
   body.sr-reference-mounted #screenRoute .sr-mode-controls label{height:42px!important}
