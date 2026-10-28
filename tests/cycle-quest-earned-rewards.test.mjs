@@ -7,7 +7,7 @@ const game=await readFile(new URL('../cycle-quest/game.js',import.meta.url),'utf
 function fn(name){const start=game.indexOf('function '+name+'('),end=game.indexOf('\nfunction ',start+1);assert(start>=0&&end>start);return game.slice(start,end);}
 function fixture(state={}){
  const c={externalSaveChanged:false,s:{xp:0,hp:50,coins:0,chapter:1,miles:50,rideSeconds:9000,rideMiles:100,...state},levelUps:{enqueue(){}},message:'',rewardChoice:null,parentSend(){},shareCard(){},render(){},saved:null,save(){c.saved=JSON.parse(JSON.stringify(c.s));},fmt:Math.round,battleRewards};
- vm.createContext(c);vm.runInContext(['level','cost','threshold','maxHP','atk','award','restoreRewardState','finish','choose'].map(fn).join('\n'),c);return c;
+ c.MAX_XP=10000000;vm.createContext(c);vm.runInContext(['level','cost','threshold','maxHP','atk','award','restoreRewardState','finish','choose'].map(fn).join('\n'),c);return c;
 }
 test('one/two/three defeated enemies immediately earn 150/300/450 XP and scale both choices',()=>{
  for(const count of [1,2,3]){
@@ -40,4 +40,9 @@ test('session readouts use host session values instead of character lifetime tot
  assert.deepEqual(sessionMetrics({rideSeconds:99999,rideMiles:1234},{}),{seconds:0,miles:0});
  assert.equal(validPendingReward({count:3,xp:450,hp:25,coins:75}),false);
  assert.equal(battleRewards({kind:'enemy',reward:60}).xp,150);
+});
+
+test('earned XP cannot cross the save validator limit and make the next load fail',()=>{
+ const c=fixture({xp:9999990});vm.runInContext('award(150)',c);assert.equal(c.s.xp,10000000);
+ vm.runInContext('award(1)',c);assert.equal(c.s.xp,10000000);
 });

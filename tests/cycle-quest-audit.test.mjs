@@ -78,3 +78,38 @@ test('asset allowlist rejects inherited object properties even with a valid beta
   await handler({method:'GET',url:'/api/cycle-quest?asset='+asset,headers:{host:'localhost',cookie:'breakaway_quest_beta='+expiry+'.'+signature}},res);assert.equal(status,404);
  }}finally{if(password===undefined)delete process.env.CYCLE_QUEST_PASSWORD;else process.env.CYCLE_QUEST_PASSWORD=password;if(secret===undefined)delete process.env.CYCLE_QUEST_SESSION_SECRET;else process.env.CYCLE_QUEST_SESSION_SECRET=secret;}
 });
+
+test('over-limit legacy XP recovers into a valid character instead of invalidating the save',()=>{
+ const saved={...fresh(),xp:10000001};const recovered=readCharacter(JSON.stringify(saved));
+ assert.equal(recovered.xp,10000000);assert(validCharacter(recovered));
+ assert.throws(()=>readCharacter(JSON.stringify({...saved,hp:-1})));
+});
+test('enemy levels reject markup and battle art escapes even unvalidated labels',()=>{
+ assert(!validCharacter({...fresh(),battle:{...battle(),enemies:[{...battle().enemies[0],level:'<img onerror=bad>'}]}}));
+ const c={safeText:escapeHTML,healthColor:()=> '#fff',fmt:String};vm.createContext(c);vm.runInContext(fn('monsterArt'),c);
+ c.b={name:'RAT',level:1,enemies:[{id:'rat',name:'RAT',level:'<img onerror=bad>',hp:1,max:1}]};
+ const html=vm.runInContext('monsterArt(b)',c);assert.match(html,/&lt;img onerror=bad&gt;/);assert.doesNotMatch(html,/<img onerror/);
+});
+test('named stat hooks match the HTML and tolerate missing or reordered readouts',async()=>{
+ const html=await readFile(new URL('index.html',base),'utf8');
+ const names=[...game.matchAll(/setStat\(['"]([^'"]+)['"]/g)].map(m=>m[1]);
+ for(const name of names)assert(html.includes('data-stat="'+name+'"'),name);
+ const declaration=game.match(/const setStat=[^\n]+/)[0];const first={},second={};
+ const c={all:selector=>selector.includes('missing')?[]:[second,first]};vm.createContext(c);vm.runInContext(declaration+'\nsetStat("power","250 W");setStat("missing","ignored");',c);
+ assert.equal(first.textContent,'250 W');assert.equal(second.textContent,'250 W');
+ assert.doesNotMatch(game,/\b(?:cr|pr|tiles|os)\[\d+\]/);
+});
+test('save import confirms replacement, backs up raw progress, and refuses stale tabs or failed backup writes',async()=>{
+ const start=game.indexOf("$('#savefile').onchange=async e=>")+"$('#savefile').onchange=".length;
+ const end=game.indexOf('\nroot.addEventListener',start);
+ const handler=game.slice(start,end).replace(/;\s*$/,'');
+ for(const scenario of ['cancel','stale','quota','ok']){
+  const original=JSON.stringify(fresh()),replacement={...fresh(),xp:999};const writes=[];let routes=0;
+  const c={s:fresh(),key:'save',persistedSave:original,externalSaveChanged:false,invalidStoredSave:false,readCharacter,window:{confirm:()=>scenario!=='cancel'},localStorage:{getItem:()=>scenario==='stale'?'newer':original,setItem:(key,value)=>{if(scenario==='quota')throw Error('Quota exceeded');writes.push([key,value]);}},levelUps:{clear(){}},levelUp:null,running:false,maxHP:()=>100,restoreRewardState(){},METERS_PER_MILE:1609.344,parentSend(){routes++;},save(){},render(){},message:''};
+  c.generateRoute=()=>({});vm.createContext(c);const run=vm.runInContext('('+handler+')',c);
+  const e={target:{files:[{size:100,text:async()=>JSON.stringify(replacement)}],value:'chosen'}};await run(e);
+  assert.equal(e.target.value,'');
+  if(scenario==='ok'){assert.equal(c.s.xp,999);assert.equal(writes[0][0],'save-pre-import-backup');assert.equal(writes[0][1],original);}
+  else{assert.equal(c.s.xp,450);assert.equal(routes,0);assert.equal(writes.length,0);}
+ }
+});
