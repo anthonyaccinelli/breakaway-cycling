@@ -3,6 +3,7 @@ import './live-ride-themes.css';
 import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
 import {mountSurvivalCockpit} from './survival-cockpit';
 import {mountClassicCockpit} from './classic-cockpit';
+import {mountClassicRouteReference} from './classic-route-reference';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
@@ -785,6 +786,14 @@ const SURVIVAL_GRADE_COLORS={
  descent:'#394252',flat:'#B5A7A9',climb:'#D54051',steep:'#F19F71'
 } as const;
 function gradeColor(g:number){
+ if(document.body.dataset.rideExperience==='classic'){
+  if(!Number.isFinite(g))return '#34c759';
+  if(g<0)return '#007aff';
+  if(g<3)return '#34c759';
+  if(g<6)return '#ffcc00';
+  if(g<9)return '#ff3b30';
+  return '#af52de';
+ }
  const survival=document.body.dataset.rideExperience==='survival';
  const colors=survival?SURVIVAL_GRADE_COLORS:CLASSIC_GRADE_COLORS;
  if(!Number.isFinite(g))return colors.flat;
@@ -2846,4 +2855,6 @@ window.setInterval(()=>{
 // Survival v2 is UI-only; initialize after the original controls/listeners exist.
 mountSurvivalCockpit();
 mountClassicCockpit();
+mountClassicRouteReference();
+
 
