@@ -1482,12 +1482,12 @@ $('nativeProfile').addEventListener('click',async()=>{
  }
  if(!('documentPictureInPicture' in window)){status('Always-on-top requires a recent desktop Chrome or Edge. Use Pop out window as a fallback.');return;}
  try{
-  // Classic uses Cycle Quest's actual compact floating dimensions: 170px
-  // high, 80% of available screen width, clamped to 600–1600px.
-  // Do not change Survival's separately approved overlay window geometry.
-  const classicCompactOverlay=document.body.dataset.rideExperience==='classic';
+  // Classic and Survival use Cycle Quest's compact floating dimensions:
+  // 170px high, 80% of available screen width, clamped to 600–1600px.
+  // Keep Cycle Quest and other modes' existing window behavior unchanged.
+  const questSizedOverlay=document.body.dataset.rideExperience==='classic'||document.body.dataset.rideExperience==='survival';
   const questWidth=Math.max(600,Math.min(1600,Math.round(window.screen.availWidth*.8)));
-  const pip=await (window as any).documentPictureInPicture.requestWindow(classicCompactOverlay
+  const pip=await (window as any).documentPictureInPicture.requestWindow(questSizedOverlay
    ?{width:questWidth,height:170,preferInitialWindowPlacement:true}
    :{width:Math.max(760,Math.min(1800,window.screen.availWidth-24)),height:245});
   const savedOverlayOpacity=Math.max(20,Math.min(100,Number(localStorage.getItem('breakaway-overlay-opacity')||'100')||100));
@@ -1590,14 +1590,13 @@ $('nativeProfile').addEventListener('click',async()=>{
   const refreshZoomButtons=()=>{zoomControls.querySelectorAll<HTMLButtonElement>('button').forEach(button=>{const active=Number(button.dataset.zoom)===overlayZoomFactor;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});};
   zoomControls.addEventListener('click',event=>{const button=(event.target as HTMLElement).closest<HTMLButtonElement>('button[data-zoom]');if(!button)return;overlayZoomFactor=Number(button.dataset.zoom)||1;try{localStorage.setItem('breakaway-overlay-zoom',String(overlayZoomFactor));}catch{}refreshZoomButtons();lastOverlayPush=0;publishDesktopOverlay();});
   refreshZoomButtons();
-  // Classic always starts in Cycle Quest's slim 170px format; expanding
-  // remains user-invoked. Survival keeps its existing persisted view.
-  const savedMode=classicCompactOverlay?'compact':localStorage.getItem('breakaway-overlay-mode')==='expanded'?'expanded':'compact';
+  // Classic and Survival start compact at 170px; expanded is always optional.
+  const savedMode=questSizedOverlay?'compact':localStorage.getItem('breakaway-overlay-mode')==='expanded'?'expanded':'compact';
   const setMode=(mode:'compact'|'expanded')=>{
    pip.document.body.classList.toggle('expanded',mode==='expanded');
    modeButton.textContent=mode==='expanded'?'Compact':'Expand';
-   if(!classicCompactOverlay){try{localStorage.setItem('breakaway-overlay-mode',mode);}catch{}}
-   try{pip.resizeTo(pip.outerWidth,mode==='expanded'?315:classicCompactOverlay?170:245);}catch{}
+   if(!questSizedOverlay){try{localStorage.setItem('breakaway-overlay-mode',mode);}catch{}}
+   try{pip.resizeTo(pip.outerWidth,mode==='expanded'?315:questSizedOverlay?170:245);}catch{}
    pip.requestAnimationFrame(()=>{fitClassicOverlayNumbers(pip.document);fitSurvivalOverlayNumbers(pip.document);});
   };
   modeButton.addEventListener('click',()=>setMode(pip.document.body.classList.contains('expanded')?'compact':'expanded'));
