@@ -2674,7 +2674,7 @@ document.getElementById('goToRide')!.addEventListener('click',enterRideScreen);
 // Navigation is free between planning and devices; entering the active ride requires a trainer.
 document.getElementById('stepRoute')!.addEventListener('click',()=>{stopRideCountdown();if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
 document.getElementById('stepSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');checkAutomaticRideCountdown();});
-document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else if(document.body.dataset.rideExperience==='classic'&&['setup','ride'].includes(new URLSearchParams(location.search).get('classicPreview')||'')){showBreakawayScreen('ride');}else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
+document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else if(document.body.dataset.rideExperience==='classic'&&['setup','ride'].includes(new URLSearchParams(location.search).get('classicPreview')||'')){showBreakawayScreen('ride');}else if(document.body.dataset.rideExperience==='survival'&&['setup','ride'].includes(new URLSearchParams(location.search).get('survivalPreview')||'')){showBreakawayScreen('ride');}else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
 document.getElementById('backToRoute')!.addEventListener('click',()=>{stopRideCountdown();showBreakawayScreen('route');});
 document.getElementById('backToSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');});
 document.getElementById('backToStudio')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
@@ -2908,8 +2908,10 @@ if(classicPreviewScreen==='setup'||classicPreviewScreen==='ride'){
 
 
 
-// Preview-branch entry point for screenshot review; no trainer bypass.
-if(new URLSearchParams(location.search).get('survivalPreview')==='route'){
+// Preview-branch entry points are design-only and never start a trainer,
+// spoof BLE sensor data or bypass the live ride's safety checks.
+const survivalPreviewScreen=new URLSearchParams(location.search).get('survivalPreview');
+if(['route','setup','ride'].includes(survivalPreviewScreen||'')){
  chooseRideExperience('survival',false);
  if(!points.length){
   ($('generatedDifficulty') as HTMLSelectElement).value='1.35';
@@ -2919,6 +2921,6 @@ if(new URLSearchParams(location.search).get('survivalPreview')==='route'){
   ($('generatedSeed') as HTMLInputElement).value='760757387';
   ($('generateRoute') as HTMLButtonElement).click();
  }
- showBreakawayScreen('route');
- requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
+ showBreakawayScreen(survivalPreviewScreen as BreakawayScreen);
+ if(survivalPreviewScreen==='route')requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
 }
