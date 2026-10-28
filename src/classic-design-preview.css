@@ -555,3 +555,33 @@
   }
  }
 }
+
+
+/* These original screen-specific selectors declare palette variables at a
+ * higher specificity than Classic's general body scope. Repeat the provided
+ * authoritative values here so inherited tokens cannot reintroduce yellow
+ * buttons or saturated cobalt fields in any Classic screen. */
+@layer classicRouteReference {
+ body[data-ride-experience="classic"][data-breakaway-screen="route"].cr-reference-mounted{
+  --cr-blue:#074ce0!important;
+  --cr-yellow:#074ce0!important;
+  --cr-bg:#fcfcfd!important;
+  background:#fcfcfd!important;color:#16191f!important;
+ }
+ body[data-ride-experience="classic"].cc-cockpit-mounted:is([data-breakaway-screen="setup"],[data-breakaway-screen="ride"]){
+  --cp-blue:#074ce0!important;
+  --cp-yellow:#074ce0!important;
+  --cp-paper:#f3f4f6!important;
+  --sc-bg:#fcfcfd!important;
+  --sc-panel:#fff!important;
+  --sc-raised:#f3f4f6!important;
+  --sc-text:#16191f!important;
+  --sc-border:#dde0e6!important;
+ }
+ body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenSetup,#screenRide,#screenRoute) select{
+  accent-color:#074ce0!important;
+ }
+ body[data-ride-experience="classic"].cc-cockpit-mounted #screenSetup input[type="checkbox"]{
+  accent-color:#074ce0!important;
+ }
+}
