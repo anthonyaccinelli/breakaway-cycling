@@ -520,3 +520,11 @@ body[data-ride-experience="classic"] #floatChart .profile-live-grade {
 body[data-ride-experience="classic"] #floatChart .profile-live-grade .climb-hud-details {
  text-shadow:none!important;
 }
+/* Complete the 20% reduction for the in-page floating overlay's other labels. */
+body[data-ride-experience="classic"] .floating-profile {font-size:80%!important}
+body[data-ride-experience="classic"] .floating-profile .float-stats{font-size:10.4px!important}
+body[data-ride-experience="classic"] .floating-profile .float-help{font-size:8.8px!important}
+body[data-ride-experience="classic"] .floating-profile .floating-handle{font-size:10.4px!important}
+body[data-ride-experience="classic"] .floating-profile .floating-handle button{font-size:10.4px!important}
+body[data-ride-experience="classic"] #floatChart .profile-live-grade .climb-hud-details{font-size:10.4px!important}
+
