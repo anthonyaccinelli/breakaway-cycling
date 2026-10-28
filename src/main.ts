@@ -1,4 +1,5 @@
 import './style.css';
+import {timeWeightedPower, slewGrade} from './trainer-smoothing';
 import './live-ride-themes.css';
 import { CLASSIC_DESIGN_OVERLAY_CSS } from './classic-overlay-preview';
 import { fitClassicOverlayNumbers, fitSurvivalOverlayNumbers } from './classic-overlay-readout-fit';
@@ -277,19 +278,9 @@ async function archiveFinishedRide(){
 
 function resetRideMetrics(){rideSamples=[];lastSampleSecond=-1;powerHistory=[];energyKcal=0;activeRideMs=0;lastActiveTick=0;avgPowerEnergy=0;avgPowerDuration=0;}
 function threeSecondWatts(){
- if(!realTelemetry||!powerHistory.length)return null;
- const now=performance.now();
- const samples=powerHistory.filter(s=>now-s.time<=POWER_WINDOW_MS);
- if(!samples.length)return null;
- // Time-weighted average, treating each reading as valid until the next reading.
- let sum=0,total=0;
- for(let i=0;i<samples.length;i++){
-  const start=Math.max(now-POWER_WINDOW_MS,samples[i].time);
-  const end=i+1<samples.length?Math.min(now,samples[i+1].time):now;
-  const duration=Math.max(0,end-start);sum+=samples[i].watts*duration;total+=duration;
- }
- return total>0?sum/total:samples.at(-1)!.watts;
+ return realTelemetry?timeWeightedPower(powerHistory,performance.now(),POWER_WINDOW_MS):null;
 }
+
 function rideClock(){
  const seconds=Math.floor(activeRideMs/1000);
  return `${String(Math.floor(seconds/3600)).padStart(2,'0')}:${String(Math.floor(seconds/60)%60).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
@@ -414,8 +405,8 @@ const ZWIFT_GEAR_RATIOS:readonly number[]=[
 ];
 const zwiftGearMultiplier=()=>ZWIFT_GEAR_RATIOS[gear-1]/ZWIFT_GEAR_RATIOS[11];
 const SIM_TEST_WATTS=300, SIM_COMMAND_INTERVAL_MS=750;
-const SIM_GRADE_SLEW_PERCENT_PER_SECOND=1.0;
-let simAppliedGrade=NaN,simLastTime=0,simLastCommandTime=0,simBusy=false;
+const SIM_GRADE_SLEW_PERCENT_PER_SECOND=0.75;
+let simAppliedGrade=NaN,simLastTime=0,simBusy=false;
 const $=(id:string)=>document.getElementById(id)!;
 $('generateRoute').addEventListener('click',()=>prepareProcedural(false));
 $('endlessRoute').addEventListener('click',()=>prepareProcedural(true));
@@ -904,18 +895,17 @@ function simRequestedGrade():number{
  // Do not feed delayed power readings back into SIM grade; that oscillates.
  return Math.max(-12,Math.min(12,requested));
 }
-function resetSimController(){simAppliedGrade=NaN;simLastTime=0;simLastCommandTime=0;trainerGrade=NaN;}
+function resetSimController(){simAppliedGrade=NaN;simLastTime=0;trainerGrade=NaN;}
 async function updateSimResistance(now:number,immediate=false){
  if(trainerMode!=='sim'||!running||!connected||!controlGranted||!realTelemetry||simBusy)return;
- if(!immediate&&now-simLastCommandTime<SIM_COMMAND_INTERVAL_MS)return;
+ if(!immediate&&simLastTime&&now-simLastTime<SIM_COMMAND_INTERVAL_MS)return;
  const target=simRequestedGrade();
  const elapsed=simLastTime?Math.min(2,Math.max(0,(now-simLastTime)/1000)):0;
  simLastTime=now;
  if(!Number.isFinite(simAppliedGrade))simAppliedGrade=target;
- const step=Math.max(0.15,elapsed*(drivetrainMode==='virtual'&&gear<=8?0.65:SIM_GRADE_SLEW_PERCENT_PER_SECOND));
- simAppliedGrade+=Math.max(-step,Math.min(step,target-simAppliedGrade));
+ simAppliedGrade=slewGrade(simAppliedGrade,target,elapsed,drivetrainMode==='virtual'&&gear<=8?0.65:SIM_GRADE_SLEW_PERCENT_PER_SECOND);
  if(Number.isFinite(trainerGrade)&&Math.abs(simAppliedGrade-trainerGrade)<0.15)return;
- simBusy=true;simLastCommandTime=now;
+ simBusy=true;
  try{if(await setGrade(simAppliedGrade))trainerGrade=simAppliedGrade;}
  finally{simBusy=false;}
 }
@@ -992,7 +982,9 @@ function advanceRide(now:number){
   const step=dt/steps;
   if(procedural)ensureTerrain();
   for(let i=0;i<steps;i++){
-   if(cycleQuestHold){speed=0;break;}
+   // Freeze route progress without discarding momentum. This keeps virtual gearing
+   // and trainer load continuous through battles, rewards and level-up screens.
+   if(cycleQuestHold)break;
    const grade=at(distance).grade/100;
    const angle=Math.atan(grade);
    const gravityForce=mass*g*Math.sin(angle);
@@ -2995,7 +2987,7 @@ window.setInterval(()=>{
    routeProfile={endless:true,windowStart:start,distance:visible.at(-1)!.distance-start,hasElevation:true,gain:visible.slice(1).reduce((sum,p,i)=>sum+Math.max(0,p.elevation-visible[i].elevation),0),points:visible.map(p=>({d:p.distance-start,e:p.elevation}))};
   }
  }
- questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade,gain:c.gain,elevation:at(c.end).elevation})),summitBoss:!endless?questHighestSummit():null,connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
+ questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade,gain:c.gain,elevation:at(c.end).elevation})),summitBoss:!endless?questHighestSummit():null,connected:connected&&realTelemetry&&controlGranted,running,power:Math.max(0,power),displayPower:threeSecondWatts(),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
 },200);
 
 // Survival v2 is UI-only; initialize after the original controls/listeners exist.
