@@ -146,8 +146,12 @@ export function mountSurvivalCockpit():void {
   const screen=document.body.dataset.breakawayScreen as Screen;
   const host=screen==='setup'?setup:screen==='ride'?ride:route;
   if(masthead.parentElement!==host)host.prepend(masthead);
+  const label=masthead.querySelector<HTMLElement>('.sc-brand small');
+  if(label)label.textContent='RIDE BREAKAWAY / SURVIVAL MODE';
   const title=byId('scSectionTitle');
-  if(title)title.textContent=screen==='setup'?'PAIR YOUR EQUIPMENT':screen==='ride'?'ESCAPE IN PROGRESS':'BUILD YOUR ESCAPE';
+  if(title)title.textContent=screen==='route'?'create your route':screen==='setup'?'PAIR YOUR EQUIPMENT':'ESCAPE IN PROGRESS';
+  const overlay=masthead.querySelector<HTMLButtonElement>('[data-sc-step="overlay"]');
+  if(overlay)overlay.textContent='OVERLAY';
   masthead.querySelectorAll<HTMLButtonElement>('[data-sc-step]').forEach(button=>{
    const active=button.dataset.scStep===screen;
    button.classList.toggle('sc-active',active);
