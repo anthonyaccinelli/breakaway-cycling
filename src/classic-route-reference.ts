@@ -15,7 +15,7 @@ export function mountClassicRouteReference():void {
  if(!route||!studio||!builder||!upload||!summary||!chart||!scrub||!edit||!next)return;
 
  const shell=document.createElement('div');shell.className='cr-reference';
- shell.innerHTML='<div class="cr-upload-row"><button type="button" class="cr-upload" aria-controls="gpx">Upload GPX Route</button></div><h1 class="cr-heading"><span aria-hidden="true">1</span>Create Your Route</h1><div class="cr-config"><div class="cr-controls"></div><div class="cr-summary"></div><div class="cr-actions"><div class="cr-tools"></div><div class="cr-callout"></div></div></div><div class="cr-profile"></div>';
+ shell.innerHTML='<div class="cr-upload-row"><button type="button" class="cr-upload" aria-controls="gpx">Upload GPX Route</button></div><div class="sr-mode-row" hidden><span class="sr-mode-step" aria-hidden="true">1</span><div class="sr-mode-controls" role="group" aria-label="Survival game setup"></div></div><h1 class="cr-heading"><span aria-hidden="true">1</span>Create Your Route</h1><div class="cr-config"><div class="cr-controls"></div><div class="cr-summary"></div><div class="cr-actions"><div class="cr-tools"></div><div class="cr-callout"></div></div></div><div class="cr-profile"></div>';
  const uploadButton=shell.querySelector<HTMLButtonElement>('.cr-upload')!;
  uploadButton.addEventListener('click',()=>upload.click());
  upload.addEventListener('change',()=>{uploadButton.title=upload.files?.[0]?.name||'Upload a GPX or TCX route';});
@@ -25,6 +25,16 @@ export function mountClassicRouteReference():void {
  const tools=shell.querySelector<HTMLElement>('.cr-tools')!;
  const callout=shell.querySelector<HTMLElement>('.cr-callout')!;
  const profile=shell.querySelector<HTMLElement>('.cr-profile')!;
+ const survivalRow=shell.querySelector<HTMLElement>('.sr-mode-row')!;
+ const survivalChoices=shell.querySelector<HTMLElement>('.sr-mode-controls')!;
+ const survivalStudio=document.getElementById('survivalStudio');
+ const survivalSelectIds=['studioChallenge','studioDifficulty','studioThreat'] as const;
+ function syncSurvivalChoices(){
+  survivalChoices.querySelectorAll<HTMLLabelElement>('label').forEach(label=>{
+   const select=label.querySelector('select');
+   if(select)label.title=select.selectedOptions[0]?.textContent?.trim()||'';
+  });
+ }
  const moves:{node:HTMLElement;home:Comment}[]=[];
  const copies:{node:HTMLElement;html:string}[]=[];
  function move(node:HTMLElement,to:HTMLElement){
@@ -53,6 +63,12 @@ export function mountClassicRouteReference():void {
   document.body.classList.add('cr-reference-mounted');
   error.hidden=true;
   route!.append(shell);
+  const survival=document.body.dataset.rideExperience==='survival';
+  survivalRow.hidden=!survival;
+  if(survival){
+   for(const id of survivalSelectIds){const select=document.getElementById(id);const label=select?.closest<HTMLElement>('label');if(label)move(label,survivalChoices);}
+   syncSurvivalChoices();
+  }
   move(builder!,controls);move(summary!,summaryHost);move(edit!,tools);move(next!,callout);
   move(chart!,profile);move(scrub!,profile);
   copy(document.getElementById('generateRoute'),'Generate Route');
@@ -62,7 +78,8 @@ export function mountClassicRouteReference():void {
   next!.innerHTML='<span>Ready to Ride?</span><span>Connect Your Trainer!</span>';
   const note=scrub!.querySelector<HTMLElement>('.note');
   copy(note,'drag the yellow line to preview your route');
-  const step=summary!.querySelector<HTMLElement>('.route-step');copy(step,'2');
+  const step=summary!.querySelector<HTMLElement>('.route-step');copy(step,survival?'3':'2');
+  const headingStep=shell.querySelector<HTMLElement>('.cr-heading>span');if(headingStep)headingStep.textContent=survival?'2':'1';
   copy(summary!.querySelector<HTMLElement>('h2'),'Your Route Preview');
   const statLabels=['Distance: ','Elevation gain: ','Terrain: ','Est. Time: ','Steepest Grade: '];
   summary!.querySelectorAll<HTMLElement>('.studio-live-stats>span').forEach((node,index)=>{
@@ -87,12 +104,13 @@ export function mountClassicRouteReference():void {
   if(editButton)editButton.textContent=chart!.classList.contains('editing')?'Done editing':'Edit elevation';
   const svg=chart!.querySelector('svg');
   if(svg){svg.querySelector('.cr-terrain')?.remove();svg.setAttribute('viewBox','0 0 900 210');svg.removeAttribute('preserveAspectRatio');}
-  shell.remove();
+  shell.remove();survivalRow.hidden=true;
  }
  function sync(){
-  const active=document.body.dataset.rideExperience==='classic'&&document.body.dataset.breakawayScreen==='route';
+  const active=['classic','survival'].includes(document.body.dataset.rideExperience||'')&&document.body.dataset.breakawayScreen==='route';
   if(active)mount();else unmount();
  }
+ for(const id of survivalSelectIds)document.getElementById(id)?.addEventListener('change',syncSurvivalChoices);
  const navigationObserver=new MutationObserver(sync);
  navigationObserver.observe(document.body,{attributes:true,attributeFilter:['data-ride-experience','data-breakaway-screen']});
  const chartObserver=new MutationObserver(()=>{formatChart();editingLabel();});
