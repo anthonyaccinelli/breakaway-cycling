@@ -3,6 +3,7 @@ import './classic-unified-header.css';
 import './survival-route-reference.css';
 import './survival-companion-preview.css';
 import './survival-classic-color-baseline.css';
+import './survival-re4-route.css';
 
 /** Reference route studio. Move the original controls so every existing listener stays attached. */
 export function mountClassicRouteReference():void {
@@ -34,7 +35,11 @@ export function mountClassicRouteReference():void {
  function syncSurvivalChoices(){
   survivalChoices.querySelectorAll<HTMLLabelElement>('label').forEach(label=>{
    const select=label.querySelector('select');
-   if(select)label.title=select.selectedOptions[0]?.textContent?.trim()||'';
+   if(select){
+    const selected=select.selectedOptions[0]?.textContent?.trim()||'SELECT';
+    label.title=selected;
+    label.dataset.choice=selected;
+   }
   });
  }
  const moves:{node:HTMLElement;home:Comment}[]=[];
