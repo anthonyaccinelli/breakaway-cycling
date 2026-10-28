@@ -47,3 +47,67 @@
 @media(max-width:1100px){#cq-preview .cq-dev-card{min-height:133px}#cq-preview .cq-dev-setting-grid{min-height:170px}#cq-preview .cq-dev-tools .cq-windowtitle{min-width:auto}#cq-preview .cq-dev-tools p{font-size:14px}}
 @media(max-width:900px),(max-height:690px){#cq-preview .cq-unified-devices{flex:0 0 auto;min-height:650px;overflow:visible}#cq-preview .cq-dev-workbench{overflow:visible}#cq-preview .cq-dev-setting-grid{min-height:200px}#cq-preview .cq-dev-bottom{margin-top:2px}}
 @media(max-width:670px){#cq-preview .cq-dev-cards,#cq-preview .cq-dev-setting-grid{grid-template-columns:1fr}#cq-preview .cq-dev-card{min-height:125px}#cq-preview .cq-dev-fields{grid-template-columns:repeat(2,minmax(0,1fr))}#cq-preview .cq-dev-tools{flex-wrap:wrap}#cq-preview .cq-dev-actions{grid-template-columns:1fr}#cq-preview .cq-dev-heading h1{font-size:19px}#cq-preview .cq-dev-card h2{text-align:left}}
+
+/* 02 Devices fit pass.
+   The game's shared layout is sized at 100dvh; the beta HTML also has 10px
+   vertical padding on desktop. Account for that padding to avoid a 20px
+   document scrollbar, then reduce ONLY Devices panel spacing at normal
+   desktop heights. Other Cycle Quest pages are untouched. */
+@media(min-width:901px){
+ body:has(#cq-preview .cq-game[data-cq-page="devices"]){
+  overflow:hidden!important;
+ }
+ #cq-preview:has(>.cq-game[data-cq-page="devices"]){
+  height:calc(100dvh - 20px)!important;
+  min-height:0!important;
+  max-height:calc(100dvh - 20px)!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"]{
+  height:100%!important;max-height:100%!important;min-height:0!important;
+ }
+}
+@media(min-width:901px) and (min-height:750px) and (max-height:1000px){
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-unified-devices{
+  gap:6px!important;padding-top:2px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-topline{
+  min-height:22px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-workbench{
+  gap:7px!important;padding:10px 12px!important;overflow-y:auto!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-heading{
+  margin-bottom:4px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-heading p{
+  margin-top:2px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-card{
+  min-height:117px!important;padding:9px!important;gap:3px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-card>button,
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-buttons button{
+  min-height:32px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-setting-grid{
+  min-height:128px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-settings{
+  padding:9px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-help{
+  margin-top:6px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-tools{
+  min-height:44px!important;padding:6px 9px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-actions{
+  min-height:37px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-bottom{
+  gap:6px!important;
+ }
+ #cq-preview .cq-game[data-cq-page="devices"] .cq-dev-routebar{
+  min-height:30px!important;
+ }
+}
