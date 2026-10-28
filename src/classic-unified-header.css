@@ -69,7 +69,7 @@
   body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-brand small {
     display:block!important;
     color:var(--ch-text)!important;
-    font-size:calc(26 * var(--ch-u))!important;
+    font-size:calc(20.8 * var(--ch-u))!important;
     line-height:1.1!important;
     font-weight:800!important;
     text-transform:uppercase!important;
@@ -94,7 +94,7 @@
   body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-subhead strong {
     display:block!important;
     color:var(--ch-text)!important;
-    font-size:calc(18 * var(--ch-u))!important;
+    font-size:calc(14.4 * var(--ch-u))!important;
     line-height:1.05!important;
     font-weight:800!important;
     text-transform:none!important;
@@ -139,7 +139,7 @@
     box-shadow:none!important;
     background:transparent!important;
     color:var(--ch-tab)!important;
-    font-size:calc(17 * var(--ch-u))!important;
+    font-size:calc(13.6 * var(--ch-u))!important;
     font-weight:800!important;
     line-height:1!important;
     white-space:nowrap!important;
@@ -178,7 +178,7 @@
     background:var(--ch-mode)!important;
     color:#fff!important;
     box-shadow:none!important;
-    font-size:calc(29 * var(--ch-u))!important;
+    font-size:calc(23.2 * var(--ch-u))!important;
     font-weight:800!important;
     line-height:1!important;
     text-transform:uppercase!important;
@@ -212,14 +212,14 @@
     body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-subhead strong {font-size:15px!important}
     body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-head-right {top:13px!important}
     body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-mode-change {
-      width:160px!important;height:44px!important;font-size:17px!important;
+      width:160px!important;height:44px!important;font-size:13.6px!important;
     }
     body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs {
       top:84px!important;left:50%!important;
       width:calc(100% - 20px)!important;height:60px!important;gap:8px!important;
     }
     body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs button:not(.secondary) {
-      height:60px!important;font-size:15px!important;
+      height:60px!important;font-size:12px!important;
     }
     body[data-ride-experience="classic"].cc-cockpit-mounted.cr-reference-mounted #screenRoute .cr-reference {
       padding-top:177px!important;
@@ -230,11 +230,11 @@
       height:188px!important;min-height:188px!important;max-height:188px!important;flex-basis:188px!important;
     }
     body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-brand small {
-      font-size:clamp(12px,3.6vw,18px)!important;
+      font-size:clamp(9.6px,2.88vw,14.4px)!important;
     }
     body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-mode-change {
       width:auto!important;min-width:108px!important;height:39px!important;
-      padding:0 10px!important;font-size:12px!important;
+      padding:0 10px!important;font-size:9.6px!important;
     }
     body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs {
       top:90px!important;height:84px!important;
@@ -242,7 +242,7 @@
       grid-template-rows:repeat(2,38px)!important;gap:7px!important;
     }
     body[data-ride-experience="classic"].cc-cockpit-mounted :is(#screenRoute,#screenSetup,#screenRide)>.sc-masthead .sc-tabs button:not(.secondary) {
-      height:38px!important;font-size:13px!important;
+      height:38px!important;font-size:10.4px!important;
     }
     body[data-ride-experience="classic"].cc-cockpit-mounted.cr-reference-mounted #screenRoute .cr-reference {
       padding-top:199px!important;
