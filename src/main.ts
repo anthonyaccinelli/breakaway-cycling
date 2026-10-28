@@ -796,7 +796,7 @@ function gradeColor(g:number){
   if(g<12)return CLASSIC_GRADE_COLORS.hard;
   return CLASSIC_GRADE_COLORS.extreme;
  }
- const colors=document.body.dataset.rideExperience==='survival'?SURVIVAL_GRADE_COLORS:CLASSIC_GRADE_COLORS;
+ const colors=SURVIVAL_GRADE_COLORS;
  if(!Number.isFinite(g))return colors.flat;
  if(g< -1)return colors.descent;
  if(g<3)return colors.flat;
