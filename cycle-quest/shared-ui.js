@@ -1,5 +1,6 @@
 
 /* Shared Cycle Quest workflow; gameplay, routes and live BLE stay original. */
+import {mountQuestDevices} from '/api/cycle-quest?asset=devices-ui.js';
 export function mountQuestBaseline({root,getState,getLive,getView,changeView,routeSVG,parentSend}){
  const game=root.querySelector('.cq-game');
  if(!game)return {sync(){},setPage(){}};
@@ -20,7 +21,7 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,rou
  +'<div class="cq-big-profile"><div class="cq-big-profile-head"><strong>ROUTE SCANNER</strong><span class="cq-quest-route-caption">CHAPTER TERRAIN / ACTUAL SAVED ROUTE</span></div><div class="cq-route-actual-profile" role="img" aria-label="Current generated route elevation profile"></div></div><div class="cq-route-inspector"><span class="cq-route-footnote">THE ROUTE IS REAL · DRAG THE YELLOW MARKER IN RIDE TO INSPECT TERRAIN</span><span>✦ CYCLE QUEST</span></div>';
  game.querySelector('.cq-header').after(section);
  const setPage=next=>{
-  if(!['route','ride','overlay','character'].includes(next))return;
+  if(!['route','devices','ride','overlay','character'].includes(next))return;
   page=next;game.dataset.cqPage=page;
   top.querySelectorAll('[data-cq-page]').forEach(button=>{
    const current=button.dataset.cqPage===(page==='character'?'ride':page);
@@ -29,7 +30,7 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,rou
    else button.removeAttribute('aria-current');
   });
   const sub=top.querySelector('#cq-unified-subtitle');
-  if(sub)sub.textContent=page==='route'?'create your route':page==='overlay'?'always-on-top overlay':page==='character'?'character status':'enjoy the ride';
+  if(sub)sub.textContent=page==='route'?'create your route':page==='devices'?'connect your trainer':page==='overlay'?'always-on-top overlay':page==='character'?'character status':'enjoy the ride';
  };
  const oldAction=id=>root.querySelector('#'+id)?.click();
  const preset=(distance,terrain)=>{
@@ -50,7 +51,7 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,rou
    case 'recovery':preset(7.5,'flat');break;
    case 'rolling':preset(11.25,'rolling');break;
    case 'climbing':preset(15,'climbing');break;
-   case 'devices':parentSend({type:'connect'});break;
+   case 'devices':changeView('devices');setPage('devices');sync();break;
    case 'ride':changeView('ride');setPage('ride');sync();break;
   }
  });
@@ -58,13 +59,15 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,rou
   const button=event.target.closest('button');if(!button)return;
   if(button.classList.contains('cq-change-mode')){parentSend({type:'home'});return;}
   const dest=button.dataset.cqPage;
-  if(dest==='devices'){parentSend({type:'connect'});return;}
+  if(dest==='devices'){changeView('devices');setPage('devices');sync();return;}
   if(dest==='route'){changeView('ride');setPage('route');sync();return;}
   if(dest==='ride'||dest==='overlay'){changeView(dest);setPage(dest);sync();}
  });
+ const devices=mountQuestDevices({root,requestPage:next=>{changeView(next);setPage(next);sync();}});
  let routeKey='';
  function sync(){
   const s=getState();if(!s)return;
+  devices.sync();
   const live=getLive(),r=s.route;
   game.dataset.cqPage=page;
   if(getView()==='overlay'&&page!=='overlay')setPage('overlay');
