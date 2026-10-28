@@ -196,7 +196,7 @@
 
   /* The desktop screenshot is the fixed reference. Smaller screens
      keep the same styling, but reflow tabs so nothing overlaps. */
-  @media(max-width:1180px) {
+  @media(max-width:1350px) {
     body[data-ride-experience="classic"].cc-cockpit-mounted {
       --ch-u:1px;
     }
