@@ -21,6 +21,11 @@ export function mountSurvivalCockpit():void {
  const originalActions=profile.querySelector<HTMLElement>('.profile-ride-actions')!;
  const originalHudParent=hud?.parentElement;
  const originalHudNext=hud?.nextSibling;
+ // Rehome the legacy Configure panel inside the ride layout so its controls
+ // are never positioned beyond the viewport by the old full-width banner CSS.
+ const configurePanel=el('#screenRide > .survive-beta');
+ const originalConfigureParent=configurePanel?.parentElement;
+ const originalConfigureNext=configurePanel?.nextSibling;
  const originalProfileTitle=profile.querySelector<HTMLElement>('.profile-heading h2')?.textContent||'Elevation profile';
  const waveSettings=byId('surviveWaveSettings');
  const legacyControls=el('#screenRide .survive-beta .survive-controls');
@@ -105,6 +110,10 @@ export function mountSurvivalCockpit():void {
   for(const cell of orderedMetrics)metrics.append(cell);
   metrics.append(gradeMetric,gearMetric);
   dashboard.append(hiddenMetric);
+  if(configurePanel){
+   configurePanel.classList.add('sv-config-panel');
+   rideView.prepend(configurePanel);
+  }
   rideView.insertBefore(status,profile);
   rideView.insertBefore(hud,dashboard);
   rideView.insertBefore(previewChase,dashboard);
@@ -124,6 +133,13 @@ export function mountSurvivalCockpit():void {
   if(waveSettings&&legacyControls)legacyControls.insertBefore(waveSettings,byId('surviveStart'));
   for(const button of originalButtons)originalActions.append(button);
   preflight.remove();footer.remove();status.remove();previewChase.remove();
+  if(configurePanel){
+   configurePanel.classList.remove('sv-config-panel');
+   if(originalConfigureParent){
+    if(originalConfigureNext?.parentNode===originalConfigureParent)originalConfigureParent.insertBefore(configurePanel,originalConfigureNext);
+    else originalConfigureParent.prepend(configurePanel);
+   }
+  }
   if(originalHudParent){
    if(originalHudNext&&originalHudNext.parentNode===originalHudParent)originalHudParent.insertBefore(hud,originalHudNext);
    else originalHudParent.prepend(hud);
