@@ -55,6 +55,7 @@ export function mountClassicRouteReference():void {
  function mount(){
   if(document.body.classList.contains('cr-reference-mounted'))return;
   document.body.classList.add('cr-reference-mounted');
+  error.hidden=true;
   route!.append(shell);
   move(builder!,controls);move(summary!,summaryHost);move(edit!,tools);move(next!,callout);
   move(chart!,profile);move(scrub!,profile);
@@ -86,6 +87,8 @@ export function mountClassicRouteReference():void {
   copies.length=0;
   for(const item of statText)item.node.textContent=item.text;
   statText.length=0;
+  const editButton=edit!.querySelector<HTMLButtonElement>('#studioEditElevation');
+  if(editButton)editButton.textContent=chart!.classList.contains('editing')?'Done editing':'Edit elevation';
   const svg=chart!.querySelector('svg');
   if(svg){svg.querySelector('.cr-terrain')?.remove();svg.setAttribute('viewBox','0 0 900 210');svg.removeAttribute('preserveAspectRatio');}
   shell.remove();
