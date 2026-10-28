@@ -22,7 +22,9 @@ body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="s
  display:flex!important;flex-direction:column!important;align-items:stretch!important;
  width:100%!important;max-width:none!important;
  height:100dvh!important;min-height:0!important;max-height:100dvh!important;
- margin:0!important;padding:0!important;border:0!important;
+ margin:0!important;padding:16px 20px 12px!important;
+ border:2px solid #304469!important;border-radius:15px!important;
+ box-shadow:inset 0 0 0 1px #071022,0 8px 0 #020511!important;
  background:#05091a!important;color:#f6f7ff!important;
  overflow:hidden!important;
 }
@@ -48,8 +50,8 @@ body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="s
 }
 body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #screenSetup>.cq-device-preview{
  box-sizing:border-box!important;display:block!important;
- flex:1 1 auto!important;height:calc(100dvh - 36px)!important;
- max-height:calc(100dvh - 36px)!important;min-height:0!important;
+ flex:1 1 auto!important;height:auto!important;
+ max-height:none!important;min-height:0!important;
  width:100%!important;max-width:none!important;
  margin:0!important;padding:0!important;
  background:#05091a!important;
@@ -226,8 +228,27 @@ body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="s
 }
 body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #cq-preview .connection-strip>.connection-help{display:none!important}
 body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #cq-preview .cq-footer{
- min-height:22px!important;flex:0 0 22px!important;margin-top:5px!important;
- color:#b5c4ef!important;
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:12px!important;flex-wrap:nowrap!important;
+ box-sizing:border-box!important;
+ min-height:22px!important;flex:0 0 22px!important;
+ width:100%!important;margin:5px 0 0!important;padding:0!important;
+ font:13px/1.1 'VT323','Courier New',monospace!important;
+ letter-spacing:.3px!important;color:#b5c4ef!important;
+}
+body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #cq-preview .cq-footer>span{min-width:0!important;white-space:nowrap!important;color:#b5c4ef!important}
+body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #cq-preview .cq-footer .cq-message{color:#c0ccef!important;text-align:center!important;font-size:16px!important}
+body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #cq-preview .cq-footer>span:last-child{text-align:right!important}
+body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #cq-preview .cq-header>.cq-slot{color:#d3dfff!important;text-align:right!important;font:13px/1 'VT323',monospace!important;white-space:nowrap!important}
+body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #cq-preview .cq-header .cq-brand strong{color:#ffe777!important}
+body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #cq-preview .cq-unified-nav button[data-cq-native="devices"]{
+ background:linear-gradient(155deg,#304da5,#172e77)!important;
+ border:2px solid #789cea!important;color:#fff!important;
+ box-shadow:inset 0 -3px #ffe77766!important;
+}
+body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #cq-preview .cq-unified-nav button[data-cq-native="route"]{
+ background:transparent!important;color:#b5c4ef!important;
+ border:2px solid transparent!important;box-shadow:none!important;
 }
 body[data-ride-experience="cyclequest"].cq-native-shell[data-breakaway-screen="setup"] #cq-preview .cq-footer b{
  color:#d9e2ff!important;
