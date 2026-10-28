@@ -329,7 +329,7 @@
   height:calc(44 * var(--cr-u))!important;
   margin:0!important;padding:0!important;display:block!important;
  }
- body.sr-reference-mounted #screenRoute .cr-upload{
+ body.sr-reference-mounted #screenRoute button.cr-upload{
   width:100%!important;height:100%!important;
   border:0!important;border-radius:calc(4 * var(--cr-u))!important;
   background:#0053ad!important;color:#fff!important;
