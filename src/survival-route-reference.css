@@ -1,0 +1,449 @@
+/* Survival Route reuses Classic's screenshot-matched masthead and shared geometry. */
+/* One screenshot-matched masthead for the three Classic screens.
+   Header reference: 2048 x 115, #f4f4f4 background, black brand,
+   simple navy tabs, blue active tab, bright-blue change-mode control.
+   Scoped to Classic; Survival and Cycle Quest are unaffected. */
+@layer classicRouteReference {
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted {
+    --ch-u:clamp(.72px,calc(100vw / 2048),1px);
+    --ch-background:#f4f4f4;
+    --ch-text:#080808;
+    --ch-tab:#243956;
+    --ch-active:#1665cf;
+    --ch-mode:#007aff;
+  }
+
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead {
+    display:block!important;
+    z-index:10!important;
+    flex:0 0 calc(115 * var(--ch-u))!important;
+    width:100%!important;
+    height:calc(115 * var(--ch-u))!important;
+    min-height:calc(115 * var(--ch-u))!important;
+    max-height:calc(115 * var(--ch-u))!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:var(--ch-background)!important;
+    color:var(--ch-text)!important;
+    overflow:visible!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead {
+    position:absolute!important;
+    inset:0 0 auto 0!important;
+    margin:0!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead {
+    position:relative!important;
+    margin:0 0 0 calc(-34 * var(--cp-u))!important;
+    width:calc(100% + 68 * var(--cp-u))!important;
+    max-width:none!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead,
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead * {
+    font-family:Arial,Helvetica,sans-serif!important;
+    text-shadow:none!important;
+    letter-spacing:normal!important;
+    box-sizing:border-box!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-head {
+    display:block!important;
+    position:relative!important;
+    width:100%!important;
+    height:100%!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    background:transparent!important;
+    overflow:visible!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-brand {
+    position:absolute!important;
+    display:block!important;
+    top:calc(25 * var(--ch-u))!important;
+    left:calc(10 * var(--ch-u))!important;
+    margin:0!important;
+    padding:0!important;
+    white-space:nowrap!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-brand small {
+    display:block!important;
+    color:var(--ch-text)!important;
+    font-size:calc(20.8 * var(--ch-u))!important;
+    line-height:1.1!important;
+    font-weight:800!important;
+    text-transform:uppercase!important;
+    white-space:nowrap!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead :is(.sc-brand strong,.sc-brand-mark,.sc-phase,.sc-subhead span) {
+    display:none!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-subhead {
+    position:absolute!important;
+    display:block!important;
+    left:calc(10 * var(--ch-u))!important;
+    top:calc(61 * var(--ch-u))!important;
+    margin:0!important;
+    padding:0!important;
+    background:transparent!important;
+    border:0!important;
+    border-radius:0!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-subhead strong {
+    display:block!important;
+    color:var(--ch-text)!important;
+    font-size:calc(14.4 * var(--ch-u))!important;
+    line-height:1.05!important;
+    font-weight:800!important;
+    text-transform:none!important;
+    white-space:nowrap!important;
+    margin:0!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs {
+    display:grid!important;
+    position:absolute!important;
+    top:calc(26 * var(--ch-u))!important;
+    left:calc(50% + 0 * var(--ch-u))!important;
+    transform:translateX(-50%)!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:calc(15 * var(--ch-u))!important;
+    width:calc(820 * var(--ch-u))!important;
+    height:calc(69 * var(--ch-u))!important;
+    flex:none!important;
+    align-items:stretch!important;
+    justify-content:stretch!important;
+    min-width:0!important;
+    max-width:none!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    overflow:visible!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:not(.secondary) {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:calc(69 * var(--ch-u))!important;
+    min-height:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:calc(5 * var(--ch-u))!important;
+    box-shadow:none!important;
+    background:transparent!important;
+    color:var(--ch-tab)!important;
+    font-size:calc(13.6 * var(--ch-u))!important;
+    font-weight:800!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+    text-transform:uppercase!important;
+    cursor:pointer!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button.sc-active:not(.secondary) {
+    background:var(--ch-active)!important;
+    color:#fff!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:not(.sc-active):hover {
+    background:#e3ebf7!important;
+    color:var(--ch-tab)!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-head-right {
+    display:block!important;
+    position:absolute!important;
+    top:calc(26 * var(--ch-u))!important;
+    right:calc(14 * var(--ch-u))!important;
+    margin:0!important;
+    padding:0!important;
+    background:transparent!important;
+    border:0!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-mode-change {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:calc(271 * var(--ch-u))!important;
+    height:calc(69 * var(--ch-u))!important;
+    min-height:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:calc(5 * var(--ch-u))!important;
+    background:var(--ch-mode)!important;
+    color:#fff!important;
+    box-shadow:none!important;
+    font-size:calc(23.2 * var(--ch-u))!important;
+    font-weight:800!important;
+    line-height:1!important;
+    text-transform:uppercase!important;
+    white-space:nowrap!important;
+    cursor:pointer!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead button:focus-visible{
+    outline:3px solid #000!important;
+    outline-offset:3px!important;
+  }
+  /* Previously the route form started underneath the new taller masthead. */
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted.sr-reference-mounted #screenRoute .cr-reference {
+    padding-top:max(calc(137 * var(--cr-u)),calc(123 * var(--ch-u)))!important;
+  }
+
+  /* The desktop screenshot is the fixed reference. Smaller screens
+     keep the same styling, but reflow tabs so nothing overlaps. */
+  @media(max-width:1350px) {
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted {
+      --ch-u:1px;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead {
+      height:166px!important;min-height:166px!important;max-height:166px!important;
+      flex-basis:166px!important;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-brand {
+      top:15px!important;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-brand small {font-size:20px!important}
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-subhead {top:43px!important}
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-subhead strong {font-size:15px!important}
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-head-right {top:13px!important}
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-mode-change {
+      width:160px!important;height:44px!important;font-size:13.6px!important;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs {
+      top:84px!important;left:50%!important;
+      width:calc(100% - 20px)!important;height:60px!important;gap:8px!important;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:not(.secondary) {
+      height:60px!important;font-size:12px!important;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted.sr-reference-mounted #screenRoute .cr-reference {
+      padding-top:177px!important;
+    }
+  }
+  @media(max-width:650px) {
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead {
+      height:188px!important;min-height:188px!important;max-height:188px!important;flex-basis:188px!important;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-brand small {
+      font-size:clamp(9.6px,2.88vw,14.4px)!important;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-mode-change {
+      width:auto!important;min-width:108px!important;height:39px!important;
+      padding:0 10px!important;font-size:9.6px!important;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs {
+      top:90px!important;height:84px!important;
+      grid-template-columns:repeat(2,minmax(0,1fr))!important;
+      grid-template-rows:repeat(2,38px)!important;gap:7px!important;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:not(.secondary) {
+      height:38px!important;font-size:10.4px!important;
+    }
+    body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted.sr-reference-mounted #screenRoute .cr-reference {
+      padding-top:199px!important;
+    }
+  }
+}
+
+
+
+/* SURVIVAL / ROUTE — desktop geometry follows uploaded 1740 × 832 reference.
+   Shared .cr-reference nodes are the native Classic controls, not copies. */
+@layer classicRouteReference {
+ body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted{
+  --cr-u:min(calc(100vw / 2184),calc(100dvh / 1044));
+  --cr-blue:#0053ad;
+  --cr-yellow:#ffd000;
+  --cr-bg:#f4f4f4;
+  --sc-bg:#f4f4f4;
+  color:#080808!important;
+  background:#f4f4f4!important;
+  color-scheme:light!important;
+ }
+ body.sr-reference-mounted main,
+ body.sr-reference-mounted main>.ride-workspace,
+ body.sr-reference-mounted #screenRoute{
+  width:100%!important;max-width:none!important;
+  height:100dvh!important;max-height:100dvh!important;min-height:0!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+  border:0!important;border-radius:0!important;
+  background:#f4f4f4!important;color:#000!important;box-shadow:none!important;
+ }
+ body.sr-reference-mounted #screenRoute{
+  position:relative!important;display:block!important;isolation:isolate!important;
+ }
+ body.sr-reference-mounted #screenRoute>.survival-studio-intro,
+ body.sr-reference-mounted #screenRoute>#routeStudio,
+ body.sr-reference-mounted #screenRoute>.breakaway-integrated-step-header,
+ body.sr-reference-mounted main>a[href="/trainer-lab.html"]{
+  display:none!important;
+ }
+ body.sr-reference-mounted #screenRoute>.cr-reference{
+  display:block!important;position:relative!important;
+  width:100%!important;height:100dvh!important;max-height:100dvh!important;
+  min-height:0!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;background:#f4f4f4!important;
+  overflow:hidden!important;
+ }
+ /* Re-create the reference screenshot's vertical rhythm. */
+ body.sr-reference-mounted #screenRoute .cr-upload-row{
+  position:absolute!important;left:calc(90 * var(--cr-u))!important;
+  top:calc(82 * var(--cr-u))!important;
+  width:calc(400 * var(--cr-u))!important;
+  height:calc(47 * var(--cr-u))!important;
+  margin:0!important;padding:0!important;
+  display:block!important;
+ }
+ body.sr-reference-mounted #screenRoute .cr-upload{
+  width:100%!important;height:100%!important;
+  border:calc(3 * var(--cr-u)) solid #0053ad!important;
+  border-radius:0!important;background:#f4f4f4!important;
+  color:#0053ad!important;text-transform:uppercase!important;
+  font-size:calc(21.6 * var(--cr-u))!important;
+  font-weight:500!important;
+ }
+ body.sr-reference-mounted #screenRoute .sr-mode-row{
+  position:absolute!important;left:calc(35 * var(--cr-u))!important;
+  top:calc(145 * var(--cr-u))!important;
+  width:calc(1320 * var(--cr-u))!important;
+  height:calc(47 * var(--cr-u))!important;
+  margin:0!important;padding:0!important;
+  display:flex!important;align-items:center!important;gap:calc(11 * var(--cr-u))!important;
+  z-index:2!important;
+ }
+ body.sr-reference-mounted #screenRoute .sr-mode-row[hidden]{display:none!important}
+ body.sr-reference-mounted #screenRoute .sr-mode-step{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  flex:none!important;width:calc(44 * var(--cr-u))!important;height:calc(44 * var(--cr-u))!important;
+  border-radius:50%!important;background:#0053ad!important;color:#fff!important;
+  font-size:calc(32 * var(--cr-u))!important;font-weight:750!important;
+ }
+ body.sr-reference-mounted #screenRoute .sr-mode-controls{
+  display:grid!important;grid-template-columns:repeat(3,calc(400 * var(--cr-u)))!important;
+  gap:calc(30 * var(--cr-u))!important;
+  margin:0!important;padding:0!important;min-width:0!important;
+ }
+ body.sr-reference-mounted #screenRoute .sr-mode-controls label{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  position:relative!important;flex:none!important;
+  width:calc(400 * var(--cr-u))!important;height:calc(47 * var(--cr-u))!important;
+  min-width:0!important;max-width:none!important;
+  margin:0!important;padding:0!important;
+  background:#0053ad!important;color:#fff!important;
+  border:0!important;border-radius:0!important;
+  font-size:0!important;line-height:1!important;cursor:pointer!important;
+  box-shadow:none!important;
+ }
+ body.sr-reference-mounted #screenRoute .sr-mode-controls label::before{
+  content:attr(data-prompt)!important;
+  color:#fff!important;font-family:Arial,Helvetica,sans-serif!important;
+  font-size:calc(21.6 * var(--cr-u))!important;
+  font-weight:500!important;line-height:1!important;
+  text-transform:uppercase!important;text-align:center!important;
+  white-space:nowrap!important;pointer-events:none!important;
+ }
+ body.sr-reference-mounted #screenRoute .sr-mode-controls select{
+  display:block!important;position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;min-height:0!important;
+  z-index:2!important;opacity:0!important;
+  cursor:pointer!important;margin:0!important;padding:0!important;
+  font-size:16px!important;
+ }
+ body.sr-reference-mounted #screenRoute .sr-mode-controls label:focus-within{
+  outline:3px solid #ffd000!important;outline-offset:3px!important;
+ }
+ body.sr-reference-mounted #screenRoute .sr-mode-controls label:hover{background:#1764cf!important}
+ body.sr-reference-mounted #screenRoute .cr-heading{
+  position:absolute!important;left:calc(35 * var(--cr-u))!important;
+  top:calc(207 * var(--cr-u))!important;
+  height:calc(46 * var(--cr-u))!important;
+  margin:0!important;padding:0!important;
+ }
+ body.sr-reference-mounted #screenRoute .cr-config{
+  position:absolute!important;top:calc(267 * var(--cr-u))!important;
+  left:calc(35 * var(--cr-u))!important;right:calc(32 * var(--cr-u))!important;
+  width:auto!important;height:calc(400 * var(--cr-u))!important;
+  margin:0!important;overflow:visible!important;
+ }
+ body.sr-reference-mounted #screenRoute .cr-profile{
+  position:absolute!important;left:calc(35 * var(--cr-u))!important;
+  right:calc(32 * var(--cr-u))!important;
+  top:calc(676 * var(--cr-u))!important;
+  bottom:calc(36 * var(--cr-u))!important;
+  width:auto!important;height:auto!important;min-height:0!important;
+  margin:0!important;
+ }
+ body.sr-reference-mounted #screenRoute .cr-summary .route-step{
+  box-shadow:none!important;
+ }
+ body.sr-reference-mounted #screenRoute .cr-reference :is(.route-builder,.route-studio-live-preview) {
+  color:#000!important;
+ }
+ body.sr-reference-mounted #screenRoute .cr-profile svg{
+  background:#f4f4f4!important;
+ }
+ /* Keep the route style photograph-like: no floating dark Survival panel. */
+ body.sr-reference-mounted #screenRoute .cr-reference :is(h1,h2,h3){
+  color:#000!important;text-shadow:none!important;
+ }
+ body.sr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout .note{
+  color:#0053ad!important;
+ }
+
+ /* Below the reference desktop size, controls reflow without hiding options. */
+ @media(max-width:1100px){
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted{--cr-u:1px}
+  body.sr-reference-mounted main,body.sr-reference-mounted main>.ride-workspace,
+  body.sr-reference-mounted #screenRoute{
+   min-height:100dvh!important;height:auto!important;max-height:none!important;
+   overflow:visible!important;
+  }
+  body.sr-reference-mounted #screenRoute>.cr-reference{
+   display:flex!important;flex-direction:column!important;gap:12px!important;
+   height:auto!important;max-height:none!important;overflow:visible!important;
+   padding:170px 18px 22px!important;
+  }
+  body.sr-reference-mounted #screenRoute :is(.cr-upload-row,.sr-mode-row,.cr-heading,.cr-config,.cr-profile){
+   position:relative!important;top:auto!important;left:auto!important;right:auto!important;
+   bottom:auto!important;margin:0!important;
+  }
+  body.sr-reference-mounted #screenRoute .cr-upload-row{width:100%!important;height:46px!important}
+  body.sr-reference-mounted #screenRoute .cr-upload{width:min(400px,100%)!important}
+  body.sr-reference-mounted #screenRoute .sr-mode-row{
+   width:100%!important;height:auto!important;align-items:flex-start!important;gap:9px!important;
+  }
+  body.sr-reference-mounted #screenRoute .sr-mode-controls{
+   width:100%!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;
+  }
+  body.sr-reference-mounted #screenRoute .sr-mode-controls label{
+   width:100%!important;height:46px!important;
+  }
+  body.sr-reference-mounted #screenRoute .sr-mode-controls label::before{
+   font-size:clamp(11px,1.7vw,17px)!important;
+  }
+  body.sr-reference-mounted #screenRoute .cr-heading{
+   width:100%!important;height:auto!important;
+  }
+  body.sr-reference-mounted #screenRoute .cr-config{
+   display:grid!important;width:100%!important;height:auto!important;
+   grid-template-columns:minmax(0,1fr)!important;gap:19px!important;padding:20px!important;
+  }
+  body.sr-reference-mounted #screenRoute .cr-summary>.route-studio-live-preview{min-height:250px!important}
+  body.sr-reference-mounted #screenRoute .cr-profile{width:100%!important;height:300px!important;flex:none!important}
+ }
+ @media(max-width:570px){
+  body.sr-reference-mounted #screenRoute>.cr-reference{padding:195px 12px 20px!important}
+  body.sr-reference-mounted #screenRoute .sr-mode-row{flex-direction:column!important}
+  body.sr-reference-mounted #screenRoute .sr-mode-controls{grid-template-columns:minmax(0,1fr)!important}
+  body.sr-reference-mounted #screenRoute .sr-mode-controls label{height:42px!important}
+  body.sr-reference-mounted #screenRoute .cr-controls .route-fields{
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+ }
+}
