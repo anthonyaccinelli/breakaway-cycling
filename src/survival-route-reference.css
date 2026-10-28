@@ -431,10 +431,11 @@
    min-height:100dvh!important;height:auto!important;max-height:none!important;
    overflow:visible!important;
   }
-  body.sr-reference-mounted #screenRoute>.sc-masthead{
-   position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;
-   left:auto!important;flex:0 0 166px!important;max-height:166px!important;
-   width:100%!important;
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead{
+   position:relative!important;inset:auto!important;
+   flex:0 0 166px!important;height:166px!important;
+   min-height:166px!important;max-height:166px!important;
+   width:100%!important;max-width:100%!important;margin:0!important;
   }
   body.sr-reference-mounted #screenRoute>.cr-reference{
    position:relative!important;inset:auto!important;flex:0 0 auto!important;
@@ -471,7 +472,9 @@
   body.sr-reference-mounted #screenRoute .cr-profile{width:100%!important;height:300px!important;flex:none!important}
  }
  @media(max-width:570px){
-  body.sr-reference-mounted #screenRoute>.sc-masthead{flex-basis:188px!important;max-height:188px!important}
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead{
+   flex-basis:188px!important;height:188px!important;min-height:188px!important;max-height:188px!important;
+  }
   body.sr-reference-mounted #screenRoute>.cr-reference{padding:10px 12px 20px!important}
   body.sr-reference-mounted #screenRoute .sr-mode-row{flex-direction:column!important}
   body.sr-reference-mounted #screenRoute .sr-mode-controls{grid-template-columns:minmax(0,1fr)!important}
