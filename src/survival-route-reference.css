@@ -268,6 +268,49 @@
  body.sr-reference-mounted main>a[href="/trainer-lab.html"]{
   display:none!important;
  }
+ /* Laptop widths must preserve the single-line desktop navigation.
+    The copied Classic @media(max-width:1350px) had expanded tabs to full
+    width and dropped them onto the GPX row. Scale the masthead with the
+    route instead; only stack at <=1100px. */
+ @media(min-width:1101px) and (max-width:1350px){
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted{
+   --ch-u:calc(100vw / 2048);
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead {
+   height:calc(115 * var(--ch-u))!important;
+   min-height:calc(115 * var(--ch-u))!important;
+   max-height:calc(115 * var(--ch-u))!important;
+   flex-basis:auto!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-brand{
+   top:calc(25 * var(--ch-u))!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-brand small{
+   font-size:calc(20.8 * var(--ch-u))!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-subhead{
+   top:calc(61 * var(--ch-u))!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-subhead strong{
+   font-size:calc(14.4 * var(--ch-u))!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs{
+   top:calc(26 * var(--ch-u))!important;left:50%!important;
+   width:calc(660 * var(--ch-u))!important;height:calc(56 * var(--ch-u))!important;
+   gap:calc(15 * var(--ch-u))!important;
+   grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:not(.secondary){
+   height:calc(56 * var(--ch-u))!important;font-size:calc(13.6 * var(--ch-u))!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-head-right{
+   top:calc(26 * var(--ch-u))!important;
+  }
+  body[data-ride-experience="survival"].sc-cockpit-mounted.sr-reference-mounted #screenRoute>.sc-masthead .sc-mode-change{
+   width:calc(215 * var(--ch-u))!important;height:calc(56 * var(--ch-u))!important;
+   font-size:calc(23.2 * var(--ch-u))!important;
+  }
+ }
  /* The upload button intentionally shares the upper header band in the
     screenshot. Keep the masthead visually transparent so it doesn't cover
     the real GPX control, and pass clicks through the empty header area. */
