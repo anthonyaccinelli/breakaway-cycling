@@ -92,3 +92,8 @@ body:has(#cq-preview){margin:0!important;padding:0!important;background:#05091a!
 
 /* Hidden state must win over the shared layout display rules. */
 #cq-preview .cq-game [hidden]{display:none!important}
+
+/* Exact supplied gold wordmark; retain the existing workflow and compact height. */
+#cq-preview .cq-unified-brand .cq-wordmark{display:block;width:100%;max-width:350px;height:auto;object-fit:contain}
+#cq-preview .cq-header .cq-brand{display:none!important}
+@media(max-width:640px){#cq-preview .cq-unified-brand .cq-wordmark{max-width:260px}}
