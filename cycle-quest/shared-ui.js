@@ -79,7 +79,15 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,rou
   const key=[r.name,r.distance,r.gain,r.points?.length,r.windowStart,r.endless].join(':');
   if(key!==routeKey){
    routeKey=key;
-   try{section.querySelector('.cq-route-actual-profile').innerHTML=routeSVG(r);}
+   try{
+    // The native elevationSVG uses a landscape viewBox; its default
+    // xMidYMid meet mode letterboxes wide desktop Route Scanner panels.
+    // Stretch the same real terrain data to the full available scanner width.
+    const svgMarkup=routeSVG(r);
+    section.querySelector('.cq-route-actual-profile').innerHTML=svgMarkup.replace(
+      /<svg\b/, '<svg preserveAspectRatio="none"'
+    );
+   }
    catch{section.querySelector('.cq-route-actual-profile').textContent='Route preview not available.';}
   }
   section.querySelector('.cq-route-footnote').textContent=live.connected?'TRAINER CONNECTED · EDIT ROUTE BEFORE RIDING':'CONNECT YOUR SMART TRAINER TO START';
