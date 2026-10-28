@@ -93,7 +93,7 @@ export function mountClassicRouteReference():void {
   copies.push({node:next!,html:next!.innerHTML});
   next!.innerHTML='<span>Ready to Ride?</span><span>Connect Your Trainer!</span>';
   const note=scrub!.querySelector<HTMLElement>('.note');
-  copy(note,'drag the yellow line to preview your route');
+  copy(note,survival?'drag the yellow line to preview your route':'drag the white line to preview your route');
   const step=summary!.querySelector<HTMLElement>('.route-step');copy(step,survival?'3':'2');
   const headingStep=shell.querySelector<HTMLElement>('.cr-heading>span');if(headingStep)headingStep.textContent=survival?'2':'1';
   copy(summary!.querySelector<HTMLElement>('h2'),'Your Route Preview');
