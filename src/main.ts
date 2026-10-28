@@ -789,8 +789,15 @@ const SURVIVAL_GRADE_COLORS={
  descent:'#394252',flat:'#B5A7A9',climb:'#D54051',steep:'#F19F71'
 } as const;
 function gradeColor(g:number){
- // Classic and Survival share the same five solid grade-color bands on
- // all three pages until the final Survival palette is assigned.
+ // Page 01 only: five exact stripes from the user-supplied survival palette.
+ // Classic and Survival's Ride/Devices retain their previously approved colors.
+ if(document.body.dataset.rideExperience==='survival'&&document.body.dataset.breakawayScreen==='route'){
+  if(!Number.isFinite(g)||g<=0.25)return '#39354f'; // flat: charcoal violet
+  if(g<3)return '#515076';                         // gentle: steel violet
+  if(g<6)return '#aea9cc';                         // moderate: fog lavender
+  if(g<12)return '#92323c';                        // hard: dried blood
+  return '#c74343';                                // extreme: scarlet
+ }
  const sharedTheme=['classic','survival'].includes(document.body.dataset.rideExperience||'');
  if(sharedTheme){
   if(!Number.isFinite(g)||g<=0.25)return CLASSIC_GRADE_COLORS.flat;
