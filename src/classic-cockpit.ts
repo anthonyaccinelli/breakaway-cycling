@@ -68,7 +68,11 @@ export function mountClassicCockpit():void {
   const screen=document.body.dataset.breakawayScreen;
   const host=screen==='setup'?setup:screen==='ride'?ride:route;
   if(header.parentElement!==host)host!.prepend(header);
-  const title=get('ccTitle');if(title)title.textContent=screen==='setup'?'PAIR YOUR EQUIPMENT':screen==='ride'?'YOUR RIDE':'BUILD YOUR ROUTE';
+  const brandLabel=header.querySelector<HTMLElement>('.sc-brand small');
+  if(brandLabel)brandLabel.textContent=screen==='route'?'RIDE BREAKAWAY / CLASSIC MODE':'RIDE BREAKAWAY / ORIGINAL MODE';
+  const title=get('ccTitle');if(title)title.textContent=screen==='setup'?'PAIR YOUR EQUIPMENT':screen==='ride'?'YOUR RIDE':'create your route';
+  const overlayTab=header.querySelector<HTMLButtonElement>('[data-cc-step="overlay"]');
+  if(overlayTab)overlayTab.textContent=screen==='route'?'OVERLAY':'OVERLAY ↗';
   header.querySelectorAll<HTMLButtonElement>('[data-cc-step]').forEach(button=>{
    const selected=button.dataset.ccStep===screen;button.classList.toggle('sc-active',selected);button.setAttribute('aria-current',selected?'page':'false');
   });
