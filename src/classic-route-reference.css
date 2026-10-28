@@ -538,9 +538,7 @@
     height:100%!important;
     background:var(--cr-bg)!important;
   }
-  body.cr-reference-mounted #screenRoute .cr-profile svg g[clip-path] rect {
-    fill:#999!important;
-  }
+  /* Preserve route preview's four per-grade SVG fills (no gray override). */
   body.cr-reference-mounted #screenRoute .cr-profile svg polyline {
     display:none!important;
   }
