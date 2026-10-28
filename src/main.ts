@@ -1569,17 +1569,16 @@ $('nativeProfile').addEventListener('click',async()=>{
   const zombieOverlayStyle=pip.document.createElement('style');
   zombieOverlayStyle.textContent=SURVIVAL_OVERLAY_CSS;
   pip.document.head.append(zombieOverlayStyle);
-  // Standalone Picture-in-Picture documents do not inherit the page's fonts.
-  // Explicitly load Host Grotesk and Instrument Sans for Classic here too.
-  if(document.body.dataset.rideExperience==='classic'){
-   const classicFont=pip.document.createElement('link');
-   classicFont.rel='stylesheet';
-   classicFont.href='https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700;800&family=Instrument+Sans:wght@400;500;600;700;800&display=swap';
-   pip.document.head.append(classicFont);
-   const classicTheme=pip.document.createElement('style');
-   classicTheme.textContent=CLASSIC_DESIGN_OVERLAY_CSS;
-   pip.document.head.append(classicTheme);
-  }
+  // Standalone Picture-in-Picture windows do not inherit the main page fonts.
+  // Load Classic's scoped stylesheet even when Survival opens first, so an
+  // already-open overlay can switch to Classic without missing its design.
+  const classicFont=pip.document.createElement('link');
+  classicFont.rel='stylesheet';
+  classicFont.href='https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700;800&family=Instrument+Sans:wght@400;500;600;700;800&display=swap';
+  pip.document.head.append(classicFont);
+  const classicTheme=pip.document.createElement('style');
+  classicTheme.textContent=CLASSIC_DESIGN_OVERLAY_CSS;
+  pip.document.head.append(classicTheme);
   pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><div id="overlayZoomControls" role="group" aria-label="Elevation zoom"><button type="button" data-zoom="1">1×</button><button type="button" data-zoom="2">2×</button><button type="button" data-zoom="5">5×</button><button type="button" data-zoom="10">10×</button></div><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
   pip.document.body.classList.toggle('survival-overlay-theme',document.body.dataset.rideExperience==='survival');
   pip.document.body.classList.toggle('classic-design-overlay',document.body.dataset.rideExperience==='classic');
@@ -3003,23 +3002,6 @@ window.setInterval(()=>{
 mountSurvivalCockpit();
 mountClassicCockpit();
 mountClassicRouteReference();
-
-// Preview-branch design review only: expose both Classic layouts without
-// requiring a physical trainer. Riding still requires live FTMS telemetry.
-const classicPreviewScreen=new URLSearchParams(location.search).get('classicPreview');
-if(['route','setup','ride'].includes(classicPreviewScreen||'')){
- chooseRideExperience('classic',false);
- if(!points.length){
-   ($('generatedMiles') as HTMLInputElement).value='14.9';
-   ($('generatedGain') as HTMLInputElement).value='334';
-   ($('generatedSeed') as HTMLInputElement).value='4821';
-   ($('generatedTerrain') as HTMLSelectElement).value='flat';
-   ($('generateRoute') as HTMLButtonElement).click();
- }
- showBreakawayScreen(classicPreviewScreen as BreakawayScreen);
-  if(classicPreviewScreen==='route')requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
-}
-
 
 
 // Preview-branch entry points are design-only and never start a trainer,
