@@ -115,7 +115,7 @@ body.survival-overlay-theme .overlay-profile-grade{
  /* Opaque backing stops terrain from passing visually behind the grade. */
  text-shadow:none!important;
  border:3px solid #ffd000!important;
- background:#111827!important;
+ background:#141019!important;
  box-shadow:none!important;
 }
 body.survival-overlay-theme .overlay-profile-grade .climb-hud-details{
