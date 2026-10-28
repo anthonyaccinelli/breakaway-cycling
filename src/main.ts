@@ -3,6 +3,7 @@ import './live-ride-themes.css';
 import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
 import {mountSurvivalCockpit} from './survival-cockpit';
 import {mountClassicCockpit} from './classic-cockpit';
+import {mountClassicRouteReference} from './classic-route-reference';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
@@ -2846,4 +2847,5 @@ window.setInterval(()=>{
 // Survival v2 is UI-only; initialize after the original controls/listeners exist.
 mountSurvivalCockpit();
 mountClassicCockpit();
+mountClassicRouteReference();
 
