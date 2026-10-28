@@ -37,6 +37,8 @@ Generated FIT/capture libraries and the monster data catalogue were not rewritte
   maxima use reductions rather than argument spreading on large record arrays.
 - Failed summary image capture now offers a working retry. Malformed highlight
   collections no longer crash the gallery.
+- Character Status now hides the ride panel correctly despite shared layout rules,
+  and rider W/kg uses actual FTP/weight rather than a hardcoded example.
 - Unknown asset names cannot match inherited object properties in the allowlist.
 
 ## Redundancy removed
