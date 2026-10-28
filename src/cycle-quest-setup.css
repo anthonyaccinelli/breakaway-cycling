@@ -880,3 +880,97 @@ body[data-ride-experience="cyclequest"].cc-cockpit-mounted #screenSetup #backToR
 body[data-ride-experience="cyclequest"].cc-cockpit-mounted #screenSetup .setup-utility-details summary{
  color:#ffe777!important;
 }
+
+
+/* Cycle Quest Devices readability pass: maintain the exact cobalt/gold
+   palette while neutralizing dark Classic text declarations that survive
+   on top of dark Quest panels. Target text only; don't override button
+   states, disabled styling, BLE controls, or form input values. */
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-strip .setup-device-tiles .setup-device-tile>h3,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile h3{
+ color:#f6f7ff!important;
+ font-family:'VT323','Courier New',monospace!important;
+ font-weight:700!important;
+ font-size:clamp(19px,1.4vw,25px)!important;
+ line-height:1.1!important;
+ text-shadow:none!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-strip .setup-device-tiles .setup-device-tile>.setup-connection-indicator,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-device-tile .setup-connection-indicator{
+ color:#cad9ff!important;
+ font-size:clamp(13px,.9vw,16px)!important;
+ font-family:'VT323','Courier New',monospace!important;
+ text-shadow:none!important;
+ opacity:1!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-strip .setup-device-tile[data-connection-state="connected"] .setup-connection-indicator{
+ color:#ffe777!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-strip .setup-device-tile[data-connection-state="error"] .setup-connection-indicator{
+ color:#ffb6bd!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings>h3,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.ride-shifting-column #drivetrainSection>h2,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-utility-details>h3{
+ color:#ffe777!important;
+ font-family:'VT323','Courier New',monospace!important;
+ font-size:clamp(18px,1.35vw,24px)!important;
+ line-height:1.1!important;
+ text-shadow:none!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings>.setup-rider-settings>label,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-advanced-settings>.setup-rider-settings>label,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.ride-shifting-column label,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-utility-details .bluetooth-auto label{
+ color:#f6f7ff!important;
+ font-size:clamp(13px,.9vw,16px)!important;
+ font-weight:700!important;
+ line-height:1.25!important;
+ text-shadow:none!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings>.setup-rider-settings>.note,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.setup-advanced-settings>.setup-rider-settings>p,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #drivetrainHelp,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-shifting-help,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-utility-details .bluetooth-auto,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-utility-details #autoBleStatus,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-device-tiles .setup-device-tile .note{
+ color:#d9e4ff!important;
+ font-size:clamp(12px,.78vw,14px)!important;
+ line-height:1.2!important;
+ opacity:1!important;
+ text-shadow:none!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-utility-details :is(summary,p,span,small),
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-secondary-options summary{
+ color:#ffe777!important;
+ font-size:clamp(13px,.9vw,16px)!important;
+ opacity:1!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.ride-shifting-column .setup-shifting-choice:not(.active){
+ color:#f6f7ff!important;background:#253d7b!important;border-color:#8ba7d7!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row>.ride-shifting-column .setup-shifting-choice.active{
+ color:#07132e!important;background:#ffe777!important;border-color:#ffe777!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row input:not([type="checkbox"]),
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row select{
+ color:#f6f7ff!important;background:#0a1739!important;
+ border:1px solid #8ba7d7!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .setup-settings-row input:not([type="checkbox"]){
+ color:#101e49!important;background:#fff!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-strip>#setupInstructions,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup #setupReadiness,
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-strip #status{
+ color:#f6f7ff!important;
+ font-size:clamp(13px,.9vw,16px)!important;
+ opacity:1!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup>.sc-masthead .sc-mode-change{
+ color:#081531!important;
+}
+body[data-ride-experience="cyclequest"].cc-cockpit-mounted[data-breakaway-screen="setup"] #screenSetup .connection-strip .setup-next #questReturn{
+ color:#ffe777!important;
+}
