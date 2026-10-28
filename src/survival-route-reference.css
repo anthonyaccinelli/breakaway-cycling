@@ -428,7 +428,8 @@
  body.sr-reference-mounted #screenRoute .sr-mode-controls label:focus-within{
   outline:3px solid #ffd000!important;outline-offset:3px!important;
  }
- body.sr-reference-mounted #screenRoute .sr-mode-controls label:hover{background:#1764cf!important}
+ body.sr-reference-mounted #screenRoute .sr-mode-controls label:hover{background:#dce8f6!important}
+ body.sr-reference-mounted #screenRoute .sr-mode-controls label:hover::before{color:#0053ad!important}
  body.sr-reference-mounted #screenRoute .cr-heading{
   position:absolute!important;left:calc(35 * var(--cr-u))!important;
   top:calc(196 * var(--cr-u))!important;
