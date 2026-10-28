@@ -2972,18 +2972,16 @@ mountClassicRouteReference();
 // Preview-branch design review only: expose both Classic layouts without
 // requiring a physical trainer. Riding still requires live FTMS telemetry.
 const classicPreviewScreen=new URLSearchParams(location.search).get('classicPreview');
-if(classicPreviewScreen==='setup'||classicPreviewScreen==='ride'){
+if(['route','setup','ride'].includes(classicPreviewScreen||'')){
  chooseRideExperience('classic',false);
- if(classicPreviewScreen==='ride'){
-  if(!points.length){
+ if(!points.length){
    ($('generatedMiles') as HTMLInputElement).value='14.9';
    ($('generatedGain') as HTMLInputElement).value='334';
    ($('generatedSeed') as HTMLInputElement).value='4821';
    ($('generatedTerrain') as HTMLSelectElement).value='flat';
    ($('generateRoute') as HTMLButtonElement).click();
-  }
-  showBreakawayScreen('ride');
- }else showBreakawayScreen('setup');
+  showBreakawayScreen(classicPreviewScreen as BreakawayScreen);
+  if(classicPreviewScreen==='route')requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
 }
 
 
