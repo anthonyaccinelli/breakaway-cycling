@@ -789,7 +789,10 @@ const SURVIVAL_GRADE_COLORS={
  descent:'#394252',flat:'#B5A7A9',climb:'#D54051',steep:'#F19F71'
 } as const;
 function gradeColor(g:number){
- if(document.body.dataset.rideExperience==='classic'){
+ // Survival's route-design screen uses Classic's bright grade bands;
+ // the active Survival ride retains its existing themed colors.
+ const classicRoute=document.body.dataset.rideExperience==='survival'&&document.body.dataset.breakawayScreen==='route';
+ if(document.body.dataset.rideExperience==='classic'||classicRoute){
   if(!Number.isFinite(g)||g<=0.25)return CLASSIC_GRADE_COLORS.flat;
   if(g<3)return CLASSIC_GRADE_COLORS.gentle;
   if(g<6)return CLASSIC_GRADE_COLORS.moderate;
@@ -2904,3 +2907,18 @@ if(classicPreviewScreen==='setup'||classicPreviewScreen==='ride'){
 }
 
 
+
+// Preview-branch entry point for screenshot review; no trainer bypass.
+if(new URLSearchParams(location.search).get('survivalPreview')==='route'){
+ chooseRideExperience('survival',false);
+ if(!points.length){
+  ($('generatedDifficulty') as HTMLSelectElement).value='1.35';
+  ($('generatedTerrain') as HTMLSelectElement).value='flat';
+  ($('generatedMiles') as HTMLInputElement).value='5.6';
+  ($('generatedGain') as HTMLInputElement).value='170';
+  ($('generatedSeed') as HTMLInputElement).value='760757387';
+  ($('generateRoute') as HTMLButtonElement).click();
+ }
+ showBreakawayScreen('route');
+ requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
+}
