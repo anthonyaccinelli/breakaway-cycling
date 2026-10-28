@@ -1,186 +1,736 @@
-/* Important reference rules are layered so legacy mode overrides cannot repaint this screen. */
+/* Classic Create Route screenshot layout (2048x1044 reference).
+   This is a visual layer over the real, already-wired controls. */
 @layer classicRouteReference {
-/* Classic route creation: dimensions correspond to the supplied 2040 × 954 reference. */
-body[data-ride-experience="classic"][data-breakaway-screen="route"].cr-reference-mounted{
- --cr-u:clamp(.65px,calc(100vw / 2040),1px);
- --cr-blue:#007aff;--cr-yellow:#ffe600;
- margin:0!important;padding:0!important;background:#fff!important;color:#000!important;color-scheme:light;
-}
-body.cr-reference-mounted main,
-body.cr-reference-mounted main>.ride-workspace,
-body.cr-reference-mounted #screenRoute{
- width:100%!important;max-width:none!important;height:100dvh!important;max-height:100dvh!important;
- min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;
- border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;
-}
-body.cr-reference-mounted main>.breakaway-brand-bar,
-body.cr-reference-mounted main>.browser-compatibility,
-body.cr-reference-mounted #screenRoute>.sc-masthead,
-body.cr-reference-mounted #screenRoute>#routeStudio,
-body.cr-reference-mounted #modeHomeButton,
-body.cr-reference-mounted a[href="/trainer-lab.html"]{display:none!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-reference,
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-reference *{
- box-sizing:border-box!important;font-family:Arial,Helvetica,sans-serif!important;text-shadow:none!important;letter-spacing:normal!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-reference{
- display:grid!important;grid-template-rows:calc(46 * var(--cr-u)) calc(58 * var(--cr-u)) calc(392 * var(--cr-u)) minmax(0,1fr)!important;
- gap:calc(8 * var(--cr-u))!important;width:100%!important;height:100dvh!important;min-height:0!important;
- padding:calc(79 * var(--cr-u)) calc(22 * var(--cr-u)) calc(49 * var(--cr-u)) calc(21 * var(--cr-u))!important;
- margin:0!important;background:#fff!important;color:#000!important;overflow:hidden!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-upload-row{
- display:flex!important;align-items:flex-start!important;padding-left:calc(7 * var(--cr-u))!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute button.cr-upload{
- width:calc(381 * var(--cr-u))!important;height:calc(45 * var(--cr-u))!important;
- margin:0!important;padding:0!important;border:0!important;border-radius:calc(5 * var(--cr-u))!important;
- background:var(--cr-blue)!important;color:#fff!important;font-size:calc(30 * var(--cr-u))!important;font-weight:700!important;line-height:1!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-heading{
- display:flex!important;align-items:center!important;gap:calc(11 * var(--cr-u))!important;
- padding:calc(12 * var(--cr-u)) 0 0!important;margin:0 0 0 calc(-1 * var(--cr-u))!important;
- color:#000!important;font-size:calc(30 * var(--cr-u))!important;font-weight:700!important;line-height:1.1!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-heading>span,
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary .route-step{
- display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:none!important;
- width:calc(45 * var(--cr-u))!important;height:calc(45 * var(--cr-u))!important;
- border-radius:50%!important;background:var(--cr-blue)!important;color:#fff!important;
- font-size:calc(34 * var(--cr-u))!important;font-weight:700!important;border:0!important;padding:0!important;margin:0!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-config{
- display:grid!important;grid-template-columns:minmax(0,806fr) minmax(0,511fr) minmax(0,614fr)!important;
- gap:calc(24 * var(--cr-u))!important;
- padding:calc(19 * var(--cr-u)) calc(24 * var(--cr-u)) calc(19 * var(--cr-u)) calc(7 * var(--cr-u))!important;
- margin:0!important;background:var(--cr-blue)!important;border:0!important;border-radius:0!important;min-width:0!important;min-height:0!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls,
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary,
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-actions{min-width:0!important;min-height:0!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-builder{
- display:block!important;height:auto!important;min-height:0!important;max-height:none!important;width:100%!important;
- margin:calc(-19 * var(--cr-u)) 0 0!important;padding:0!important;background:transparent!important;
- border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls :is(.route-import,.route-import-divider,.route-panel-heading,.route-tip){display:none!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-fields{
- display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
- gap:calc(9 * var(--cr-u)) calc(14 * var(--cr-u))!important;
- width:calc(100% - 31 * var(--cr-u))!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-fields label{
- display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:0!important;
- color:#fff!important;font-size:calc(14 * var(--cr-u))!important;font-weight:700!important;line-height:calc(19 * var(--cr-u))!important;
- margin:0!important;padding:0!important;min-width:0!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-fields :is(input,select){
- width:100%!important;height:calc(45 * var(--cr-u))!important;min-height:0!important;max-width:none!important;
- padding:calc(5 * var(--cr-u)) calc(10 * var(--cr-u))!important;margin:0!important;border:1px solid #d5deef!important;
- border-radius:calc(13 * var(--cr-u))!important;background:#fff!important;color:#000!important;
- font-size:calc(22 * var(--cr-u))!important;font-weight:400!important;line-height:normal!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-actions,
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .quick-preset-bar{
- display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:calc(18 * var(--cr-u))!important;
- width:auto!important;max-width:none!important;padding:0!important;margin-right:calc(3 * var(--cr-u))!important;margin-left:calc(14 * var(--cr-u))!important;
- border:0!important;background:transparent!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-actions{margin-top:calc(27 * var(--cr-u))!important;margin-bottom:0!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-quick-action-row{display:block!important;margin:calc(13 * var(--cr-u)) 0 0!important;padding:0!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .quick-preset-label{display:none!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-reference :is(.route-actions,.quick-preset-bar) button,
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-tools button{
- display:block!important;width:100%!important;min-width:0!important;max-width:none!important;
- height:calc(45 * var(--cr-u))!important;min-height:0!important;margin:0!important;padding:0!important;
- border:0!important;border-radius:calc(13 * var(--cr-u))!important;box-shadow:none!important;
- background:var(--cr-yellow)!important;color:#000!important;
- font-size:calc(30 * var(--cr-u))!important;font-weight:700!important;line-height:1!important;white-space:nowrap!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-reference .quick-preset-bar button{background:#fff!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute #generateRoute{order:1!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute #surpriseRoute{order:2!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute #endlessRoute{order:3!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary>.route-studio-live-preview{
- display:block!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
- padding:0!important;margin:0!important;overflow:hidden!important;background:#fff!important;
- border:calc(5 * var(--cr-u)) double var(--cr-blue)!important;border-radius:calc(28 * var(--cr-u))!important;box-shadow:0 0 0 calc(3 * var(--cr-u)) #fff!important!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary .route-studio-live-heading{
- display:block!important;padding:calc(12 * var(--cr-u)) 0 0!important;margin:0!important;background:transparent!important;border:0!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary .route-studio-live-heading>div:first-child{
- display:flex!important;align-items:center!important;gap:calc(16 * var(--cr-u))!important;
- margin:0 calc(14 * var(--cr-u))!important;padding:0!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary h2{
- color:#000!important;font-size:calc(30 * var(--cr-u))!important;font-weight:700!important;line-height:1.1!important;margin:0!important;padding:0!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary :is(.route-quick-facts,.note){display:none!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary .studio-live-stats{
- display:block!important;position:static!important;padding:0 calc(32 * var(--cr-u))!important;margin:calc(48 * var(--cr-u)) 0 0!important;
- background:transparent!important;border:0!important;font-size:calc(34 * var(--cr-u))!important;font-weight:700!important;line-height:1.25!important;color:#000!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary .studio-live-stats>span{
- display:block!important;white-space:nowrap!important;margin:0!important;padding:0!important;border:0!important;font:inherit!important;color:#000!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary .studio-live-stats b{font:inherit!important;color:#000!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-tools .studio-elevation-controls{
- display:grid!important;grid-template-columns:348fr 105fr 105fr!important;gap:calc(12 * var(--cr-u))!important;
- width:calc(100% - 31 * var(--cr-u))!important;padding:0!important;margin:calc(22 * var(--cr-u)) 0 0!important;
- border:0!important;background:transparent!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-tools .note{display:none!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-callout{
- margin:calc(54 * var(--cr-u)) calc(42 * var(--cr-u)) 0 calc(32 * var(--cr-u))!important;padding:0!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-callout #enjoyRide{
- display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;
- width:100%!important;height:calc(169 * var(--cr-u))!important;min-height:0!important;margin:0!important;
- padding:calc(18 * var(--cr-u)) calc(22 * var(--cr-u))!important;border:0!important;border-radius:calc(22 * var(--cr-u))!important;
- background:#fff!important;color:#000!important;box-shadow:0 0 0 calc(3 * var(--cr-u)) #fff!important;border:calc(5 * var(--cr-u)) double var(--cr-blue)!important;text-align:left!important;
- font-size:calc(48 * var(--cr-u))!important;font-weight:700!important;line-height:1.3!important;white-space:nowrap!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile{
- display:block!important;position:relative!important;min-width:0!important;min-height:0!important;overflow:hidden!important;padding-bottom:calc(57 * var(--cr-u))!important;
- margin:0!important;padding:0!important;border:0!important;background:#fff!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile #studioLiveChart{
- display:block!important;position:absolute!important;inset:0 0 calc(57 * var(--cr-u))!important;width:100%!important;height:calc(100% - 57 * var(--cr-u))!important;
- min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;
- border:calc(5 * var(--cr-u)) solid var(--cr-blue)!important;border-radius:0!important;background:#fff!important;overflow:hidden!important;touch-action:none;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile #studioLiveChart svg{
- display:block!important;width:100%!important;height:100%!important;background:#fff!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile svg polyline{display:none!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile .studio-scrub-marker{stroke:var(--cr-yellow)!important;stroke-width:calc(5 * var(--cr-u))!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout{
- display:flex!important;align-items:center!important;gap:0!important;position:absolute!important;
- left:calc(20 * var(--cr-u))!important;right:calc(24 * var(--cr-u))!important;bottom:0!important;
- z-index:2!important;height:calc(46 * var(--cr-u))!important;margin:0!important;padding:0 calc(16 * var(--cr-u))!important;
- border:1px solid var(--cr-blue)!important;border-radius:calc(12 * var(--cr-u))!important;background:var(--cr-yellow)!important;
- color:var(--cr-blue)!important;font-size:calc(30 * var(--cr-u))!important;font-weight:700!important;line-height:1!important;white-space:nowrap!important;
- pointer-events:none!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout :is(span,b){
- display:inline!important;font:inherit!important;color:var(--cr-blue)!important;padding:0!important;margin:0!important;
-}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>span:nth-child(2)::before,
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>span:nth-child(3)::before{content:' - ';white-space:pre}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>.note{margin-left:auto!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-reference button{cursor:pointer!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-reference button:focus-visible{outline:3px solid #000!important;outline-offset:3px!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls{position:relative!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-error{position:absolute!important;left:0;bottom:0;color:#fff!important;font-size:calc(18 * var(--cr-u))!important;font-weight:700!important;margin:0!important}
-body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-error[hidden]{display:none!important}
-@media(max-width:900px){
- body.cr-reference-mounted main,body.cr-reference-mounted main>.ride-workspace,body.cr-reference-mounted #screenRoute{height:auto!important;max-height:none!important;overflow:visible!important;min-height:100dvh!important}
- body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-reference{height:auto!important;min-height:100dvh!important;overflow:visible!important;grid-template-rows:40px 50px auto minmax(260px,40vh)!important}
- body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-config{grid-template-columns:minmax(0,1fr)!important;gap:18px!important;padding:18px!important}
- body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-builder{margin:0!important}
- body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-summary>.route-studio-live-preview{min-height:240px!important}
- body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>.note{display:none!important}
-}
+  body[data-ride-experience="classic"][data-breakaway-screen="route"].cr-reference-mounted {
+    --cr-u:min(calc(100vw / 2048),calc(100dvh / 1044));
+    --cr-blue:#0053ad;
+    --cr-yellow:#ffd000;
+    --cr-bg:#f4f4f4;
+    color:#000!important;
+    color-scheme:light!important;
+    background:var(--cr-bg)!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  body.cr-reference-mounted main,
+  body.cr-reference-mounted main>.ride-workspace,
+  body.cr-reference-mounted #screenRoute {
+    width:100%!important;
+    max-width:none!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:var(--cr-bg)!important;
+  }
+  body.cr-reference-mounted main>.breakaway-brand-bar,
+  body.cr-reference-mounted main>.browser-compatibility,
+  body.cr-reference-mounted #screenRoute>#routeStudio,
+  body.cr-reference-mounted #modeHomeButton,
+  body.cr-reference-mounted a[href="/trainer-lab.html"] {
+    display:none!important;
+  }
+  body.cr-reference-mounted #screenRoute {
+    position:relative!important;
+    display:block!important;
+    isolation:isolate!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-reference,
+  body.cr-reference-mounted #screenRoute .cr-reference *,
+  body.cr-reference-mounted #screenRoute>.sc-masthead,
+  body.cr-reference-mounted #screenRoute>.sc-masthead * {
+    box-sizing:border-box!important;
+    font-family:Arial,Helvetica,sans-serif!important;
+    text-shadow:none!important;
+    letter-spacing:normal!important;
+  }
 
+  /* The navigation is the existing Classic cockpit nav, not a nonfunctional copy. */
+  body.cr-reference-mounted #screenRoute>.sc-masthead {
+    display:block!important;
+    position:absolute!important;
+    inset:0 0 auto 0!important;
+    z-index:5!important;
+    width:100%!important;
+    height:calc(88 * var(--cr-u))!important;
+    margin:0!important;
+    padding:0!important;
+    color:var(--cr-blue)!important;
+    background:transparent!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    overflow:visible!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-head {
+    display:block!important;
+    position:relative!important;
+    width:100%!important;
+    height:100%!important;
+    padding:0!important;
+    margin:0!important;
+    background:transparent!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-brand {
+    display:block!important;
+    position:absolute!important;
+    top:calc(29 * var(--cr-u))!important;
+    left:calc(34 * var(--cr-u))!important;
+    margin:0!important;
+    padding:0!important;
+    white-space:nowrap!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-brand small {
+    display:block!important;
+    color:var(--cr-blue)!important;
+    font-size:calc(26 * var(--cr-u))!important;
+    font-weight:800!important;
+    line-height:1.05!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-brand strong,
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-brand-mark,
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-phase,
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-subhead span {
+    display:none!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-subhead {
+    display:block!important;
+    position:absolute!important;
+    left:calc(35 * var(--cr-u))!important;
+    top:calc(61 * var(--cr-u))!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-subhead strong {
+    color:#000!important;
+    text-transform:none!important;
+    font-size:calc(18 * var(--cr-u))!important;
+    font-weight:700!important;
+    line-height:1!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-tabs {
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    position:absolute!important;
+    top:calc(31 * var(--cr-u))!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    gap:calc(13 * var(--cr-u))!important;
+    width:calc(785 * var(--cr-u))!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    overflow:visible!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    min-width:0!important;
+    height:calc(69 * var(--cr-u))!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    border:calc(4 * var(--cr-u)) solid var(--cr-blue)!important;
+    border-radius:calc(5 * var(--cr-u))!important;
+    background:var(--cr-bg)!important;
+    color:var(--cr-blue)!important;
+    box-shadow:none!important;
+    font-size:calc(27 * var(--cr-u))!important;
+    font-weight:800!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+    text-transform:none!important;
+    cursor:pointer!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button.sc-active {
+    color:#fff!important;
+    background:var(--cr-blue)!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button:hover:not(.sc-active) {
+    background:#dce8f6!important;
+    color:var(--cr-blue)!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-head-right {
+    display:block!important;
+    position:absolute!important;
+    right:calc(36 * var(--cr-u))!important;
+    top:calc(32 * var(--cr-u))!important;
+    padding:0!important;
+    margin:0!important;
+  }
+  body.cr-reference-mounted #screenRoute>.sc-masthead .sc-mode-change {
+    display:block!important;
+    width:calc(266 * var(--cr-u))!important;
+    height:calc(67 * var(--cr-u))!important;
+    min-height:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:calc(5 * var(--cr-u))!important;
+    background:var(--cr-blue)!important;
+    color:#fff!important;
+    font-size:calc(27 * var(--cr-u))!important;
+    font-weight:800!important;
+    line-height:1!important;
+    cursor:pointer!important;
+  }
+
+  /* Upload, heading, three-panel configuration, full-width chart. */
+  body.cr-reference-mounted #screenRoute>.cr-reference {
+    display:grid!important;
+    grid-template-rows:calc(44 * var(--cr-u)) calc(58 * var(--cr-u)) calc(385 * var(--cr-u)) minmax(0,1fr)!important;
+    row-gap:calc(8 * var(--cr-u))!important;
+    width:100%!important;
+    height:100dvh!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:calc(89 * var(--cr-u)) calc(34 * var(--cr-u)) calc(76 * var(--cr-u))!important;
+    border:0!important;
+    background:var(--cr-bg)!important;
+    color:#000!important;
+    overflow:hidden!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-upload-row {
+    display:flex!important;
+    align-items:flex-start!important;
+    padding-left:calc(7 * var(--cr-u))!important;
+  }
+  body.cr-reference-mounted #screenRoute button.cr-upload {
+    display:block!important;
+    width:calc(374 * var(--cr-u))!important;
+    height:calc(44 * var(--cr-u))!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:calc(4 * var(--cr-u))!important;
+    background:var(--cr-blue)!important;
+    color:#fff!important;
+    font-size:calc(27 * var(--cr-u))!important;
+    font-weight:750!important;
+    line-height:1!important;
+    cursor:pointer!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-heading {
+    display:flex!important;
+    align-items:center!important;
+    gap:calc(11 * var(--cr-u))!important;
+    margin:0!important;
+    padding:0!important;
+    color:#000!important;
+    font-size:calc(30 * var(--cr-u))!important;
+    font-weight:750!important;
+    line-height:1!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-heading>span,
+  body.cr-reference-mounted #screenRoute .cr-summary .route-step {
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex:none!important;
+    width:calc(44 * var(--cr-u))!important;
+    height:calc(44 * var(--cr-u))!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:50%!important;
+    background:var(--cr-blue)!important;
+    color:#fff!important;
+    font-size:calc(32 * var(--cr-u))!important;
+    font-weight:750!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-config {
+    display:grid!important;
+    grid-template-columns:minmax(0,760fr) minmax(0,502fr) minmax(0,586fr)!important;
+    column-gap:calc(43 * var(--cr-u))!important;
+    align-items:stretch!important;
+    min-height:0!important;
+    min-width:0!important;
+    width:100%!important;
+    margin:0!important;
+    padding:calc(19 * var(--cr-u)) calc(45 * var(--cr-u)) calc(20 * var(--cr-u)) calc(27 * var(--cr-u))!important;
+    border:0!important;
+    border-radius:0!important;
+    background:var(--cr-blue)!important;
+    box-shadow:none!important;
+    overflow:visible!important;
+  }
+  body.cr-reference-mounted #screenRoute :is(.cr-controls,.cr-summary,.cr-actions) {
+    min-width:0!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-controls {
+    position:relative!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-controls .route-builder {
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:transparent!important;
+    overflow:visible!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-controls :is(.route-import,.route-import-divider,.route-panel-heading,.route-tip),
+  body.cr-reference-mounted #screenRoute .cr-controls .quick-preset-label,
+  body.cr-reference-mounted #screenRoute .cr-summary :is(.route-quick-facts,.note),
+  body.cr-reference-mounted #screenRoute .cr-tools .note {
+    display:none!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-controls .route-fields {
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    column-gap:calc(14 * var(--cr-u))!important;
+    row-gap:calc(7 * var(--cr-u))!important;
+    width:calc(100% - 33 * var(--cr-u))!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-controls .route-fields label {
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    min-width:0!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    gap:calc(2 * var(--cr-u))!important;
+    font-size:calc(18 * var(--cr-u))!important;
+    font-weight:750!important;
+    line-height:calc(19 * var(--cr-u))!important;
+    color:#fff!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-controls .route-fields :is(input,select) {
+    display:block!important;
+    width:100%!important;
+    height:calc(42 * var(--cr-u))!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:calc(4 * var(--cr-u)) calc(10 * var(--cr-u))!important;
+    border:1px solid #d4dce8!important;
+    border-radius:calc(11 * var(--cr-u))!important;
+    background:var(--cr-bg)!important;
+    color:#000!important;
+    font-size:calc(21 * var(--cr-u))!important;
+    font-weight:400!important;
+    line-height:normal!important;
+    outline-offset:2px!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-controls .route-actions,
+  body.cr-reference-mounted #screenRoute .cr-controls .quick-preset-bar {
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:calc(16 * var(--cr-u))!important;
+    width:calc(100% - 20 * var(--cr-u))!important;
+    max-width:none!important;
+    padding:0!important;
+    margin-left:calc(13 * var(--cr-u))!important;
+    margin-right:0!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-controls .route-actions {
+    margin-top:calc(26 * var(--cr-u))!important;
+    margin-bottom:0!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-controls .route-quick-action-row {
+    display:block!important;
+    margin:calc(12 * var(--cr-u)) 0 0!important;
+    padding:0!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-reference :is(.route-actions,.quick-preset-bar) button,
+  body.cr-reference-mounted #screenRoute .cr-tools button {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:calc(43 * var(--cr-u))!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0 calc(4 * var(--cr-u))!important;
+    border:0!important;
+    border-radius:calc(11 * var(--cr-u))!important;
+    background:var(--cr-yellow)!important;
+    color:#000!important;
+    box-shadow:none!important;
+    font-size:calc(27 * var(--cr-u))!important;
+    font-weight:800!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+    cursor:pointer!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-reference .quick-preset-bar button {
+    background:var(--cr-bg)!important;
+  }
+  body.cr-reference-mounted #screenRoute #generateRoute {order:1!important}
+  body.cr-reference-mounted #screenRoute #surpriseRoute {order:2!important}
+  body.cr-reference-mounted #screenRoute #endlessRoute {order:3!important}
+
+  /* Mirrored route metrics are live, populated by existing preview logic. */
+  body.cr-reference-mounted #screenRoute .cr-summary>.route-studio-live-preview {
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    background:var(--cr-bg)!important;
+    border:calc(6 * var(--cr-u)) double var(--cr-blue)!important;
+    border-radius:calc(27 * var(--cr-u))!important;
+    box-shadow:0 0 0 calc(3 * var(--cr-u)) #fff!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-summary .route-studio-live-heading {
+    display:block!important;
+    margin:0!important;
+    padding:calc(8 * var(--cr-u)) 0 0!important;
+    background:transparent!important;
+    border:0!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-summary .route-studio-live-heading>div:first-child {
+    display:flex!important;
+    align-items:center!important;
+    gap:calc(14 * var(--cr-u))!important;
+    margin:0 calc(12 * var(--cr-u))!important;
+    padding:0!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-summary h2 {
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+    color:#000!important;
+    font-size:calc(29 * var(--cr-u))!important;
+    font-weight:750!important;
+    line-height:1.1!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-summary .studio-live-stats {
+    display:block!important;
+    position:static!important;
+    margin:calc(46 * var(--cr-u)) 0 0!important;
+    padding:0 calc(25 * var(--cr-u))!important;
+    border:0!important;
+    background:transparent!important;
+    color:#000!important;
+    font-size:calc(34 * var(--cr-u))!important;
+    font-weight:700!important;
+    line-height:1.26!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-summary .studio-live-stats>span {
+    display:block!important;
+    width:auto!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    color:#000!important;
+    font:inherit!important;
+    white-space:nowrap!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-summary .studio-live-stats b {
+    display:inline!important;
+    color:#000!important;
+    font:inherit!important;
+  }
+
+  body.cr-reference-mounted #screenRoute .cr-tools .studio-elevation-controls {
+    display:grid!important;
+    grid-template-columns:minmax(0,344fr) minmax(0,110fr) minmax(0,116fr)!important;
+    gap:calc(12 * var(--cr-u))!important;
+    width:100%!important;
+    min-height:0!important;
+    margin:calc(22 * var(--cr-u)) 0 0!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-tools button {
+    font-size:calc(27 * var(--cr-u))!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-callout {
+    margin:calc(52 * var(--cr-u)) calc(22 * var(--cr-u)) 0 calc(23 * var(--cr-u))!important;
+    padding:0!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-callout #enjoyRide {
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    align-items:flex-start!important;
+    width:100%!important;
+    height:calc(166 * var(--cr-u))!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:calc(13 * var(--cr-u)) calc(16 * var(--cr-u))!important;
+    border:calc(6 * var(--cr-u)) double var(--cr-blue)!important;
+    border-radius:calc(22 * var(--cr-u))!important;
+    box-shadow:0 0 0 calc(3 * var(--cr-u)) #fff!important;
+    background:var(--cr-bg)!important;
+    color:#000!important;
+    text-align:left!important;
+    font-size:calc(46 * var(--cr-u))!important;
+    font-weight:750!important;
+    line-height:1.23!important;
+    white-space:nowrap!important;
+    cursor:pointer!important;
+  }
+
+  /* Render the actual elevation SVG as the screenshot's monochrome terrain. */
+  body.cr-reference-mounted #screenRoute .cr-profile {
+    position:relative!important;
+    display:block!important;
+    min-height:0!important;
+    min-width:0!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    background:var(--cr-bg)!important;
+    overflow:hidden!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-profile #studioLiveChart {
+    display:block!important;
+    position:absolute!important;
+    top:0!important;
+    left:0!important;
+    right:0!important;
+    bottom:calc(56 * var(--cr-u))!important;
+    width:100%!important;
+    height:calc(100% - 56 * var(--cr-u))!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    border:calc(4 * var(--cr-u)) solid var(--cr-blue)!important;
+    border-radius:0!important;
+    background:var(--cr-bg)!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+    touch-action:none!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-profile #studioLiveChart svg {
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    background:var(--cr-bg)!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-profile svg g[clip-path] rect {
+    fill:#999!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-profile svg polyline {
+    display:none!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-profile .studio-scrub-marker {
+    stroke:var(--cr-yellow)!important;
+    stroke-width:calc(5 * var(--cr-u))!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout {
+    display:flex!important;
+    align-items:center!important;
+    gap:0!important;
+    position:absolute!important;
+    left:calc(20 * var(--cr-u))!important;
+    right:calc(22 * var(--cr-u))!important;
+    bottom:0!important;
+    z-index:2!important;
+    width:auto!important;
+    height:calc(45 * var(--cr-u))!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0 calc(14 * var(--cr-u))!important;
+    border:1px solid var(--cr-blue)!important;
+    border-radius:calc(12 * var(--cr-u))!important;
+    background:var(--cr-yellow)!important;
+    color:var(--cr-blue)!important;
+    box-shadow:none!important;
+    font-size:calc(28 * var(--cr-u))!important;
+    font-weight:750!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+    pointer-events:none!important;
+    overflow:hidden!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout :is(span,b) {
+    display:inline!important;
+    width:auto!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0!important;
+    color:var(--cr-blue)!important;
+    font:inherit!important;
+    white-space:nowrap!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>span:nth-child(2)::before,
+  body.cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>span:nth-child(3)::before {
+    content:' - ';
+    white-space:pre;
+  }
+  body.cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>.note {
+    display:inline!important;
+    margin-left:auto!important;
+    padding-left:calc(10 * var(--cr-u))!important;
+    font:inherit!important;
+    color:var(--cr-blue)!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-reference button:focus-visible,
+  body.cr-reference-mounted #screenRoute>.sc-masthead button:focus-visible {
+    outline:3px solid #000!important;
+    outline-offset:3px!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-error {
+    position:absolute!important;
+    left:0!important;
+    bottom:calc(-20 * var(--cr-u))!important;
+    margin:0!important;
+    padding:0!important;
+    color:#fff!important;
+    font-size:calc(16 * var(--cr-u))!important;
+    font-weight:700!important;
+  }
+  body.cr-reference-mounted #screenRoute .cr-error[hidden] {display:none!important}
+
+  /* Smaller screens may scroll rather than shrinking interactive targets. */
+  @media (max-width:1100px) {
+    body.cr-reference-mounted {--cr-u:1px}
+    body.cr-reference-mounted main,
+    body.cr-reference-mounted main>.ride-workspace,
+    body.cr-reference-mounted #screenRoute {
+      height:auto!important;
+      max-height:none!important;
+      min-height:100dvh!important;
+      overflow:visible!important;
+    }
+    body.cr-reference-mounted #screenRoute>.sc-masthead {
+      position:relative!important;
+      height:auto!important;
+      min-height:178px!important;
+    }
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-head {
+      display:flex!important;
+      align-items:flex-start!important;
+      flex-wrap:wrap!important;
+      justify-content:space-between!important;
+      gap:0!important;
+      min-height:178px!important;
+      padding:18px 18px 0!important;
+    }
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-brand,
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-head-right,
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-tabs {
+      position:static!important;
+      inset:auto!important;
+      transform:none!important;
+    }
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-brand small {font-size:18px!important}
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-mode-change {
+      width:auto!important;
+      height:42px!important;
+      padding:0 16px!important;
+      font-size:16px!important;
+    }
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-tabs {
+      order:3!important;
+      flex:0 0 100%!important;
+      width:100%!important;
+      margin-top:22px!important;
+      gap:7px!important;
+    }
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-tabs button {
+      height:51px!important;
+      font-size:15px!important;
+      border-width:2px!important;
+    }
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-subhead {
+      left:18px!important;
+      top:46px!important;
+    }
+    body.cr-reference-mounted #screenRoute>.cr-reference {
+      height:auto!important;
+      min-height:0!important;
+      overflow:visible!important;
+      grid-template-rows:auto auto auto auto!important;
+      gap:14px!important;
+      padding:10px 18px 28px!important;
+    }
+    body.cr-reference-mounted #screenRoute .cr-config {
+      grid-template-columns:minmax(0,1fr)!important;
+      gap:20px!important;
+      padding:20px!important;
+    }
+    body.cr-reference-mounted #screenRoute .cr-controls .route-fields {width:100%!important}
+    body.cr-reference-mounted #screenRoute .cr-controls .route-actions,
+    body.cr-reference-mounted #screenRoute .cr-controls .quick-preset-bar {
+      width:100%!important;
+      margin-left:0!important;
+    }
+    body.cr-reference-mounted #screenRoute .cr-summary>.route-studio-live-preview {
+      height:auto!important;
+      min-height:300px!important;
+    }
+    body.cr-reference-mounted #screenRoute .cr-summary .studio-live-stats {
+      margin:25px 0 25px!important;
+      font-size:26px!important;
+    }
+    body.cr-reference-mounted #screenRoute .cr-tools .studio-elevation-controls {
+      margin-top:0!important;
+    }
+    body.cr-reference-mounted #screenRoute .cr-callout {margin:20px 0 0!important}
+    body.cr-reference-mounted #screenRoute .cr-callout #enjoyRide {
+      height:auto!important;
+      min-height:120px!important;
+      font-size:36px!important;
+    }
+    body.cr-reference-mounted #screenRoute .cr-profile {height:340px!important}
+    body.cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout {
+      font-size:16px!important;
+    }
+  }
+  @media (max-width:540px) {
+    body.cr-reference-mounted #screenRoute>.sc-masthead {min-height:195px!important}
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-head {min-height:195px!important}
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-tabs {
+      grid-template-columns:repeat(2,minmax(0,1fr))!important;
+      margin-top:35px!important;
+    }
+    body.cr-reference-mounted #screenRoute>.sc-masthead .sc-mode-change {
+      font-size:13px!important;
+      padding:0 10px!important;
+    }
+    body.cr-reference-mounted #screenRoute .cr-controls .route-fields {
+      grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    }
+    body.cr-reference-mounted #screenRoute .cr-reference :is(.route-actions,.quick-preset-bar) button {
+      font-size:14px!important;
+      height:45px!important;
+      padding:0 3px!important;
+    }
+    body.cr-reference-mounted #screenRoute .cr-tools button {font-size:14px!important}
+    body.cr-reference-mounted #screenRoute .cr-summary .studio-live-stats {font-size:20px!important}
+    body.cr-reference-mounted #screenRoute .cr-callout #enjoyRide {font-size:28px!important}
+    body.cr-reference-mounted #screenRoute .cr-profile .studio-scrub-readout>.note {display:none!important}
+  }
 }
