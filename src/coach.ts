@@ -332,11 +332,12 @@ export function mountCoach(bridge:CoachBridge){
     const expandedIndex=currentCalendarDays.findIndex(day=>day.key===expandedCalendarKey);
     strip.innerHTML=currentCalendarDays.map((day,index)=>{
       const activity=day.rideName|| (day.completedRide?'Ride completed':null);
-      const strengthName=day.strength?'Full Body Strength '+day.strength:null;
+      const strengthDone=day.isToday&&strength?.completedToday()===true;
+      const strengthName=day.strength?(strengthDone?'✓ Strength completed':'Full Body Strength '+day.strength):null;
       const summary=[activity,strengthName].filter(Boolean);
       return '<button type="button" class="coach-calendar-pill'+(day.isToday?' is-today':'')+'"'+
         ' data-calendar-index="'+index+'" aria-expanded="'+(day.key===expandedCalendarKey)+'" aria-controls="coachCalendarDetails"'+
-        ' aria-label="'+escapeHtml(day.title+': '+(summary.join(', ')||'Rest day')+'. Select for more information.')+'">'+
+        ' aria-label="'+escapeHtml(day.title+': '+(summary.join(', ')||'Rest day')+'. '+(day.key===expandedCalendarKey?'Collapse details.':'Expand details.'))+'">'+
         '<span class="coach-calendar-date">'+escapeHtml(day.label)+'</span>'+
         '<span class="coach-calendar-activity">'+escapeHtml(activity|| (strengthName?'':'Rest day'))+'</span>'+
         (strengthName?'<span class="coach-calendar-strength">'+escapeHtml(strengthName)+'</span>':'')+
@@ -352,10 +353,11 @@ export function mountCoach(bridge:CoachBridge){
       '<p>'+day.rideMinutes+' min · '+escapeHtml(ride.description)+'</p></div>'+
       '<button type="button" data-calendar-action="ride" data-calendar-index="'+expandedIndex+'">VIEW RIDE →</button></div>':
       day.completedRide?'<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>Ride completed today</strong><p>Coach will account for your recorded ride.</p></div></div>':'';
+    const strengthDone=day.isToday&&strength?.completedToday()===true;
     const strengthCard=day.strength?
-      '<div class="coach-calendar-session"><div><span class="coach-calendar-type">STRENGTH · NO TRAINER NEEDED</span>'+
+      '<div class="coach-calendar-session"><div><span class="coach-calendar-type">'+(strengthDone?'STRENGTH · COMPLETED':'STRENGTH · NO TRAINER NEEDED')+'</span>'+
       '<strong>Full Body Strength '+day.strength+'</strong><p>'+day.strengthMinutes+' min · Exercises matched to your saved equipment</p></div>'+
-      '<button type="button" data-calendar-action="strength" data-calendar-index="'+expandedIndex+'">START STRENGTH →</button></div>':'';
+      (strengthDone?'':'<button type="button" data-calendar-action="strength" data-calendar-index="'+expandedIndex+'">START STRENGTH →</button>')+'</div>':'';
     const restCard=!rideCard&&!strengthCard?
       '<div class="coach-calendar-session"><div><span class="coach-calendar-type">RECOVERY</span>'+
       '<strong>Rest day</strong><p>No workout is scheduled. Recovery is part of your plan.</p></div></div>':'';
@@ -373,10 +375,8 @@ export function mountCoach(bridge:CoachBridge){
     if(!day)return;
     expandedCalendarKey=expandedCalendarKey===day.key?null:day.key;
     renderCalendar();
-    // Keep keyboard focus on the chosen day after rebuilding the pill strip.
-    if(expandedCalendarKey){
-      $('coachCalendarStrip').querySelectorAll<HTMLButtonElement>('[data-calendar-index]')[Number(button.dataset.calendarIndex)]?.focus();
-    }
+    // Keep keyboard focus on the chosen day, whether expanded or collapsed.
+    $('coachCalendarStrip').querySelectorAll<HTMLButtonElement>('[data-calendar-index]')[Number(button.dataset.calendarIndex)]?.focus();
   });
   $('coachCalendarDetails').addEventListener('click',event=>{
     const target=event.target;
