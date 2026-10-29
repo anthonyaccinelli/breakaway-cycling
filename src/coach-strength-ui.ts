@@ -1,17 +1,15 @@
 import {STRENGTH_KEY,STRENGTH_HISTORY_KEY,defaultStrength,equipmentChoices,validStrength,availableExercises,strengthRoutine} from './coach-strength';
 import type {StrengthSettings,StrengthRecord,StrengthExercise,StrengthSetLog} from './coach-strength';
+import {dayKey,escapeHtml as esc,readJson as read,writeJson as write} from './coach-dom';
 import './coach-strength.css';
-const esc=(x:string)=>x.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
-const read=(k:string)=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch{return null;}};
-const write=(k:string,v:unknown)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch{return false;}};
-const dayKey=(v:Date)=>v.getFullYear()+'-'+v.getMonth()+'-'+v.getDate();
 
-export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;finished:()=>void}){
+export function mountCoachStrength(host:HTMLElement,callbacks:{finished:()=>void}){
  let settings=validStrength(read(STRENGTH_KEY)||defaultStrength);
  const stored=read(STRENGTH_HISTORY_KEY);
  let history:StrengthRecord[]=Array.isArray(stored)?stored.filter(x=>x&&typeof x.routine==='string'&&Array.isArray(x.sets)).slice(-150):[];
  let active=false,variation:'A'|'B'='A',light=false,start=0,selectedRpe='',allocatedMinutes=30;
  let exercises:StrengthExercise[]=[];
+ let routine=strengthRoutine(settings,'A',false);
  const checked=new Set<string>(),entered=new Map<string,string>();
  let timer:number|null=null,restUntil=0;
  let returnFocus:HTMLElement|null=null;
@@ -66,7 +64,6 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
  function renderSession(){
   if(!active)return;
   const scroll=overlay.scrollTop;
-  const routine=strengthRoutine(settings,variation,light);
   const total=exercises.reduce((n,e)=>n+e.sets,0);
   overlay.innerHTML='<div class="coach-strength-session">'+
     '<header class="coach-strength-session-head"><div><span>BREAKAWAY COACH / STRENGTH</span><h2>'+esc(routine.title)+'</h2><p>'+allocatedMinutes+' min planned · '+checked.size+' / '+total+' sets logged</p></div><button type="button" id="strengthExit">← BACK TO COACH</button></header>'+
@@ -137,7 +134,6 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
    const id=key(i,j);
    sets.push({exerciseId:e.id,set:j+1,reps:entered.get('reps:'+id)||'',load:entered.get('load:'+id)||'',done:checked.has(id)});
   }});
-  const routine=strengthRoutine(settings,variation,light);
   const record:StrengthRecord={
    id:new Date().toISOString()+':'+routine.id,date:new Date().toISOString(),routine:routine.title,
    minutes:Math.max(1,Math.round((Date.now()-start)/60000)),completedSets:checked.size,plannedSets:sets.length,
@@ -150,7 +146,10 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
  function close(){stopTimer();active=false;overlay.hidden=true;returnFocus?.focus();returnFocus=null;}
  function open(chosen:'A'|'B'='A',isLight=false,minutes?:number){
   if(!settings.enabled)return false;
-  variation=chosen;light=isLight;allocatedMinutes=Math.min(settings.minutes,Math.max(15,minutes||settings.minutes));exercises=strengthRoutine(settings,variation,isLight||allocatedMinutes<20).exercises;
+  variation=chosen;allocatedMinutes=Math.min(settings.minutes,Math.max(15,minutes||settings.minutes));
+  light=isLight||allocatedMinutes<20;
+  routine=strengthRoutine(settings,variation,light);
+  exercises=routine.exercises;
   if(allocatedMinutes<settings.minutes)exercises=exercises.map(e=>({...e,sets:Math.max(1,Math.min(e.sets,allocatedMinutes<25?1:2))}));
   returnFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;
   active=true;checked.clear();entered.clear();selectedRpe='';start=Date.now();stopTimer();
