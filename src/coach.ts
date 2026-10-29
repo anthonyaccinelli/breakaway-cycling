@@ -52,25 +52,103 @@ export function mountCoach(bridge:CoachBridge){
   screen.id='breakawayCoachScreen';
   screen.className='coach-screen';
   screen.hidden=true;
-  screen.innerHTML=
-    '<header class="coach-top"><div><div class="coach-eyebrow">RIDE BREAKAWAY / CLASSIC / COACH</div><h1>BREAKAWAY <em>COACH.</em></h1><p>Structured training inside Classic. Survival and Cycle Quest stay free-play games.</p></div><button type="button" class="coach-back" id="coachBack">← BACK TO CLASSIC</button></header>'+
-    '<div class="coach-main" role="main"><div class="coach-layout"><section class="coach-panel coach-primary">'+
-    '<div class="coach-section-top"><span class="coach-tag">01 / TODAY</span><span class="coach-tag" id="coachPlanTag">PERSONALIZED</span></div>'+
-    '<h2>YOUR NEXT RIDE.</h2><p class="coach-intro" id="coachSuggestion">Train with purpose, ride your way.</p>'+ '<div class="coach-quick"><button type="button" data-coach-question="why">WHY THIS WORKOUT?</button><button type="button" data-coach-question="tired">I FEEL TIRED</button><button type="button" data-coach-question="short">SHORT ON TIME</button></div><p id="coachAnswer" class="coach-small" aria-live="polite">Try a coaching question to get a simple, rules-based recommendation.</p>'+ 
-    '<label class="coach-label" for="coachWorkout">WORKOUT LIBRARY</label><select id="coachWorkout" class="coach-select"></select>'+
-    '<div id="coachWorkoutInfo" class="coach-workout-info"></div><div id="coachSegments" class="coach-segments"></div>'+
-    '<div class="coach-inline-fields"><label>CONTROL STYLE<select id="coachControl"><option value="structured">Structured ERG</option><option value="guided">Guided SIM (terrain controlled by rider)</option></select></label></div>'+
-    '<h3>READY TO TRAIN?</h3><button type="button" class="coach-classic-start" id="coachStartClassic">PREPARE CLASSIC WORKOUT →</button>'+
-    '<p class="coach-compat">Breakaway Coach prescribes workouts only inside Classic. For a free ride, return to Classic Route Studio. Survival and Cycle Quest retain their original gameplay and resistance control.</p>'+
-    '<button type="button" id="coachDemo" class="coach-demo-button">TRY INTERACTIVE WORKOUT DEMO (NO TRAINER)</button>'+
-    '<p class="coach-status" id="coachStatus" role="status"></p></section>'+
-    '<aside class="coach-side"><section class="coach-panel coach-history-host" id="coachHistoryImport"></section><section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">02 / PROFILE</span><span class="coach-tag">LOCAL ONLY</span></div><h2>YOUR TRAINING.</h2>'+
-    '<div class="coach-fields"><label>FTP (W)<input id="coachFtp" type="number" min="75" max="550" step="1"></label><label>HOURS / WEEK<input id="coachHours" type="number" min="1" max="20" step=".5"></label><label>DAYS / WEEK<input id="coachDays" type="number" min="2" max="7" step="1"></label><label>REST DAY<select id="coachRestDay"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label><label>LEVEL<select id="coachExperience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label><label>GOAL<select id="coachGoal"><option value="fitness">Ride consistently</option><option value="ftp">Increase FTP</option><option value="endurance">Build endurance</option><option value="race">Prepare to race</option></select></label></div>'+
-    '<button type="button" id="coachSaveProfile">SAVE RIDER PROFILE</button><p class="coach-small">Your profile and workout history are stored in this browser. No cloud sync or generative AI is connected.</p></section>'+
-    '<section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">03 / PLAN</span><span class="coach-tag">ADAPTS TO FEEDBACK</span></div><h2>THIS WEEK.</h2><div id="coachWeek" class="coach-week"></div></section>'+
-    '<section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">04 / PROGRESS</span></div><h2>COACHED WORKOUTS.</h2><div id="coachHistory"></div></section>'+ 
-    '<section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">TRAINING AWARENESS</span><span class="coach-tag">NO GAMEPLAY CHANGES</span></div><h2>ALL BREAKAWAY RIDES.</h2><div id="coachPlatformHistory"><p class="coach-small">Loading local ride history…</p></div></section>'+ 
-    '</aside></div></div>';
+  screen.innerHTML = `
+<header class="coach-top">
+  <div class="coach-identity">
+    <div class="coach-eyebrow">RIDE BREAKAWAY <span>/</span> CLASSIC <span>/</span> COACH</div>
+    <h1>Breakaway <em>Coach.</em></h1>
+    <p>Train with a plan. Enjoy the ride.</p>
+  </div>
+  <div class="coach-header-actions">
+    <span id="coachHeaderFtp" class="coach-ftp-chip">FTP 200 W</span>
+    <button type="button" class="coach-back" id="coachBack">← BACK TO CLASSIC</button>
+  </div>
+</header>
+<nav class="coach-nav" role="tablist" aria-label="Breakaway Coach navigation">
+  <button type="button" id="coachTabToday" role="tab" aria-controls="coachViewToday" aria-selected="true" tabindex="0" data-coach-tab="today">◉ <span>Today's Ride</span></button>
+  <button type="button" id="coachTabPlan" role="tab" aria-controls="coachViewPlan" aria-selected="false" tabindex="-1" data-coach-tab="plan">▦ <span>Training Plan</span></button>
+  <button type="button" id="coachTabHistory" role="tab" aria-controls="coachViewHistory" aria-selected="false" tabindex="-1" data-coach-tab="history">▥ <span>Ride History</span></button>
+  <button type="button" id="coachTabSettings" role="tab" aria-controls="coachViewSettings" aria-selected="false" tabindex="-1" data-coach-tab="settings">⚙ <span>Rider Settings</span></button>
+</nav>
+<div class="coach-main" role="main">
+  <section class="coach-view" id="coachViewToday" role="tabpanel" aria-labelledby="coachTabToday" data-coach-view="today">
+    <div class="coach-page-lead"><div><span class="coach-tag">YOUR NEXT SESSION</span><h2>Today's ride.</h2><p id="coachSuggestion">Choose a workout, connect your trainer, and ride.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="plan">See training plan →</button></div>
+    <div class="coach-today-grid">
+      <section class="coach-panel coach-workout-card">
+        <div class="coach-section-top"><span class="coach-tag">WORKOUT</span><span class="coach-feature-pill">CLASSIC ONLY</span></div>
+        <label class="coach-label" for="coachWorkout">CHOOSE YOUR WORKOUT</label>
+        <select id="coachWorkout" class="coach-select"></select>
+        <div id="coachWorkoutInfo" class="coach-workout-info"></div>
+        <div id="coachSegments" class="coach-segments" aria-label="Workout interval profile"></div>
+        <div class="coach-start-controls"><label for="coachControl">TRAINER CONTROL</label>
+          <select id="coachControl" class="coach-select">
+            <option value="structured">ERG — trainer holds the target power</option>
+            <option value="guided">SIM — you control effort over terrain</option>
+          </select>
+        </div>
+        <button type="button" id="coachStartClassic" class="coach-classic-start">CONTINUE TO CONNECT TRAINER <span aria-hidden="true">→</span></button>
+        <p class="coach-start-note">Next: Classic Devices. Connect your trainer and start pedaling.</p>
+        <div class="coach-quick"><button type="button" data-coach-question="tired">Feeling tired?</button><button type="button" data-coach-question="short">Short on time?</button><button type="button" data-coach-question="why">Why this workout?</button></div>
+        <p id="coachAnswer" class="coach-feedback" aria-live="polite">Your workout is based on your saved FTP and experience.</p>
+        <p id="coachStatus" class="coach-status" role="status"></p>
+      </section>
+      <aside class="coach-today-side">
+        <section class="coach-panel coach-mini-card">
+          <div class="coach-section-top"><span class="coach-tag">YOUR PROFILE</span><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit →</button></div>
+          <div id="coachProfileSummary" class="coach-profile-summary"></div>
+        </section>
+        <section class="coach-panel coach-mini-card">
+          <div class="coach-section-top"><span class="coach-tag">UPCOMING</span><button type="button" class="coach-subtle-link" data-navigate-coach="plan">Full week →</button></div>
+          <h3>Keep your momentum.</h3><div id="coachNextUp"></div>
+        </section>
+        <button type="button" id="coachDemo" class="coach-demo-button">TRY THE 8-MINUTE WORKOUT DEMO <small>NO TRAINER NEEDED →</small></button>
+      </aside>
+    </div>
+  </section>
+  <section class="coach-view" id="coachViewPlan" role="tabpanel" aria-labelledby="coachTabPlan" data-coach-view="plan" hidden>
+    <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training plan.</h2><p>Select a day or browse the workout library, then head to Today's Ride.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Change schedule →</button></div>
+    <div class="coach-plan-grid">
+      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS WEEK</span><span class="coach-small">Select a day to load its workout</span></div><div id="coachWeek" class="coach-week"></div></section>
+      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">WORKOUT LIBRARY</span></div><div id="coachPlanLibrary" class="coach-library-list"></div><p class="coach-small">Initial recommendations only; detailed long-term periodization is a future feature.</p></section>
+    </div>
+  </section>
+  <section class="coach-view" id="coachViewHistory" role="tabpanel" aria-labelledby="coachTabHistory" data-coach-view="history" hidden>
+    <div class="coach-page-lead"><div><span class="coach-tag">TRACK YOUR PROGRESS</span><h2>Ride history.</h2><p>Bring in your cycling history and review rides from all Breakaway modes.</p></div></div>
+    <div class="coach-history-grid">
+      <section class="coach-panel coach-history-host" id="coachHistoryImport"></section>
+      <div class="coach-history-side">
+        <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">ALL BREAKAWAY RIDES</span></div><div id="coachPlatformHistory"><p class="coach-small">Loading local rides…</p></div></section>
+        <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">COACHED WORKOUTS</span></div><div id="coachHistory"></div></section>
+      </div>
+    </div>
+  </section>
+  <section class="coach-view" id="coachViewSettings" role="tabpanel" aria-labelledby="coachTabSettings" data-coach-view="settings" hidden>
+    <div class="coach-page-lead"><div><span class="coach-tag">PERSONALIZE</span><h2>Rider settings.</h2><p>Tell Coach how you ride and how much time you have.</p></div></div>
+    <div class="coach-settings-grid">
+      <section class="coach-panel">
+        <div class="coach-section-top"><span class="coach-tag">YOUR RIDER PROFILE</span><span class="coach-tag">LOCAL ONLY</span></div>
+        <div class="coach-fields">
+          <label>FTP (W)<input id="coachFtp" type="number" min="75" max="550" step="1"></label>
+          <label>HOURS / WEEK<input id="coachHours" type="number" min="1" max="20" step=".5"></label>
+          <label>DAYS / WEEK<input id="coachDays" type="number" min="2" max="7" step="1"></label>
+          <label>REST DAY<select id="coachRestDay"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
+          <label>LEVEL<select id="coachExperience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
+          <label>GOAL<select id="coachGoal"><option value="fitness">Ride consistently</option><option value="ftp">Increase FTP</option><option value="endurance">Build endurance</option><option value="race">Prepare to race</option></select></label>
+        </div>
+        <button type="button" id="coachSaveProfile" class="coach-classic-start">SAVE RIDER SETTINGS →</button>
+        <p class="coach-small">Your profile and recent coached workouts are saved in this browser. No cloud sync or generative AI is connected.</p>
+      </section>
+      <section class="coach-panel coach-howto">
+        <span class="coach-tag">HOW COACH WORKS</span><h3>Three easy steps.</h3>
+        <div class="coach-howto-step"><strong>1. Set your schedule</strong><p>Your FTP, days, and goals determine your starting workouts.</p></div>
+        <div class="coach-howto-step"><strong>2. Choose a workout</strong><p>Use the suggested ride or pick an alternative from the plan.</p></div>
+        <div class="coach-howto-step"><strong>3. Ride in Classic</strong><p>ERG holds power targets; SIM lets you control effort on terrain.</p></div>
+        <button type="button" class="coach-subtle-link" data-navigate-coach="today">Go to today's ride →</button>
+      </section>
+    </div>
+  </section>
+</div>
+`;
   document.body.append(screen);
 
   const hud=document.createElement('aside');
