@@ -48,12 +48,23 @@ export function mountCoach(bridge:CoachBridge){
   const trigger=document.createElement('button');
   trigger.id='openBreakawayCoach';
   trigger.type='button';
-  trigger.className='coach-classic-entry';
-  trigger.innerHTML='<span class="coach-classic-label">TRAIN WITH</span><strong>BREAKAWAY COACH</strong><span aria-hidden="true">→</span>';
-  trigger.title='Open structured training plans inside Classic';
+  trigger.className='coach-classic-banner';
+  trigger.setAttribute('aria-label','Train with Breakaway Coach — open structured training in Classic');
+  trigger.innerHTML=
+    '<span class="coach-banner-copy">'+
+      '<span class="coach-banner-eyebrow">BREAKAWAY COACH</span>'+
+      '<span class="coach-banner-title">Train with Breakaway Coach</span>'+
+      '<span class="coach-banner-description">Structured workouts, adaptive planning, and goal-based training for Classic mode.</span>'+
+      '<span class="coach-banner-features"><span>Personalized plans</span><span>Structured workouts</span><span>Track progress</span><span>Reach your goals</span></span>'+
+    '</span>'+
+    '<span class="coach-banner-action"><span class="coach-banner-cta">OPEN COACH <span aria-hidden="true">→</span></span><span class="coach-banner-note">CLASSIC MODE ONLY</span></span>';
+  // Insert directly below Classic's navigation and above the GPX uploader / route builder.
+  // Never mount the banner into the shared mode header: it must not affect game UIs.
   const classicRoute=document.getElementById('screenRoute');
-  const routeHeading=classicRoute?.querySelector<HTMLElement>('.route-studio-heading') || classicRoute?.querySelector<HTMLElement>('.route-studio-header');
-  (routeHeading||classicRoute||document.body).append(trigger);
+  const routeStudio=classicRoute?.querySelector<HTMLElement>('#routeStudio');
+  const routeHeading=routeStudio?.querySelector<HTMLElement>('.route-studio-heading');
+  if(routeHeading)routeHeading.insertAdjacentElement('afterend',trigger);
+  else if(routeStudio)routeStudio.prepend(trigger);
   const screen=document.createElement('section');
   screen.id='breakawayCoachScreen';
   screen.className='coach-screen';
