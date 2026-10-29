@@ -1,4 +1,5 @@
 import {mountBetaSupport} from './beta-support';
+import {mountCoach} from './coach';
 import './style.css';
 import {bindFullscreenButton} from './ride-fullscreen';
 import './ride-fullscreen.css';
@@ -15,6 +16,7 @@ import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
 
 startRiderPresence(createClient, document.getElementById('liveRidersCount'), document.getElementById('liveRiders'));
+let coachRuntime:ReturnType<typeof mountCoach>|null=null;
 type Point = {distance:number; elevation:number; grade:number};
 type BLEDevice = any;
 const FTMS='00001826-0000-1000-8000-00805f9b34fb';
@@ -405,6 +407,8 @@ function finishRide(){
   const reset=document.createElement('button');reset.textContent='Done — New Ride';reset.onclick=()=>{root.hidden=true;root.style.removeProperty('display');root.classList.remove('ride-summary-fullscreen');rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();resetSimController();syncManualFinishButton();update();};root.append(reset);
   root.hidden=false;root.classList.add('ride-summary-fullscreen');root.style.display='block';
  }
+ const coachReview=coachRuntime?.finish();
+ if(coachReview)$('rideSummary').append(coachReview);
  const completedRideId=rideStart;
  void archiveFinishedRide().then(()=>{const saved=readRideRecovery();if(saved?.rideStart===completedRideId)clearRideRecovery();}).catch(error=>console.warn('Ride archive failed; recovery checkpoint retained',error));
  status('Ride complete');
@@ -983,6 +987,7 @@ function advanceRide(now:number){
  const dt=Math.max(0,Math.min(3,(now-last)/1000||0));last=now;
  if(running&&points.length&&connected&&controlGranted&&realTelemetry){
   activeRideMs+=dt*1000;
+  coachRuntime?.tick(dt,power,cadence,realTelemetry);
   // Power measured in joules per second; estimate metabolic calories using
   // a fixed cycling efficiency. Do not accrue calories while coasting at 0 W.
   energyKcal+=Math.max(0,power)*dt/(GROSS_EFFICIENCY*4184);
@@ -2127,6 +2132,8 @@ surviveUpdateProfileThreat();survivePanel.classList.toggle('danger',surviveOn&&s
 function surviveEnd(caught=false){if(!surviveOn)return;surviveWaitingForPedals=false;survivePedalStartSince=0;surviveOn=false;surviveCaught=caught;if(caught){const waves=Math.max(0,surviveWave-1);try{const k='breakaway-survive-beta-records',old=JSON.parse(localStorage.getItem(k)||'[]');localStorage.setItem(k,JSON.stringify([...(Array.isArray(old)?old:[]),{theme:surviveTheme,waves,duration:survivePeriod,date:new Date().toISOString()}].slice(-100)));}catch{}se('surviveRecord').textContent='CAUGHT · '+waves+' completed waves. Local record saved. Keep riding!';surviveFailScreen.querySelector('#surviveFailTheme')!.textContent=surviveTheme+' CAUGHT YOU';surviveFailScreen.querySelector('#surviveFailWaves')!.textContent=String(waves);const survivedSeconds=Math.floor(survivePeriod-60+surviveElapsed);surviveFailScreen.querySelector('#surviveFailTime')!.textContent=Math.floor(survivedSeconds/60)+':'+String(survivedSeconds%60).padStart(2,'0');surviveFailScreen.hidden=false;surviveFailDeadline=performance.now()+30000;surviveFailPedalSince=0;}else se('surviveRecord').textContent=surviveWon?'FINISH LINE REACHED · YOU SURVIVED!':'Chase ended. Normal riding continues.';surviveRender();lastOverlayPush=0;publishDesktopOverlay();}
 function surviveTick(now:number){const dt=surviveLast?Math.max(0,Math.min(1,(now-surviveLast)/1000)):0;surviveLast=now;// SURVIVE is independent of the rider's pause state: the pursuer never stops.
  if(!surviveOn)return;
+ // During a coached recovery (or a paused session), the threat respects the workout.
+ if(coachRuntime?.mode==='survival'&&!surviveWaitingForPedals&&(!running||coachRuntime.isRecovery())){surviveRender();return;}
  if(surviveWaitingForPedals){
   // Require sustained fresh trainer cadence, not a stale power/speed sample.
   const pedaling=connected&&realTelemetry&&cadence>=10;
@@ -2137,7 +2144,7 @@ function surviveTick(now:number){const dt=surviveLast?Math.max(0,Math.min(1,(now
   se('surviveStatus').textContent='SURVIVAL STARTED';
   surviveRender();return;
  }
- if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;if(surviveMode==='finish'){surviveChaseWattSeconds+=Math.max(0,power)*dt;surviveChaseSeconds+=dt;}surviveWave=surviveMode==='finish'?1:1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(surviveMode==='finish'&&surviveFinishDistance>0&&distance>=surviveFinishDistance&&surviveGap>0){
+ if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;if(surviveMode==='finish'){surviveChaseWattSeconds+=Math.max(0,power)*dt;surviveChaseSeconds+=dt;}surviveWave=surviveMode==='finish'?1:1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(coachRuntime?.mode==='survival'&&coachRuntime.onTarget(power)){surviveEnemyDistance=Math.min(surviveEnemyDistance,distance-50);surviveGap=distance-surviveEnemyDistance;}if(surviveMode==='finish'&&surviveFinishDistance>0&&distance>=surviveFinishDistance&&surviveGap>0){
   surviveWon=true;
   const finishGap=Math.round(surviveGap);
   surviveEnd(false);
@@ -2792,6 +2799,7 @@ function chooseRideExperience(mode:RideExperience,recordHistory=true){
 }
 function openModeLanding(){
  if(surviveOn){status('End your current Survival session before changing modes.');return false;}
+ coachRuntime?.endCoaching();
  delete document.body.dataset.deviceShortcut;
  const host=document.getElementById('cycleQuestHost');if(host)host.hidden=true;
  if(running)pauseRide();
@@ -3015,6 +3023,30 @@ window.setInterval(()=>{
 mountSurvivalCockpit();
 mountClassicCockpit();
 mountClassicRouteReference();
+
+// Coach preview reuses the existing FTMS writer. It does not open another BLE connection.
+coachRuntime=mountCoach({
+ launchMode:(mode)=>{if(mode==='cyclequest')void enterCycleQuest();else chooseRideExperience(mode);},
+ makeRoute:(seconds,structured)=>{
+  ($('generatedTerrain') as HTMLSelectElement).value=structured?'flat':'rolling';
+  ($('generatedDifficulty') as HTMLSelectElement).value=structured?'0.55':'1';
+  ($('generatedMiles') as HTMLInputElement).value=String(Math.max(20,Math.min(150,Math.round(seconds/60*.65))));
+  ($('generatedGain') as HTMLInputElement).value='';
+  ($('generatedSeed') as HTMLInputElement).value=String(Math.floor(Math.random()*900000000)+1000);
+  ($('generateRoute') as HTMLButtonElement).click();
+ },
+ setMode:(mode)=>{
+  const select=$('trainerMode') as HTMLSelectElement;
+  if(select.value===mode)return;
+  select.value=mode;select.dispatchEvent(new Event('change',{bubbles:true}));
+ },
+ setTarget:(watts)=>{
+  const input=$('fixedErgWatts') as HTMLInputElement;
+  input.value=String(Math.max(30,Math.min(1000,Math.round(watts))));
+  input.dispatchEvent(new Event('change',{bubbles:true}));
+ },
+ isRiding:()=>running||!!(rideStart&&!rideEnd)
+});
 
 
 // Preview-branch entry points are design-only and never start a trainer,
