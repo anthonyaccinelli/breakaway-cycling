@@ -1,4 +1,5 @@
 import {mountBetaSupport} from './beta-support';
+import {mountHomepageRedesign} from './homepage-redesign';
 import './style.css';
 import {bindFullscreenButton} from './ride-fullscreen';
 import './ride-fullscreen.css';
@@ -2740,6 +2741,8 @@ const homePresenceBadge=document.getElementById('liveRiders');
 if(homePresenceBadge)modeLanding.querySelector('.mode-landing-meta')!.append(homePresenceBadge);
 document.body.append(modeLanding);
 mountBetaSupport({home:modeLanding,getMode:()=>rideExperience,getTrainer:()=>device?.name||''});
+// Homepage v2 reorganizes the existing mode cards and support ribbon only.
+mountHomepageRedesign(modeLanding);
 const modeHomeButton=document.createElement('button');
 modeHomeButton.type='button';modeHomeButton.id='modeHomeButton';modeHomeButton.textContent='← CHANGE MODE';
 document.body.append(modeHomeButton);
