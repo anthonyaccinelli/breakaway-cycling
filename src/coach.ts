@@ -6,6 +6,7 @@ import {
 import type {CoachControl, CoachMode, CoachProfile, CoachSessionRecord, CoachWorkout} from './coach-engine';
 import './coach.css';
 import {mountCoachHistory} from './coach-history-ui';
+import './coach-v2.css';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
