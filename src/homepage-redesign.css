@@ -219,7 +219,7 @@ body[data-breakaway-screen="home"] #modeLanding.home-v2 .mode-landing-cards{
 }
 body[data-breakaway-screen="home"] #modeLanding.home-v2 .mode-card.mode-card-art{
  position:relative!important;display:block!important;
- width:100%!important;height:100%!important;max-height:505px!important;min-height:0!important;
+ width:100%!important;height:100%!important;max-height:min(505px,35vw)!important;min-height:0!important;
  aspect-ratio:auto!important;
  margin:0!important;padding:7px!important;box-sizing:border-box!important;
  border:1px solid var(--home-rule)!important;border-radius:12px!important;
