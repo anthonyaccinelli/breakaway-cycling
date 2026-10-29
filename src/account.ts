@@ -114,6 +114,7 @@ export async function bootAccount():Promise<void>{
  const form=el<HTMLFormElement>(cover,'accountForm');
  const feedback=el<HTMLElement>(cover,'accountFeedback');
  const email=el<HTMLInputElement>(cover,'accountEmail');
+ const emailField=email.closest<HTMLElement>('.account-field')!;
  const password=el<HTMLInputElement>(cover,'accountPassword');
  const confirm=el<HTMLInputElement>(cover,'accountConfirm');
  const confirmField=el<HTMLElement>(cover,'accountConfirmField');
@@ -129,6 +130,8 @@ export async function bootAccount():Promise<void>{
  const gateCompleted=new Promise<void>(resolve=>{resolving=resolve;});
  function screenState(next:Screen):void{
   screen=next;feedback.hidden=true;feedback.textContent='';
+  emailField.hidden=next==='reset';
+  email.required=next!=='reset';
   passwordField.hidden=next==='forgot';
   password.required=next!=='forgot';
   password.autocomplete=next==='login'?'current-password':'new-password';
