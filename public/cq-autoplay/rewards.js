@@ -1,6 +1,6 @@
 export function battleRewards(battle){
  const count=battle.kind==='enemy'&&Array.isArray(battle.enemies)?Math.max(1,Math.min(3,battle.enemies.length)):1;
- return {count,xp:battle.kind==='enemy'?150*count:Math.max(0,Number(battle.reward)||0),hp:25*count,coins:25*count};
+ return {count,xp:Math.max(0,Number(battle.reward)||0),hp:25*count,coins:25*count};
 }
 export function validPendingReward(value){
  return value&&[1,2,3].includes(value.count)&&value.hp===25*value.count&&value.coins===25*value.count&&Number.isFinite(value.xp)&&value.xp>=0;
