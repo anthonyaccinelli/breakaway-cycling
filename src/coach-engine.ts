@@ -82,6 +82,22 @@ export function segmentAt(workout: CoachWorkout, seconds: number) {
   }
   throw Error('The workout must have at least one interval');
 }
+/** Exact session requirements displayed in the interactive workout interval chart. */
+export function intervalRequirements(ftp:number,segment:CoachSegment){
+ const seconds=Math.max(0,Math.round(segment.minutes*60));
+ const duration=Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');
+ const lowWatts=Math.round(ftp*segment.low);
+ const highWatts=Math.round(ftp*segment.high);
+ const target=targetWatts(ftp,segment);
+ return {
+  duration,
+  lowWatts,
+  highWatts,
+  target,
+  range:lowWatts+'–'+highWatts+' W',
+  ftpRange:Math.round(segment.low*100)+'–'+Math.round(segment.high*100)+'% FTP'
+ };
+}
 export function targetWatts(ftp:number, segment:CoachSegment, adjustment=1): number {
   const center=(segment.low+segment.high)/2;
   return Math.max(30,Math.min(1000,Math.round(ftp*center*adjustment)));
