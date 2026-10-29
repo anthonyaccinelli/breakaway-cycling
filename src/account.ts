@@ -218,7 +218,7 @@ export async function bootAccount():Promise<void>{
      const {data,error}=await client!.auth.signUp({email:address,password:password.value,options:{emailRedirectTo:AUTH_REDIRECT}});
      if(error)throw error;
      if(data.session&&data.user)await activate(data.user);
-     else {screenState('login');safelyShow('Check your email for a confirmation link, then sign in.',feedback,'success');}
+     else {screenState('login');email.value=address;safelyShow('If this email is new and email delivery is enabled, a confirmation link will arrive. If you already have an account, sign in or select Forgot password. Check spam as well.',feedback,'success');}
     }else if(screen==='forgot'){
      const {error}=await client!.auth.resetPasswordForEmail(address,{redirectTo:AUTH_REDIRECT});
      if(error)throw error;
