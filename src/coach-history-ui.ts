@@ -1,10 +1,11 @@
 import {historySummary,mergeRides} from './coach-history-core';
 import type {HistoricalRide} from './coach-history-core';
 import {clearHistoricalRides,collectRiderFiles,loadHistoricalRides,saveHistoricalRides} from './coach-history-import';
+import {escapeHtml as esc} from './coach-dom';
 import './coach-history.css';
 
 type HistoryCallbacks={applySuggestion:(suggestion:{ftp?:number;hours?:number})=>void};
-const esc=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
+
 export function mountCoachHistory(host:HTMLElement,callbacks:HistoryCallbacks){
  let activities:HistoricalRide[]=[],pending:HistoricalRide[]|null=null,busy=false;
  host.innerHTML='<div class="coach-section-top"><span class="coach-tag">05 / RIDER HISTORY</span><span class="coach-tag">YOUR FILES · YOUR DEVICE</span></div>'+
