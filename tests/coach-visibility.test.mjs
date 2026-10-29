@@ -10,7 +10,7 @@ test('home page hides only original shell, not the Coach header and dashboard', 
   assert.doesNotMatch(css,/body\[data-breakaway-screen="home"\]\s+header\s*,/, 'a descendant header selector hides the Coach heading');
   assert.doesNotMatch(css,/body\[data-breakaway-screen="home"\]\s+footer\s*,/, 'only original shell elements should be hidden');
   const coach=readFileSync(new URL('../src/coach.ts',import.meta.url),'utf8');
-  assert.match(coach,/className='coach-screen'/);
+  assert.match(coach,/className='coach-screen coach-v2'/);
   assert.match(coach,/screen\.hidden=false/);
   assert.match(coach,/id="coachWorkout"/);
 });
