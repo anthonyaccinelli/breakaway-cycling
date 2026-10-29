@@ -241,7 +241,7 @@ export function mountCoach(bridge:CoachBridge){
     const target=targetWatts(session.ftp,state.segment,session.adjusted);
     h('coachHudState').textContent=isDemo?'SIMULATED DEMO':complete?'WORKOUT COMPLETE':session.elapsed===0?'WAITING FOR PEDALS':session.control==='structured'?'ERG CONTROL':session.control==='guided'?'GUIDED SIM':'RECORD ONLY';
     h('coachActual').innerHTML=(powerNow===null?'—':String(Math.round(powerNow)))+'<span> W</span>';
-    h('coachTarget').innerHTML=session.control==='free'?'—<span> W</span>':String(target)+'<span> W</span>';
+    h('coachTarget').innerHTML=String(target)+'<span> W</span>';
     h('coachRemaining').textContent=complete?'DONE':formatTime(state.remaining);
     h('coachInterval').textContent=state.segment.name.toUpperCase()+' · '+Math.round(state.segment.low*100)+'–'+Math.round(state.segment.high*100)+'% FTP';
     h('coachSessionClock').textContent=formatTime(session.elapsed)+' / '+formatTime(workoutDuration(w));
