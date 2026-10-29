@@ -89,38 +89,87 @@
 .coach-quick button:hover{border-color:#8af3d6;background:#265047}
 
 
-/* Coach is a Classic subfeature, not a fourth home mode. */
-body[data-ride-experience="survival"] #openBreakawayCoach,
-body[data-ride-experience="cyclequest"] #openBreakawayCoach,
-body[data-breakaway-screen="home"] #openBreakawayCoach{display:none!important}
-body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute .route-studio-heading>.route-studio-hint{display:none!important}
-body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute .route-studio-heading>.coach-classic-entry{
- grid-column:3!important;grid-row:1!important;justify-self:end!important;align-self:center!important;
+/* Coach is a Classic subfeature, not a fourth home mode.
+   Full-width, image-free light-grey banner under the Route Studio navigation. */
+#openBreakawayCoach{display:none!important}
+body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute #openBreakawayCoach{
+ display:flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:space-between!important;
+ gap:clamp(12px,2.5vw,38px)!important;box-sizing:border-box!important;
+ width:calc(100% - 32px)!important;min-height:120px!important;height:auto!important;
+ margin:9px 16px 11px!important;padding:16px clamp(16px,2.5vw,32px)!important;
+ border:1px solid #d8dee8!important;border-radius:13px!important;
+ background:#f1f3f6!important;background-image:none!important;
+ color:#17243b!important;box-shadow:0 5px 16px rgba(16,35,70,.075)!important;
+ font-family:'Instrument Sans',system-ui,sans-serif!important;text-align:left!important;cursor:pointer!important;
+ transform:none!important;line-height:1.2!important;
 }
-.coach-classic-entry{
- display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;
- color:#0c2933!important;background:#8ee8d3!important;border:1px solid #60d4b8!important;
- border-radius:9px;padding:9px 12px;min-height:40px;font:850 12px 'Instrument Sans',system-ui,sans-serif!important;
- letter-spacing:.25px;box-shadow:0 2px 12px #0016242a;cursor:pointer;
+#openBreakawayCoach .coach-banner-copy{display:flex;flex:1 1 auto;min-width:0;flex-direction:column;align-items:flex-start;gap:4px}
+#openBreakawayCoach .coach-banner-eyebrow{
+ display:block;color:#0b4fe2;font-size:11px;font-weight:900;letter-spacing:.18em;line-height:1.1
 }
-.coach-classic-entry .coach-classic-label{font-size:10px;opacity:.78}
-.coach-classic-entry strong{font:900 12px 'Host Grotesk',system-ui,sans-serif!important}
-.coach-classic-entry:hover{background:#c0ffef!important;filter:brightness(1.03)}
-.coach-classic-start{width:100%;border:1px solid #8effd8!important;background:#85e9cb!important;
- color:#092b2b!important;border-radius:11px;padding:16px;font:900 15px 'Instrument Sans',system-ui,sans-serif;letter-spacing:.35px}
+#openBreakawayCoach .coach-banner-title{
+ display:block;color:#15253e;font-family:'Host Grotesk',system-ui,sans-serif;
+ font-size:clamp(23px,2.25vw,34px);font-weight:900;line-height:1.08;letter-spacing:-.035em
+}
+#openBreakawayCoach .coach-banner-description{
+ display:block;color:#465368;font-size:clamp(12px,1.05vw,15px);font-weight:550;
+ line-height:1.3;max-width:920px
+}
+#openBreakawayCoach .coach-banner-features{
+ display:flex;align-items:center;gap:0;flex-wrap:wrap;margin-top:8px;color:#34475f;
+ font-size:11px;font-weight:750;line-height:1.2
+}
+#openBreakawayCoach .coach-banner-features>span{display:inline-flex;align-items:center;white-space:nowrap;padding:0 11px;border-left:1px solid #bdc7d5}
+#openBreakawayCoach .coach-banner-features>span:first-child{border:0;padding-left:0}
+#openBreakawayCoach .coach-banner-features>span::before{
+ content:"✓";color:#1254e8;font-size:13px;margin-right:5px;font-weight:900
+}
+#openBreakawayCoach .coach-banner-action{
+ flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:clamp(172px,19vw,290px)
+}
+#openBreakawayCoach .coach-banner-cta{
+ display:flex;align-items:center;justify-content:center;gap:10px;box-sizing:border-box;width:100%;
+ min-height:49px;padding:13px 22px;border-radius:999px;background:#0c4ee6;color:#fff;
+ font-size:clamp(13px,1.1vw,17px);font-weight:900;letter-spacing:.03em;
+ box-shadow:0 6px 15px rgba(10,74,218,.18)
+}
+#openBreakawayCoach .coach-banner-note{
+ display:block;color:#56657a;font-size:10px;font-weight:850;letter-spacing:.13em
+}
+body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute #openBreakawayCoach:hover{
+ border-color:#a8b8d3!important;background:#e9edf4!important;box-shadow:0 7px 18px rgba(16,35,70,.13)!important
+}
+#openBreakawayCoach:hover .coach-banner-cta{background:#083bb5}
+#openBreakawayCoach:focus-visible{outline:3px solid #0a50ec!important;outline-offset:3px!important}
+.coach-classic-start{
+ width:100%;border:1px solid #8effd8!important;background:#85e9cb!important;
+ color:#092b2b!important;border-radius:11px;padding:16px;
+ font:900 15px 'Instrument Sans',system-ui,sans-serif;letter-spacing:.35px
+}
 .coach-classic-start:hover{background:#b2ffe7!important}
-@media(max-width:1100px){
- body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute .route-studio-heading{
-  grid-template-columns:minmax(0,1fr) auto auto!important;gap:8px!important;
+@media(max-height:800px){
+ body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute #openBreakawayCoach{
+  min-height:96px!important;margin:5px 12px 7px!important;padding:9px 17px!important;width:calc(100% - 24px)!important;
  }
- .coach-classic-entry .coach-classic-label{display:none}
- .coach-classic-entry{padding:7px 9px;min-height:35px}
+ #openBreakawayCoach .coach-banner-features{display:none}
+ #openBreakawayCoach .coach-banner-title{font-size:clamp(20px,2vw,28px)}
+ #openBreakawayCoach .coach-banner-cta{min-height:43px}
 }
-@media(max-width:700px){
- body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute .route-studio-heading{
-  grid-template-columns:minmax(0,1fr) auto auto!important;gap:4px!important;
+@media(max-width:800px){
+ body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute #openBreakawayCoach{
+  min-height:92px!important;width:calc(100% - 16px)!important;margin:5px 8px 8px!important;
+  padding:10px 12px!important;gap:8px!important
  }
- .coach-classic-entry strong{font-size:10px!important}
- .coach-classic-entry{font-size:10px!important;padding:6px!important}
- .coach-classic-entry .coach-classic-label{display:none}
+ #openBreakawayCoach .coach-banner-features{display:none}
+ #openBreakawayCoach .coach-banner-title{font-size:clamp(17px,3vw,24px)}
+ #openBreakawayCoach .coach-banner-description{font-size:11px}
+ #openBreakawayCoach .coach-banner-action{min-width:125px}
+ #openBreakawayCoach .coach-banner-cta{padding:9px;min-height:40px;font-size:12px}
+ #openBreakawayCoach .coach-banner-note{font-size:8px}
+}
+@media(max-width:480px){
+ #openBreakawayCoach .coach-banner-description{display:none}
+ #openBreakawayCoach .coach-banner-action{min-width:96px}
+ #openBreakawayCoach .coach-banner-cta{padding:8px 6px;font-size:10px}
+ #openBreakawayCoach .coach-banner-note{display:none}
 }
