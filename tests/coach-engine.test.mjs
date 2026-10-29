@@ -8,7 +8,7 @@ const coach=await import('data:text/javascript;base64,'+Buffer.from(compiled).to
 
 test('profiles are validated and clamped',()=>{
   const p=coach.validProfile({ftp:9999,hours:0,days:20,experience:'unknown',goal:'ftp'});
-  assert.equal(p.ftp,550);assert.equal(p.hours,1);assert.equal(p.days,7);
+  assert.equal(p.ftp,550);assert.equal(p.hours,1);assert.equal(p.days,6);
   assert.equal(p.experience,'beginner');assert.equal(p.goal,'ftp');
 });
 test('all coach workouts have safe, ordered and finite intervals',()=>{
@@ -51,4 +51,11 @@ test('weekly training contains rider-defined days and a hard-session fatigue saf
   assert.equal(normal.find(s=>s.workoutId).workoutId,'vo2');
   assert.equal(fatigued.find(s=>s.workoutId).workoutId,'recovery');
   assert.ok(fatigued.every(s=>['recovery','endurance',null].includes(s.workoutId)));
+});
+
+test('every schedule retains the selected rest day, even for very active riders',()=>{
+ const p=coach.validProfile({days:7,restDay:2});
+ const week=coach.recommendWeek(p,false);
+ assert.equal(p.days,6);
+ assert.equal(week[2].workoutId,null);
 });
