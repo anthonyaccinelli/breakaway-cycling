@@ -238,7 +238,16 @@ export function mountCoach(bridge:CoachBridge){
     if(target instanceof Element && target.closest('#openBreakawayCoach'))open();
   });
   $('coachBack').addEventListener('click',close);
-  function getWorkout(){return customWorkout||library.find(w=>w.id===selected)||library[0];}
+  function getWorkout(){
+    if(customWorkout)return customWorkout;
+    const base=library.find(w=>w.id===selected)||library[0];
+    if(!strength?.settings.enabled||riderSelected)return base;
+    const plan=integratedWeek(rider,strength.settings,recommendWeek(rider,false),id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+    const today=plan.days[new Date().getDay()];
+    if(today.cyclingId===base.id&&today.cyclingMinutes>0&&today.cyclingMinutes*60<workoutDuration(base))
+      return shortenWorkout(base,today.cyclingMinutes);
+    return base;
+  }
   function showIntervalRequirements(index:number){
     const workout=getWorkout(), segment=workout.segments[index];
     if(!segment)return;
@@ -273,19 +282,27 @@ export function mountCoach(bridge:CoachBridge){
         .map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower})));
     const feedback=historyRecords().map(r=>({date:Date.parse(r.date),rpe:r.rpe}));
     const recommendation=recommendToday(rider,nowDate,inputs,feedback);
+    const schedule=integratedWeek(rider,strength?.settings||{enabled:false,equipment:['bodyweight'],experience:'beginner',sessions:1,minutes:30,notes:''},
+      recommendWeek(rider,false),id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+    const todaySchedule=schedule.days[nowDate.getDay()];
+    const strengthOnToday=!!todaySchedule?.strength;
+    const strengthDoneToday=strength?.completedToday()||false;
+    const strengthOnly=strengthOnToday&&!todaySchedule.cyclingId;
+    const lightStrength=inputs.some(r=>nowDate.getTime()-r.start<=36*3600000&&r.elapsed>=1800&&r.avgPower!==null&&r.avgPower>=rider.ftp*.8)
+      ||feedback.some(r=>nowDate.getTime()-r.date<=48*3600000&&r.date<=nowDate.getTime()&&r.rpe!==null&&r.rpe>=9);
     if(!riderSelected){selected=recommendation.workoutId||'recovery';customWorkout=null;}
     if(!library.some(w=>w.id===selected)){selected='recovery';customWorkout=null;}
-    const resting=!riderSelected&&!recommendation.workoutId;
+    const resting=!riderSelected&&(!recommendation.workoutId||strengthOnly);
     $('coachRestState').hidden=!resting;
     $('coachWorkoutControls').hidden=resting;
     $('coachRecommendedName').textContent=resting
-      ?(recommendation.status==='completed'?'Ride already completed':'Rest day')
+      ?(strengthOnly?'Strength training day':recommendation.status==='completed'?'Ride already completed':'Rest day')
       :getWorkout().name;
     $('coachRecommendationLabel').textContent=riderSelected?'YOUR CHOICE':
       recommendation.status==='recovery'?'RECOVERY ADJUSTMENT':
       recommendation.status==='rest'||recommendation.status==='completed'?'REST RECOMMENDED':'FROM YOUR PLAN';
-    $('coachWhy').textContent=resting?'Coach recommends rest today.':riderSelected?'You chose an optional alternative for today. Coach originally recommended: '+recommendation.reason:'Why Coach chose this: '+recommendation.reason;
-    $('coachRestReason').textContent=recommendation.reason;
+    $('coachWhy').textContent=strengthOnly&&!riderSelected?'Strength training is scheduled today within your available training time. No cycling workout is assigned.':resting?'Coach recommends rest today.':riderSelected?'You chose an optional alternative for today. Coach originally recommended: '+recommendation.reason:'Why Coach chose this: '+recommendation.reason;
+    $('coachRestReason').textContent=strengthOnly?'Your equipment-aware strength session is ready below. Cycling is optional today.':recommendation.reason;
     $('coachUseRecommendation').hidden=!riderSelected;
     const w=getWorkout(), duration=workoutDuration(w);
     $('coachWorkoutInfo').innerHTML='<div><strong>'+escapeHtml(w.category.toUpperCase())+'</strong><span>'+Math.round(duration/60)+' MINUTES · '+w.segments.length+' SEGMENTS</span></div><p>'+escapeHtml(w.description)+'</p>';
@@ -323,12 +340,28 @@ export function mountCoach(bridge:CoachBridge){
       const mins=Math.round(workoutDuration(w)/60);
       return '<button type="button" class="coach-library-item" data-library-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+mins+' min</small></span><span aria-hidden="true">→</span></button>';
     }).join('');
-    $('coachWeek').innerHTML=week.map(day=>{
-      const assigned=library.find(w=>w.id===day.workoutId);
-      return '<button type="button" data-day-workout="'+(assigned?.id||'')+'" '+(!assigned?'disabled':'')+' class="'+(day.day===now?'coach-week-today':'')+'"><span>'+weekdays[day.day]+'</span><strong>'+(assigned?escapeHtml(assigned.name):'Rest day')+'</strong></button>';
+    $('coachPlanBudget').textContent='Scheduled: '+(schedule.plannedMinutes/60).toFixed(1)+' / '+(schedule.budgetMinutes/60).toFixed(1)+' available hours · '+schedule.note;
+    $('coachWeek').innerHTML=schedule.days.map(day=>{
+      const assigned=library.find(w=>w.id===day.cyclingId);
+      const cycling=assigned&&day.cyclingMinutes>0
+        ?'<button type="button" data-day-workout="'+escapeHtml(assigned.id)+'"><span><strong>🚴 '+escapeHtml(assigned.name)+'</strong><small>'+day.cyclingMinutes+' min · Classic cycling</small></span><span aria-hidden="true">→</span></button>':'';
+      const lifting=day.strength?'<button type="button" class="coach-day-strength" data-strength-day="'+day.day+'" data-strength-variation="'+day.strength+'"><span><strong>▥ Full Body Strength '+day.strength+'</strong><small>'+day.strengthMinutes+' min · '+escapeHtml((strength?.settings.equipment||[]).filter(x=>x!=='bodyweight').join(', ')||'Bodyweight')+'</small></span><span aria-hidden="true">→</span></button>':'';
+      return '<div class="coach-day-row '+(day.day===now?'coach-week-today':'')+'"><span class="coach-day-label">'+weekdays[day.day]+'</span><div class="coach-day-items">'+(cycling+lifting||'<span class="coach-day-rest">Rest day</span>')+'</div></div>';
     }).join('');
+    const strengthPanel=$('coachStrengthToday');
+    strengthPanel.hidden=!strengthOnToday;
+    if(strengthOnToday){
+      const routine=strengthRoutine(strength!.settings,todaySchedule.strength!,lightStrength);
+      strengthPanel.innerHTML='<div class="coach-section-top"><span class="coach-tag">TODAY · STRENGTH</span><span class="coach-tag">'+(strengthDoneToday?'COMPLETED':'NO TRAINER NEEDED')+'</span></div>'+
+        '<h3>'+escapeHtml(routine.title)+'</h3><p>'+todaySchedule.strengthMinutes+' minutes · '+routine.exercises.length+' movements · Matched to your available equipment.'+
+        (lightStrength?' Recent fatigue suggests going easy or skipping.':'')+'</p>'+
+        '<button type="button" id="coachStartStrength" '+(strengthDoneToday?'disabled':'')+'>'+(strengthDoneToday?'✓ SESSION LOGGED':'START STRENGTH WORKOUT →')+'</button>';
+    }
+    $('coachStrengthHistory').innerHTML=strength?.history.length
+      ?'<div class="coach-strength-history">'+strength.history.slice(-6).reverse().map(r=>'<div><span><strong>'+escapeHtml(r.routine)+'</strong><br>'+new Date(r.date).toLocaleDateString()+'</span><small>'+r.completedSets+'/'+r.plannedSets+' sets · '+r.minutes+' min</small></div>').join('')+'</div>'
+      :'<p class="coach-small">Completed strength training sessions will appear here.</p>';
     $('coachHistory').innerHTML=history.length?history.slice(-5).reverse().map(r=>'<div class="coach-history-row"><strong>'+escapeHtml(r.workout)+'</strong><span>'+new Date(r.date).toLocaleDateString()+' · '+Math.round(r.elapsedSeconds/60)+' min · '+escapeHtml(r.mode.toUpperCase())+'</span></div>').join(''):'<p class="coach-small">Your coached rides will appear here.</p>';
-    $('coachSuggestion').textContent='A rules-based recommendation from your weekly schedule, saved workouts and recent rides. You can change it at any time.';
+    $('coachSuggestion').textContent=strength?.settings.enabled?'Your training week combines cycling, strength, and recovery within your available time.':'A rules-based recommendation from your weekly schedule, saved workouts and recent rides. You can change it at any time.';
     $('coachSwapList').innerHTML=library.filter(w=>w.id!=='preview').map(w=>'<button type="button" data-swap-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+Math.round(workoutDuration(w)/60)+' min</small></span><span aria-hidden="true">→</span></button>').join('');
   }
   function chooseWorkout(id:string,notice:string){
