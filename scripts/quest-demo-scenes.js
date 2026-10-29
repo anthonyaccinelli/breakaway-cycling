@@ -6,8 +6,8 @@ function handleDemoAction(action){
  levelUps.clear();levelUp=null;s.battle=null;s.reward=false;s.pendingReward=null;
  const crab=/^crab-([123])$/.exec(action);
  const ratCount={rat:1,'rats-2':2,rats:3}[action];
- if(crab||ratCount){
-  const id=crab?'crab':'rat',count=crab?Number(crab[1]):ratCount;
+ if(crab||ratCount||action==='headwind'){
+  const id=action==='headwind'?'headwind':crab?'crab':'rat',count=action==='headwind'?1:crab?Number(crab[1]):ratCount;
   const one=makeBattle('enemy',{level:level(),ftp:live.ftp,monsterId:id});
   const enemies=Array.from({length:count},()=>({id,name:id.toUpperCase(),hp:one.hp,max:one.max}));
   s.battle={...one,name:count===1?one.name:count+' '+id.toUpperCase()+'S',reward:150*count,enemies,hp:one.hp*count,max:one.max*count};
