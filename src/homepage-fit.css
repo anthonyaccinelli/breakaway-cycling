@@ -106,9 +106,23 @@ body[data-breakaway-screen="home"] #modeLanding .beta-compat details>summary{
   cursor:pointer!important;
   max-width:100%!important;
 }
-body[data-breakaway-screen="home"] #modeLanding .beta-compat details[open]{
+body[data-breakaway-screen="home"] #modeLanding .beta-compat-copy{
   position:relative!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-compat details[open]{
+  position:absolute!important;
   z-index:2000!important;
+  top:calc(100% - 2px)!important;
+  right:0!important;
+  width:min(520px,calc(100vw - 40px))!important;
+  max-height:65dvh!important;
+  overflow:auto!important;
+  padding:12px!important;
+  color:#eff7fa!important;
+  background:#192e3e!important;
+  border:1px solid #3d586b!important;
+  border-radius:9px!important;
+  box-shadow:0 16px 38px #0008!important;
 }
 body[data-breakaway-screen="home"] #modeLanding .beta-compat details[open] .beta-details-grid,
 body[data-breakaway-screen="home"] #modeLanding .beta-compat details[open] .beta-details-note{
@@ -161,10 +175,10 @@ body[data-breakaway-screen="home"] #modeLanding .mode-card.mode-card-art{
   box-sizing:border-box!important;
   display:block!important;
   width:100%!important;
-  height:100%!important;
-  max-height:515px!important;
+  height:auto!important;
+  max-height:min(100%, 515px)!important;
   min-height:0!important;
-  aspect-ratio:auto!important;
+  aspect-ratio:1246 / 1346!important;
   border-radius:12px!important;
   margin:0!important;
   justify-self:stretch!important;
@@ -306,6 +320,11 @@ body[data-breakaway-screen="home"] #modeLanding summary:focus-visible{
   body[data-breakaway-screen="home"] #modeLanding .beta-compat details{
     align-self:flex-start!important;
     justify-self:start!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .beta-compat details[open]{
+    position:relative!important;top:auto!important;right:auto!important;
+    width:auto!important;max-height:none!important;overflow:visible!important;
+    box-shadow:none!important;padding:0!important;border:0!important;background:transparent!important;
   }
   body[data-breakaway-screen="home"] #modeLanding .mode-landing-intro{
     margin:0!important;
