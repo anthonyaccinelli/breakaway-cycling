@@ -1,6 +1,6 @@
 import {
   COACH_HISTORY_KEY, COACH_PROFILE_KEY, defaultProfile, availableControls,
-  feedbackRecommendation, inTargetRange, recommendWeek, segmentAt, targetWatts,
+  feedbackRecommendation, inTargetRange, intervalRequirements, recommendWeek, segmentAt, targetWatts,
   validProfile, workoutDuration, workoutLibrary
 } from './coach-engine';
 import type {CoachControl, CoachMode, CoachProfile, CoachSessionRecord, CoachWorkout} from './coach-engine';
@@ -80,7 +80,8 @@ export function mountCoach(bridge:CoachBridge){
         <label class="coach-label" for="coachWorkout">CHOOSE YOUR WORKOUT</label>
         <select id="coachWorkout" class="coach-select"></select>
         <div id="coachWorkoutInfo" class="coach-workout-info"></div>
-        <div id="coachSegments" class="coach-segments" aria-label="Workout interval profile"></div>
+        <div class="coach-interval-readout" id="coachIntervalDetails" aria-live="polite" aria-atomic="true"></div>
+        <div id="coachSegments" class="coach-segments" role="group" aria-label="Workout blocks: hover, focus, or tap a block to inspect its duration and wattage requirements"></div>
         <div class="coach-start-controls"><label for="coachControl">TRAINER CONTROL</label>
           <select id="coachControl" class="coach-select">
             <option value="structured">ERG — trainer holds the target power</option>
@@ -216,6 +217,30 @@ export function mountCoach(bridge:CoachBridge){
   });
   $('coachBack').addEventListener('click',close);
   function getWorkout(){return library.find(w=>w.id===selected)||library[0];}
+  function showIntervalRequirements(index:number){
+    const workout=getWorkout(), segment=workout.segments[index];
+    if(!segment)return;
+    const requirements=intervalRequirements(rider.ftp,segment);
+    $('coachIntervalDetails').innerHTML=
+      '<div class="coach-interval-identity"><span class="coach-interval-kicker">BLOCK '+(index+1)+' / '+workout.segments.length+'</span>'+
+      '<strong>'+escapeHtml(segment.name)+'</strong><small>'+requirements.ftpRange+'</small></div>'+
+      '<div class="coach-interval-numbers"><div><span>DURATION</span><strong>'+requirements.duration+'</strong></div>'+
+      '<div><span>POWER RANGE</span><strong>'+requirements.range+'</strong></div>'+
+      '<div><span>ERG TARGET</span><strong>'+requirements.target+' W</strong></div></div>';
+    $('coachSegments').querySelectorAll<HTMLButtonElement>('[data-coach-segment]').forEach(button=>{
+      button.setAttribute('aria-pressed',String(Number(button.dataset.coachSegment)===index));
+    });
+  }
+  const chart=$('coachSegments');
+  const inspect=(event:Event)=>{
+    const target=event.target;
+    if(!(target instanceof Element))return;
+    const button=target.closest<HTMLButtonElement>('[data-coach-segment]');
+    if(button&&chart.contains(button))showIntervalRequirements(Number(button.dataset.coachSegment));
+  };
+  chart.addEventListener('pointerover',inspect);
+  chart.addEventListener('focusin',inspect);
+  chart.addEventListener('click',inspect);
   function render(){
     library=workoutLibrary(rider);
     workSelect.innerHTML=library.map(w=>'<option value="'+w.id+'">'+escapeHtml(w.name)+'</option>').join('');
@@ -223,11 +248,15 @@ export function mountCoach(bridge:CoachBridge){
     workSelect.value=selected;
     const w=getWorkout(), duration=workoutDuration(w);
     $('coachWorkoutInfo').innerHTML='<div><strong>'+escapeHtml(w.category.toUpperCase())+'</strong><span>'+Math.round(duration/60)+' MINUTES · '+w.segments.length+' SEGMENTS</span></div><p>'+escapeHtml(w.description)+'</p>';
-    $('coachSegments').innerHTML=w.segments.map((s,i)=>{
-      const color=s.low<.6?'#86b5da':s.low<.8?'#63d8bd':s.low<1?'#f9be70':'#fb7489';
-      const height=Math.max(24,Math.min(100,Math.round(s.high*80)));
-      return '<div class="coach-segment" title="'+escapeHtml(s.name)+' · '+Math.round(s.minutes)+' min · '+Math.round(s.low*100)+'–'+Math.round(s.high*100)+'% FTP" style="flex:'+s.minutes+'"><div style="height:'+height+'%;background:'+color+'"></div></div>';
+    $('coachSegments').innerHTML=w.segments.map((segment,i)=>{
+      const color=segment.low<.6?'#86b5da':segment.low<.8?'#63d8bd':segment.low<1?'#f9be70':'#fb7489';
+      const height=Math.max(24,Math.min(100,Math.round(segment.high*80)));
+      const info=intervalRequirements(rider.ftp,segment);
+      const description=segment.name+' — '+info.duration+' duration, '+info.range+' power range, '+info.target+' W ERG target ('+info.ftpRange+')';
+      return '<button type="button" class="coach-segment" data-coach-segment="'+i+'" aria-pressed="false" aria-label="'+escapeHtml(description)+'" title="'+escapeHtml(description)+'" style="flex:'+segment.minutes+'">'+
+        '<span class="coach-segment-bar" aria-hidden="true" style="height:'+height+'%;background:'+color+'"></span></button>';
     }).join('');
+    showIntervalRequirements(0);
     ($('coachFtp') as HTMLInputElement).value=String(rider.ftp);
     ($('coachHours') as HTMLInputElement).value=String(rider.hours);
     ($('coachDays') as HTMLInputElement).value=String(rider.days);
