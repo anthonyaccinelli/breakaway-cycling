@@ -1,6 +1,6 @@
 // Breakaway Coach preview: pure workout model, no device or network access.
-export type CoachMode = 'classic' | 'survival' | 'cyclequest';
-export type CoachControl = 'structured' | 'guided' | 'free';
+export type CoachMode = 'classic';
+export type CoachControl = 'structured' | 'guided';
 export type CoachGoal = 'fitness' | 'ftp' | 'endurance' | 'race';
 export type CoachExperience = 'beginner' | 'intermediate' | 'advanced';
 export type CoachProfile = {
@@ -89,8 +89,8 @@ export function targetWatts(ftp:number, segment:CoachSegment, adjustment=1): num
 export function inTargetRange(watts:number,ftp:number,segment:CoachSegment,adjustment=1):boolean {
   return Number.isFinite(watts) && watts>=ftp*segment.low*adjustment*.95 && watts<=ftp*segment.high*adjustment*1.05;
 }
-export function availableControls(mode:CoachMode): CoachControl[] {
-  return mode === 'classic' ? ['structured','guided','free'] : ['guided','free'];
+export function availableControls(_mode:CoachMode): CoachControl[] {
+  return ['structured','guided'];
 }
 export function recommendWeek(profile:CoachProfile, fatigue=false) {
   const p=validProfile(profile);
