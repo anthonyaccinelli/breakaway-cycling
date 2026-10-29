@@ -166,3 +166,37 @@
 @media(prefers-reduced-motion:reduce){
   .coach-v2 *,.coach-strength-overlay *{scroll-behavior:auto!important;transition:none!important}
 }
+
+
+/* Classic's live coaching HUD follows the same legible visual system. */
+.coach-hud{background:#fff!important;color:#193149!important;border:1px solid #9ab5d5!important;
+  box-shadow:0 12px 32px #0a1d3480!important;border-radius:15px!important;padding:15px!important}
+.coach-hud .coach-hud-top{font-size:13px!important;color:#194b99!important}
+.coach-hud .coach-hud-top strong{font-size:13px!important;color:#164991!important}
+.coach-hud .coach-hud-top span{font-size:12px!important;color:#405974!important}
+.coach-hud .coach-hud-top button{min-width:44px!important;min-height:44px!important;
+ background:#edf3fc!important;border-color:#abc3e1!important;color:#153d72!important;font-size:20px!important}
+.coach-hud .coach-hud-core{gap:9px!important}
+.coach-hud .coach-hud-core small{font-size:12px!important;color:#425c77!important}
+.coach-hud .coach-hud-core strong{color:#1d3655!important;font-size:clamp(22px,3vw,32px)!important}
+.coach-hud .coach-hud-core strong span{font-size:14px!important;color:#405b78!important}
+.coach-hud #coachTarget{color:#0c57a6!important}
+.coach-hud .coach-interval-line{font-size:13px!important;color:#3c5672!important}
+.coach-hud .coach-progress{height:9px!important;background:#d8e6f5!important}
+.coach-hud #coachProgressBar{background:#155ccd!important}
+.coach-hud p{font-size:13px!important;color:#355371!important;line-height:1.5!important}
+.coach-hud .coach-hud-actions{gap:8px!important}
+.coach-hud .coach-hud-actions button,.coach-hud #coachDemoControls button{
+ min-height:44px!important;flex:1 1 100px!important;background:#eaf2fd!important;
+ border:1px solid #aac4e6!important;color:#153d77!important;font-size:12px!important;
+ font-weight:850!important;border-radius:8px!important
+}
+.coach-hud .coach-hud-actions button:last-child{color:#9c2934!important;border-color:#d9a5ae!important;background:#fff4f5!important}
+.coach-hud #coachDemoControls{background:#f0f5fc!important;border-color:#a3bcd9!important;color:#22405f!important;font-size:13px!important}
+.coach-hud button:focus-visible{outline:3px solid #0b4bb9!important;outline-offset:2px!important}
+.coach-finish-review{background:#f6f9ff!important;color:#1d3654!important;border:1px solid #9ebcdd!important}
+.coach-finish-review h2{color:#1a4b9c!important;font-size:22px!important}
+.coach-finish-review p{color:#334d6b!important;font-size:14px!important;line-height:1.5!important}
+.coach-rpe-buttons button{min-height:44px!important;min-width:82px!important;
+ background:#ebf2fb!important;color:#1a4275!important;border:1px solid #a5bedc!important;font-size:14px!important}
+.coach-rpe-buttons button[aria-pressed=true]{background:#1559c9!important;color:#fff!important}
