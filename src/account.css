@@ -185,7 +185,7 @@ html[data-account-gate="locked"] body>*:not(#accountGate):not(script){
 }
 .account-signout:hover{background:#37546A}
 #accountGlobalMenu{
- position:fixed;bottom:14px;left:14px;z-index:10007;
+ position:fixed;bottom:14px;left:182px;z-index:10007;
 }
 #accountGlobalMenu .account-menu-sheet{right:auto;left:0;top:auto;bottom:calc(100% + 8px)}
 body[data-breakaway-screen="home"] #accountGlobalMenu{display:none!important}
@@ -199,6 +199,7 @@ body[data-breakaway-screen="home"] #accountGlobalMenu{display:none!important}
 @media(max-width:700px){
  html[data-account-gate="locked"],html[data-account-gate="locked"] body{height:auto!important;overflow:auto!important}
  .account-gate{position:absolute;min-height:100dvh;inset:0 0 auto;padding:12px;overflow:auto}
+ #accountGlobalMenu{left:14px;bottom:72px}
  .account-shell{
   display:flex;flex-direction:column;
   height:auto;min-height:calc(100dvh - 24px);width:100%;max-width:480px;
