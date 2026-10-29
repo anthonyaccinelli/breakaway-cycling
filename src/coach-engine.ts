@@ -7,6 +7,7 @@ export type CoachProfile = {
   ftp: number;
   hours: number;
   days: number;
+  restDay: number; // 0 Sunday through 6 Saturday
   goal: CoachGoal;
   experience: CoachExperience;
 };
@@ -30,7 +31,7 @@ export type CoachSessionRecord = {
 
 export const COACH_PROFILE_KEY = 'breakaway.coach.profile.v1';
 export const COACH_HISTORY_KEY = 'breakaway.coach.history.v1';
-export const defaultProfile: CoachProfile = { ftp: 200, hours: 5, days: 3, goal: 'fitness', experience: 'beginner' };
+export const defaultProfile: CoachProfile = { ftp: 200, hours: 5, days: 3, restDay: 6, goal: 'fitness', experience: 'beginner' };
 export function validProfile(raw: unknown): CoachProfile {
   const p = (raw && typeof raw === 'object' ? raw : {}) as Partial<CoachProfile>;
   const bound = (value: unknown, min: number, max: number, fallback: number) =>
@@ -39,6 +40,7 @@ export function validProfile(raw: unknown): CoachProfile {
     ftp: Math.round(bound(p.ftp, 75, 550, defaultProfile.ftp)),
     hours: bound(p.hours, 1, 20, defaultProfile.hours),
     days: Math.round(bound(p.days, 2, 7, defaultProfile.days)),
+    restDay: Math.round(bound(p.restDay, 0, 6, defaultProfile.restDay)), 
     goal: ['fitness','ftp','endurance','race'].includes(String(p.goal)) ? p.goal as CoachGoal : 'fitness',
     experience: ['beginner','intermediate','advanced'].includes(String(p.experience)) ? p.experience as CoachExperience : 'beginner'
   };
@@ -48,11 +50,12 @@ const block = (name: string, minutes: number, low: number, high: number): CoachS
 export function workoutLibrary(profile: CoachProfile): CoachWorkout[] {
   const p = validProfile(profile);
   const novice = p.experience === 'beginner';
+  const enduranceMinutes=Math.max(20,Math.min(novice?45:p.experience==='intermediate'?75:110,Math.round(p.hours*60/p.days)-15));
   return [
     { id:'recovery', name:'Recovery Spin', description:'Easy spinning and relaxed cadence.', category:'Recovery',
       segments:[block('Ease in',5,.4,.5),block('Easy spin',novice?15:25,.45,.58),block('Cool down',5,.35,.45)] },
     { id:'endurance', name:'Aerobic Builder', description:'Build endurance with an achievable steady effort.', category:'Endurance',
-      segments:[block('Warm up',8,.45,.6),block('Zone 2 cruise',novice?20:42,.56,.75),block('Cool down',7,.4,.5)] },
+      segments:[block('Warm up',8,.45,.6),block('Zone 2 cruise',enduranceMinutes,.56,.75),block('Cool down',7,.4,.5)] },
     { id:'tempo', name:'Tempo Builder', description:'Practice sustained, controlled work with recovery.', category:'Tempo',
       segments:[block('Warm up',10,.45,.65),block('Tempo 1',novice?5:10,.76,.87),block('Recovery',4,.45,.6),block('Tempo 2',novice?5:10,.76,.87),block('Cool down',6,.4,.5)] },
     { id:'sweetspot', name:'Sweet Spot Builder', description:'Develop sustainable power without maximal efforts.', category:'Threshold',
@@ -92,6 +95,11 @@ export function availableControls(mode:CoachMode): CoachControl[] {
 export function recommendWeek(profile:CoachProfile, fatigue=false) {
   const p=validProfile(profile);
   const slots = p.days===2?[1,4]:p.days===3?[1,3,6]:p.days===4?[1,2,4,6]:p.days===5?[0,1,3,4,6]:p.days===6?[0,1,2,3,4,6]:[0,1,2,3,4,5,6];
+  if(p.days<7 && slots.includes(p.restDay)){
+    const candidate=Array.from({length:7},(_,day)=>day).filter(day=>day!==p.restDay&&!slots.includes(day)).sort((a,b)=>Math.abs(a-p.restDay)-Math.abs(b-p.restDay))[0];
+    if(candidate!==undefined)slots.splice(slots.indexOf(p.restDay),1,candidate);
+    slots.sort((a,b)=>a-b);
+  }
   const harder = p.experience==='beginner' ? 'tempo' : p.goal==='race' ? 'vo2' : 'sweetspot';
   return Array.from({length:7},(_,day)=>{
     const index=slots.indexOf(day);
