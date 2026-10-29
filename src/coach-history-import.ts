@@ -1,4 +1,5 @@
 import {mergeRides,parseFitRide,parseStravaCsv,parseXmlRide} from './coach-history-core';
+import {getAccountUserId} from './account-storage';
 import type {HistoricalRide,CsvRide} from './coach-history-core';
 
 const DB_NAME='breakaway-coach-training-history-v1',STORE='rides',DB_VERSION=1;
@@ -11,7 +12,7 @@ const textDecoder=new TextDecoder('utf-8',{fatal:false});
 function openDatabase():Promise<IDBDatabase> {
  return new Promise((resolve,reject)=>{
   if(!('indexedDB' in window)){reject(Error('This browser does not support local history storage.'));return;}
-  const request=indexedDB.open(DB_NAME,DB_VERSION);
+  const request=indexedDB.open(DB_NAME+'-'+getAccountUserId(),DB_VERSION);
   request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(STORE))request.result.createObjectStore(STORE,{keyPath:'key'});};
   request.onsuccess=()=>resolve(request.result);
   request.onerror=()=>reject(request.error||Error('Could not open local history database.'));
