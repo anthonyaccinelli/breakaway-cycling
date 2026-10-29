@@ -217,3 +217,75 @@
 .coach-v2 .coach-import-actions button,.coach-v2 .coach-history-suggestions button{min-height:44px!important;font-size:13px!important}
 @media(max-width:700px){.coach-v2 .coach-first-run{flex-direction:column;align-items:stretch;padding:15px}
  .coach-v2 .coach-first-run button{width:100%}}
+
+
+/* Keep text on navy and indigo backgrounds white. White Coach cards retain
+   their own dark ink; do not apply a global color override to descendants. */
+#breakawayCoachScreen.coach-v2 .coach-nav button,
+#breakawayCoachScreen.coach-v2 .coach-nav button span{
+  color:#fff!important;
+}
+#breakawayCoachScreen.coach-v2 .coach-nav button{
+  background:#4b63ac!important;
+  border:2px solid #4b63ac!important;
+}
+#breakawayCoachScreen.coach-v2 .coach-nav button:hover:not([aria-selected="true"]){
+  background:#385494!important;
+  border-color:#385494!important;
+  color:#fff!important;
+}
+#breakawayCoachScreen.coach-v2 .coach-nav button[aria-selected="true"]{
+  background:#243f83!important;
+  color:#fff!important;
+  border-color:#a9c8ff!important;
+  box-shadow:0 0 0 2px rgba(169,200,255,.33)!important;
+}
+#breakawayCoachScreen.coach-v2 .coach-nav button[aria-selected="true"] span{
+  color:#fff!important;
+}
+/* Headline, eyebrow, introductory text and link sit directly on the
+   navy page surface in all four Coach tabs. */
+#breakawayCoachScreen.coach-v2 .coach-view > .coach-page-lead .coach-tag,
+#breakawayCoachScreen.coach-v2 .coach-view > .coach-page-lead h2,
+#breakawayCoachScreen.coach-v2 .coach-view > .coach-page-lead p,
+#breakawayCoachScreen.coach-v2 .coach-view > .coach-page-lead .coach-subtle-link,
+#breakawayCoachScreen.coach-v2 .coach-calendar-heading .coach-tag,
+#breakawayCoachScreen.coach-v2 .coach-calendar-heading .coach-calendar-hint{
+  color:#fff!important;
+}
+/* Calendar pill contents are always white on indigo, including the active
+   and hover states; expanded detail panels remain dark-on-light. */
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill,
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill .coach-calendar-date,
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill .coach-calendar-activity,
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill .coach-calendar-strength,
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill .coach-calendar-chevron{
+  color:#fff!important;
+}
+
+/* My Setup: two independent vertical columns. Put How Coach Works immediately
+   below Your Rider Profile, irrespective of the taller equipment panel. */
+#breakawayCoachScreen.coach-v2 .coach-settings-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:start;
+  gap:18px;
+}
+#breakawayCoachScreen.coach-v2 .coach-setup-left,
+#breakawayCoachScreen.coach-v2 .coach-setup-right{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:18px;
+  align-self:start;
+  min-width:0;
+}
+#breakawayCoachScreen.coach-v2 .coach-setup-left > .coach-panel,
+#breakawayCoachScreen.coach-v2 .coach-setup-right > .coach-panel{
+  margin:0!important;
+}
+@media(max-width:980px){
+  #breakawayCoachScreen.coach-v2 .coach-settings-grid{
+    grid-template-columns:minmax(0,1fr);
+  }
+}
