@@ -1,3 +1,4 @@
+import {mountBetaSupport} from './beta-support';
 import './style.css';
 import {bindFullscreenButton} from './ride-fullscreen';
 import './ride-fullscreen.css';
@@ -2738,6 +2739,7 @@ modeLanding.innerHTML='<div class="mode-landing-brand"><span>RIDE BREAKAWAY</spa
 const homePresenceBadge=document.getElementById('liveRiders');
 if(homePresenceBadge)modeLanding.querySelector('.mode-landing-meta')!.append(homePresenceBadge);
 document.body.append(modeLanding);
+mountBetaSupport({home:modeLanding,getMode:()=>rideExperience,getTrainer:()=>device?.name||''});
 const modeHomeButton=document.createElement('button');
 modeHomeButton.type='button';modeHomeButton.id='modeHomeButton';modeHomeButton.textContent='← CHANGE MODE';
 document.body.append(modeHomeButton);
