@@ -14,7 +14,8 @@ test('Coach is a subfeature of Classic, not a fourth home mode',()=>{
  assert.doesNotMatch(coach,/bridgeHome\(\)\.append\(trigger\)/);
  assert.match(coach,/BACK TO CLASSIC/);
  assert.match(coach,/coachStartClassic/);
- assert.match(css,/body\[data-ride-experience="survival"\] #openBreakawayCoach/);
+ assert.match(css,/#openBreakawayCoach\{display:none!important\}/);
+ assert.match(css,/\[data-ride-experience="classic"\]\[data-breakaway-screen="route"\]/);
  assert.match(main,/id="chooseClassic"/);
 });
 test('No Coach intervals, ERG commands, or game target adjustments are available in Survival and Cycle Quest',()=>{
