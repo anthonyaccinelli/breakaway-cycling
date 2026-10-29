@@ -316,10 +316,10 @@ export function mountCoach(bridge:CoachBridge){
       ?(strengthOnly?'Strength training day':recommendation.status==='completed'?'Ride already completed':'Rest day')
       :getWorkout().name;
     $('coachRecommendationLabel').textContent=riderSelected?'YOUR CHOICE':
-      recommendation.status==='recovery'?'RECOVERY ADJUSTMENT':
+      strengthOnly?'STRENGTH DAY':recommendation.status==='recovery'?'RECOVERY ADJUSTMENT':
       recommendation.status==='rest'||recommendation.status==='completed'?'REST RECOMMENDED':'FROM YOUR PLAN';
-    $('coachWhy').textContent=strengthOnly&&!riderSelected?'Strength training is scheduled today within your available training time. No cycling workout is assigned.':resting?'Coach recommends rest today.':riderSelected?'You chose an optional alternative for today. Coach originally recommended: '+recommendation.reason:'Why Coach chose this: '+recommendation.reason;
-    $('coachRestReason').textContent=strengthOnly?'Your equipment-aware strength session is ready below. Cycling is optional today.':recommendation.reason;
+    $('coachWhy').textContent=strengthOnly&&!riderSelected?'Your plan includes strength today. No cycling workout is scheduled.':resting?'Coach recommends rest today.':riderSelected?'You chose an optional alternative for today. Coach originally recommended: '+recommendation.reason:'Why Coach chose this: '+recommendation.reason;
+    $('coachRestReason').textContent=strengthOnly?'Your strength session is ready above. No trainer needed. You can still pick an optional cycling workout.':recommendation.reason;
     $('coachUseRecommendation').hidden=!riderSelected;
     const w=getWorkout(), duration=workoutDuration(w);
     $('coachWorkoutInfo').innerHTML='<div><strong>'+escapeHtml(w.category.toUpperCase())+'</strong><span>'+Math.round(duration/60)+' MINUTES · '+w.segments.length+' SEGMENTS</span></div><p>'+escapeHtml(w.description)+'</p>';
@@ -352,7 +352,7 @@ export function mountCoach(bridge:CoachBridge){
       if(day.cyclingId&&day.cyclingMinutes>0)entries.push({day:day.day,name:library.find(w=>w.id===day.cyclingId)?.name||'Cycling ride',type:'ride',id:day.cyclingId,minutes:day.cyclingMinutes});
       if(day.strength&&day.strengthMinutes>0)entries.push({day:day.day,name:'Full Body Strength '+day.strength,type:'strength',id:day.strength,minutes:day.strengthMinutes});
       return entries;
-    }).filter(item=>item.day>=now).slice(0,3);
+    }).filter(item=>item.day>now).slice(0,3);
     $('coachNextUp').innerHTML=upcoming.length?upcoming.map(item=>
       '<button type="button" class="coach-upcoming-item" data-upcoming-type="'+item.type+'" data-upcoming-workout="'+escapeHtml(item.id)+'"><strong>'+weekdays[item.day]+'</strong><span>'+escapeHtml(item.name)+'<small>'+item.minutes+' min · '+(item.type==='ride'?'Ride':'Strength')+'</small></span><span aria-hidden="true">→</span></button>'
     ).join(''):'<p class="coach-small">Your remaining days this week are for recovery.</p>';
