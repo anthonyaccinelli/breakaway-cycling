@@ -50,7 +50,7 @@ export function mountCoach(bridge:CoachBridge){
   const classicRoute=document.getElementById('screenRoute');
   const screen=document.createElement('section');
   screen.id='breakawayCoachScreen';
-  screen.className='coach-screen';
+  screen.className='coach-screen coach-v2';
   screen.hidden=true;
   screen.innerHTML = `
 <header class="coach-top">
@@ -135,7 +135,7 @@ export function mountCoach(bridge:CoachBridge){
           <label>LEVEL<select id="coachExperience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
           <label>GOAL<select id="coachGoal"><option value="fitness">Ride consistently</option><option value="ftp">Increase FTP</option><option value="endurance">Build endurance</option><option value="race">Prepare to race</option></select></label>
         </div>
-        <button type="button" id="coachSaveProfile" class="coach-classic-start">SAVE RIDER SETTINGS →</button>
+        <button type="button" id="coachSaveProfile" class="coach-classic-start">SAVE RIDER SETTINGS →</button><p id="coachSettingsFeedback" class="coach-settings-feedback" role="status"></p>
         <p class="coach-small">Your profile and recent coached workouts are saved in this browser. No cloud sync or generative AI is connected.</p>
       </section>
       <section class="coach-panel coach-howto">
@@ -166,10 +166,44 @@ export function mountCoach(bridge:CoachBridge){
   const h=(id:string)=>byId(hud,id);
   const workSelect=$('coachWorkout') as HTMLSelectElement;
   const styleSelect=$('coachControl') as HTMLSelectElement;
+  type CoachTab='today'|'plan'|'history'|'settings';
+  const tabs:Array<CoachTab>=['today','plan','history','settings'];
+  let activeTab:CoachTab='today';
+  function navigate(tab:CoachTab,focus=false){
+    activeTab=tab;
+    screen.querySelectorAll<HTMLButtonElement>('[data-coach-tab]').forEach(button=>{
+      const selected=button.dataset.coachTab===tab;
+      button.setAttribute('aria-selected',String(selected));
+      button.tabIndex=selected?0:-1;
+      if(selected&&focus)button.focus();
+    });
+    screen.querySelectorAll<HTMLElement>('[data-coach-view]').forEach(view=>{
+      view.hidden=view.dataset.coachView!==tab;
+    });
+    screen.scrollTop=0;
+    if(tab==='history')void refreshPlatformHistory();
+  }
+  screen.querySelectorAll<HTMLButtonElement>('[data-coach-tab]').forEach(button=>{
+    button.addEventListener('click',()=>navigate(button.dataset.coachTab as CoachTab));
+    button.addEventListener('keydown',event=>{
+      const current=tabs.indexOf(button.dataset.coachTab as CoachTab);
+      let next=-1;
+      if(event.key==='ArrowRight')next=(current+1)%tabs.length;
+      if(event.key==='ArrowLeft')next=(current+tabs.length-1)%tabs.length;
+      if(event.key==='Home')next=0;
+      if(event.key==='End')next=tabs.length-1;
+      if(next>=0){event.preventDefault();navigate(tabs[next],true);}
+    });
+  });
+  screen.querySelectorAll<HTMLButtonElement>('[data-navigate-coach]').forEach(button=>button.addEventListener('click',()=>{
+    const tab=button.dataset.navigateCoach as CoachTab;
+    if(tabs.includes(tab))navigate(tab,true);
+  }));
   function open(){
     if(session){hud.hidden=false;return;}
     screen.hidden=false;
     document.body.classList.add('coach-planning');
+    navigate('today');
     render();
     void refreshPlatformHistory();
     window.scrollTo(0,0);
@@ -205,6 +239,21 @@ export function mountCoach(bridge:CoachBridge){
     const fatigue=(last?.rpe!==null && typeof last?.rpe==='number' && last.rpe>=9)||recentHardGame;
     const week=recommendWeek(rider,!!fatigue), now=new Date().getDay();
     const weekdays=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    $('coachHeaderFtp').textContent='FTP '+rider.ftp+' W';
+    $('coachProfileSummary').innerHTML=
+      '<div><strong>'+rider.ftp+' W</strong><span>FTP</span></div>'+
+      '<div><strong>'+rider.hours+' h</strong><span>Per week</span></div>'+
+      '<div><strong>'+rider.days+' days</strong><span>Training days</span></div>';
+    const upcoming=week.filter(day=>day.day>=now&&day.workoutId).slice(0,3);
+    const later=upcoming.length?upcoming:week.filter(day=>day.workoutId).slice(0,3);
+    $('coachNextUp').innerHTML=later.length?later.map(day=>{
+      const name=library.find(w=>w.id===day.workoutId)?.name||'Easy ride';
+      return '<button type="button" class="coach-upcoming-item" data-upcoming-workout="'+escapeHtml(day.workoutId||'')+'"><strong>'+weekdays[day.day]+'</strong><span>'+escapeHtml(name)+'</span><span aria-hidden="true">→</span></button>';
+    }).join(''):'<p class="coach-small">Rest and recover. Your next workout will be on the plan.</p>';
+    $('coachPlanLibrary').innerHTML=library.map(w=>{
+      const mins=Math.round(workoutDuration(w)/60);
+      return '<button type="button" class="coach-library-item" data-library-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+mins+' min</small></span><span aria-hidden="true">→</span></button>';
+    }).join('');
     $('coachWeek').innerHTML=week.map(day=>{
       const assigned=library.find(w=>w.id===day.workoutId);
       return '<button type="button" data-day-workout="'+(assigned?.id||'')+'" '+(!assigned?'disabled':'')+' class="'+(day.day===now?'coach-week-today':'')+'"><span>'+weekdays[day.day]+'</span><strong>'+(assigned?escapeHtml(assigned.name):'Rest day')+'</strong></button>';
@@ -221,7 +270,15 @@ export function mountCoach(bridge:CoachBridge){
   workSelect.addEventListener('change',()=>{selected=workSelect.value;render();});
   $('coachWeek').addEventListener('click',event=>{
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-day-workout]');
-    if(button?.dataset.dayWorkout){selected=button.dataset.dayWorkout;render();}
+    if(button?.dataset.dayWorkout){selected=button.dataset.dayWorkout;render();navigate('today');}
+  });
+  $('coachPlanLibrary').addEventListener('click',event=>{
+    const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-library-workout]');
+    if(button?.dataset.libraryWorkout){selected=button.dataset.libraryWorkout;render();navigate('today');}
+  });
+  $('coachNextUp').addEventListener('click',event=>{
+    const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-upcoming-workout]');
+    if(button?.dataset.upcomingWorkout){selected=button.dataset.upcomingWorkout;render();navigate('today');}
   });
   styleSelect.addEventListener('change',()=>{controlChoice=styleSelect.value as CoachControl;});
   $('coachSaveProfile').addEventListener('click',()=>{
@@ -235,7 +292,7 @@ export function mountCoach(bridge:CoachBridge){
     });
     writeJson(COACH_PROFILE_KEY,rider);
     render();
-    $('coachStatus').textContent='Profile saved on this device. Weekly recommendations updated.';
+    $('coachSettingsFeedback').textContent='Saved. Your recommended workouts and weekly plan are updated.';
   });
   function release(){
     if(session?.control==='structured' && !isDemo)bridge.setMode('sim');
