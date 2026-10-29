@@ -13,6 +13,9 @@ import {defaultStrength,integratedWeek,strengthRoutine} from './coach-strength';
 import {mountCoachStrength} from './coach-strength-ui';
 import './coach-ux-polish.css';
 import {dayKey,escapeHtml,readJson,writeJson} from './coach-dom';
+import {calendarDays} from './coach-calendar';
+import type {CoachCalendarDay} from './coach-calendar';
+import './coach-calendar.css';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
@@ -45,6 +48,8 @@ export function mountCoach(bridge:CoachBridge){
   let currentDay='';
   let customWorkout:CoachWorkout|null=null;
   let importedRides:HistoricalRide[]=[];
+  let expandedCalendarKey:string|null=null;
+  let currentCalendarDays:CoachCalendarDay[]=[];
   let controlChoice:CoachControl='structured';
   let platformRides:Awaited<ReturnType<CoachBridge['getPlatformRides']>>=[];
   let strength:ReturnType<typeof mountCoachStrength>|null=null;
@@ -85,6 +90,11 @@ export function mountCoach(bridge:CoachBridge){
     <div id="coachFirstRun" class="coach-first-run" hidden>
       <div><strong>New to Breakaway Coach?</strong><p>Start here: set your goal, available training time, and equipment so Coach can make a plan for you.</p></div>
       <button type="button" data-navigate-coach="settings">SET UP MY PLAN →</button>
+    </div>
+    <div class="coach-calendar" aria-label="Next seven days of training">
+      <div class="coach-calendar-heading"><span class="coach-tag">YOUR NEXT 7 DAYS</span><span class="coach-calendar-hint">Select a day for details</span></div>
+      <div class="coach-calendar-strip" id="coachCalendarStrip" role="group" aria-label="Next seven calendar days"></div>
+      <section class="coach-calendar-details" id="coachCalendarDetails" aria-label="Selected day's planned workouts" role="region" hidden></section>
     </div>
     <div class="coach-today-grid">
       <section class="coach-panel coach-workout-card">
@@ -320,11 +330,13 @@ export function mountCoach(bridge:CoachBridge){
     library=workoutLibrary(rider);
     const nowDate=new Date();
     const todayKey=dayKey(nowDate);
-    if(todayKey!==currentDay){currentDay=todayKey;riderSelected=false;customWorkout=null;}
+    if(todayKey!==currentDay){currentDay=todayKey;riderSelected=false;customWorkout=null;expandedCalendarKey=null;}
     const inputs=recentRides();
     const feedback=recentFeedback();
     const recommendation=recommendToday(rider,nowDate,inputs,feedback);
     const schedule=weekPlan();
+    currentCalendarDays=calendarDays(nowDate,schedule.days,library,recommendation);
+    renderCalendar();
     const todaySchedule=schedule.days[nowDate.getDay()];
     const strengthOnToday=!!todaySchedule?.strength;
     const strengthDoneToday=strength?.completedToday()||false;
