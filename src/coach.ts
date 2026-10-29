@@ -319,21 +319,17 @@ export function mountCoach(bridge:CoachBridge){
   function render(){
     library=workoutLibrary(rider);
     const nowDate=new Date();
-    const dayKey=nowDate.getFullYear()+'-'+(nowDate.getMonth()+1)+'-'+nowDate.getDate();
-    if(dayKey!==currentDay){currentDay=dayKey;riderSelected=false;customWorkout=null;}
-    const inputs=platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower}))
-      .concat(importedRides.filter(r=>!platformRides.some(p=>Math.abs(p.start-r.start)<120000))
-        .map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower})));
-    const feedback=historyRecords().map(r=>({date:Date.parse(r.date),rpe:r.rpe}));
+    const todayKey=dayKey(nowDate);
+    if(todayKey!==currentDay){currentDay=todayKey;riderSelected=false;customWorkout=null;}
+    const inputs=recentRides();
+    const feedback=recentFeedback();
     const recommendation=recommendToday(rider,nowDate,inputs,feedback);
-    const schedule=integratedWeek(rider,strength?.settings||{enabled:false,equipment:['bodyweight'],experience:'beginner',sessions:1,minutes:30,notes:''},
-      recommendWeek(rider,false),id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+    const schedule=weekPlan();
     const todaySchedule=schedule.days[nowDate.getDay()];
     const strengthOnToday=!!todaySchedule?.strength;
     const strengthDoneToday=strength?.completedToday()||false;
     const strengthOnly=strengthOnToday&&!todaySchedule.cyclingId;
-    const lightStrength=inputs.some(r=>nowDate.getTime()-r.start<=36*3600000&&r.elapsed>=1800&&r.avgPower!==null&&r.avgPower>=rider.ftp*.8)
-      ||feedback.some(r=>nowDate.getTime()-r.date<=48*3600000&&r.date<=nowDate.getTime()&&r.rpe!==null&&r.rpe>=9);
+    const lightStrength=strengthShouldBeLight();
     if(!riderSelected){selected=recommendation.workoutId||'recovery';customWorkout=null;}
     if(!library.some(w=>w.id===selected)){selected='recovery';customWorkout=null;}
     const resting=!riderSelected&&(!recommendation.workoutId||strengthOnly);
@@ -359,15 +355,9 @@ export function mountCoach(bridge:CoachBridge){
         '<span class="coach-segment-bar" aria-hidden="true" style="height:'+height+'%;background:'+color+'"></span></button>';
     }).join('');
     showIntervalRequirements(0);
-    ($('coachFtp') as HTMLInputElement).value=String(rider.ftp);
-    ($('coachHours') as HTMLInputElement).value=String(rider.hours);
-    ($('coachDays') as HTMLInputElement).value=String(rider.days);
-    ($('coachRestDay') as HTMLSelectElement).value=String(rider.restDay);
-    ($('coachExperience') as HTMLSelectElement).value=rider.experience;
-    ($('coachGoal') as HTMLSelectElement).value=rider.goal;
     styleSelect.value=controlChoice;
     const history=historyRecords();
-    const week=recommendWeek(rider,false), now=new Date().getDay();
+    const now=nowDate.getDay();
     const weekdays=['SUN','MON','TUE','WED','THU','FRI','SAT'];
     $('coachHeaderFtp').textContent='FTP '+rider.ftp+' W';
     const hasSetup=!!readJson(COACH_PROFILE_KEY);
