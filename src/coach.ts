@@ -58,7 +58,7 @@ export function mountCoach(bridge:CoachBridge){
     '<header class="coach-top"><div><div class="coach-eyebrow">RIDE BREAKAWAY / TRAIN SMARTER</div><h1>BREAKAWAY <em>COACH.</em></h1><p>One coach. Three ways to ride.</p></div><button type="button" class="coach-back" id="coachBack">← BACK TO MODES</button></header>'+
     '<main class="coach-main"><div class="coach-layout"><section class="coach-panel coach-primary">'+
     '<div class="coach-section-top"><span class="coach-tag">01 / TODAY</span><span class="coach-tag" id="coachPlanTag">PERSONALIZED</span></div>'+
-    '<h2>YOUR NEXT RIDE.</h2><p class="coach-intro" id="coachSuggestion">Train with purpose, ride your way.</p>'+
+    '<h2>YOUR NEXT RIDE.</h2><p class="coach-intro" id="coachSuggestion">Train with purpose, ride your way.</p>'+ '<div class="coach-quick"><button type="button" data-coach-question="why">WHY THIS WORKOUT?</button><button type="button" data-coach-question="tired">I FEEL TIRED</button><button type="button" data-coach-question="short">SHORT ON TIME</button></div><p id="coachAnswer" class="coach-small" aria-live="polite">Try a coaching question to get a simple, rules-based recommendation.</p>'+ 
     '<label class="coach-label" for="coachWorkout">WORKOUT LIBRARY</label><select id="coachWorkout" class="coach-select"></select>'+
     '<div id="coachWorkoutInfo" class="coach-workout-info"></div><div id="coachSegments" class="coach-segments"></div>'+
     '<div class="coach-inline-fields"><label>CONTROL STYLE<select id="coachControl"><option value="structured">Structured ERG</option><option value="guided">Guided SIM</option><option value="free">Free ride / record only</option></select></label></div>'+
@@ -133,6 +133,12 @@ export function mountCoach(bridge:CoachBridge){
     $('coachHistory').innerHTML=history.length?history.slice(-5).reverse().map(r=>'<div class="coach-history-row"><strong>'+escapeHtml(r.workout)+'</strong><span>'+new Date(r.date).toLocaleDateString()+' · '+Math.round(r.elapsedSeconds/60)+' min · '+escapeHtml(r.mode.toUpperCase())+'</span></div>').join(''):'<p class="coach-small">Your coached rides will appear here.</p>';
     $('coachSuggestion').textContent=fatigue?'Your last ride felt very hard. Consider an easy session or rest before another demanding effort.':'Choose an evidence-informed workout, then pick a riding mode. You can always adjust today’s plan.';
   }
+  screen.querySelectorAll<HTMLButtonElement>('[data-coach-question]').forEach(button=>button.addEventListener('click',()=>{
+    const question=button.dataset.coachQuestion;
+    if(question==='tired'){selected='recovery';render();$('coachAnswer').textContent='Recovery Spin selected. If you feel unusually fatigued or unwell, consider rest instead of adding intensity.';}
+    else if(question==='short'){selected='recovery';render();$('coachAnswer').textContent='Recovery Spin is a shorter option today. Missing one workout is better than cramming training into a busy week.';}
+    else $('coachAnswer').textContent='This '+getWorkout().category.toLowerCase()+' session supports your '+rider.goal+' goal. The weekly plan alternates demanding and easier rides, with extra recovery after very hard feedback.';
+  }));
   workSelect.addEventListener('change',()=>{selected=workSelect.value;render();});
   $('coachWeek').addEventListener('click',event=>{
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-day-workout]');
