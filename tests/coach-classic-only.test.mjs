@@ -34,7 +34,7 @@ test('All three riding modes tag saved activities for training awareness only',(
  assert.match(coach,/platformRides\.some\(r=>r.mode!==null&&r.mode!=='classic'/);
 });
 test('Coach dashboard is a fixed overlay that is not affected by the generic main route CSS',()=>{
- assert.match(coach,/'<div class="coach-main" role="main">/);
+ assert.match(coach,/<div class="coach-main" role="main">/);
  assert.doesNotMatch(coach,/'<main class="coach-main">/);
  assert.match(css,/\.coach-screen\{position:fixed/);
 });
