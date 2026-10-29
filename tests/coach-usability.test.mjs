@@ -59,3 +59,32 @@ test('Strength overlay stays navigable with keyboard and restores focus',()=>{
  assert.match(strengthUI,/restUntil>Date\.now\(\)/);
  assert.match(strengthUI,/Load \(lb \/ kg \/ BW\)/);
 });
+
+
+test('nav and Today labels use white text against the navy and indigo backgrounds',()=>{
+ const colors=['#4b63ac','#243f83','#385494','#142638'];
+ for(const background of colors){
+  assert.ok(contrast('#ffffff',background)>=4.5,'white text should contrast with '+background);
+ }
+ assert.match(css,/#breakawayCoachScreen\.coach-v2 \.coach-nav button span\{/);
+ assert.match(css,/#breakawayCoachScreen\.coach-v2 \.coach-nav button\[aria-selected="true"\] span/);
+ assert.match(css,/#breakawayCoachScreen\.coach-v2 \.coach-view > \.coach-page-lead h2/);
+ assert.match(css,/#breakawayCoachScreen\.coach-v2 \.coach-calendar-heading \.coach-calendar-hint/);
+ assert.match(css,/#breakawayCoachScreen\.coach-v2 \.coach-calendar-pill \.coach-calendar-activity/);
+ assert.match(css,/color:#fff!important/);
+});
+
+test('My Setup keeps the how-it-works card directly beneath the rider profile',()=>{
+ const settings=ui.slice(ui.indexOf('id="coachViewSettings"'));
+ const left=settings.indexOf('class="coach-setup-left"');
+ const profile=settings.indexOf('<span class="coach-tag">YOUR RIDER PROFILE</span>');
+ const howto=settings.indexOf('class="coach-panel coach-howto"');
+ const right=settings.indexOf('class="coach-setup-right"');
+ const strength=settings.indexOf('id="coachStrengthSettings"');
+ assert.ok(left>=0&&profile>left&&howto>profile&&right>howto&&strength>right);
+ const split=settings.indexOf('class="coach-setup-right"');
+ assert.ok(settings.slice(left,split).includes('class="coach-panel coach-howto"'));
+ assert.match(css,/\.coach-setup-left,\s*\n#breakawayCoachScreen\.coach-v2 \.coach-setup-right/);
+ assert.match(css,/flex-direction:column/);
+ assert.match(css,/@media\(max-width:980px\)/);
+});
