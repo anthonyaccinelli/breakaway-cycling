@@ -2136,7 +2136,7 @@ function surviveEnd(caught=false){if(!surviveOn)return;surviveWaitingForPedals=f
 function surviveTick(now:number){const dt=surviveLast?Math.max(0,Math.min(1,(now-surviveLast)/1000)):0;surviveLast=now;// SURVIVE is independent of the rider's pause state: the pursuer never stops.
  if(!surviveOn)return;
  // During a coached recovery (or a paused session), the threat respects the workout.
- if(typeof coachRuntime!=='undefined'&&coachRuntime?.mode==='survival'&&!surviveWaitingForPedals&&(!running||coachRuntime.isRecovery())){surviveRender();return;}
+ if(typeof coachRuntime!=='undefined'&&coachRuntime?.mode==='survival'&&coachRuntime.snapshot()?.control==='guided'&&!surviveWaitingForPedals&&(!running||coachRuntime.isRecovery())){surviveRender();return;}
  if(surviveWaitingForPedals){
   // Require sustained fresh trainer cadence, not a stale power/speed sample.
   const pedaling=connected&&realTelemetry&&cadence>=10;
@@ -2147,7 +2147,7 @@ function surviveTick(now:number){const dt=surviveLast?Math.max(0,Math.min(1,(now
   se('surviveStatus').textContent='SURVIVAL STARTED';
   surviveRender();return;
  }
- if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;if(surviveMode==='finish'){surviveChaseWattSeconds+=Math.max(0,power)*dt;surviveChaseSeconds+=dt;}surviveWave=surviveMode==='finish'?1:1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(typeof coachRuntime!=='undefined'&&coachRuntime?.mode==='survival'&&coachRuntime.onTarget(power)){surviveEnemyDistance=Math.min(surviveEnemyDistance,distance-50);surviveGap=distance-surviveEnemyDistance;}if(surviveMode==='finish'&&surviveFinishDistance>0&&distance>=surviveFinishDistance&&surviveGap>0){
+ if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;if(surviveMode==='finish'){surviveChaseWattSeconds+=Math.max(0,power)*dt;surviveChaseSeconds+=dt;}surviveWave=surviveMode==='finish'?1:1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(typeof coachRuntime!=='undefined'&&coachRuntime?.mode==='survival'&&coachRuntime.snapshot()?.control==='guided'&&coachRuntime.onTarget(power)){surviveEnemyDistance=Math.min(surviveEnemyDistance,distance-50);surviveGap=distance-surviveEnemyDistance;}if(surviveMode==='finish'&&surviveFinishDistance>0&&distance>=surviveFinishDistance&&surviveGap>0){
   surviveWon=true;
   const finishGap=Math.round(surviveGap);
   surviveEnd(false);
