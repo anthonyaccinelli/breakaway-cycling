@@ -1,7 +1,7 @@
 
 /* Shared Cycle Quest workflow; gameplay, routes and live BLE stay original. */
 import {mountQuestDevices} from './devices-ui.js';
-export function mountQuestBaseline({root,getState,getLive,getView,changeView,routeSVG,parentSend}){
+export function mountQuestBaseline({root,getState,getLive,getView,changeView,openOverlay,routeSVG,parentSend}){
  const game=root.querySelector('.cq-game');
  if(!game)return {sync(){},setPage(){}};
  let page='route';
@@ -59,7 +59,8 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,rou
   const dest=button.dataset.cqPage;
   if(dest==='devices'){changeView('devices');setPage('devices');sync();return;}
   if(dest==='route'){changeView('ride');setPage('route');sync();return;}
-  if(dest==='ride'||dest==='overlay'){changeView(dest);setPage(dest);sync();}
+  if(dest==='overlay'){openOverlay();return;}
+  if(dest==='ride'){changeView(dest);setPage(dest);sync();}
  });
  const devices=mountQuestDevices({root,requestPage:next=>{changeView(next);setPage(next);sync();}});
  let routeKey='';
