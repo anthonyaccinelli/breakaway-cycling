@@ -138,22 +138,27 @@ export type TodayRecommendation={
  status:'planned'|'recovery'|'rest'|'completed';
  reason:string;
 };
+/** Unified fatigue signal used by cycling recommendations and strength day previews. */
+export function fatigueSignals(profile:CoachProfile,now:number,rides:CoachRecentRide[]=[],feedback:CoachRecentFeedback[]=[]){
+ const p=validProfile(profile);
+ const demandingRide=rides.some(r=>Number.isFinite(r.start)&&r.start<=now&&now-r.start<=36*3600000&&
+   Number.isFinite(r.elapsed)&&r.elapsed>=30*60&&r.avgPower!==null&&Number.isFinite(r.avgPower)&&r.avgPower>=p.ftp*.8);
+ const veryHardFeedback=feedback.some(x=>Number.isFinite(x.date)&&x.date<=now&&now-x.date<=48*3600000&&x.rpe!==null&&x.rpe>=9);
+ return {demandingRide,veryHardFeedback,fatigued:demandingRide||veryHardFeedback};
+}
 export function recommendToday(profile:CoachProfile,day:Date,rides:CoachRecentRide[]=[],feedback:CoachRecentFeedback[]=[]):TodayRecommendation {
  const p=validProfile(profile),now=day.getTime();
  const startOfDay=new Date(day.getFullYear(),day.getMonth(),day.getDate()).getTime();
- const todayDay=day.getDay();
- const scheduled=recommendWeek(p,false)[todayDay];
+ const scheduled=recommendWeek(p,false)[day.getDay()];
  const validRides=rides.filter(r=>Number.isFinite(r.start)&&r.start<=now&&Number.isFinite(r.elapsed)&&r.elapsed>0&&r.start>=now-7*86400000);
  const completedToday=validRides.some(r=>r.start>=startOfDay&&r.elapsed>=15*60);
- const difficult=validRides.some(r=>now-r.start<=36*3600000&&r.elapsed>=30*60&&
-   r.avgPower!==null&&Number.isFinite(r.avgPower)&&r.avgPower>=p.ftp*.8);
- const intenseFeedback=feedback.some(x=>Number.isFinite(x.date)&&x.date<=now&&now-x.date<=48*3600000&&x.rpe!==null&&x.rpe>=9);
+ const {demandingRide,veryHardFeedback}=fatigueSignals(p,now,validRides,feedback);
  if(completedToday) return {workoutId:null,status:'completed',
    reason:'You already recorded a ride today. Coach is not stacking another prescribed session. Rest, or choose an optional workout.'};
  if(!scheduled.workoutId) return {workoutId:null,status:'rest',
    reason:'Today is outside your '+p.days+' planned training days. Rest supports consistency. You can still choose an optional workout.'};
- if(difficult||intenseFeedback) return {workoutId:'recovery',status:'recovery',
-   reason:difficult?'A demanding ride was recorded recently. Coach has replaced the planned workout with an easy recovery spin based on duration and average power.':
+ if(demandingRide||veryHardFeedback) return {workoutId:'recovery',status:'recovery',
+   reason:demandingRide?'A demanding ride was recorded recently. Coach has replaced the planned workout with an easy recovery spin based on duration and average power.':
    'Your recent workout feedback indicated very high effort. Coach has selected an easier recovery spin.'};
  const descriptions:Record<CoachGoal,string>={
   fitness:'regular riding and consistency',ftp:'building sustainable power',
