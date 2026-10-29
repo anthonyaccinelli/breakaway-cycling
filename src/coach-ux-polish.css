@@ -200,3 +200,20 @@
 .coach-rpe-buttons button{min-height:44px!important;min-width:82px!important;
  background:#ebf2fb!important;color:#1a4275!important;border:1px solid #a5bedc!important;font-size:14px!important}
 .coach-rpe-buttons button[aria-pressed=true]{background:#1559c9!important;color:#fff!important}
+
+
+/* First-time riders see a single unmistakable starting point. */
+.coach-v2 .coach-first-run[hidden]{display:none!important}
+.coach-v2 .coach-first-run{display:flex;align-items:center;justify-content:space-between;gap:18px;
+  padding:18px 21px;margin:0 0 19px;border:1px solid #aac5e9;border-radius:13px;
+  background:#e7f1ff;color:#1e416e}
+.coach-v2 .coach-first-run strong{font-size:18px;font-weight:900;color:#1a437e}
+.coach-v2 .coach-first-run p{font-size:14px;line-height:1.5;color:#345675;margin:4px 0 0}
+.coach-v2 .coach-first-run button{flex:0 0 auto;min-height:50px;padding:12px 19px;
+  border:0;border-radius:10px;background:#1152c7;color:white;font-size:15px;font-weight:900}
+.coach-v2 .coach-first-run button:hover{background:#063b9e}
+.coach-v2 .coach-ftp-chip{cursor:pointer}
+.coach-v2 .coach-ftp-chip:hover{background:#dbeaff;border-color:#84ace3}
+.coach-v2 .coach-import-actions button,.coach-v2 .coach-history-suggestions button{min-height:44px!important;font-size:13px!important}
+@media(max-width:700px){.coach-v2 .coach-first-run{flex-direction:column;align-items:stretch;padding:15px}
+ .coach-v2 .coach-first-run button{width:100%}}
