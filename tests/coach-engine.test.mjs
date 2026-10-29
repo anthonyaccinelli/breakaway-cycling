@@ -37,10 +37,9 @@ test('structured power targets respect FTP and adjustment',()=>{
   assert.equal(coach.inTargetRange(270,300,s),true);
   assert.equal(coach.inTargetRange(350,300,s),false);
 });
-test('only Classic can own a structured ERG workout',()=>{
-  assert.deepEqual(coach.availableControls('classic'),['structured','guided','free']);
-  assert.deepEqual(coach.availableControls('survival'),['guided','free']);
-  assert.deepEqual(coach.availableControls('cyclequest'),['guided','free']);
+test('Coach only offers structured and guided workouts inside Classic',()=>{
+  assert.deepEqual(coach.availableControls('classic'),['structured','guided']);
+  assert.doesNotMatch(source,/export type CoachMode\s*=\s*[^;]*(survival|cyclequest)/);
 });
 test('weekly training contains rider-defined days and a hard-session fatigue safeguard',()=>{
   const p=coach.validProfile({ftp:300,hours:6,days:4,goal:'race',experience:'advanced'});
