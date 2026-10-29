@@ -278,7 +278,7 @@ export function mountCoach(bridge:CoachBridge){
     $('coachRecommendationLabel').textContent=riderSelected?'YOUR CHOICE':
       recommendation.status==='recovery'?'RECOVERY ADJUSTMENT':
       recommendation.status==='rest'||recommendation.status==='completed'?'REST RECOMMENDED':'FROM YOUR PLAN';
-    $('coachWhy').textContent=resting?'Coach recommends rest today.':'Why this session? '+recommendation.reason;
+    $('coachWhy').textContent=resting?'Coach recommends rest today.':riderSelected?'You chose an optional alternative for today. Coach originally recommended: '+recommendation.reason:'Why Coach chose this: '+recommendation.reason;
     $('coachRestReason').textContent=recommendation.reason;
     $('coachUseRecommendation').hidden=!riderSelected;
     const w=getWorkout(), duration=workoutDuration(w);
