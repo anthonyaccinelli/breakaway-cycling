@@ -291,7 +291,7 @@ export function mountCoach(bridge:CoachBridge){
     panel.querySelectorAll<HTMLButtonElement>('[data-coach-rpe]').forEach(button=>button.addEventListener('click',()=>{
       const rpe=Number(button.dataset.coachRpe);
       const history=historyRecords();
-      const match=history.findLast(r=>r.id===finishedId);
+      const match=history.slice().reverse().find(r=>r.id===finishedId);
       if(!match)return;
       match.rpe=rpe;writeJson(COACH_HISTORY_KEY,history);
       const note=byId(panel,'coachReviewMessage');
