@@ -451,19 +451,14 @@ export function mountCoach(bridge:CoachBridge){
         $('coachAnswer').textContent='Shorter session prepared. Coach kept the power ranges and reduced interval durations.';
       }
     }else{
-      const recommended=recommendToday(rider,new Date(),
-        platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower}))
-          .concat(importedRides.filter(r=>!platformRides.some(p=>Math.abs(p.start-r.start)<120000)).map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower}))),
-        historyRecords().map(r=>({date:Date.parse(r.date),rpe:r.rpe})));
+      const recommended=recommendToday(rider,new Date(),recentRides(),recentFeedback());
       $('coachAnswer').textContent=recommended.reason+(riderSelected?' You have selected an alternative for today.':'');
     }
   }));
   function launchStrength(variation:'A'|'B',minutes?:number){
     if(!strength?.settings.enabled)return;
     if(bridge.isRiding()){alert('Finish your active cycling session before starting strength training.');return;}
-    const recent=platformRides.some(r=>Date.now()-r.start<36*3600000&&r.elapsed>=1800&&r.avgPower!==null&&r.avgPower>=rider.ftp*.8);
-    const perceived=strength.history.some(r=>r.rpe!==null&&r.rpe>=9&&Date.now()-Date.parse(r.date)<48*3600000);
-    strength.open(variation,recent||perceived,minutes);
+    strength.open(variation,strengthShouldBeLight(),minutes);
   }
   $('coachWeek').addEventListener('click',event=>{
     const target=event.target;
@@ -471,7 +466,7 @@ export function mountCoach(bridge:CoachBridge){
     const strengthButton=target.closest<HTMLButtonElement>('[data-strength-variation]');
     if(strengthButton){
       const day=Number(strengthButton.dataset.strengthDay);
-      const schedule=integratedWeek(rider,strength!.settings,recommendWeek(rider,false),id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+      const schedule=weekPlan();
       const plan=schedule.days[day];
       if(plan?.strength)launchStrength(plan.strength,plan.strengthMinutes);
       return;
@@ -482,7 +477,7 @@ export function mountCoach(bridge:CoachBridge){
   $('coachStrengthToday').addEventListener('click',event=>{
     const target=event.target;
     if(!(target instanceof Element)||!target.closest('#coachStartStrength'))return;
-    const schedule=integratedWeek(rider,strength!.settings,recommendWeek(rider,false),id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+    const schedule=weekPlan();
     const planned=schedule.days[new Date().getDay()];
     if(planned?.strength)launchStrength(planned.strength,planned.strengthMinutes);
   });
@@ -494,7 +489,7 @@ export function mountCoach(bridge:CoachBridge){
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-upcoming-workout]');
     if(button?.dataset.upcomingWorkout){
       if(button.dataset.upcomingType==='strength'){
-        const schedule=integratedWeek(rider,strength!.settings,recommendWeek(rider,false),id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+        const schedule=weekPlan();
         const chosen=schedule.days.find(day=>day.strength===button.dataset.upcomingWorkout&&day.day>=new Date().getDay());
         if(chosen?.strength)launchStrength(chosen.strength,chosen.strengthMinutes);
       }else{selected=button.dataset.upcomingWorkout;riderSelected=true;customWorkout=null;render();navigate('today');}
@@ -520,6 +515,7 @@ export function mountCoach(bridge:CoachBridge){
       return;
     }
     riderSelected=false;customWorkout=null;
+    syncSettingsForm();
     render();
     $('coachSettingsFeedback').textContent='✓ Saved! Your cycling, strength, and weekly plan are updated.';
     navigate('today',true);
@@ -690,14 +686,13 @@ export function mountCoach(bridge:CoachBridge){
     return {name:session.workout.name,mode:session.mode,control:session.control,remaining:formatTime(seg.remaining),target:targetWatts(session.ftp,seg.segment,session.adjusted),done:session.done};
   }
   window.addEventListener('breakaway:history-updated',()=>{void refreshPlatformHistory();});
-  strength=mountCoachStrength($('coachStrengthSettings'),{
-    changed:()=>{riderSelected=false;customWorkout=null;render();},
-    finished:()=>{render();navigate('history');}
-  });
+  strength=mountCoachStrength($('coachStrengthSettings'),{finished:()=>{render();navigate('history');}});
+  syncSettingsForm();
   render();
   mountCoachHistory($('coachHistoryImport'),{applySuggestion:(suggestion)=>{
     rider=validProfile({...rider,...suggestion});
     writeJson(COACH_PROFILE_KEY,rider);
+    syncSettingsForm();
     render();
   }});
   return {tick,finish,endCoaching,snapshot,get mode(){return session?.mode||null;},get active(){return !!session;}};
