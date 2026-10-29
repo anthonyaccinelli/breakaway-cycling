@@ -13,6 +13,7 @@ export interface CoachBridge {
   setMode:(mode:'target'|'sim')=>void;
   setTarget:(watts:number)=>void;
   isRiding:()=>boolean;
+  getPlatformRides:()=>Promise<{start:number;elapsed:number;avgPower:number|null;mode:'classic'|'survival'|'cyclequest'|null;name:string}[]>;
 }
 type Session = {
   workout:CoachWorkout; mode:CoachMode; control:CoachControl; ftp:number;
@@ -36,7 +37,8 @@ export function mountCoach(bridge:CoachBridge){
   let rider:CoachProfile=profile;
   let library=workoutLibrary(rider);
   let selected='endurance';
-  let controlChoice:CoachControl='guided';
+  let controlChoice:CoachControl='structured';
+  let platformRides:Awaited<ReturnType<CoachBridge['getPlatformRides']>>=[];
   let session:Session|null=null;
   let finishedId='';
   let renderAt=0;
@@ -46,36 +48,35 @@ export function mountCoach(bridge:CoachBridge){
   const trigger=document.createElement('button');
   trigger.id='openBreakawayCoach';
   trigger.type='button';
-  trigger.className='coach-home-entry';
-  trigger.innerHTML='<span class="coach-entry-kicker">NEW EXPERIENCE · PREVIEW</span><strong>BREAKAWAY COACH</strong><span>One coach. Three ways to ride.</span><span class="coach-entry-arrow">EXPLORE COACH →</span>';
-  bridgeHome().append(trigger);
-
-  function bridgeHome():HTMLElement{return document.getElementById('modeLanding')!;}
+  trigger.className='coach-classic-entry';
+  trigger.innerHTML='<span class="coach-classic-label">TRAIN WITH</span><strong>BREAKAWAY COACH</strong><span aria-hidden="true">→</span>';
+  trigger.title='Open structured training plans inside Classic';
+  const classicRoute=document.getElementById('screenRoute');
+  const routeHeading=classicRoute?.querySelector<HTMLElement>('.route-studio-heading') || classicRoute?.querySelector<HTMLElement>('.route-studio-header');
+  (routeHeading||classicRoute||document.body).append(trigger);
   const screen=document.createElement('section');
   screen.id='breakawayCoachScreen';
   screen.className='coach-screen';
   screen.hidden=true;
   screen.innerHTML=
-    '<header class="coach-top"><div><div class="coach-eyebrow">RIDE BREAKAWAY / TRAIN SMARTER</div><h1>BREAKAWAY <em>COACH.</em></h1><p>One coach. Three ways to ride.</p></div><button type="button" class="coach-back" id="coachBack">← BACK TO MODES</button></header>'+
-    '<main class="coach-main"><div class="coach-layout"><section class="coach-panel coach-primary">'+
+    '<header class="coach-top"><div><div class="coach-eyebrow">RIDE BREAKAWAY / CLASSIC / COACH</div><h1>BREAKAWAY <em>COACH.</em></h1><p>Structured training inside Classic. Survival and Cycle Quest stay free-play games.</p></div><button type="button" class="coach-back" id="coachBack">← BACK TO CLASSIC</button></header>'+
+    '<div class="coach-main" role="main"><div class="coach-layout"><section class="coach-panel coach-primary">'+
     '<div class="coach-section-top"><span class="coach-tag">01 / TODAY</span><span class="coach-tag" id="coachPlanTag">PERSONALIZED</span></div>'+
     '<h2>YOUR NEXT RIDE.</h2><p class="coach-intro" id="coachSuggestion">Train with purpose, ride your way.</p>'+ '<div class="coach-quick"><button type="button" data-coach-question="why">WHY THIS WORKOUT?</button><button type="button" data-coach-question="tired">I FEEL TIRED</button><button type="button" data-coach-question="short">SHORT ON TIME</button></div><p id="coachAnswer" class="coach-small" aria-live="polite">Try a coaching question to get a simple, rules-based recommendation.</p>'+ 
     '<label class="coach-label" for="coachWorkout">WORKOUT LIBRARY</label><select id="coachWorkout" class="coach-select"></select>'+
     '<div id="coachWorkoutInfo" class="coach-workout-info"></div><div id="coachSegments" class="coach-segments"></div>'+
-    '<div class="coach-inline-fields"><label>CONTROL STYLE<select id="coachControl"><option value="structured">Structured ERG</option><option value="guided">Guided SIM</option><option value="free">Free ride / record only</option></select></label></div>'+
-    '<h3>CHOOSE YOUR RIDE.</h3><div class="coach-mode-grid">'+
-    '<button type="button" data-coach-mode="classic"><strong>CLASSIC</strong><span>Intervals & terrain</span></button>'+
-    '<button type="button" data-coach-mode="survival"><strong>SURVIVAL</strong><span>Guided pursuit</span></button>'+
-    '<button type="button" data-coach-mode="cyclequest"><strong>CYCLE QUEST</strong><span>Adventure coaching</span></button></div>'+
-    '<p class="coach-compat">Classic supports structured ERG or Guided SIM. Survival and Cycle Quest support Guided SIM or observation-only Free Ride in this preview. Cycle Quest still requires beta access; original gameplay remains intact.</p>'+
+    '<div class="coach-inline-fields"><label>CONTROL STYLE<select id="coachControl"><option value="structured">Structured ERG</option><option value="guided">Guided SIM (terrain controlled by rider)</option></select></label></div>'+
+    '<h3>READY TO TRAIN?</h3><button type="button" class="coach-classic-start" id="coachStartClassic">PREPARE CLASSIC WORKOUT →</button>'+
+    '<p class="coach-compat">Breakaway Coach prescribes workouts only inside Classic. For a free ride, return to Classic Route Studio. Survival and Cycle Quest retain their original gameplay and resistance control.</p>'+
     '<button type="button" id="coachDemo" class="coach-demo-button">TRY INTERACTIVE WORKOUT DEMO (NO TRAINER)</button>'+
     '<p class="coach-status" id="coachStatus" role="status"></p></section>'+
     '<aside class="coach-side"><section class="coach-panel coach-history-host" id="coachHistoryImport"></section><section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">02 / PROFILE</span><span class="coach-tag">LOCAL ONLY</span></div><h2>YOUR TRAINING.</h2>'+
     '<div class="coach-fields"><label>FTP (W)<input id="coachFtp" type="number" min="75" max="550" step="1"></label><label>HOURS / WEEK<input id="coachHours" type="number" min="1" max="20" step=".5"></label><label>DAYS / WEEK<input id="coachDays" type="number" min="2" max="7" step="1"></label><label>REST DAY<select id="coachRestDay"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label><label>LEVEL<select id="coachExperience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label><label>GOAL<select id="coachGoal"><option value="fitness">Ride consistently</option><option value="ftp">Increase FTP</option><option value="endurance">Build endurance</option><option value="race">Prepare to race</option></select></label></div>'+
     '<button type="button" id="coachSaveProfile">SAVE RIDER PROFILE</button><p class="coach-small">Your profile and workout history are stored in this browser. No cloud sync or generative AI is connected.</p></section>'+
     '<section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">03 / PLAN</span><span class="coach-tag">ADAPTS TO FEEDBACK</span></div><h2>THIS WEEK.</h2><div id="coachWeek" class="coach-week"></div></section>'+
-    '<section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">04 / PROGRESS</span></div><h2>RECENT RIDES.</h2><div id="coachHistory"></div></section>'+ 
-    '</aside></div></main>';
+    '<section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">04 / PROGRESS</span></div><h2>COACHED WORKOUTS.</h2><div id="coachHistory"></div></section>'+ 
+    '<section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">TRAINING AWARENESS</span><span class="coach-tag">NO GAMEPLAY CHANGES</span></div><h2>ALL BREAKAWAY RIDES.</h2><div id="coachPlatformHistory"><p class="coach-small">Loading local ride history…</p></div></section>'+ 
+    '</aside></div></div>';
   document.body.append(screen);
 
   const hud=document.createElement('aside');
@@ -98,6 +99,7 @@ export function mountCoach(bridge:CoachBridge){
     screen.hidden=false;
     document.body.classList.add('coach-planning');
     render();
+    void refreshPlatformHistory();
     window.scrollTo(0,0);
   }
   function close(){screen.hidden=true;document.body.classList.remove('coach-planning');}
