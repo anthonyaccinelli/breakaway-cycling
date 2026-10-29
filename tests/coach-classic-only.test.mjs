@@ -6,11 +6,13 @@ const coach=readFileSync(new URL('../src/coach.ts',import.meta.url),'utf8');
 const engine=readFileSync(new URL('../src/coach-engine.ts',import.meta.url),'utf8');
 const main=readFileSync(new URL('../src/main.ts',import.meta.url),'utf8');
 const css=readFileSync(new URL('../src/coach.css',import.meta.url),'utf8');
+const route=readFileSync(new URL('../src/classic-route-reference.ts',import.meta.url),'utf8');
+const routeCss=readFileSync(new URL('../src/classic-route-reference.css',import.meta.url),'utf8');
 
 test('Coach is a subfeature of Classic, not a fourth home mode',()=>{
  assert.match(coach,/classicRoute=document.getElementById\('screenRoute'\)/);
- assert.match(coach,/routeHeading\.insertAdjacentElement\('afterend',trigger\)/);
- assert.match(coach,/const routeStudio=classicRoute\?\.querySelector<HTMLElement>\('#routeStudio'\)/);
+ assert.match(route,/shell\.innerHTML='<button type="button" id="openBreakawayCoach"/);
+ assert.match(coach,/target\.closest\('#openBreakawayCoach'\)/);
  assert.doesNotMatch(coach,/bridgeHome\(\)\.append\(trigger\)/);
  assert.match(coach,/BACK TO CLASSIC/);
  assert.match(coach,/coachStartClassic/);
@@ -37,14 +39,19 @@ test('Coach dashboard is a fixed overlay that is not affected by the generic mai
  assert.match(css,/\.coach-screen\{position:fixed/);
 });
 
-test('Compact image-free Coach banner sits above Classic route creation',()=>{
- assert.match(coach,/trigger\.className='coach-classic-banner'/);
- assert.match(coach,/Train with Breakaway Coach/);
- assert.match(coach,/OPEN COACH/);
- assert.match(coach,/routeHeading\.insertAdjacentElement\('afterend',trigger\)/);
+test('Coach banner is mounted in the visible Classic Route Studio above the upload row',()=>{
+ const markup=route.slice(route.indexOf("shell.innerHTML="),route.indexOf("const uploadButton"));
+ assert.match(markup,/id="openBreakawayCoach"/);
+ assert.match(markup,/Train with Breakaway Coach/);
+ assert.match(markup,/OPEN COACH/);
+ assert.ok(markup.indexOf('id="openBreakawayCoach"')<markup.indexOf('class="cr-upload-row"'));
+ assert.match(route,/coachBanner\.hidden=survival/);
+ assert.match(coach,/classicRoute\?\.addEventListener\('click',event=>/);
+ // Regression: the former #routeStudio is hidden by Classic's reference layout.
+ // The banner must be a child of .cr-reference instead, not inserted there.
+ assert.doesNotMatch(coach,/routeHeading\.insertAdjacentElement\('afterend',trigger\)/);
+ assert.match(routeCss,/grid-template-rows:calc\(150 \* var\(--cr-u\)\) calc\(44 \* var\(--cr-u\)\)/);
  assert.match(css,/background:#f1f3f6!important;background-image:none!important/);
  assert.match(css,/#openBreakawayCoach\{display:none!important\}/);
- assert.match(css,/\[data-ride-experience="classic"\]\[data-breakaway-screen="route"\]/);
  assert.doesNotMatch(css,/background-image:\s*url\(/);
- assert.doesNotMatch(coach,/branding\//);
 });
