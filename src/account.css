@@ -1,0 +1,227 @@
+/* Account access is isolated from the cycling modes' existing styles. */
+html[data-account-gate="locked"],html[data-account-gate="locked"] body{
+ width:100%!important;height:100%!important;overflow:hidden!important;
+ background:#071521!important;
+}
+html[data-account-gate="locked"] body>*:not(#accountGate):not(script){
+ visibility:hidden!important;pointer-events:none!important;
+}
+.account-gate{
+ position:fixed;inset:0;z-index:2147483000;
+ display:grid;place-items:center;box-sizing:border-box;overflow:auto;
+ background:#071521;
+ color:#f5f7fa;
+ padding:clamp(12px,3vw,30px);
+ font-family:'Instrument Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.account-gate *{box-sizing:border-box}
+.account-shell{
+ display:grid;grid-template-columns:minmax(0,1.18fr) minmax(390px,.82fr);
+ width:min(1120px,100%);min-height:550px;height:min(680px,calc(100dvh - 58px));
+ border-radius:13px;overflow:hidden;
+ border:1px solid #446178;
+ box-shadow:0 28px 80px #0008;
+ background:#0d2033;
+}
+.account-story{
+ display:flex;flex-direction:column;justify-content:space-between;
+ min-width:0;min-height:0;padding:clamp(25px,3.5vw,48px);
+ background:
+  radial-gradient(ellipse at 73% 80%,#17496075,transparent 44%),
+  radial-gradient(ellipse at 15% 10%,#152d4b,transparent 68%),
+  #0d2033;
+ border-right:1px solid #38536d;
+}
+.account-wordmark{
+ display:flex;align-items:center;gap:10px;
+ font:800 clamp(17px,1.75vw,24px)/1 'Host Grotesk',Arial,sans-serif;
+ letter-spacing:.075em;white-space:nowrap;
+}
+.account-wordmark-symbol{
+ display:grid;place-items:center;
+ width:29px;height:29px;flex:none;
+ font:bold 20px/1 'Instrument Sans',sans-serif;
+ color:#05273a;background:#55D6B2;border-radius:6px;
+}
+.account-story-content{max-width:560px}
+.account-eyebrow{
+ font-size:12px;font-weight:850;letter-spacing:.21em;color:#56DEC1;
+}
+.account-story h1{
+ font:800 clamp(52px,6.2vw,86px)/.91 'Host Grotesk',Arial,sans-serif;
+ letter-spacing:-.064em;margin:18px 0 17px;color:#fff;
+}
+.account-story h1 em{font-style:normal;color:#55D6B2}
+.account-story p{
+ margin:0;max-width:410px;
+ color:#C3D5E0;font:500 clamp(15px,1.35vw,18px)/1.55 'Instrument Sans',sans-serif;
+}
+.account-feature-row{
+ display:flex;flex-wrap:wrap;gap:7px;margin-top:29px;
+}
+.account-feature-row span{
+ padding:9px 11px;border:1px solid #476175;border-radius:5px;
+ background:#142a3d;color:#79a1b9;
+ font:650 10px/1.2 'Instrument Sans',sans-serif;letter-spacing:.08em;
+}
+.account-feature-row b{color:#F1F6F9;font-weight:800;margin-left:5px}
+.account-story-bottom{
+ display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+ padding-top:18px;border-top:1px solid #36546a;
+ color:#91ADBC;font:750 10px/1.2 'Instrument Sans',sans-serif;letter-spacing:.07em;
+}
+.account-access{
+ display:flex;flex-direction:column;justify-content:space-between;min-width:0;
+ background:#F7F8FB;color:#142132;
+}
+.account-access-top,.account-access-foot{
+ padding:23px clamp(22px,3vw,40px);
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ color:#617083;font:750 10px/1.2 'Instrument Sans',sans-serif;letter-spacing:.12em;
+}
+.account-access-top{border-bottom:1px solid #E1E5EB}
+.account-signal{display:flex;align-items:center;gap:7px;color:#347d6e}
+.account-signal i{width:7px;height:7px;border-radius:50%;background:#19a981}
+.account-access-content{width:100%;padding:17px clamp(22px,3vw,40px) 24px;margin:auto}
+.account-overline{
+ color:#0870B8;font-size:11px;font-weight:850;letter-spacing:.15em;
+}
+.account-access h2{
+ color:#142132;font:800 clamp(31px,3.5vw,45px)/1.02 'Host Grotesk',Arial,sans-serif;
+ letter-spacing:-.05em;margin:9px 0 8px;
+}
+.account-access-content>p{
+ max-width:355px;color:#566479;
+ font:450 14px/1.5 'Instrument Sans',Arial,sans-serif;
+ margin:0 0 25px;
+}
+.account-field{
+ display:flex;flex-direction:column;gap:8px;
+ color:#344254;font:800 11px/1.2 'Instrument Sans',sans-serif;
+ letter-spacing:.06em;margin:0 0 14px;
+}
+.account-field[hidden]{display:none!important}
+.account-field input{
+ display:block;width:100%;height:47px;min-height:47px;
+ border:1px solid #BFC9D5;border-radius:6px;
+ padding:0 13px;
+ background:#FFFFFF;color:#17263C;
+ font:500 15px/1.4 'Instrument Sans',Arial,sans-serif;
+ letter-spacing:0;
+ outline:none;
+}
+.account-field input::placeholder{color:#8994A3}
+.account-field input:focus{
+ border-color:#074CE0;box-shadow:0 0 0 3px #074CE02A;
+}
+.account-feedback{
+ padding:10px 12px;border:1px solid #E5A6AD;background:#FFF2F3;
+ border-radius:5px;color:#8D202C;font:600 12px/1.5 'Instrument Sans',sans-serif;
+ margin:0 0 13px;
+}
+.account-feedback[hidden]{display:none!important}
+.account-feedback[data-kind="success"]{
+ background:#E7F8F3;border-color:#A4D6C4;color:#17624B;
+}
+.account-submit{
+ display:flex;justify-content:space-between;align-items:center;gap:12px;
+ width:100%;min-height:47px;padding:12px 16px;margin:6px 0 0;
+ border:1px solid #074CE0;border-radius:6px;background:#074CE0;color:#FFF;
+ font:800 13px/1.2 'Instrument Sans',sans-serif;letter-spacing:.065em;
+ cursor:pointer;transition:background 160ms ease-out,transform 160ms ease-out;
+}
+.account-submit span{font-size:21px;line-height:1}
+.account-submit:hover{background:#063DC0;transform:translateY(-1px)}
+.account-submit:active{transform:none}
+.account-submit:disabled{opacity:.65;cursor:wait}
+.account-secondary{
+ display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;
+ gap:8px;margin-top:18px;
+}
+.account-secondary button{
+ appearance:none;border:0;background:none;padding:4px 0;
+ color:#074CE0;font:700 12px/1.3 'Instrument Sans',sans-serif;
+ cursor:pointer;text-align:left;
+ text-decoration:underline;text-underline-offset:3px;
+}
+.account-secondary button[hidden]{display:none!important}
+.account-footnote{
+ border-top:1px solid #E1E5EB;padding:15px 0 0;margin-top:20px;
+ color:#778393;font:500 12px/1.45 'Instrument Sans',sans-serif;
+}
+.account-access-foot{
+ border-top:1px solid #E1E5EB;
+ color:#778393;font-size:9px;letter-spacing:.08em;
+}
+.account-access button:focus-visible,.account-menu button:focus-visible,.account-menu summary:focus-visible{
+ outline:3px solid #074CE0!important;outline-offset:3px!important;
+}
+.account-menu{position:relative;display:inline-block;flex:none;font-family:'Instrument Sans',Arial,sans-serif;letter-spacing:0;font-weight:600}
+.account-menu>summary{
+ display:flex;gap:6px;align-items:center;
+ list-style:none!important;cursor:pointer;user-select:none;
+ color:#D6E4F1;background:#152B3E;border:1px solid #486477;
+ padding:8px 10px;min-height:33px;border-radius:6px;
+ font:800 11px/1.2 'Instrument Sans',Arial,sans-serif;letter-spacing:.04em;
+}
+.account-menu>summary::-webkit-details-marker{display:none}
+.account-menu>summary span{color:#51D6B3;font-size:13px}
+.account-menu-sheet{
+ position:absolute;right:0;top:calc(100% + 9px);z-index:2147480;
+ width:245px;display:flex;flex-direction:column;gap:9px;
+ padding:15px;background:#14273A;color:#FFF;
+ border:1px solid #536F85;border-radius:8px;
+ box-shadow:0 12px 35px #0009;text-align:left;
+}
+.account-menu-label{font:750 10px/1.2 'Instrument Sans',sans-serif;letter-spacing:.1em;color:#83AABF}
+.account-person-email{font:700 12px/1.35 'Instrument Sans',sans-serif;overflow-wrap:anywhere;color:#FFF}
+.account-sync-label{font:600 11px/1.35 'Instrument Sans',sans-serif;color:#65DDB6}
+.account-sync-label[data-error="true"]{color:#FFB0AD}
+.account-signout{
+ border:1px solid #6C8595;border-radius:5px;
+ padding:9px 11px;background:#274358;color:#F6FBFF;
+ font:750 12px/1.2 'Instrument Sans',sans-serif;
+ cursor:pointer;text-align:center;
+}
+.account-signout:hover{background:#37546A}
+#accountGlobalMenu{
+ position:fixed;bottom:14px;left:14px;z-index:10007;
+}
+#accountGlobalMenu .account-menu-sheet{right:auto;left:0;top:auto;bottom:calc(100% + 8px)}
+body[data-breakaway-screen="home"] #accountGlobalMenu{display:none!important}
+@media(max-width:900px){
+ .account-shell{grid-template-columns:minmax(0,.9fr) minmax(320px,1fr)}
+ .account-story{padding:24px}
+ .account-story h1{font-size:clamp(42px,5.3vw,68px)}
+ .account-story-bottom{gap:10px}
+ .account-feature-row span{padding:7px}
+}
+@media(max-width:700px){
+ html[data-account-gate="locked"],html[data-account-gate="locked"] body{height:auto!important;overflow:auto!important}
+ .account-gate{position:absolute;min-height:100dvh;inset:0 0 auto;padding:12px;overflow:auto}
+ .account-shell{
+  display:flex;flex-direction:column;
+  height:auto;min-height:calc(100dvh - 24px);width:100%;max-width:480px;
+ }
+ .account-story{padding:20px 22px 16px;gap:14px}
+ .account-wordmark{font-size:18px}
+ .account-story-content{display:none}
+ .account-story-bottom{padding:12px 0 0;font-size:9px}
+ .account-access{flex:1;min-height:485px}
+ .account-access-content{padding:18px 24px}
+ .account-access-top,.account-access-foot{padding:17px 24px}
+}
+@media(max-height:600px) and (min-width:701px){
+ .account-shell{height:calc(100dvh - 24px);min-height:0}
+ .account-story{padding:24px}
+ .account-story h1{font-size:48px}
+ .account-feature-row{margin-top:14px}
+ .account-access-content>p{margin-bottom:12px}
+ .account-field{margin-bottom:9px}
+ .account-access-content{padding-top:8px;padding-bottom:12px}
+ .account-access-top,.account-access-foot{padding:12px 24px}
+ .account-footnote{margin-top:12px;padding-top:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .account-submit{transition:none!important;transform:none!important}
+}
