@@ -153,7 +153,7 @@ export function mountCoach(bridge:CoachBridge){
         <div class="coach-section-top"><span class="coach-tag">YOUR RIDER PROFILE</span><span class="coach-tag">LOCAL ONLY</span></div>
         <div class="coach-fields">
           <label>FTP (W)<input id="coachFtp" type="number" min="75" max="550" step="1"></label>
-          <label>HOURS / WEEK<input id="coachHours" type="number" min="1" max="20" step=".5"></label>
+          <label>TOTAL TRAINING HOURS / WEEK<input id="coachHours" type="number" min="1" max="20" step=".5"></label>
           <label>DAYS / WEEK<input id="coachDays" type="number" min="2" max="7" step="1"></label>
           <label>REST DAY<select id="coachRestDay"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
           <label>LEVEL<select id="coachExperience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
@@ -411,9 +411,33 @@ export function mountCoach(bridge:CoachBridge){
       $('coachAnswer').textContent=recommended.reason+(riderSelected?' You have selected an alternative for today.':'');
     }
   }));
+  function launchStrength(variation:'A'|'B',minutes?:number){
+    if(!strength?.settings.enabled)return;
+    if(bridge.isRiding()){alert('Finish your active cycling session before starting strength training.');return;}
+    const recent=platformRides.some(r=>Date.now()-r.start<36*3600000&&r.elapsed>=1800&&r.avgPower!==null&&r.avgPower>=rider.ftp*.8);
+    const perceived=strength.history.some(r=>r.rpe!==null&&r.rpe>=9&&Date.now()-Date.parse(r.date)<48*3600000);
+    strength.open(variation,recent||perceived,minutes);
+  }
   $('coachWeek').addEventListener('click',event=>{
-    const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-day-workout]');
+    const target=event.target;
+    if(!(target instanceof Element))return;
+    const strengthButton=target.closest<HTMLButtonElement>('[data-strength-variation]');
+    if(strengthButton){
+      const day=Number(strengthButton.dataset.strengthDay);
+      const schedule=integratedWeek(rider,strength!.settings,recommendWeek(rider,false),id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+      const plan=schedule.days[day];
+      if(plan?.strength)launchStrength(plan.strength,plan.strengthMinutes);
+      return;
+    }
+    const button=target.closest<HTMLButtonElement>('[data-day-workout]');
     if(button?.dataset.dayWorkout){selected=button.dataset.dayWorkout;riderSelected=true;customWorkout=null;render();navigate('today');}
+  });
+  $('coachStrengthToday').addEventListener('click',event=>{
+    const target=event.target;
+    if(!(target instanceof Element)||!target.closest('#coachStartStrength'))return;
+    const schedule=integratedWeek(rider,strength!.settings,recommendWeek(rider,false),id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+    const planned=schedule.days[new Date().getDay()];
+    if(planned?.strength)launchStrength(planned.strength,planned.strengthMinutes);
   });
   $('coachPlanLibrary').addEventListener('click',event=>{
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-library-workout]');
@@ -600,6 +624,10 @@ export function mountCoach(bridge:CoachBridge){
     return {name:session.workout.name,mode:session.mode,control:session.control,remaining:formatTime(seg.remaining),target:targetWatts(session.ftp,seg.segment,session.adjusted),done:session.done};
   }
   window.addEventListener('breakaway:history-updated',()=>{void refreshPlatformHistory();});
+  strength=mountCoachStrength($('coachStrengthSettings'),{
+    changed:()=>{riderSelected=false;customWorkout=null;render();},
+    finished:()=>{render();navigate('history');}
+  });
   render();
   mountCoachHistory($('coachHistoryImport'),{applySuggestion:(suggestion)=>{
     rider=validProfile({...rider,...suggestion});
