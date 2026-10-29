@@ -347,7 +347,10 @@ export function mountCoach(bridge:CoachBridge){
     const week=recommendWeek(rider,false), now=new Date().getDay();
     const weekdays=['SUN','MON','TUE','WED','THU','FRI','SAT'];
     $('coachHeaderFtp').textContent='FTP '+rider.ftp+' W';
-    $('coachFirstRun').hidden=!!readJson(COACH_PROFILE_KEY);
+    const hasSetup=!!readJson(COACH_PROFILE_KEY);
+    $('coachFirstRun').hidden=hasSetup;
+    const connectText=$('coachStartClassic').querySelector('span');
+    if(connectText)connectText.textContent=hasSetup?'CONNECT MY TRAINER':'SET UP MY PLAN TO START';
     $('coachProfileSummary').innerHTML=
       '<div><strong>'+rider.ftp+' W</strong><span>FTP</span></div>'+
       '<div><strong>'+rider.hours+' h</strong><span>Per week</span></div>'+
@@ -562,7 +565,10 @@ export function mountCoach(bridge:CoachBridge){
     }
     showHud();
   }
-  $('coachStartClassic').addEventListener('click',()=>start(getWorkout(),'classic',controlChoice));
+  $('coachStartClassic').addEventListener('click',()=>{
+    if(!readJson(COACH_PROFILE_KEY)){navigate('settings',true);return;}
+    start(getWorkout(),'classic',controlChoice);
+  });
   let demoInput:HTMLInputElement|null=null;
   const demoControls=document.createElement('div');
   demoControls.id='coachDemoControls';
