@@ -2762,6 +2762,25 @@ survivalStudio.id='survivalStudio';
 survivalStudio.className='survival-studio-intro';
 survivalStudio.innerHTML='<div class="survival-studio-head"><span>☣ SURVIVAL STUDIO</span><h2>BUILD YOUR ESCAPE.</h2><p>Choose your challenge, set the threat, then generate or upload a route below. The live elevation editor and trainer connection are shared with Classic.</p></div><div class="survival-studio-controls"><label>CHALLENGE<select id="studioChallenge"><option value="finish">🏁 Finish Line — beat the threat to the finish</option><option value="classic">⏱ Classic Waves — survive timed chases</option></select></label><label>DIFFICULTY<select id="studioDifficulty"><option value="recovery">Recovery · Forgiving</option><option value="standard" selected>Standard · Balanced</option><option value="hard">Hard · Aggressive</option><option value="nightmare">Nightmare · Relentless</option></select></label><label>THREAT<select id="studioThreat"><option>ZOMBIES</option><option>WOLVES</option><option>THE BUTCHER</option></select></label></div><div class="survival-studio-guide"><span>01 / CONFIGURE CHALLENGE</span><span>02 / GENERATE ESCAPE ROUTE ↓</span><span>03 / CONNECT TRAINER → SURVIVE</span></div>';
 screenRoute.prepend(survivalStudio);
+// Persist Survival's mission preferences as account-synced settings.
+const SURVIVAL_PREF_KEY='breakaway.survival.preferences.v1';
+const survivalPreferenceIds=['studioChallenge','studioDifficulty','studioThreat','survivePeriod'] as const;
+try{
+ const saved=JSON.parse(localStorage.getItem(SURVIVAL_PREF_KEY)||'{}') as Record<string,string>;
+ for(const id of survivalPreferenceIds){
+  const select=document.getElementById(id) as HTMLSelectElement|null;
+  if(select&&typeof saved[id]==='string'&&Array.from(select.options).some(option=>option.value===saved[id]))select.value=saved[id];
+ }
+}catch{}
+function saveSurvivalPreferences(){
+ const saved:Record<string,string>={};
+ for(const id of survivalPreferenceIds){
+  const select=document.getElementById(id) as HTMLSelectElement|null;
+  if(select)saved[id]=select.value;
+ }
+ try{localStorage.setItem(SURVIVAL_PREF_KEY,JSON.stringify(saved));}catch{}
+}
+document.getElementById('survivePeriod')?.addEventListener('change',saveSurvivalPreferences);
 function syncSurvivalStudio(){
  (se('surviveMode') as HTMLSelectElement).value=(document.getElementById('studioChallenge') as HTMLSelectElement).value;
  (se('surviveDifficulty') as HTMLSelectElement).value=(document.getElementById('studioDifficulty') as HTMLSelectElement).value;
@@ -2769,6 +2788,7 @@ function syncSurvivalStudio(){
  (se('surviveMode') as HTMLSelectElement).dispatchEvent(new Event('change'));
 }
 survivalStudio.querySelectorAll('select').forEach(select=>select.addEventListener('change',()=>{
+ saveSurvivalPreferences();
  syncSurvivalStudio();
  const isFinish=rideExperience==='survival'&&(document.getElementById('studioChallenge') as HTMLSelectElement).value==='finish';
  const endlessButton=document.getElementById('endlessRoute') as HTMLButtonElement|null;
