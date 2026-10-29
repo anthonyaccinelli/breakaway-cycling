@@ -1,0 +1,353 @@
+/* Fit the EXISTING Ride Breakaway homepage in one desktop viewport.
+   No new artwork, fonts, palette, copy, controls or handlers. This file is
+   intentionally restricted to the mode-selection page. */
+body[data-breakaway-screen="home"]{
+  height:100dvh!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  overscroll-behavior:none;
+}
+body[data-breakaway-screen="home"] #modeLanding{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:1500px!important;
+  height:100dvh!important;
+  min-height:0!important;
+  margin:0 auto!important;
+  padding:clamp(10px,1.7vh,19px) clamp(16px,3vw,44px)!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto minmax(0,1fr) auto!important;
+  gap:clamp(7px,1.1vh,13px) clamp(9px,1.5vw,18px)!important;
+  align-content:stretch!important;
+  overflow:visible!important;
+}
+/* Preserve the site's original header and green live visitor indicator. */
+body[data-breakaway-screen="home"] #modeLanding .mode-landing-brand{
+  grid-column:1/-1!important;
+  grid-row:1!important;
+  min-width:0!important;
+  padding:0 0 5px!important;
+  margin:0!important;
+  gap:14px!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-landing-brand>span{
+  font-size:clamp(20px,2.4vw,30px)!important;
+  line-height:1.05!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-landing-meta{
+  flex-wrap:wrap!important;
+  gap:clamp(7px,1.2vw,15px)!important;
+}
+/* Keep "Testing with a trainer?" prominent, just below the header.
+   It remains the same panel with the original compatibility copy and details. */
+body[data-breakaway-screen="home"] #modeLanding .beta-compat{
+  grid-column:1/-1!important;
+  grid-row:2!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding:clamp(7px,1vh,12px) clamp(10px,1.5vw,17px)!important;
+  min-width:0!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-compat-top{
+  gap:10px!important;
+  align-items:center!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-check-icon{
+  width:23px!important;
+  height:23px!important;
+  font-size:13px!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-compat-copy{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-rows:auto auto!important;
+  column-gap:clamp(12px,2vw,25px)!important;
+  row-gap:3px!important;
+  align-items:center!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-compat-copy>strong{
+  grid-column:1!important;
+  grid-row:1!important;
+  font-size:clamp(12px,1vw,14px)!important;
+  line-height:1.2!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-compat-copy>p{
+  grid-column:1!important;
+  grid-row:2!important;
+  font-size:clamp(10px,.9vw,12px)!important;
+  line-height:1.35!important;
+  margin:0!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-capabilities{
+  grid-column:2!important;
+  grid-row:1!important;
+  justify-content:flex-end!important;
+  flex-wrap:nowrap!important;
+  gap:5px!important;
+  margin:0!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-capability{
+  font-size:10px!important;
+  padding:4px 6px!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-compat details{
+  grid-column:2!important;
+  grid-row:2!important;
+  margin:0!important;
+  justify-self:end!important;
+  font-size:11px!important;
+  position:relative!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-compat details>summary{
+  font-size:11px!important;
+  cursor:pointer!important;
+  max-width:100%!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-compat details[open]{
+  position:relative!important;
+  z-index:2000!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-compat details[open] .beta-details-grid,
+body[data-breakaway-screen="home"] #modeLanding .beta-compat details[open] .beta-details-note{
+  position:relative!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-compat:has(details[open]){
+  z-index:5!important;
+}
+/* Retain the same headline, wording, colors and typography with less dead space. */
+body[data-breakaway-screen="home"] #modeLanding .mode-landing-intro{
+  grid-column:1/-1!important;
+  grid-row:3!important;
+  margin:0!important;
+  padding:0!important;
+  text-align:center!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-landing-intro>span{
+  font-size:clamp(10px,.85vw,12px)!important;
+  line-height:1.1!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-landing-intro h1{
+  font-size:clamp(33px,4.1vw,64px)!important;
+  line-height:.97!important;
+  letter-spacing:-.045em!important;
+  margin:2px 0 4px!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-landing-intro p{
+  font-size:clamp(12px,1.1vw,16px)!important;
+  line-height:1.3!important;
+  margin:0!important;
+}
+/* The original three illustrated buttons take the remaining space.
+   Remove the old fixed portrait height that forced page scrolling. */
+body[data-breakaway-screen="home"] #modeLanding .mode-landing-cards{
+  grid-column:1/-1!important;
+  grid-row:4!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  gap:clamp(9px,1.4vw,20px)!important;
+  align-items:center!important;
+  justify-items:stretch!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-card.mode-card-art{
+  box-sizing:border-box!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-height:515px!important;
+  min-height:0!important;
+  aspect-ratio:auto!important;
+  border-radius:12px!important;
+  margin:0!important;
+  justify-self:stretch!important;
+  align-self:center!important;
+  overflow:hidden!important;
+}
+/* Retain the same card crop and composition. Center it vertically when the
+   available viewport is shorter than the poster's old aspect ratio. */
+body[data-breakaway-screen="home"] #modeLanding .mode-card-art img{
+  width:120.38524%!important;
+  height:auto!important;
+  max-width:none!important;
+  left:-10.19262%!important;
+  top:50%!important;
+  transform:translateY(-50%)!important;
+}
+/* Consolidate existing footer content on one row, without removing actions. */
+body[data-breakaway-screen="home"] #modeLanding .mode-landing-footer{
+  grid-column:1!important;
+  grid-row:5!important;
+  justify-self:start!important;
+  align-self:center!important;
+  text-align:left!important;
+  margin:0!important;
+  padding:0!important;
+  font-size:clamp(9px,.8vw,11px)!important;
+  line-height:1.25!important;
+  letter-spacing:.06em!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .beta-access-line{
+  grid-column:2!important;
+  grid-row:5!important;
+  align-self:center!important;
+  justify-self:center!important;
+  margin:0!important;
+  text-align:center!important;
+  font-size:11px!important;
+  line-height:1.3!important;
+  white-space:nowrap!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-device-shortcut{
+  grid-column:3!important;
+  grid-row:5!important;
+  justify-self:end!important;
+  align-self:center!important;
+  display:flex!important;
+  gap:8px!important;
+  margin:0!important;
+  min-width:0!important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-device-shortcut span{
+  font-size:10px!important;
+  line-height:1.25!important;
+  max-width:145px!important;
+}
+body[data-breakaway-screen="home"] #modeLanding #modeDevices{
+  flex:none!important;
+  margin:0!important;
+  padding:7px 12px!important;
+  min-height:33px!important;
+  font-size:11px!important;
+}
+body[data-breakaway-screen="home"] #modeLanding button:focus-visible,
+body[data-breakaway-screen="home"] #modeLanding summary:focus-visible{
+  outline:3px solid #FFF!important;
+  outline-offset:3px!important;
+}
+/* Compact desktop widths: maintain three cards, tighten the support panel. */
+@media(max-width:1150px) and (min-width:761px){
+  body[data-breakaway-screen="home"] #modeLanding{
+    padding-inline:clamp(12px,2vw,24px)!important;
+    column-gap:7px!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-landing-meta>small{
+    display:none!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .beta-compat-copy{
+    column-gap:8px!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .beta-capability{
+    font-size:9px!important;padding:4px!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-device-shortcut span{
+    display:none!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .beta-access-line{
+    font-size:10px!important;
+  }
+}
+/* Medium-height desktop screens keep full-size selectable artwork without a scrollbar. */
+@media(max-height:730px) and (min-width:761px){
+  body[data-breakaway-screen="home"] #modeLanding{
+    padding-block:7px!important;
+    gap:5px 10px!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-landing-intro h1{
+    font-size:clamp(31px,3.5vw,52px)!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .beta-compat{
+    padding-block:6px!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-device-shortcut span{
+    display:none!important;
+  }
+}
+/* Small screens preserve legible mode artwork rather than squeeze it into
+   unreadably narrow posters. Scrolling is allowed only when space requires it. */
+@media(max-width:760px){
+  body[data-breakaway-screen="home"]{
+    height:auto!important;
+    min-height:100dvh!important;
+    overflow-y:auto!important;
+    overscroll-behavior:auto!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding{
+    display:flex!important;
+    flex-direction:column!important;
+    height:auto!important;
+    min-height:100dvh!important;
+    padding:13px 12px 18px!important;
+    gap:10px!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-landing-brand{
+    flex-wrap:wrap!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-landing-meta{
+    gap:8px!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .beta-compat-copy{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:5px!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .beta-capabilities{
+    margin:2px 0!important;
+    flex-wrap:wrap!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .beta-compat details{
+    align-self:flex-start!important;
+    justify-self:start!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-landing-intro{
+    margin:0!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-landing-intro h1{
+    font-size:clamp(32px,8vw,49px)!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-landing-cards{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    grid-template-rows:auto!important;
+    height:auto!important;
+    gap:12px!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-card.mode-card-art{
+    max-width:480px!important;
+    width:100%!important;
+    height:auto!important;
+    aspect-ratio:1246 / 1346!important;
+    justify-self:center!important;
+    border-radius:12px!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-card-art img{
+    top:-6.01783%!important;
+    transform:none!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-landing-footer,
+  body[data-breakaway-screen="home"] #modeLanding .beta-access-line,
+  body[data-breakaway-screen="home"] #modeLanding .mode-device-shortcut{
+    align-self:center!important;
+    justify-self:center!important;
+    text-align:center!important;
+    margin:0!important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-device-shortcut span{
+    display:inline!important;
+  }
+}
+/* Reduced motion remains honored across the original mode cards. */
+@media(prefers-reduced-motion:reduce){
+  body[data-breakaway-screen="home"] #modeLanding .mode-card.mode-card-art{
+    transition:none!important;
+    transform:none!important;
+  }
+}
