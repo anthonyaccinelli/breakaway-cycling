@@ -25,7 +25,7 @@ test('No Coach intervals, ERG commands, or game target adjustments are available
  assert.doesNotMatch(coach,/data-coach-mode="survival"|data-coach-mode="cyclequest"|Guided pursuit|Adventure coaching/);
  assert.doesNotMatch(main,/coachRuntime\.isRecovery\(\)|coachRuntime\.onTarget\(power\)/);
  assert.match(main,/\/\/ SURVIVE is independent of the rider's pause state/);
- assert.match(main,/launchMode:\(_mode\)=>\{showBreakawayScreen\('route'\);\}/);
+ assert.match(main,/launchMode:\(_mode\)=>\{showBreakawayScreen\('setup'\);\}/);
 });
 test('All three riding modes tag saved activities for training awareness only',()=>{
  assert.match(main,/mode:rideExperience,meters:distance/);
