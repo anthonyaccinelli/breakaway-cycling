@@ -1,17 +1,18 @@
 import {
   COACH_HISTORY_KEY, COACH_PROFILE_KEY, defaultProfile, availableControls,
-  feedbackRecommendation, inTargetRange, intervalRequirements, recommendToday, recommendWeek, shortenWorkout, segmentAt, targetWatts,
+  fatigueSignals, feedbackRecommendation, inTargetRange, intervalRequirements, recommendToday, recommendWeek, shortenWorkout, segmentAt, targetWatts,
   validProfile, workoutDuration, workoutLibrary
 } from './coach-engine';
-import type {CoachControl, CoachMode, CoachProfile, CoachSessionRecord, CoachWorkout} from './coach-engine';
+import type {CoachControl, CoachMode, CoachProfile, CoachRecentFeedback, CoachRecentRide, CoachSessionRecord, CoachWorkout} from './coach-engine';
 import './coach.css';
 import {mountCoachHistory} from './coach-history-ui';
 import {loadHistoricalRides} from './coach-history-import';
 import type {HistoricalRide} from './coach-history-core';
 import './coach-v2.css';
-import {integratedWeek,strengthRoutine} from './coach-strength';
+import {defaultStrength,integratedWeek,strengthRoutine} from './coach-strength';
 import {mountCoachStrength} from './coach-strength-ui';
 import './coach-ux-polish.css';
+import {dayKey,escapeHtml,readJson,writeJson} from './coach-dom';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
@@ -26,8 +27,6 @@ type Session = {
   elapsed:number; adjusted:number; measured:number; inRange:number;
   sumWatts:number; countWatts:number; done:boolean; previousIndex:number;
 };
-const readJson = (key:string):unknown => {try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}};
-const writeJson = (key:string,value:unknown):boolean => {try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}};
 function historyRecords():CoachSessionRecord[]{
   const x=readJson(COACH_HISTORY_KEY);
   return Array.isArray(x)?x.filter(r=>r && typeof r.workout==='string' && typeof r.date==='string').slice(-150):[];
@@ -37,7 +36,6 @@ const formatTime=(seconds:number)=> {
   return Math.floor(whole/60)+':'+String(whole%60).padStart(2,'0');
 };
 const byId=(parent:ParentNode,id:string)=>parent.querySelector<HTMLElement>('#'+id)!;
-const escapeHtml=(value:string)=>value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 export function mountCoach(bridge:CoachBridge){
   const profile=validProfile(readJson(COACH_PROFILE_KEY)||defaultProfile);
   let rider:CoachProfile=profile;
@@ -249,6 +247,7 @@ export function mountCoach(bridge:CoachBridge){
     screen.hidden=false;
     document.body.classList.add('coach-planning');
     navigate('today');
+    syncSettingsForm();
     render();
     void refreshPlatformHistory();
     window.scrollTo(0,0);
