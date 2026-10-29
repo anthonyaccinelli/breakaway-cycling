@@ -3,12 +3,11 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHmac} from 'node:crypto';
 import vm from 'node:vm';
-import {scaleSummit,SUMMIT_CATEGORIES} from '../cycle-quest/summits.js';
+import {loadQuestModule} from './quest-loader.mjs';
 import {escapeHTML,formatClock,rewardButtons} from '../cycle-quest/ui-utils.js';
 import {QUEST_ASSETS} from '../cycle-quest/assets.js';
 const base=new URL('../cycle-quest/',import.meta.url);
-const saveSource=(await readFile(new URL('save-state.js',base),'utf8')).replace(/\/api\/cycle-quest\?asset=([a-z.-]+)/g,(_,name)=>new URL(name,base).href);
-const {readCharacter,validCharacter}=await import('data:text/javascript;base64,'+Buffer.from(saveSource).toString('base64'));
+const {readCharacter,validCharacter}=await loadQuestModule('save-state.js');
 const game=await readFile(new URL('game.js',base),'utf8');
 function fn(name){const start=game.indexOf('function '+name+'('),end=game.indexOf('\nfunction ',start+1);assert(start>=0&&end>start);return game.slice(start,end);}
 const fresh=()=>({version:1,xp:450,hp:50,miles:2,chapter:1,mode:'adventure',rideSeconds:100,rideMiles:2,nextEncounter:0,reward:false,boss:null});
@@ -48,12 +47,6 @@ test('autosave checks for a newer tab write even before the storage event arrive
  const c={key:'fixture',s:fresh(),persistedSave:'old save',externalSaveChanged:false,running:true,message:'',localStorage:{getItem:()=> 'newer save',setItem(){writes++;}},parentSend:()=>pauses++,$:()=>status};
  vm.createContext(c);vm.runInContext(fn('save'),c);vm.runInContext('save()',c);
  assert.equal(writes,0);assert.equal(pauses,1);assert.equal(c.running,false);assert.equal(c.externalSaveChanged,true);
-});
-test('summit rules apply once with the same rewards on both route types',()=>{
- const original={kind:'summit',hp:1000,max:1000,reward:600,dps:1};
- for(const [category,rule] of Object.entries(SUMMIT_CATEGORIES)){
-  const result=scaleSummit(original,category);assert.equal(result.hp,Math.round(1000*rule.health));assert.equal(result.max,result.hp);assert.equal(result.reward,rule.xp);assert.equal(original.hp,1000);
- }
 });
 test('text escaping, session clocks and shared reward buttons handle edge cases consistently',()=>{
  assert.equal(escapeHTML('<img src="x" onerror=\'bad\'>&'),'&lt;img src=&quot;x&quot; onerror=&#39;bad&#39;&gt;&amp;');

@@ -1,3 +1,2516 @@
-// SRD 5.1 (2014) roster cross-checked against Pocket DM. See MONSTER-CREDITS.md.
-// Original recurring enemy; the remaining roster is SRD-derived.
-export const MONSTERS=[{"id":"headwind","name":"Headwind","cr":0,"hp":4,"attack":1,"damage":2,"type":"elemental","level":1},{"id":"bat","name":"Bat","cr":0,"hp":1,"attack":0,"damage":0,"type":"beast","level":1},{"id":"frog","name":"Frog","cr":0,"hp":1,"attack":0,"damage":1,"type":"beast","level":1},{"id":"rat","name":"Rat","cr":0,"hp":1,"attack":0,"damage":0,"type":"beast","level":1},{"id":"sea-horse","name":"Sea Horse","cr":0,"hp":1,"attack":0,"damage":1,"type":"beast","level":1},{"id":"scorpion","name":"Scorpion","cr":0,"hp":1,"attack":2,"damage":0,"type":"beast","level":1},{"id":"owl","name":"Owl","cr":0,"hp":1,"attack":3,"damage":0,"type":"beast","level":1},{"id":"raven","name":"Raven","cr":0,"hp":1,"attack":4,"damage":0,"type":"beast","level":1},{"id":"spider","name":"Spider","cr":0,"hp":1,"attack":4,"damage":0,"type":"beast","level":1},{"id":"hawk","name":"Hawk","cr":0,"hp":1,"attack":5,"damage":0,"type":"beast","level":1},{"id":"quipper","name":"Quipper","cr":0,"hp":1,"attack":5,"damage":0,"type":"beast","level":1},{"id":"weasel","name":"Weasel","cr":0,"hp":1,"attack":5,"damage":0,"type":"beast","level":1},{"id":"cat","name":"Cat","cr":0,"hp":2,"attack":0,"damage":0,"type":"beast","level":1},{"id":"crab","name":"Crab","cr":0,"hp":2,"attack":0,"damage":0,"type":"beast","level":1},{"id":"lizard","name":"Lizard","cr":0,"hp":2,"attack":0,"damage":0,"type":"beast","level":1},{"id":"baboon","name":"Baboon","cr":0,"hp":3,"attack":1,"damage":1.5,"type":"beast","level":1},{"id":"jackal","name":"Jackal","cr":0,"hp":3,"attack":1,"damage":1.5,"type":"beast","level":1},{"id":"badger","name":"Badger","cr":0,"hp":3,"attack":2,"damage":0,"type":"beast","level":1},{"id":"eagle","name":"Eagle","cr":0,"hp":3,"attack":4,"damage":4.5,"type":"beast","level":1},{"id":"octopus","name":"Octopus","cr":0,"hp":3,"attack":4,"damage":0,"type":"beast","level":1},{"id":"giant-fire-beetle","name":"Giant Fire Beetle","cr":0,"hp":4,"attack":1,"damage":2.5,"type":"beast","level":1},{"id":"commoner","name":"Commoner","cr":0,"hp":4,"attack":2,"damage":2.5,"type":"humanoid","level":1},{"id":"deer","name":"Deer","cr":0,"hp":4,"attack":2,"damage":2.5,"type":"beast","level":1},{"id":"goat","name":"Goat","cr":0,"hp":4,"attack":3,"damage":3.5,"type":"beast","level":1},{"id":"hyena","name":"Hyena","cr":0,"hp":5,"attack":2,"damage":3.5,"type":"beast","level":1},{"id":"vulture","name":"Vulture","cr":0,"hp":5,"attack":2,"damage":2.5,"type":"beast","level":1},{"id":"homunculus","name":"Homunculus","cr":0,"hp":5,"attack":4,"damage":0,"type":"construct","level":1},{"id":"awakened-shrub","name":"Awakened Shrub","cr":0,"hp":10,"attack":1,"damage":1.5,"type":"plant","level":1},{"id":"shrieker","name":"Shrieker","cr":0,"hp":13,"attack":0,"damage":1,"type":"plant","level":1},{"id":"lemure","name":"Lemure","cr":0,"hp":13,"attack":3,"damage":2.5,"type":"fiend","level":1},{"id":"poisonous-snake","name":"Poisonous Snake","cr":0.125,"hp":2,"attack":5,"damage":0,"type":"beast","level":2},{"id":"stirge","name":"Stirge","cr":0.125,"hp":2,"attack":5,"damage":5.5,"type":"beast","level":2},{"id":"mastiff","name":"Mastiff","cr":0.125,"hp":5,"attack":3,"damage":4.5,"type":"beast","level":2},{"id":"kobold","name":"Kobold","cr":0.125,"hp":5,"attack":4,"damage":4.5,"type":"humanoid","level":2},{"id":"flying-snake","name":"Flying Snake","cr":0.125,"hp":5,"attack":6,"damage":7.5,"type":"beast","level":2},{"id":"blood-hawk","name":"Blood Hawk","cr":0.125,"hp":7,"attack":4,"damage":4.5,"type":"beast","level":2},{"id":"giant-rat","name":"Rat","cr":0.125,"hp":7,"attack":4,"damage":4.5,"type":"beast","level":2},{"id":"cultist","name":"Cultist","cr":0.125,"hp":9,"attack":3,"damage":4.5,"type":"humanoid","level":2},{"id":"noble","name":"Noble","cr":0.125,"hp":9,"attack":3,"damage":5.5,"type":"humanoid","level":2},{"id":"giant-weasel","name":"Giant Weasel","cr":0.125,"hp":9,"attack":5,"damage":5.5,"type":"beast","level":2},{"id":"merfolk","name":"Merfolk","cr":0.125,"hp":11,"attack":2,"damage":0,"type":"humanoid","level":2},{"id":"mule","name":"Mule","cr":0.125,"hp":11,"attack":2,"damage":4.5,"type":"beast","level":2},{"id":"bandit","name":"Bandit","cr":0.125,"hp":11,"attack":3,"damage":5.5,"type":"humanoid","level":2},{"id":"guard","name":"Guard","cr":0.125,"hp":11,"attack":3,"damage":0,"type":"humanoid","level":2},{"id":"tribal-warrior","name":"Tribal Warrior","cr":0.125,"hp":11,"attack":3,"damage":0,"type":"humanoid","level":2},{"id":"pony","name":"Pony","cr":0.125,"hp":11,"attack":4,"damage":7.0,"type":"beast","level":2},{"id":"giant-crab","name":"Giant Crab","cr":0.125,"hp":13,"attack":3,"damage":4.5,"type":"beast","level":2},{"id":"camel","name":"Camel","cr":0.125,"hp":15,"attack":5,"damage":2.5,"type":"beast","level":2},{"id":"sprite","name":"Sprite","cr":0.25,"hp":2,"attack":6,"damage":0,"type":"fey","level":3},{"id":"giant-centipede","name":"Giant Centipede","cr":0.25,"hp":4,"attack":4,"damage":4.5,"type":"beast","level":3},{"id":"goblin","name":"Goblin","cr":0.25,"hp":7,"attack":4,"damage":5.5,"type":"humanoid","level":3},{"id":"pseudodragon","name":"Pseudodragon","cr":0.25,"hp":7,"attack":4,"damage":4.5,"type":"dragon","level":3},{"id":"acolyte","name":"Acolyte","cr":0.25,"hp":9,"attack":2,"damage":2.5,"type":"humanoid","level":3},{"id":"boar","name":"Boar","cr":0.25,"hp":11,"attack":3,"damage":4.5,"type":"beast","level":3},{"id":"giant-wolf-spider","name":"Giant Wolf Spider","cr":0.25,"hp":11,"attack":3,"damage":4.5,"type":"beast","level":3},{"id":"wolf","name":"Wolf","cr":0.25,"hp":11,"attack":4,"damage":7.0,"type":"beast","level":3},{"id":"grimlock","name":"Grimlock","cr":0.25,"hp":11,"attack":5,"damage":8.0,"type":"humanoid","level":3},{"id":"giant-poisonous-snake","name":"Giant Poisonous Snake","cr":0.25,"hp":11,"attack":6,"damage":6.5,"type":"beast","level":3},{"id":"giant-badger","name":"Giant Badger","cr":0.25,"hp":13,"attack":3,"damage":6.0,"type":"beast","level":3},{"id":"constrictor-snake","name":"Constrictor Snake","cr":0.25,"hp":13,"attack":4,"damage":6.5,"type":"beast","level":3},{"id":"drow","name":"Drow","cr":0.25,"hp":13,"attack":4,"damage":5.5,"type":"humanoid","level":3},{"id":"panther","name":"Panther","cr":0.25,"hp":13,"attack":4,"damage":5.5,"type":"beast","level":3},{"id":"skeleton","name":"Skeleton","cr":0.25,"hp":13,"attack":4,"damage":5.5,"type":"undead","level":3},{"id":"elk","name":"Elk","cr":0.25,"hp":13,"attack":5,"damage":8.0,"type":"beast","level":3},{"id":"riding-horse","name":"Riding Horse","cr":0.25,"hp":13,"attack":5,"damage":8.0,"type":"beast","level":3},{"id":"flying-sword","name":"Flying Sword","cr":0.25,"hp":17,"attack":3,"damage":5.5,"type":"construct","level":3},{"id":"dretch","name":"Dretch","cr":0.25,"hp":18,"attack":2,"damage":5.0,"type":"fiend","level":3},{"id":"violet-fungus","name":"Violet Fungus","cr":0.25,"hp":18,"attack":2,"damage":4.5,"type":"plant","level":3},{"id":"giant-frog","name":"Giant Frog","cr":0.25,"hp":18,"attack":3,"damage":4.5,"type":"beast","level":3},{"id":"giant-owl","name":"Giant Owl","cr":0.25,"hp":19,"attack":3,"damage":8.0,"type":"beast","level":3},{"id":"axe-beak","name":"Axe Beak","cr":0.25,"hp":19,"attack":4,"damage":6.5,"type":"beast","level":3},{"id":"giant-lizard","name":"Giant Lizard","cr":0.25,"hp":19,"attack":4,"damage":6.5,"type":"beast","level":3},{"id":"draft-horse","name":"Draft Horse","cr":0.25,"hp":19,"attack":6,"damage":9.0,"type":"beast","level":3},{"id":"steam-mephit","name":"Steam Mephit","cr":0.25,"hp":21,"attack":2,"damage":5.0,"type":"elemental","level":3},{"id":"blink-dog","name":"Blink Dog","cr":0.25,"hp":22,"attack":3,"damage":4.5,"type":"fey","level":3},{"id":"zombie","name":"Zombie","cr":0.25,"hp":22,"attack":3,"damage":4.5,"type":"undead","level":3},{"id":"giant-bat","name":"Giant Bat","cr":0.25,"hp":22,"attack":4,"damage":5.5,"type":"beast","level":3},{"id":"swarm-of-bats","name":"Swarm of Bats","cr":0.25,"hp":22,"attack":4,"damage":5.0,"type":"swarm of Tiny beasts","level":3},{"id":"swarm-of-rats","name":"Swarm of Rats","cr":0.25,"hp":24,"attack":2,"damage":7.0,"type":"swarm of Tiny beasts","level":3},{"id":"swarm-of-ravens","name":"Swarm of Ravens","cr":0.25,"hp":24,"attack":4,"damage":7.0,"type":"swarm of Tiny beasts","level":3},{"id":"magmin","name":"Magmin","cr":0.5,"hp":9,"attack":4,"damage":7.0,"type":"elemental","level":4},{"id":"hobgoblin","name":"Hobgoblin","cr":0.5,"hp":11,"attack":3,"damage":5.5,"type":"humanoid","level":4},{"id":"giant-wasp","name":"Giant Wasp","cr":0.5,"hp":13,"attack":4,"damage":5.5,"type":"beast","level":4},{"id":"orc","name":"Orc","cr":0.5,"hp":15,"attack":5,"damage":9.5,"type":"humanoid","level":4},{"id":"giant-sea-horse","name":"Giant Sea Horse","cr":0.5,"hp":16,"attack":3,"damage":4.5,"type":"beast","level":4},{"id":"deep-gnome-svirfneblin","name":"Deep Gnome (Svirfneblin)","cr":0.5,"hp":16,"attack":4,"damage":6.5,"type":"humanoid","level":4},{"id":"scout","name":"Scout","cr":0.5,"hp":16,"attack":4,"damage":6.5,"type":"humanoid","level":4},{"id":"shadow","name":"Shadow","cr":0.5,"hp":16,"attack":4,"damage":9.0,"type":"undead","level":4},{"id":"dust-mephit","name":"Dust Mephit","cr":0.5,"hp":17,"attack":4,"damage":4.5,"type":"elemental","level":4},{"id":"black-bear","name":"Black Bear","cr":0.5,"hp":19,"attack":3,"damage":7.0,"type":"beast","level":4},{"id":"crocodile","name":"Crocodile","cr":0.5,"hp":19,"attack":4,"damage":7.5,"type":"beast","level":4},{"id":"ape","name":"Ape","cr":0.5,"hp":19,"attack":5,"damage":6.5,"type":"beast","level":4},{"id":"giant-goat","name":"Giant Goat","cr":0.5,"hp":19,"attack":5,"damage":8.0,"type":"beast","level":4},{"id":"warhorse","name":"Warhorse","cr":0.5,"hp":19,"attack":6,"damage":11.0,"type":"beast","level":4},{"id":"ice-mephit","name":"Ice Mephit","cr":0.5,"hp":21,"attack":3,"damage":6.0,"type":"elemental","level":4},{"id":"gray-ooze","name":"Gray Ooze","cr":0.5,"hp":22,"attack":3,"damage":11.5,"type":"ooze","level":4},{"id":"magma-mephit","name":"Magma Mephit","cr":0.5,"hp":22,"attack":3,"damage":6.0,"type":"elemental","level":4},{"id":"sahuagin","name":"Sahuagin","cr":0.5,"hp":22,"attack":3,"damage":3.5,"type":"humanoid","level":4},{"id":"swarm-of-beetles","name":"Swarm of Beetles","cr":0.5,"hp":22,"attack":3,"damage":10.0,"type":"swarm of Tiny beasts","level":4},{"id":"swarm-of-centipedes","name":"Swarm of Centipedes","cr":0.5,"hp":22,"attack":3,"damage":10.0,"type":"swarm of Tiny beasts","level":4},{"id":"swarm-of-insects","name":"Swarm of Insects","cr":0.5,"hp":22,"attack":3,"damage":10.0,"type":"swarm of Tiny beasts","level":4},{"id":"swarm-of-spiders","name":"Swarm of Spiders","cr":0.5,"hp":22,"attack":3,"damage":10.0,"type":"swarm of Tiny beasts","level":4},{"id":"swarm-of-wasps","name":"Swarm of Wasps","cr":0.5,"hp":22,"attack":3,"damage":10.0,"type":"swarm of Tiny beasts","level":4},{"id":"gnoll","name":"Gnoll","cr":0.5,"hp":22,"attack":4,"damage":5.5,"type":"humanoid","level":4},{"id":"lizardfolk","name":"Lizardfolk","cr":0.5,"hp":22,"attack":4,"damage":5.5,"type":"humanoid","level":4},{"id":"reef-shark","name":"Reef Shark","cr":0.5,"hp":22,"attack":4,"damage":6.5,"type":"beast","level":4},{"id":"darkmantle","name":"Darkmantle","cr":0.5,"hp":22,"attack":5,"damage":6.5,"type":"monstrosity","level":4},{"id":"warhorse-skeleton","name":"Warhorse Skeleton","cr":0.5,"hp":22,"attack":6,"damage":11.0,"type":"undead","level":4},{"id":"worg","name":"Worg","cr":0.5,"hp":26,"attack":5,"damage":10.0,"type":"monstrosity","level":4},{"id":"cockatrice","name":"Cockatrice","cr":0.5,"hp":27,"attack":3,"damage":3.5,"type":"monstrosity","level":4},{"id":"rust-monster","name":"Rust Monster","cr":0.5,"hp":27,"attack":3,"damage":5.5,"type":"monstrosity","level":4},{"id":"satyr","name":"Satyr","cr":0.5,"hp":31,"attack":5,"damage":6.5,"type":"fey","level":4},{"id":"thug","name":"Thug","cr":0.5,"hp":32,"attack":4,"damage":5.5,"type":"humanoid","level":4},{"id":"quasit","name":"Quasit","cr":1,"hp":7,"attack":4,"damage":5.5,"type":"fiend","level":5},{"id":"imp","name":"Imp","cr":1,"hp":10,"attack":5,"damage":5.5,"type":"fiend","level":5},{"id":"brass-dragon-wyrmling","name":"Brass Dragon Wyrmling","cr":1,"hp":16,"attack":4,"damage":7.5,"type":"dragon","level":5},{"id":"hippogriff","name":"Hippogriff","cr":1,"hp":19,"attack":5,"damage":10.0,"type":"monstrosity","level":5},{"id":"dryad","name":"Dryad","cr":1,"hp":22,"attack":2,"damage":2.5,"type":"fey","level":5},{"id":"copper-dragon-wyrmling","name":"Copper Dragon Wyrmling","cr":1,"hp":22,"attack":4,"damage":7.5,"type":"dragon","level":5},{"id":"ghoul","name":"Ghoul","cr":1,"hp":22,"attack":4,"damage":9.0,"type":"undead","level":5},{"id":"giant-vulture","name":"Giant Vulture","cr":1,"hp":22,"attack":4,"damage":9.0,"type":"beast","level":5},{"id":"specter","name":"Specter","cr":1,"hp":22,"attack":4,"damage":10.5,"type":"undead","level":5},{"id":"duergar","name":"Duergar","cr":1,"hp":26,"attack":4,"damage":6.5,"type":"humanoid","level":5},{"id":"giant-eagle","name":"Giant Eagle","cr":1,"hp":26,"attack":5,"damage":10.0,"type":"beast","level":5},{"id":"giant-spider","name":"Giant Spider","cr":1,"hp":26,"attack":5,"damage":7.5,"type":"beast","level":5},{"id":"lion","name":"Lion","cr":1,"hp":26,"attack":5,"damage":7.5,"type":"beast","level":5},{"id":"bugbear","name":"Bugbear","cr":1,"hp":27,"attack":4,"damage":11.0,"type":"humanoid","level":5},{"id":"spy","name":"Spy","cr":1,"hp":27,"attack":4,"damage":5.5,"type":"humanoid","level":5},{"id":"swarm-of-quippers","name":"Swarm of Quippers","cr":1,"hp":28,"attack":5,"damage":14.0,"type":"swarm of Tiny beasts","level":5},{"id":"animated-armor","name":"Animated Armor","cr":1,"hp":33,"attack":4,"damage":5.5,"type":"construct","level":5},{"id":"brown-bear","name":"Brown Bear","cr":1,"hp":34,"attack":5,"damage":11.0,"type":"beast","level":5},{"id":"dire-wolf","name":"Dire Wolf","cr":1,"hp":37,"attack":5,"damage":10.0,"type":"beast","level":5},{"id":"tiger","name":"Tiger","cr":1,"hp":37,"attack":5,"damage":8.5,"type":"beast","level":5},{"id":"harpy","name":"Harpy","cr":1,"hp":38,"attack":3,"damage":6.0,"type":"monstrosity","level":5},{"id":"death-dog","name":"Death Dog","cr":1,"hp":39,"attack":4,"damage":5.5,"type":"monstrosity","level":5},{"id":"giant-toad","name":"Giant Toad","cr":1,"hp":39,"attack":4,"damage":13.0,"type":"beast","level":5},{"id":"giant-hyena","name":"Giant Hyena","cr":1,"hp":45,"attack":5,"damage":10.0,"type":"beast","level":5},{"id":"giant-octopus","name":"Giant Octopus","cr":1,"hp":52,"attack":5,"damage":10.0,"type":"beast","level":5},{"id":"cult-fanatic","name":"Cult Fanatic","cr":2,"hp":22,"attack":4,"damage":4.5,"type":"humanoid","level":8},{"id":"will-o-wisp","name":"Will-o'-Wisp","cr":2,"hp":22,"attack":4,"damage":9.0,"type":"undead","level":8},{"id":"druid","name":"Druid","cr":2,"hp":27,"attack":2,"damage":0,"type":"humanoid","level":8},{"id":"priest","name":"Priest","cr":2,"hp":27,"attack":2,"damage":3.5,"type":"humanoid","level":8},{"id":"grick","name":"Grick","cr":2,"hp":27,"attack":4,"damage":9.0,"type":"monstrosity","level":8},{"id":"white-dragon-wyrmling","name":"White Dragon Wyrmling","cr":2,"hp":32,"attack":4,"damage":10.0,"type":"dragon","level":8},{"id":"bronze-dragon-wyrmling","name":"Bronze Dragon Wyrmling","cr":2,"hp":32,"attack":5,"damage":8.5,"type":"dragon","level":8},{"id":"black-dragon-wyrmling","name":"Black Dragon Wyrmling","cr":2,"hp":33,"attack":4,"damage":10.0,"type":"dragon","level":8},{"id":"rug-of-smothering","name":"Rug of Smothering","cr":2,"hp":33,"attack":5,"damage":0,"type":"construct","level":8},{"id":"ghast","name":"Ghast","cr":2,"hp":36,"attack":5,"damage":12.0,"type":"undead","level":8},{"id":"swarm-of-poisonous-snakes","name":"Swarm of Poisonous Snakes","cr":2,"hp":36,"attack":6,"damage":7.0,"type":"swarm of Tiny beasts","level":8},{"id":"green-dragon-wyrmling","name":"Green Dragon Wyrmling","cr":2,"hp":38,"attack":4,"damage":11.0,"type":"dragon","level":8},{"id":"ankheg","name":"Ankheg","cr":2,"hp":39,"attack":5,"damage":13.5,"type":"monstrosity","level":8},{"id":"azer","name":"Azer","cr":2,"hp":39,"attack":5,"damage":11.0,"type":"elemental","level":8},{"id":"giant-boar","name":"Giant Boar","cr":2,"hp":42,"attack":5,"damage":10.0,"type":"beast","level":8},{"id":"giant-elk","name":"Giant Elk","cr":2,"hp":42,"attack":6,"damage":22.0,"type":"beast","level":8},{"id":"polar-bear","name":"Polar Bear","cr":2,"hp":42,"attack":7,"damage":12.0,"type":"beast","level":8},{"id":"ettercap","name":"Ettercap","cr":2,"hp":44,"attack":4,"damage":11.0,"type":"monstrosity","level":8},{"id":"ochre-jelly","name":"Ochre Jelly","cr":2,"hp":45,"attack":4,"damage":12.5,"type":"ooze","level":8},{"id":"centaur","name":"Centaur","cr":2,"hp":45,"attack":6,"damage":11.0,"type":"monstrosity","level":8},{"id":"hunter-shark","name":"Hunter Shark","cr":2,"hp":45,"attack":6,"damage":13.0,"type":"beast","level":8},{"id":"merrow","name":"Merrow","cr":2,"hp":45,"attack":6,"damage":11.0,"type":"monstrosity","level":8},{"id":"silver-dragon-wyrmling","name":"Silver Dragon Wyrmling","cr":2,"hp":45,"attack":6,"damage":9.5,"type":"dragon","level":8},{"id":"rhinoceros","name":"Rhinoceros","cr":2,"hp":45,"attack":7,"damage":14.0,"type":"beast","level":8},{"id":"gargoyle","name":"Gargoyle","cr":2,"hp":52,"attack":4,"damage":5.5,"type":"elemental","level":8},{"id":"sea-hag","name":"Sea Hag","cr":2,"hp":52,"attack":5,"damage":10.0,"type":"fey","level":8},{"id":"saber-toothed-tiger","name":"Saber-Toothed Tiger","cr":2,"hp":52,"attack":6,"damage":12.0,"type":"beast","level":8},{"id":"mimic","name":"Mimic","cr":2,"hp":58,"attack":5,"damage":12.0,"type":"monstrosity","level":8},{"id":"awakened-tree","name":"Awakened Tree","cr":2,"hp":59,"attack":6,"damage":14.5,"type":"plant","level":8},{"id":"griffon","name":"Griffon","cr":2,"hp":59,"attack":6,"damage":11.0,"type":"monstrosity","level":8},{"id":"ogre","name":"Ogre","cr":2,"hp":59,"attack":6,"damage":13.0,"type":"giant","level":8},{"id":"pegasus","name":"Pegasus","cr":2,"hp":59,"attack":6,"damage":11.0,"type":"celestial","level":8},{"id":"giant-constrictor-snake","name":"Giant Constrictor Snake","cr":2,"hp":60,"attack":6,"damage":13.0,"type":"beast","level":8},{"id":"bandit-captain","name":"Bandit Captain","cr":2,"hp":65,"attack":5,"damage":6.5,"type":"humanoid","level":8},{"id":"gibbering-mouther","name":"Gibbering Mouther","cr":2,"hp":67,"attack":2,"damage":17.5,"type":"aberration","level":8},{"id":"berserker","name":"Berserker","cr":2,"hp":67,"attack":5,"damage":9.5,"type":"humanoid","level":8},{"id":"minotaur-skeleton","name":"Minotaur Skeleton","cr":2,"hp":67,"attack":6,"damage":17.0,"type":"undead","level":8},{"id":"plesiosaurus","name":"Plesiosaurus","cr":2,"hp":68,"attack":6,"damage":14.5,"type":"beast","level":8},{"id":"gelatinous-cube","name":"Gelatinous Cube","cr":2,"hp":84,"attack":4,"damage":10.5,"type":"ooze","level":8},{"id":"ogre-zombie","name":"Ogre Zombie","cr":2,"hp":85,"attack":6,"damage":13.0,"type":"undead","level":8},{"id":"phase-spider","name":"Phase Spider","cr":3,"hp":32,"attack":4,"damage":7.5,"type":"monstrosity","level":11},{"id":"wight","name":"Wight","cr":3,"hp":45,"attack":4,"damage":6.5,"type":"undead","level":11},{"id":"hell-hound","name":"Hell Hound","cr":3,"hp":45,"attack":5,"damage":14.5,"type":"fiend","level":11},{"id":"giant-scorpion","name":"Giant Scorpion","cr":3,"hp":52,"attack":4,"damage":7.5,"type":"beast","level":11},{"id":"basilisk","name":"Basilisk","cr":3,"hp":52,"attack":5,"damage":17.0,"type":"monstrosity","level":11},{"id":"bearded-devil","name":"Bearded Devil","cr":3,"hp":52,"attack":5,"damage":8.5,"type":"fiend","level":11},{"id":"blue-dragon-wyrmling","name":"Blue Dragon Wyrmling","cr":3,"hp":52,"attack":5,"damage":12.0,"type":"dragon","level":11},{"id":"knight","name":"Knight","cr":3,"hp":52,"attack":5,"damage":10.0,"type":"humanoid","level":11},{"id":"doppelganger","name":"Doppelganger","cr":3,"hp":52,"attack":6,"damage":7.5,"type":"monstrosity","level":11},{"id":"mummy","name":"Mummy","cr":3,"hp":58,"attack":5,"damage":20.5,"type":"undead","level":11},{"id":"veteran","name":"Veteran","cr":3,"hp":58,"attack":5,"damage":6.5,"type":"humanoid","level":11},{"id":"owlbear","name":"Owlbear","cr":3,"hp":59,"attack":7,"damage":14.0,"type":"monstrosity","level":11},{"id":"gold-dragon-wyrmling","name":"Gold Dragon Wyrmling","cr":3,"hp":60,"attack":6,"damage":9.5,"type":"dragon","level":11},{"id":"manticore","name":"Manticore","cr":3,"hp":68,"attack":5,"damage":7.5,"type":"monstrosity","level":11},{"id":"nightmare","name":"Nightmare","cr":3,"hp":68,"attack":6,"damage":20.0,"type":"fiend","level":11},{"id":"winter-wolf","name":"Winter Wolf","cr":3,"hp":75,"attack":6,"damage":11.0,"type":"monstrosity","level":11},{"id":"minotaur","name":"Minotaur","cr":3,"hp":76,"attack":6,"damage":17.0,"type":"monstrosity","level":11},{"id":"green-hag","name":"Green Hag","cr":3,"hp":82,"attack":6,"damage":13.0,"type":"fey","level":11},{"id":"killer-whale","name":"Killer Whale","cr":3,"hp":90,"attack":6,"damage":21.5,"type":"beast","level":11},{"id":"ghost","name":"Ghost","cr":4,"hp":45,"attack":5,"damage":17.0,"type":"undead","level":14},{"id":"red-dragon-wyrmling","name":"Red Dragon Wyrmling","cr":4,"hp":75,"attack":6,"damage":13.0,"type":"dragon","level":14},{"id":"elephant","name":"Elephant","cr":4,"hp":76,"attack":8,"damage":22.5,"type":"beast","level":14},{"id":"black-pudding","name":"Black Pudding","cr":4,"hp":85,"attack":5,"damage":24.5,"type":"ooze","level":14},{"id":"ettin","name":"Ettin","cr":4,"hp":85,"attack":7,"damage":14.0,"type":"giant","level":14},{"id":"chuul","name":"Chuul","cr":4,"hp":93,"attack":6,"damage":11.0,"type":"aberration","level":14},{"id":"lamia","name":"Lamia","cr":4,"hp":97,"attack":5,"damage":14.0,"type":"monstrosity","level":14},{"id":"couatl","name":"Couatl","cr":4,"hp":97,"attack":8,"damage":10.0,"type":"celestial","level":14},{"id":"half-red-dragon-veteran","name":"Half-Red Dragon Veteran","cr":5,"hp":65,"attack":5,"damage":6.5,"type":"humanoid","level":17},{"id":"wraith","name":"Wraith","cr":5,"hp":67,"attack":6,"damage":21.0,"type":"undead","level":17},{"id":"unicorn","name":"Unicorn","cr":5,"hp":67,"attack":7,"damage":11.0,"type":"celestial","level":17},{"id":"xorn","name":"Xorn","cr":5,"hp":73,"attack":6,"damage":13.5,"type":"elemental","level":17},{"id":"vampire-spawn","name":"Vampire Spawn","cr":5,"hp":82,"attack":6,"damage":13.5,"type":"undead","level":17},{"id":"troll","name":"Troll","cr":5,"hp":84,"attack":7,"damage":11.0,"type":"giant","level":17},{"id":"giant-crocodile","name":"Giant Crocodile","cr":5,"hp":85,"attack":8,"damage":21.5,"type":"beast","level":17},{"id":"salamander","name":"Salamander","cr":5,"hp":90,"attack":7,"damage":18.0,"type":"elemental","level":17},{"id":"air-elemental","name":"Air Elemental","cr":5,"hp":90,"attack":8,"damage":14.0,"type":"elemental","level":17},{"id":"flesh-golem","name":"Flesh Golem","cr":5,"hp":93,"attack":7,"damage":13.0,"type":"construct","level":17},{"id":"roper","name":"Roper","cr":5,"hp":93,"attack":7,"damage":22.0,"type":"monstrosity","level":17},{"id":"bulette","name":"Bulette","cr":5,"hp":94,"attack":7,"damage":30.0,"type":"monstrosity","level":17},{"id":"triceratops","name":"Triceratops","cr":5,"hp":95,"attack":9,"damage":24.0,"type":"beast","level":17},{"id":"fire-elemental","name":"Fire Elemental","cr":5,"hp":102,"attack":6,"damage":10.0,"type":"elemental","level":17},{"id":"hill-giant","name":"Hill Giant","cr":5,"hp":105,"attack":8,"damage":21.5,"type":"giant","level":17},{"id":"barbed-devil","name":"Barbed Devil","cr":5,"hp":110,"attack":6,"damage":10.5,"type":"fiend","level":17},{"id":"gladiator","name":"Gladiator","cr":5,"hp":112,"attack":7,"damage":9.0,"type":"humanoid","level":17},{"id":"night-hag","name":"Night Hag","cr":5,"hp":112,"attack":7,"damage":13.0,"type":"fiend","level":17},{"id":"otyugh","name":"Otyugh","cr":5,"hp":114,"attack":6,"damage":12.0,"type":"aberration","level":17},{"id":"water-elemental","name":"Water Elemental","cr":5,"hp":114,"attack":7,"damage":13.0,"type":"elemental","level":17},{"id":"gorgon","name":"Gorgon","cr":5,"hp":114,"attack":8,"damage":18.0,"type":"monstrosity","level":17},{"id":"earth-elemental","name":"Earth Elemental","cr":5,"hp":126,"attack":8,"damage":14.0,"type":"elemental","level":17},{"id":"giant-shark","name":"Giant Shark","cr":5,"hp":126,"attack":9,"damage":22.5,"type":"beast","level":17},{"id":"shambling-mound","name":"Shambling Mound","cr":5,"hp":136,"attack":7,"damage":13.0,"type":"plant","level":17},{"id":"mage","name":"Mage","cr":6,"hp":40,"attack":5,"damage":4.5,"type":"humanoid","level":20},{"id":"invisible-stalker","name":"Invisible Stalker","cr":6,"hp":104,"attack":6,"damage":10.0,"type":"elemental","level":20},{"id":"vrock","name":"Vrock","cr":6,"hp":104,"attack":6,"damage":14.0,"type":"fiend","level":20},{"id":"wyvern","name":"Wyvern","cr":6,"hp":110,"attack":7,"damage":13.0,"type":"dragon","level":20},{"id":"young-brass-dragon","name":"Young Brass Dragon","cr":6,"hp":110,"attack":7,"damage":15.0,"type":"dragon","level":20},{"id":"chimera","name":"Chimera","cr":6,"hp":114,"attack":7,"damage":11.0,"type":"monstrosity","level":20},{"id":"drider","name":"Drider","cr":6,"hp":123,"attack":6,"damage":12.0,"type":"monstrosity","level":20},{"id":"mammoth","name":"Mammoth","cr":6,"hp":126,"attack":10,"damage":29.0,"type":"beast","level":20},{"id":"medusa","name":"Medusa","cr":6,"hp":127,"attack":5,"damage":18.5,"type":"monstrosity","level":20},{"id":"young-white-dragon","name":"Young White Dragon","cr":6,"hp":133,"attack":7,"damage":19.5,"type":"dragon","level":20},{"id":"oni","name":"Oni","cr":7,"hp":110,"attack":7,"damage":15.0,"type":"giant","level":23},{"id":"young-copper-dragon","name":"Young Copper Dragon","cr":7,"hp":119,"attack":7,"damage":15.0,"type":"dragon","level":23},{"id":"stone-giant","name":"Stone Giant","cr":7,"hp":126,"attack":9,"damage":28.0,"type":"giant","level":23},{"id":"young-black-dragon","name":"Young Black Dragon","cr":7,"hp":127,"attack":7,"damage":19.5,"type":"dragon","level":23},{"id":"shield-guardian","name":"Shield Guardian","cr":7,"hp":142,"attack":7,"damage":11.0,"type":"construct","level":23},{"id":"giant-ape","name":"Giant Ape","cr":7,"hp":157,"attack":9,"damage":30.5,"type":"beast","level":23},{"id":"spirit-naga","name":"Spirit Naga","cr":8,"hp":75,"attack":7,"damage":7.5,"type":"monstrosity","level":26},{"id":"assassin","name":"Assassin","cr":8,"hp":78,"attack":6,"damage":32.0,"type":"humanoid","level":26},{"id":"cloaker","name":"Cloaker","cr":8,"hp":78,"attack":6,"damage":10.0,"type":"aberration","level":26},{"id":"chain-devil","name":"Chain Devil","cr":8,"hp":85,"attack":8,"damage":11.0,"type":"fiend","level":26},{"id":"hezrou","name":"Hezrou","cr":8,"hp":136,"attack":7,"damage":15.0,"type":"fiend","level":26},{"id":"young-green-dragon","name":"Young Green Dragon","cr":8,"hp":136,"attack":7,"damage":22.0,"type":"dragon","level":26},{"id":"tyrannosaurus-rex","name":"Tyrannosaurus Rex","cr":8,"hp":136,"attack":10,"damage":33.0,"type":"beast","level":26},{"id":"frost-giant","name":"Frost Giant","cr":8,"hp":138,"attack":9,"damage":28.0,"type":"giant","level":26},{"id":"young-bronze-dragon","name":"Young Bronze Dragon","cr":8,"hp":142,"attack":8,"damage":16.0,"type":"dragon","level":26},{"id":"hydra","name":"Hydra","cr":8,"hp":172,"attack":8,"damage":10.5,"type":"monstrosity","level":26},{"id":"clay-golem","name":"Clay Golem","cr":9,"hp":133,"attack":8,"damage":16.0,"type":"construct","level":29},{"id":"treant","name":"Treant","cr":9,"hp":138,"attack":10,"damage":28.0,"type":"plant","level":29},{"id":"bone-devil","name":"Bone Devil","cr":9,"hp":142,"attack":8,"damage":30.5,"type":"fiend","level":29},{"id":"young-blue-dragon","name":"Young Blue Dragon","cr":9,"hp":152,"attack":9,"damage":21.5,"type":"dragon","level":29},{"id":"glabrezu","name":"Glabrezu","cr":9,"hp":157,"attack":9,"damage":16.0,"type":"fiend","level":29},{"id":"fire-giant","name":"Fire Giant","cr":9,"hp":162,"attack":11,"damage":29.0,"type":"giant","level":29},{"id":"young-silver-dragon","name":"Young Silver Dragon","cr":9,"hp":168,"attack":10,"damage":17.0,"type":"dragon","level":29},{"id":"cloud-giant","name":"Cloud Giant","cr":9,"hp":200,"attack":12,"damage":30.0,"type":"giant","level":29},{"id":"guardian-naga","name":"Guardian Naga","cr":10,"hp":127,"attack":8,"damage":8.5,"type":"monstrosity","level":32},{"id":"aboleth","name":"Aboleth","cr":10,"hp":135,"attack":9,"damage":18.5,"type":"aberration","level":32},{"id":"deva","name":"Deva","cr":10,"hp":136,"attack":8,"damage":25.5,"type":"celestial","level":32},{"id":"stone-golem","name":"Stone Golem","cr":10,"hp":178,"attack":10,"damage":19.5,"type":"construct","level":32},{"id":"young-gold-dragon","name":"Young Gold Dragon","cr":10,"hp":178,"attack":10,"damage":17.0,"type":"dragon","level":32},{"id":"young-red-dragon","name":"Young Red Dragon","cr":10,"hp":178,"attack":10,"damage":20.5,"type":"dragon","level":32},{"id":"gynosphinx","name":"Gynosphinx","cr":11,"hp":136,"attack":9,"damage":13.0,"type":"monstrosity","level":35},{"id":"djinni","name":"Djinni","cr":11,"hp":161,"attack":9,"damage":12.0,"type":"elemental","level":35},{"id":"behir","name":"Behir","cr":11,"hp":168,"attack":10,"damage":34.0,"type":"monstrosity","level":35},{"id":"horned-devil","name":"Horned Devil","cr":11,"hp":178,"attack":10,"damage":15.0,"type":"fiend","level":35},{"id":"remorhaz","name":"Remorhaz","cr":11,"hp":195,"attack":11,"damage":50.5,"type":"monstrosity","level":35},{"id":"efreeti","name":"Efreeti","cr":11,"hp":200,"attack":10,"damage":20.0,"type":"elemental","level":35},{"id":"roc","name":"Roc","cr":11,"hp":248,"attack":13,"damage":27.0,"type":"monstrosity","level":35},{"id":"archmage","name":"Archmage","cr":12,"hp":99,"attack":6,"damage":4.5,"type":"humanoid","level":38},{"id":"erinyes","name":"Erinyes","cr":12,"hp":153,"attack":8,"damage":21.0,"type":"fiend","level":38},{"id":"rakshasa","name":"Rakshasa","cr":13,"hp":110,"attack":7,"damage":9.0,"type":"fiend","level":41},{"id":"adult-brass-dragon","name":"Adult Brass Dragon","cr":13,"hp":172,"attack":11,"damage":17.0,"type":"dragon","level":41},{"id":"nalfeshnee","name":"Nalfeshnee","cr":13,"hp":184,"attack":10,"damage":32.5,"type":"fiend","level":41},{"id":"adult-white-dragon","name":"Adult White Dragon","cr":13,"hp":200,"attack":11,"damage":21.5,"type":"dragon","level":41},{"id":"storm-giant","name":"Storm Giant","cr":13,"hp":230,"attack":14,"damage":35.0,"type":"giant","level":41},{"id":"ice-devil","name":"Ice Devil","cr":14,"hp":180,"attack":10,"damage":22.5,"type":"fiend","level":44},{"id":"adult-copper-dragon","name":"Adult Copper Dragon","cr":14,"hp":184,"attack":11,"damage":17.0,"type":"dragon","level":44},{"id":"adult-black-dragon","name":"Adult Black Dragon","cr":14,"hp":195,"attack":11,"damage":21.5,"type":"dragon","level":44},{"id":"mummy-lord","name":"Mummy Lord","cr":15,"hp":97,"attack":9,"damage":35.5,"type":"undead","level":47},{"id":"adult-green-dragon","name":"Adult Green Dragon","cr":15,"hp":207,"attack":11,"damage":24.0,"type":"dragon","level":47},{"id":"adult-bronze-dragon","name":"Adult Bronze Dragon","cr":15,"hp":212,"attack":12,"damage":18.0,"type":"dragon","level":47},{"id":"purple-worm","name":"Purple Worm","cr":15,"hp":247,"attack":9,"damage":22.5,"type":"monstrosity","level":47},{"id":"marilith","name":"Marilith","cr":16,"hp":189,"attack":9,"damage":15.0,"type":"fiend","level":50},{"id":"planetar","name":"Planetar","cr":16,"hp":200,"attack":12,"damage":43.5,"type":"celestial","level":50},{"id":"iron-golem","name":"Iron Golem","cr":16,"hp":210,"attack":13,"damage":23.5,"type":"construct","level":50},{"id":"adult-blue-dragon","name":"Adult Blue Dragon","cr":16,"hp":225,"attack":12,"damage":23.5,"type":"dragon","level":50},{"id":"adult-silver-dragon","name":"Adult Silver Dragon","cr":16,"hp":243,"attack":13,"damage":19.0,"type":"dragon","level":50},{"id":"androsphinx","name":"Androsphinx","cr":17,"hp":199,"attack":12,"damage":17.0,"type":"monstrosity","level":53},{"id":"adult-gold-dragon","name":"Adult Gold Dragon","cr":17,"hp":256,"attack":14,"damage":19.0,"type":"dragon","level":53},{"id":"adult-red-dragon","name":"Adult Red Dragon","cr":17,"hp":256,"attack":14,"damage":26.0,"type":"dragon","level":53},{"id":"dragon-turtle","name":"Dragon Turtle","cr":17,"hp":341,"attack":13,"damage":26.5,"type":"dragon","level":53},{"id":"balor","name":"Balor","cr":19,"hp":262,"attack":14,"damage":35.0,"type":"fiend","level":59},{"id":"ancient-brass-dragon","name":"Ancient Brass Dragon","cr":20,"hp":297,"attack":14,"damage":19.0,"type":"dragon","level":62},{"id":"pit-fiend","name":"Pit Fiend","cr":20,"hp":300,"attack":14,"damage":24.5,"type":"fiend","level":62},{"id":"ancient-white-dragon","name":"Ancient White Dragon","cr":20,"hp":333,"attack":14,"damage":28.0,"type":"dragon","level":62},{"id":"lich","name":"Lich","cr":21,"hp":135,"attack":12,"damage":10.5,"type":"undead","level":65},{"id":"solar","name":"Solar","cr":21,"hp":243,"attack":15,"damage":49.0,"type":"celestial","level":65},{"id":"ancient-copper-dragon","name":"Ancient Copper Dragon","cr":21,"hp":350,"attack":15,"damage":19.0,"type":"dragon","level":65},{"id":"ancient-black-dragon","name":"Ancient Black Dragon","cr":21,"hp":367,"attack":15,"damage":28.0,"type":"dragon","level":65},{"id":"ancient-green-dragon","name":"Ancient Green Dragon","cr":22,"hp":385,"attack":15,"damage":29.5,"type":"dragon","level":68},{"id":"ancient-bronze-dragon","name":"Ancient Bronze Dragon","cr":22,"hp":444,"attack":16,"damage":20.0,"type":"dragon","level":68},{"id":"kraken","name":"Kraken","cr":23,"hp":472,"attack":7,"damage":23.5,"type":"monstrosity","level":71},{"id":"ancient-blue-dragon","name":"Ancient Blue Dragon","cr":23,"hp":481,"attack":16,"damage":31.0,"type":"dragon","level":71},{"id":"ancient-silver-dragon","name":"Ancient Silver Dragon","cr":23,"hp":487,"attack":17,"damage":21.0,"type":"dragon","level":71},{"id":"ancient-gold-dragon","name":"Ancient Gold Dragon","cr":24,"hp":546,"attack":17,"damage":21.0,"type":"dragon","level":74},{"id":"ancient-red-dragon","name":"Ancient Red Dragon","cr":24,"hp":546,"attack":17,"damage":35.0,"type":"dragon","level":74},{"id":"tarrasque","name":"Tarrasque","cr":30,"hp":676,"attack":19,"damage":36.0,"type":"monstrosity","level":92}];
+// Names/types adapted from SRD 5.1; numerical bases are authored Cycle Quest stats.
+// tier is a content-placement hint, never a rider level or a combat multiplier.
+export const MONSTERS=Object.freeze([
+  {
+    "id": "headwind",
+    "name": "Headwind",
+    "type": "elemental",
+    "tier": 1,
+    "baseHP": 9000,
+    "baseAttack": 0.25
+  },
+  {
+    "id": "bat",
+    "name": "Bat",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7400,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "frog",
+    "name": "Frog",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7400,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "rat",
+    "name": "Rat",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "sea-horse",
+    "name": "Sea Horse",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7400,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "scorpion",
+    "name": "Scorpion",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7400,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "owl",
+    "name": "Owl",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7400,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "raven",
+    "name": "Raven",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7400,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "spider",
+    "name": "Spider",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7400,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "hawk",
+    "name": "Hawk",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7400,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "quipper",
+    "name": "Quipper",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7400,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "weasel",
+    "name": "Weasel",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7400,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "cat",
+    "name": "Cat",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7900,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "crab",
+    "name": "Crab",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7900,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "lizard",
+    "name": "Lizard",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 7900,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "baboon",
+    "name": "Baboon",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 8700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "jackal",
+    "name": "Jackal",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 8700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "badger",
+    "name": "Badger",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 8700,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "eagle",
+    "name": "Eagle",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 8700,
+    "baseAttack": 0.23
+  },
+  {
+    "id": "octopus",
+    "name": "Octopus",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 8700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "giant-fire-beetle",
+    "name": "Giant Fire Beetle",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "commoner",
+    "name": "Commoner",
+    "type": "humanoid",
+    "tier": 1,
+    "baseHP": 9300,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "deer",
+    "name": "Deer",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 9300,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "goat",
+    "name": "Goat",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 9300,
+    "baseAttack": 0.23
+  },
+  {
+    "id": "hyena",
+    "name": "Hyena",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 9800,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "vulture",
+    "name": "Vulture",
+    "type": "beast",
+    "tier": 1,
+    "baseHP": 9800,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "homunculus",
+    "name": "Homunculus",
+    "type": "construct",
+    "tier": 1,
+    "baseHP": 9800,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "awakened-shrub",
+    "name": "Awakened Shrub",
+    "type": "plant",
+    "tier": 1,
+    "baseHP": 10600,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "shrieker",
+    "name": "Shrieker",
+    "type": "plant",
+    "tier": 1,
+    "baseHP": 10600,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "lemure",
+    "name": "Lemure",
+    "type": "fiend",
+    "tier": 1,
+    "baseHP": 10600,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "poisonous-snake",
+    "name": "Poisonous Snake",
+    "type": "beast",
+    "tier": 2,
+    "baseHP": 7400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "stirge",
+    "name": "Stirge",
+    "type": "beast",
+    "tier": 2,
+    "baseHP": 8000,
+    "baseAttack": 0.23
+  },
+  {
+    "id": "mastiff",
+    "name": "Mastiff",
+    "type": "beast",
+    "tier": 2,
+    "baseHP": 7900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "kobold",
+    "name": "Kobold",
+    "type": "humanoid",
+    "tier": 2,
+    "baseHP": 7900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "flying-snake",
+    "name": "Flying Snake",
+    "type": "beast",
+    "tier": 2,
+    "baseHP": 7900,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "blood-hawk",
+    "name": "Blood Hawk",
+    "type": "beast",
+    "tier": 2,
+    "baseHP": 8600,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "cultist",
+    "name": "Cultist",
+    "type": "humanoid",
+    "tier": 2,
+    "baseHP": 9100,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "noble",
+    "name": "Noble",
+    "type": "humanoid",
+    "tier": 2,
+    "baseHP": 9100,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "giant-weasel",
+    "name": "Giant Weasel",
+    "type": "beast",
+    "tier": 2,
+    "baseHP": 9100,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "merfolk",
+    "name": "Merfolk",
+    "type": "humanoid",
+    "tier": 2,
+    "baseHP": 9500,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "mule",
+    "name": "Mule",
+    "type": "beast",
+    "tier": 2,
+    "baseHP": 9500,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "bandit",
+    "name": "Bandit",
+    "type": "humanoid",
+    "tier": 2,
+    "baseHP": 9500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "guard",
+    "name": "Guard",
+    "type": "humanoid",
+    "tier": 2,
+    "baseHP": 9500,
+    "baseAttack": 0.17
+  },
+  {
+    "id": "tribal-warrior",
+    "name": "Tribal Warrior",
+    "type": "humanoid",
+    "tier": 2,
+    "baseHP": 9500,
+    "baseAttack": 0.17
+  },
+  {
+    "id": "pony",
+    "name": "Pony",
+    "type": "beast",
+    "tier": 2,
+    "baseHP": 9500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "giant-crab",
+    "name": "Giant Crab",
+    "type": "beast",
+    "tier": 2,
+    "baseHP": 9900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "camel",
+    "name": "Camel",
+    "type": "beast",
+    "tier": 2,
+    "baseHP": 10200,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "sprite",
+    "name": "Sprite",
+    "type": "fey",
+    "tier": 3,
+    "baseHP": 7400,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "giant-centipede",
+    "name": "Giant Centipede",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 7400,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "goblin",
+    "name": "Goblin",
+    "type": "humanoid",
+    "tier": 3,
+    "baseHP": 7400,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "pseudodragon",
+    "name": "Pseudodragon",
+    "type": "dragon",
+    "tier": 3,
+    "baseHP": 7400,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "acolyte",
+    "name": "Acolyte",
+    "type": "humanoid",
+    "tier": 3,
+    "baseHP": 7900,
+    "baseAttack": 0.17
+  },
+  {
+    "id": "boar",
+    "name": "Boar",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 8400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "giant-wolf-spider",
+    "name": "Giant Wolf Spider",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 8400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "wolf",
+    "name": "Wolf",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 8400,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "grimlock",
+    "name": "Grimlock",
+    "type": "humanoid",
+    "tier": 3,
+    "baseHP": 8400,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "giant-poisonous-snake",
+    "name": "Giant Poisonous Snake",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 8400,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "giant-badger",
+    "name": "Giant Badger",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 8700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "constrictor-snake",
+    "name": "Constrictor Snake",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 8700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "drow",
+    "name": "Drow",
+    "type": "humanoid",
+    "tier": 3,
+    "baseHP": 8700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "panther",
+    "name": "Panther",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 8700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "skeleton",
+    "name": "Skeleton",
+    "type": "undead",
+    "tier": 3,
+    "baseHP": 8700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "elk",
+    "name": "Elk",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 8700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "riding-horse",
+    "name": "Riding Horse",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 8700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "flying-sword",
+    "name": "Flying Sword",
+    "type": "construct",
+    "tier": 3,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "dretch",
+    "name": "Dretch",
+    "type": "fiend",
+    "tier": 3,
+    "baseHP": 9400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "violet-fungus",
+    "name": "Violet Fungus",
+    "type": "plant",
+    "tier": 3,
+    "baseHP": 9400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "giant-frog",
+    "name": "Giant Frog",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 9400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "giant-owl",
+    "name": "Giant Owl",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 9500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "axe-beak",
+    "name": "Axe Beak",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 9500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "giant-lizard",
+    "name": "Giant Lizard",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 9500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "draft-horse",
+    "name": "Draft Horse",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 9500,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "steam-mephit",
+    "name": "Steam Mephit",
+    "type": "elemental",
+    "tier": 3,
+    "baseHP": 9700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "blink-dog",
+    "name": "Blink Dog",
+    "type": "fey",
+    "tier": 3,
+    "baseHP": 9800,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "zombie",
+    "name": "Zombie",
+    "type": "undead",
+    "tier": 3,
+    "baseHP": 9800,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "giant-bat",
+    "name": "Giant Bat",
+    "type": "beast",
+    "tier": 3,
+    "baseHP": 9800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "swarm-of-bats",
+    "name": "Swarm of Bats",
+    "type": "swarm of Tiny beasts",
+    "tier": 3,
+    "baseHP": 9800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "swarm-of-rats",
+    "name": "Swarm of Rats",
+    "type": "swarm of Tiny beasts",
+    "tier": 3,
+    "baseHP": 10000,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "swarm-of-ravens",
+    "name": "Swarm of Ravens",
+    "type": "swarm of Tiny beasts",
+    "tier": 3,
+    "baseHP": 10000,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "magmin",
+    "name": "Magmin",
+    "type": "elemental",
+    "tier": 4,
+    "baseHP": 7400,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "hobgoblin",
+    "name": "Hobgoblin",
+    "type": "humanoid",
+    "tier": 4,
+    "baseHP": 7700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "giant-wasp",
+    "name": "Giant Wasp",
+    "type": "beast",
+    "tier": 4,
+    "baseHP": 8100,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "orc",
+    "name": "Orc",
+    "type": "humanoid",
+    "tier": 4,
+    "baseHP": 8400,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "giant-sea-horse",
+    "name": "Giant Sea Horse",
+    "type": "beast",
+    "tier": 4,
+    "baseHP": 8500,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "deep-gnome-svirfneblin",
+    "name": "Deep Gnome (Svirfneblin)",
+    "type": "humanoid",
+    "tier": 4,
+    "baseHP": 8500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "scout",
+    "name": "Scout",
+    "type": "humanoid",
+    "tier": 4,
+    "baseHP": 8500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "shadow",
+    "name": "Shadow",
+    "type": "undead",
+    "tier": 4,
+    "baseHP": 8500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "dust-mephit",
+    "name": "Dust Mephit",
+    "type": "elemental",
+    "tier": 4,
+    "baseHP": 8600,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "black-bear",
+    "name": "Black Bear",
+    "type": "beast",
+    "tier": 4,
+    "baseHP": 8800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "crocodile",
+    "name": "Crocodile",
+    "type": "beast",
+    "tier": 4,
+    "baseHP": 8800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ape",
+    "name": "Ape",
+    "type": "beast",
+    "tier": 4,
+    "baseHP": 8800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "giant-goat",
+    "name": "Giant Goat",
+    "type": "beast",
+    "tier": 4,
+    "baseHP": 8800,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "warhorse",
+    "name": "Warhorse",
+    "type": "beast",
+    "tier": 4,
+    "baseHP": 8800,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "ice-mephit",
+    "name": "Ice Mephit",
+    "type": "elemental",
+    "tier": 4,
+    "baseHP": 9100,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "gray-ooze",
+    "name": "Gray Ooze",
+    "type": "ooze",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "magma-mephit",
+    "name": "Magma Mephit",
+    "type": "elemental",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "sahuagin",
+    "name": "Sahuagin",
+    "type": "humanoid",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "swarm-of-beetles",
+    "name": "Swarm of Beetles",
+    "type": "swarm of Tiny beasts",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "swarm-of-centipedes",
+    "name": "Swarm of Centipedes",
+    "type": "swarm of Tiny beasts",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "swarm-of-insects",
+    "name": "Swarm of Insects",
+    "type": "swarm of Tiny beasts",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "swarm-of-spiders",
+    "name": "Swarm of Spiders",
+    "type": "swarm of Tiny beasts",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "swarm-of-wasps",
+    "name": "Swarm of Wasps",
+    "type": "swarm of Tiny beasts",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "gnoll",
+    "name": "Gnoll",
+    "type": "humanoid",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "lizardfolk",
+    "name": "Lizardfolk",
+    "type": "humanoid",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "reef-shark",
+    "name": "Reef Shark",
+    "type": "beast",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "darkmantle",
+    "name": "Darkmantle",
+    "type": "monstrosity",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "warhorse-skeleton",
+    "name": "Warhorse Skeleton",
+    "type": "undead",
+    "tier": 4,
+    "baseHP": 9200,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "worg",
+    "name": "Worg",
+    "type": "monstrosity",
+    "tier": 4,
+    "baseHP": 9500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "cockatrice",
+    "name": "Cockatrice",
+    "type": "monstrosity",
+    "tier": 4,
+    "baseHP": 9600,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "rust-monster",
+    "name": "Rust Monster",
+    "type": "monstrosity",
+    "tier": 4,
+    "baseHP": 9600,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "satyr",
+    "name": "Satyr",
+    "type": "fey",
+    "tier": 4,
+    "baseHP": 9900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "thug",
+    "name": "Thug",
+    "type": "humanoid",
+    "tier": 4,
+    "baseHP": 9900,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "quasit",
+    "name": "Quasit",
+    "type": "fiend",
+    "tier": 5,
+    "baseHP": 7400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "imp",
+    "name": "Imp",
+    "type": "fiend",
+    "tier": 5,
+    "baseHP": 7400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "brass-dragon-wyrmling",
+    "name": "Brass Dragon Wyrmling",
+    "type": "dragon",
+    "tier": 5,
+    "baseHP": 7800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "hippogriff",
+    "name": "Hippogriff",
+    "type": "monstrosity",
+    "tier": 5,
+    "baseHP": 8200,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "dryad",
+    "name": "Dryad",
+    "type": "fey",
+    "tier": 5,
+    "baseHP": 8500,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "copper-dragon-wyrmling",
+    "name": "Copper Dragon Wyrmling",
+    "type": "dragon",
+    "tier": 5,
+    "baseHP": 8500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ghoul",
+    "name": "Ghoul",
+    "type": "undead",
+    "tier": 5,
+    "baseHP": 8500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "giant-vulture",
+    "name": "Giant Vulture",
+    "type": "beast",
+    "tier": 5,
+    "baseHP": 8500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "specter",
+    "name": "Specter",
+    "type": "undead",
+    "tier": 5,
+    "baseHP": 8500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "duergar",
+    "name": "Duergar",
+    "type": "humanoid",
+    "tier": 5,
+    "baseHP": 8800,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "giant-eagle",
+    "name": "Giant Eagle",
+    "type": "beast",
+    "tier": 5,
+    "baseHP": 8800,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "giant-spider",
+    "name": "Giant Spider",
+    "type": "beast",
+    "tier": 5,
+    "baseHP": 8800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "lion",
+    "name": "Lion",
+    "type": "beast",
+    "tier": 5,
+    "baseHP": 8800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "bugbear",
+    "name": "Bugbear",
+    "type": "humanoid",
+    "tier": 5,
+    "baseHP": 8900,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "spy",
+    "name": "Spy",
+    "type": "humanoid",
+    "tier": 5,
+    "baseHP": 8900,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "swarm-of-quippers",
+    "name": "Swarm of Quippers",
+    "type": "swarm of Tiny beasts",
+    "tier": 5,
+    "baseHP": 9000,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "animated-armor",
+    "name": "Animated Armor",
+    "type": "construct",
+    "tier": 5,
+    "baseHP": 9300,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "brown-bear",
+    "name": "Brown Bear",
+    "type": "beast",
+    "tier": 5,
+    "baseHP": 9400,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "dire-wolf",
+    "name": "Dire Wolf",
+    "type": "beast",
+    "tier": 5,
+    "baseHP": 9600,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "tiger",
+    "name": "Tiger",
+    "type": "beast",
+    "tier": 5,
+    "baseHP": 9600,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "harpy",
+    "name": "Harpy",
+    "type": "monstrosity",
+    "tier": 5,
+    "baseHP": 9600,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "death-dog",
+    "name": "Death Dog",
+    "type": "monstrosity",
+    "tier": 5,
+    "baseHP": 9700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "giant-toad",
+    "name": "Giant Toad",
+    "type": "beast",
+    "tier": 5,
+    "baseHP": 9700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "giant-hyena",
+    "name": "Giant Hyena",
+    "type": "beast",
+    "tier": 5,
+    "baseHP": 10000,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "giant-octopus",
+    "name": "Giant Octopus",
+    "type": "beast",
+    "tier": 5,
+    "baseHP": 10300,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "cult-fanatic",
+    "name": "Cult Fanatic",
+    "type": "humanoid",
+    "tier": 8,
+    "baseHP": 7400,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "will-o-wisp",
+    "name": "Will-o'-Wisp",
+    "type": "undead",
+    "tier": 8,
+    "baseHP": 7400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "druid",
+    "name": "Druid",
+    "type": "humanoid",
+    "tier": 8,
+    "baseHP": 7800,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "priest",
+    "name": "Priest",
+    "type": "humanoid",
+    "tier": 8,
+    "baseHP": 7800,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "grick",
+    "name": "Grick",
+    "type": "monstrosity",
+    "tier": 8,
+    "baseHP": 7800,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "white-dragon-wyrmling",
+    "name": "White Dragon Wyrmling",
+    "type": "dragon",
+    "tier": 8,
+    "baseHP": 8200,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "bronze-dragon-wyrmling",
+    "name": "Bronze Dragon Wyrmling",
+    "type": "dragon",
+    "tier": 8,
+    "baseHP": 8200,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "black-dragon-wyrmling",
+    "name": "Black Dragon Wyrmling",
+    "type": "dragon",
+    "tier": 8,
+    "baseHP": 8200,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "rug-of-smothering",
+    "name": "Rug of Smothering",
+    "type": "construct",
+    "tier": 8,
+    "baseHP": 8200,
+    "baseAttack": 0.16
+  },
+  {
+    "id": "ghast",
+    "name": "Ghast",
+    "type": "undead",
+    "tier": 8,
+    "baseHP": 8400,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "swarm-of-poisonous-snakes",
+    "name": "Swarm of Poisonous Snakes",
+    "type": "swarm of Tiny beasts",
+    "tier": 8,
+    "baseHP": 8400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "green-dragon-wyrmling",
+    "name": "Green Dragon Wyrmling",
+    "type": "dragon",
+    "tier": 8,
+    "baseHP": 8500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ankheg",
+    "name": "Ankheg",
+    "type": "monstrosity",
+    "tier": 8,
+    "baseHP": 8600,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "azer",
+    "name": "Azer",
+    "type": "elemental",
+    "tier": 8,
+    "baseHP": 8600,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "giant-boar",
+    "name": "Giant Boar",
+    "type": "beast",
+    "tier": 8,
+    "baseHP": 8700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "giant-elk",
+    "name": "Giant Elk",
+    "type": "beast",
+    "tier": 8,
+    "baseHP": 8700,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "polar-bear",
+    "name": "Polar Bear",
+    "type": "beast",
+    "tier": 8,
+    "baseHP": 8700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "ettercap",
+    "name": "Ettercap",
+    "type": "monstrosity",
+    "tier": 8,
+    "baseHP": 8800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ochre-jelly",
+    "name": "Ochre Jelly",
+    "type": "ooze",
+    "tier": 8,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "centaur",
+    "name": "Centaur",
+    "type": "monstrosity",
+    "tier": 8,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "hunter-shark",
+    "name": "Hunter Shark",
+    "type": "beast",
+    "tier": 8,
+    "baseHP": 8900,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "merrow",
+    "name": "Merrow",
+    "type": "monstrosity",
+    "tier": 8,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "silver-dragon-wyrmling",
+    "name": "Silver Dragon Wyrmling",
+    "type": "dragon",
+    "tier": 8,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "rhinoceros",
+    "name": "Rhinoceros",
+    "type": "beast",
+    "tier": 8,
+    "baseHP": 8900,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "gargoyle",
+    "name": "Gargoyle",
+    "type": "elemental",
+    "tier": 8,
+    "baseHP": 9200,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "sea-hag",
+    "name": "Sea Hag",
+    "type": "fey",
+    "tier": 8,
+    "baseHP": 9200,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "saber-toothed-tiger",
+    "name": "Saber-Toothed Tiger",
+    "type": "beast",
+    "tier": 8,
+    "baseHP": 9200,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "mimic",
+    "name": "Mimic",
+    "type": "monstrosity",
+    "tier": 8,
+    "baseHP": 9400,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "awakened-tree",
+    "name": "Awakened Tree",
+    "type": "plant",
+    "tier": 8,
+    "baseHP": 9500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "griffon",
+    "name": "Griffon",
+    "type": "monstrosity",
+    "tier": 8,
+    "baseHP": 9500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ogre",
+    "name": "Ogre",
+    "type": "giant",
+    "tier": 8,
+    "baseHP": 9500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "pegasus",
+    "name": "Pegasus",
+    "type": "celestial",
+    "tier": 8,
+    "baseHP": 9500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "giant-constrictor-snake",
+    "name": "Giant Constrictor Snake",
+    "type": "beast",
+    "tier": 8,
+    "baseHP": 9500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "bandit-captain",
+    "name": "Bandit Captain",
+    "type": "humanoid",
+    "tier": 8,
+    "baseHP": 9700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "gibbering-mouther",
+    "name": "Gibbering Mouther",
+    "type": "aberration",
+    "tier": 8,
+    "baseHP": 9700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "berserker",
+    "name": "Berserker",
+    "type": "humanoid",
+    "tier": 8,
+    "baseHP": 9700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "minotaur-skeleton",
+    "name": "Minotaur Skeleton",
+    "type": "undead",
+    "tier": 8,
+    "baseHP": 9700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "plesiosaurus",
+    "name": "Plesiosaurus",
+    "type": "beast",
+    "tier": 8,
+    "baseHP": 9700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "gelatinous-cube",
+    "name": "Gelatinous Cube",
+    "type": "ooze",
+    "tier": 8,
+    "baseHP": 10200,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ogre-zombie",
+    "name": "Ogre Zombie",
+    "type": "undead",
+    "tier": 8,
+    "baseHP": 10200,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "phase-spider",
+    "name": "Phase Spider",
+    "type": "monstrosity",
+    "tier": 11,
+    "baseHP": 7700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "wight",
+    "name": "Wight",
+    "type": "undead",
+    "tier": 11,
+    "baseHP": 8400,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "hell-hound",
+    "name": "Hell Hound",
+    "type": "fiend",
+    "tier": 11,
+    "baseHP": 8400,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "giant-scorpion",
+    "name": "Giant Scorpion",
+    "type": "beast",
+    "tier": 11,
+    "baseHP": 8700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "basilisk",
+    "name": "Basilisk",
+    "type": "monstrosity",
+    "tier": 11,
+    "baseHP": 8700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "bearded-devil",
+    "name": "Bearded Devil",
+    "type": "fiend",
+    "tier": 11,
+    "baseHP": 8700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "blue-dragon-wyrmling",
+    "name": "Blue Dragon Wyrmling",
+    "type": "dragon",
+    "tier": 11,
+    "baseHP": 8700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "knight",
+    "name": "Knight",
+    "type": "humanoid",
+    "tier": 11,
+    "baseHP": 8700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "doppelganger",
+    "name": "Doppelganger",
+    "type": "monstrosity",
+    "tier": 11,
+    "baseHP": 8700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "mummy",
+    "name": "Mummy",
+    "type": "undead",
+    "tier": 11,
+    "baseHP": 9000,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "veteran",
+    "name": "Veteran",
+    "type": "humanoid",
+    "tier": 11,
+    "baseHP": 9000,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "owlbear",
+    "name": "Owlbear",
+    "type": "monstrosity",
+    "tier": 11,
+    "baseHP": 9000,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "gold-dragon-wyrmling",
+    "name": "Gold Dragon Wyrmling",
+    "type": "dragon",
+    "tier": 11,
+    "baseHP": 9000,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "manticore",
+    "name": "Manticore",
+    "type": "monstrosity",
+    "tier": 11,
+    "baseHP": 9300,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "nightmare",
+    "name": "Nightmare",
+    "type": "fiend",
+    "tier": 11,
+    "baseHP": 9300,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "winter-wolf",
+    "name": "Winter Wolf",
+    "type": "monstrosity",
+    "tier": 11,
+    "baseHP": 9500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "minotaur",
+    "name": "Minotaur",
+    "type": "monstrosity",
+    "tier": 11,
+    "baseHP": 9500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "green-hag",
+    "name": "Green Hag",
+    "type": "fey",
+    "tier": 11,
+    "baseHP": 9700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "killer-whale",
+    "name": "Killer Whale",
+    "type": "beast",
+    "tier": 11,
+    "baseHP": 9900,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "ghost",
+    "name": "Ghost",
+    "type": "undead",
+    "tier": 14,
+    "baseHP": 7800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "red-dragon-wyrmling",
+    "name": "Red Dragon Wyrmling",
+    "type": "dragon",
+    "tier": 14,
+    "baseHP": 8800,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "elephant",
+    "name": "Elephant",
+    "type": "beast",
+    "tier": 14,
+    "baseHP": 8900,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "black-pudding",
+    "name": "Black Pudding",
+    "type": "ooze",
+    "tier": 14,
+    "baseHP": 9100,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "ettin",
+    "name": "Ettin",
+    "type": "giant",
+    "tier": 14,
+    "baseHP": 9100,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "chuul",
+    "name": "Chuul",
+    "type": "aberration",
+    "tier": 14,
+    "baseHP": 9300,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "lamia",
+    "name": "Lamia",
+    "type": "monstrosity",
+    "tier": 14,
+    "baseHP": 9400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "couatl",
+    "name": "Couatl",
+    "type": "celestial",
+    "tier": 14,
+    "baseHP": 9400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "half-red-dragon-veteran",
+    "name": "Half-Red Dragon Veteran",
+    "type": "humanoid",
+    "tier": 17,
+    "baseHP": 8100,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "wraith",
+    "name": "Wraith",
+    "type": "undead",
+    "tier": 17,
+    "baseHP": 8200,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "unicorn",
+    "name": "Unicorn",
+    "type": "celestial",
+    "tier": 17,
+    "baseHP": 8200,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "xorn",
+    "name": "Xorn",
+    "type": "elemental",
+    "tier": 17,
+    "baseHP": 8400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "vampire-spawn",
+    "name": "Vampire Spawn",
+    "type": "undead",
+    "tier": 17,
+    "baseHP": 8600,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "troll",
+    "name": "Troll",
+    "type": "giant",
+    "tier": 17,
+    "baseHP": 8700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "giant-crocodile",
+    "name": "Giant Crocodile",
+    "type": "beast",
+    "tier": 17,
+    "baseHP": 8700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "salamander",
+    "name": "Salamander",
+    "type": "elemental",
+    "tier": 17,
+    "baseHP": 8800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "air-elemental",
+    "name": "Air Elemental",
+    "type": "elemental",
+    "tier": 17,
+    "baseHP": 8800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "flesh-golem",
+    "name": "Flesh Golem",
+    "type": "construct",
+    "tier": 17,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "roper",
+    "name": "Roper",
+    "type": "monstrosity",
+    "tier": 17,
+    "baseHP": 8900,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "bulette",
+    "name": "Bulette",
+    "type": "monstrosity",
+    "tier": 17,
+    "baseHP": 8900,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "triceratops",
+    "name": "Triceratops",
+    "type": "beast",
+    "tier": 17,
+    "baseHP": 8900,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "fire-elemental",
+    "name": "Fire Elemental",
+    "type": "elemental",
+    "tier": 17,
+    "baseHP": 9100,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "hill-giant",
+    "name": "Hill Giant",
+    "type": "giant",
+    "tier": 17,
+    "baseHP": 9100,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "barbed-devil",
+    "name": "Barbed Devil",
+    "type": "fiend",
+    "tier": 17,
+    "baseHP": 9200,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "gladiator",
+    "name": "Gladiator",
+    "type": "humanoid",
+    "tier": 17,
+    "baseHP": 9300,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "night-hag",
+    "name": "Night Hag",
+    "type": "fiend",
+    "tier": 17,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "otyugh",
+    "name": "Otyugh",
+    "type": "aberration",
+    "tier": 17,
+    "baseHP": 9300,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "water-elemental",
+    "name": "Water Elemental",
+    "type": "elemental",
+    "tier": 17,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "gorgon",
+    "name": "Gorgon",
+    "type": "monstrosity",
+    "tier": 17,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "earth-elemental",
+    "name": "Earth Elemental",
+    "type": "elemental",
+    "tier": 17,
+    "baseHP": 9500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "giant-shark",
+    "name": "Giant Shark",
+    "type": "beast",
+    "tier": 17,
+    "baseHP": 9500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "shambling-mound",
+    "name": "Shambling Mound",
+    "type": "plant",
+    "tier": 17,
+    "baseHP": 9700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "mage",
+    "name": "Mage",
+    "type": "humanoid",
+    "tier": 20,
+    "baseHP": 7400,
+    "baseAttack": 0.17
+  },
+  {
+    "id": "invisible-stalker",
+    "name": "Invisible Stalker",
+    "type": "elemental",
+    "tier": 20,
+    "baseHP": 8900,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "vrock",
+    "name": "Vrock",
+    "type": "fiend",
+    "tier": 20,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "wyvern",
+    "name": "Wyvern",
+    "type": "dragon",
+    "tier": 20,
+    "baseHP": 9000,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "young-brass-dragon",
+    "name": "Young Brass Dragon",
+    "type": "dragon",
+    "tier": 20,
+    "baseHP": 9000,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "chimera",
+    "name": "Chimera",
+    "type": "monstrosity",
+    "tier": 20,
+    "baseHP": 9100,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "drider",
+    "name": "Drider",
+    "type": "monstrosity",
+    "tier": 20,
+    "baseHP": 9200,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "mammoth",
+    "name": "Mammoth",
+    "type": "beast",
+    "tier": 20,
+    "baseHP": 9300,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "medusa",
+    "name": "Medusa",
+    "type": "monstrosity",
+    "tier": 20,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "young-white-dragon",
+    "name": "Young White Dragon",
+    "type": "dragon",
+    "tier": 20,
+    "baseHP": 9400,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "oni",
+    "name": "Oni",
+    "type": "giant",
+    "tier": 23,
+    "baseHP": 8700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "young-copper-dragon",
+    "name": "Young Copper Dragon",
+    "type": "dragon",
+    "tier": 23,
+    "baseHP": 8800,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "stone-giant",
+    "name": "Stone Giant",
+    "type": "giant",
+    "tier": 23,
+    "baseHP": 8900,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "young-black-dragon",
+    "name": "Young Black Dragon",
+    "type": "dragon",
+    "tier": 23,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "shield-guardian",
+    "name": "Shield Guardian",
+    "type": "construct",
+    "tier": 23,
+    "baseHP": 9200,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "giant-ape",
+    "name": "Giant Ape",
+    "type": "beast",
+    "tier": 23,
+    "baseHP": 9400,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "spirit-naga",
+    "name": "Spirit Naga",
+    "type": "monstrosity",
+    "tier": 26,
+    "baseHP": 8100,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "assassin",
+    "name": "Assassin",
+    "type": "humanoid",
+    "tier": 26,
+    "baseHP": 8100,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "cloaker",
+    "name": "Cloaker",
+    "type": "aberration",
+    "tier": 26,
+    "baseHP": 8100,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "chain-devil",
+    "name": "Chain Devil",
+    "type": "fiend",
+    "tier": 26,
+    "baseHP": 8300,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "hezrou",
+    "name": "Hezrou",
+    "type": "fiend",
+    "tier": 26,
+    "baseHP": 9300,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "young-green-dragon",
+    "name": "Young Green Dragon",
+    "type": "dragon",
+    "tier": 26,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "tyrannosaurus-rex",
+    "name": "Tyrannosaurus Rex",
+    "type": "beast",
+    "tier": 26,
+    "baseHP": 9300,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "frost-giant",
+    "name": "Frost Giant",
+    "type": "giant",
+    "tier": 26,
+    "baseHP": 9300,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "young-bronze-dragon",
+    "name": "Young Bronze Dragon",
+    "type": "dragon",
+    "tier": 26,
+    "baseHP": 9400,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "hydra",
+    "name": "Hydra",
+    "type": "monstrosity",
+    "tier": 26,
+    "baseHP": 9800,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "clay-golem",
+    "name": "Clay Golem",
+    "type": "construct",
+    "tier": 29,
+    "baseHP": 8700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "treant",
+    "name": "Treant",
+    "type": "plant",
+    "tier": 29,
+    "baseHP": 8700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "bone-devil",
+    "name": "Bone Devil",
+    "type": "fiend",
+    "tier": 29,
+    "baseHP": 8800,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "young-blue-dragon",
+    "name": "Young Blue Dragon",
+    "type": "dragon",
+    "tier": 29,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "glabrezu",
+    "name": "Glabrezu",
+    "type": "fiend",
+    "tier": 29,
+    "baseHP": 9000,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "fire-giant",
+    "name": "Fire Giant",
+    "type": "giant",
+    "tier": 29,
+    "baseHP": 9100,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "young-silver-dragon",
+    "name": "Young Silver Dragon",
+    "type": "dragon",
+    "tier": 29,
+    "baseHP": 9100,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "cloud-giant",
+    "name": "Cloud Giant",
+    "type": "giant",
+    "tier": 29,
+    "baseHP": 9500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "guardian-naga",
+    "name": "Guardian Naga",
+    "type": "monstrosity",
+    "tier": 32,
+    "baseHP": 8600,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "aboleth",
+    "name": "Aboleth",
+    "type": "aberration",
+    "tier": 32,
+    "baseHP": 8700,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "deva",
+    "name": "Deva",
+    "type": "celestial",
+    "tier": 32,
+    "baseHP": 8700,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "stone-golem",
+    "name": "Stone Golem",
+    "type": "construct",
+    "tier": 32,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "young-gold-dragon",
+    "name": "Young Gold Dragon",
+    "type": "dragon",
+    "tier": 32,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "young-red-dragon",
+    "name": "Young Red Dragon",
+    "type": "dragon",
+    "tier": 32,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "gynosphinx",
+    "name": "Gynosphinx",
+    "type": "monstrosity",
+    "tier": 35,
+    "baseHP": 8400,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "djinni",
+    "name": "Djinni",
+    "type": "elemental",
+    "tier": 35,
+    "baseHP": 8700,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "behir",
+    "name": "Behir",
+    "type": "monstrosity",
+    "tier": 35,
+    "baseHP": 8800,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "horned-devil",
+    "name": "Horned Devil",
+    "type": "fiend",
+    "tier": 35,
+    "baseHP": 8900,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "remorhaz",
+    "name": "Remorhaz",
+    "type": "monstrosity",
+    "tier": 35,
+    "baseHP": 9100,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "efreeti",
+    "name": "Efreeti",
+    "type": "elemental",
+    "tier": 35,
+    "baseHP": 9200,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "roc",
+    "name": "Roc",
+    "type": "monstrosity",
+    "tier": 35,
+    "baseHP": 9600,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "archmage",
+    "name": "Archmage",
+    "type": "humanoid",
+    "tier": 38,
+    "baseHP": 8500,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "erinyes",
+    "name": "Erinyes",
+    "type": "fiend",
+    "tier": 38,
+    "baseHP": 9400,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "rakshasa",
+    "name": "Rakshasa",
+    "type": "fiend",
+    "tier": 41,
+    "baseHP": 8000,
+    "baseAttack": 0.17
+  },
+  {
+    "id": "adult-brass-dragon",
+    "name": "Adult Brass Dragon",
+    "type": "dragon",
+    "tier": 41,
+    "baseHP": 8900,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "nalfeshnee",
+    "name": "Nalfeshnee",
+    "type": "fiend",
+    "tier": 41,
+    "baseHP": 9100,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "adult-white-dragon",
+    "name": "Adult White Dragon",
+    "type": "dragon",
+    "tier": 41,
+    "baseHP": 9200,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "storm-giant",
+    "name": "Storm Giant",
+    "type": "giant",
+    "tier": 41,
+    "baseHP": 9500,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "ice-devil",
+    "name": "Ice Devil",
+    "type": "fiend",
+    "tier": 44,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "adult-copper-dragon",
+    "name": "Adult Copper Dragon",
+    "type": "dragon",
+    "tier": 44,
+    "baseHP": 9000,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "adult-black-dragon",
+    "name": "Adult Black Dragon",
+    "type": "dragon",
+    "tier": 44,
+    "baseHP": 9100,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "mummy-lord",
+    "name": "Mummy Lord",
+    "type": "undead",
+    "tier": 47,
+    "baseHP": 7600,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "adult-green-dragon",
+    "name": "Adult Green Dragon",
+    "type": "dragon",
+    "tier": 47,
+    "baseHP": 9200,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "adult-bronze-dragon",
+    "name": "Adult Bronze Dragon",
+    "type": "dragon",
+    "tier": 47,
+    "baseHP": 9200,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "purple-worm",
+    "name": "Purple Worm",
+    "type": "monstrosity",
+    "tier": 47,
+    "baseHP": 9500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "marilith",
+    "name": "Marilith",
+    "type": "fiend",
+    "tier": 50,
+    "baseHP": 8700,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "planetar",
+    "name": "Planetar",
+    "type": "celestial",
+    "tier": 50,
+    "baseHP": 8900,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "iron-golem",
+    "name": "Iron Golem",
+    "type": "construct",
+    "tier": 50,
+    "baseHP": 9000,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "adult-blue-dragon",
+    "name": "Adult Blue Dragon",
+    "type": "dragon",
+    "tier": 50,
+    "baseHP": 9100,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "adult-silver-dragon",
+    "name": "Adult Silver Dragon",
+    "type": "dragon",
+    "tier": 50,
+    "baseHP": 9300,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "androsphinx",
+    "name": "Androsphinx",
+    "type": "monstrosity",
+    "tier": 53,
+    "baseHP": 8400,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "adult-gold-dragon",
+    "name": "Adult Gold Dragon",
+    "type": "dragon",
+    "tier": 53,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "adult-red-dragon",
+    "name": "Adult Red Dragon",
+    "type": "dragon",
+    "tier": 53,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "dragon-turtle",
+    "name": "Dragon Turtle",
+    "type": "dragon",
+    "tier": 53,
+    "baseHP": 9500,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "balor",
+    "name": "Balor",
+    "type": "fiend",
+    "tier": 59,
+    "baseHP": 9000,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ancient-brass-dragon",
+    "name": "Ancient Brass Dragon",
+    "type": "dragon",
+    "tier": 62,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "pit-fiend",
+    "name": "Pit Fiend",
+    "type": "fiend",
+    "tier": 62,
+    "baseHP": 8900,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ancient-white-dragon",
+    "name": "Ancient White Dragon",
+    "type": "dragon",
+    "tier": 62,
+    "baseHP": 9100,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "lich",
+    "name": "Lich",
+    "type": "undead",
+    "tier": 65,
+    "baseHP": 7500,
+    "baseAttack": 0.18
+  },
+  {
+    "id": "solar",
+    "name": "Solar",
+    "type": "celestial",
+    "tier": 65,
+    "baseHP": 8800,
+    "baseAttack": 0.22
+  },
+  {
+    "id": "ancient-copper-dragon",
+    "name": "Ancient Copper Dragon",
+    "type": "dragon",
+    "tier": 65,
+    "baseHP": 9500,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "ancient-black-dragon",
+    "name": "Ancient Black Dragon",
+    "type": "dragon",
+    "tier": 65,
+    "baseHP": 9600,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ancient-green-dragon",
+    "name": "Ancient Green Dragon",
+    "type": "dragon",
+    "tier": 68,
+    "baseHP": 8800,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ancient-bronze-dragon",
+    "name": "Ancient Bronze Dragon",
+    "type": "dragon",
+    "tier": 68,
+    "baseHP": 9100,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "kraken",
+    "name": "Kraken",
+    "type": "monstrosity",
+    "tier": 71,
+    "baseHP": 9000,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "ancient-blue-dragon",
+    "name": "Ancient Blue Dragon",
+    "type": "dragon",
+    "tier": 71,
+    "baseHP": 9000,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "ancient-silver-dragon",
+    "name": "Ancient Silver Dragon",
+    "type": "dragon",
+    "tier": 71,
+    "baseHP": 9000,
+    "baseAttack": 0.2
+  },
+  {
+    "id": "ancient-gold-dragon",
+    "name": "Ancient Gold Dragon",
+    "type": "dragon",
+    "tier": 74,
+    "baseHP": 9000,
+    "baseAttack": 0.19
+  },
+  {
+    "id": "ancient-red-dragon",
+    "name": "Ancient Red Dragon",
+    "type": "dragon",
+    "tier": 74,
+    "baseHP": 9000,
+    "baseAttack": 0.21
+  },
+  {
+    "id": "tarrasque",
+    "name": "Tarrasque",
+    "type": "monstrosity",
+    "tier": 92,
+    "baseHP": 9000,
+    "baseAttack": 0.2
+  }
+]);
