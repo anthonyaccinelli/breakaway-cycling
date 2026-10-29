@@ -12,5 +12,6 @@ test('home page hides only original shell, not the Coach header and dashboard', 
   const coach=readFileSync(new URL('../src/coach.ts',import.meta.url),'utf8');
   assert.match(coach,/className='coach-screen coach-v2'/);
   assert.match(coach,/screen\.hidden=false/);
-  assert.match(coach,/id="coachWorkout"/);
+  assert.match(coach,/id="coachRecommendedName"/);
+  assert.match(coach,/id="coachSwapPanel"/);
 });
