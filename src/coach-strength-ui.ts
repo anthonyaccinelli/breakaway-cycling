@@ -29,16 +29,14 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
   '<label>SESSIONS / WEEK<select id="strengthSessions"><option value="1">1 session</option><option value="2">2 sessions</option></select></label>'+
   '<label>TIME / SESSION<select id="strengthMinutes"><option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option></select></label>'+
   '<label>AVAILABLE WEIGHTS (OPTIONAL)<input type="text" id="strengthWeights" maxlength="150" placeholder="e.g. 25 lb DB, 35 lb KB"></label></div>'+
-  '<button type="button" class="coach-classic-start" id="strengthSave">SAVE STRENGTH SETTINGS →</button>'+
-  '<p id="strengthSaved" class="coach-small" role="status">This preview stores your equipment and training log on this device.</p>';
+
+  '<p id="strengthSaved" class="coach-small" role="status">Your strength setup is saved with your cycling settings using Save My Plan.</p>';
   (host.querySelector('#strengthExperience') as HTMLSelectElement).value=settings.experience;
   (host.querySelector('#strengthSessions') as HTMLSelectElement).value=String(settings.sessions);
   (host.querySelector('#strengthMinutes') as HTMLSelectElement).value=String(settings.minutes);
   (host.querySelector('#strengthWeights') as HTMLInputElement).value=settings.notes;
  }
- host.addEventListener('click',event=>{
-  const target=event.target;
-  if(!(target instanceof Element)||!target.closest('#strengthSave'))return;
+ function saveSettings():boolean{
   const equipment=Array.from(host.querySelectorAll<HTMLInputElement>('[data-gear]')).filter(el=>el.checked).map(el=>el.dataset.gear);
   const next=validStrength({
    enabled:(host.querySelector('#strengthEnabled') as HTMLInputElement).checked,equipment,
@@ -47,10 +45,10 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
    minutes:Number((host.querySelector('#strengthMinutes') as HTMLSelectElement).value),
    notes:(host.querySelector('#strengthWeights') as HTMLInputElement).value
   });
-  if(!write(STRENGTH_KEY,next)){host.querySelector('#strengthSaved')!.textContent='Local storage unavailable. Nothing saved.';return;}
-  settings=next;renderSettings();host.querySelector('#strengthSaved')!.textContent='Saved! Your weekly plan now includes equipment-aware strength work.';
-  callbacks.changed();
- });
+  if(!write(STRENGTH_KEY,next)){host.querySelector('#strengthSaved')!.textContent='Local storage unavailable. Nothing saved.';return false;}
+  settings=next;renderSettings();host.querySelector('#strengthSaved')!.textContent='Equipment settings saved.';
+  return true;
+ }
  function stopTimer(){if(timer!==null)window.clearInterval(timer);timer=null;restUntil=0;}
  function startRest(seconds:number){
   if(timer!==null)window.clearInterval(timer);
@@ -152,6 +150,6 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
   (overlay.querySelector('#strengthExit') as HTMLButtonElement)?.focus();return true;
  }
  renderSettings();
- return {get settings(){return settings;},get history(){return history;},open,close,renderSettings,get active(){return active;},
+ return {get settings(){return settings;},get history(){return history;},open,close,renderSettings,saveSettings,get active(){return active;},
   completedToday(){return history.some(r=>dayKey(new Date(r.date))===dayKey(new Date()));}};
 }
