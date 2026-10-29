@@ -126,7 +126,8 @@ export function mountCoach(bridge:CoachBridge){
     ($('coachGoal') as HTMLSelectElement).value=rider.goal;
     styleSelect.value=controlChoice;
     const history=historyRecords(), last=history.at(-1);
-    const fatigue=last?.rpe!==null && typeof last?.rpe==='number' && last.rpe>=9;
+    const recentHardGame=platformRides.some(r=>r.mode!==null&&r.mode!=='classic'&&r.start<=Date.now()&&Date.now()-r.start<36*3600000&&r.elapsed>=1800&&r.avgPower!==null&&r.avgPower>=rider.ftp*.8);
+    const fatigue=(last?.rpe!==null && typeof last?.rpe==='number' && last.rpe>=9)||recentHardGame;
     const week=recommendWeek(rider,!!fatigue), now=new Date().getDay();
     const weekdays=['SUN','MON','TUE','WED','THU','FRI','SAT'];
     $('coachWeek').innerHTML=week.map(day=>{
@@ -134,7 +135,7 @@ export function mountCoach(bridge:CoachBridge){
       return '<button type="button" data-day-workout="'+(assigned?.id||'')+'" '+(!assigned?'disabled':'')+' class="'+(day.day===now?'coach-week-today':'')+'"><span>'+weekdays[day.day]+'</span><strong>'+(assigned?escapeHtml(assigned.name):'Rest day')+'</strong></button>';
     }).join('');
     $('coachHistory').innerHTML=history.length?history.slice(-5).reverse().map(r=>'<div class="coach-history-row"><strong>'+escapeHtml(r.workout)+'</strong><span>'+new Date(r.date).toLocaleDateString()+' · '+Math.round(r.elapsedSeconds/60)+' min · '+escapeHtml(r.mode.toUpperCase())+'</span></div>').join(''):'<p class="coach-small">Your coached rides will appear here.</p>';
-    $('coachSuggestion').textContent=fatigue?'Your last ride felt very hard. Consider an easy session or rest before another demanding effort.':'Choose an evidence-informed workout, then pick a riding mode. You can always adjust today’s plan.';
+    $('coachSuggestion').textContent=recentHardGame?'A recent Survival or Cycle Quest ride may have been demanding. Consider recovery before another hard session. This is a rough estimate from average power.':fatigue?'Your last coached workout felt very hard. Consider recovery or rest before another demanding effort.':'Choose a structured workout inside Classic. Survival and Cycle Quest remain free from training prescriptions.';
   }
   screen.querySelectorAll<HTMLButtonElement>('[data-coach-question]').forEach(button=>button.addEventListener('click',()=>{
     const question=button.dataset.coachQuestion;
@@ -164,6 +165,19 @@ export function mountCoach(bridge:CoachBridge){
   function release(){
     if(session?.control==='structured' && !isDemo)bridge.setMode('sim');
   }
+  async function refreshPlatformHistory(){
+    const output=$('coachPlatformHistory');
+    try{
+      platformRides=await bridge.getPlatformRides();
+      const recent=platformRides.filter(r=>Number.isFinite(r.start)&&r.start>=Date.now()-7*86400000&&r.start<=Date.now());
+      const hours=recent.reduce((total,r)=>total+Math.max(0,r.elapsed),0)/3600;
+      const modes=['classic','survival','cyclequest'] as const;
+      output.innerHTML='<p class="coach-small">'+platformRides.length+' locally saved rides · '+hours.toFixed(1)+' hours in the last 7 days. All three riding modes contribute to your training history. Only Classic uses prescribed workouts.</p>'+
+       modes.map(mode=>'<div class="coach-history-row"><strong>'+({classic:'CLASSIC',survival:'SURVIVAL',cyclequest:'CYCLE QUEST'}[mode])+'</strong><span>'+recent.filter(r=>r.mode===mode).length+' rides · '+(recent.filter(r=>r.mode===mode).reduce((total,r)=>total+r.elapsed,0)/3600).toFixed(1)+' hours this week</span></div>').join('')+
+       '<p class="coach-small">Older rides without a mode label count toward total hours. A potential hard-game-day alert uses duration and average power, not a clinical recovery assessment.</p>';
+      render();
+    }catch(error){output.textContent='Local ride history could not be loaded: '+String(error instanceof Error?error.message:error);}
+  }
   function endCoaching(){
     if(session && session.elapsed>0 && !isDemo)saveRecord(session,null);
     release();session=null;isDemo=false;stopDemo();hud.hidden=true;close();
@@ -184,8 +198,7 @@ export function mountCoach(bridge:CoachBridge){
   function start(workout:CoachWorkout,mode:CoachMode,control:CoachControl,demo=false){
     if(session || bridge.isRiding()){ $('coachStatus').textContent='Finish the current ride or coaching session before starting a new one.';return;}
     const supported=availableControls(mode);
-    const actual=supported.includes(control)?control:'guided';
-    if(actual!==control && !demo)$('coachStatus').textContent='This mode supports Guided SIM or Free Ride coaching, not structured ERG.';
+    const actual=supported.includes(control)?control:'structured';
     session={workout,mode,control:actual,ftp:rider.ftp,elapsed:0,adjusted:1,measured:0,inRange:0,sumWatts:0,countWatts:0,done:false,previousIndex:-1};
     finishedId='';
     isDemo=demo;
@@ -196,16 +209,12 @@ export function mountCoach(bridge:CoachBridge){
     if(!demo){
       bridge.setMode(actual==='structured'?'target':'sim');
       if(actual==='structured')bridge.setTarget(targetWatts(rider.ftp,workout.segments[0]));
-      if(mode!=='cyclequest')bridge.makeRoute(workoutDuration(workout),actual==='structured');
-      bridge.launchMode(mode);
+      bridge.makeRoute(workoutDuration(workout),actual==='structured');
+      bridge.launchMode('classic');
     }
     showHud();
   }
-  screen.querySelectorAll<HTMLButtonElement>('[data-coach-mode]').forEach(button=>button.addEventListener('click',()=>{
-    const mode=button.dataset.coachMode as CoachMode;
-    const compatible=availableControls(mode);
-    start(getWorkout(),mode,compatible.includes(controlChoice)?controlChoice:'guided');
-  }));
+  $('coachStartClassic').addEventListener('click',()=>start(getWorkout(),'classic',controlChoice));
   let demoInput:HTMLInputElement|null=null;
   const demoControls=document.createElement('div');
   demoControls.id='coachDemoControls';
@@ -240,7 +249,6 @@ export function mountCoach(bridge:CoachBridge){
     let message='Connect a trainer, then start pedaling.';
     if(isDemo)message='SIMULATED telemetry only — no physical trainer or ride record.';
     else if(complete)message='Workout complete! Finish your ride when ready.';
-    else if(session.elapsed>0 && session.control==='free')message='Free ride: Coach records time and watts, without resistance commands.';
     else if(session.elapsed>0 && powerNow!==null)message=inTargetRange(powerNow,session.ftp,state.segment,session.adjusted)?'On target. Smooth and controlled.':powerNow<session.ftp*state.segment.low*session.adjusted?'Below target. Build effort gradually.':'Above target. Ease back to your prescribed effort.';
     h('coachPrompt').textContent=message;
   }
@@ -256,10 +264,8 @@ export function mountCoach(bridge:CoachBridge){
     if(step<=0)return;
     if(Number.isFinite(watts) && watts>=0){
       session.sumWatts+=watts*step;session.countWatts+=step;
-      if(session.control!=='free'){
-        session.measured+=step;
-        if(inTargetRange(watts,session.ftp,current.segment,session.adjusted))session.inRange+=step;
-      }
+      session.measured+=step;
+      if(inTargetRange(watts,session.ftp,current.segment,session.adjusted))session.inRange+=step;
     }
     session.elapsed+=step;
     const next=segmentAt(session.workout,session.elapsed);
@@ -311,14 +317,6 @@ export function mountCoach(bridge:CoachBridge){
     }));
     return panel;
   }
-  function isRecovery(){
-    if(!session||session.control==='free')return false;
-    const segment=segmentAt(session.workout,session.elapsed).segment;
-    return segment.high<=.6;
-  }
-  function onTarget(watts:number){
-    return !!session && inTargetRange(watts,session.ftp,segmentAt(session.workout,session.elapsed).segment,session.adjusted);
-  }
   function snapshot(){
     if(!session)return null;
     const seg=segmentAt(session.workout,session.elapsed);
@@ -330,5 +328,5 @@ export function mountCoach(bridge:CoachBridge){
     writeJson(COACH_PROFILE_KEY,rider);
     render();
   }});
-  return {tick,finish,endCoaching,isRecovery,onTarget,snapshot,get mode(){return session?.mode||null;},get active(){return !!session;}};
+  return {tick,finish,endCoaching,snapshot,get mode(){return session?.mode||null;},get active(){return !!session;}};
 }
