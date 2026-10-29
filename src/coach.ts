@@ -27,7 +27,7 @@ type Session = {
   sumWatts:number; countWatts:number; done:boolean; previousIndex:number;
 };
 const readJson = (key:string):unknown => {try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}};
-const writeJson = (key:string,value:unknown) => {try{localStorage.setItem(key,JSON.stringify(value));}catch{/* Private storage may be disabled */}};
+const writeJson = (key:string,value:unknown):boolean => {try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}};
 function historyRecords():CoachSessionRecord[]{
   const x=readJson(COACH_HISTORY_KEY);
   return Array.isArray(x)?x.filter(r=>r && typeof r.workout==='string' && typeof r.date==='string').slice(-150):[];
@@ -170,7 +170,7 @@ export function mountCoach(bridge:CoachBridge){
         <div class="coach-fields">
           <label>FTP (W)<input id="coachFtp" type="number" min="75" max="550" step="1"></label>
           <label>TOTAL TRAINING HOURS / WEEK<input id="coachHours" type="number" min="1" max="20" step=".5"></label>
-          <label>DAYS / WEEK<input id="coachDays" type="number" min="2" max="7" step="1"></label>
+          <label>DAYS / WEEK<input id="coachDays" type="number" min="2" max="6" step="1"></label>
           <label>REST DAY<select id="coachRestDay"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
           <label>LEVEL<select id="coachExperience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
           <label>GOAL<select id="coachGoal"><option value="fitness">Ride consistently</option><option value="ftp">Increase FTP</option><option value="endurance">Build endurance</option><option value="race">Prepare to race</option></select></label>
@@ -494,7 +494,10 @@ export function mountCoach(bridge:CoachBridge){
       return;
     }
     rider=nextProfile;
-    writeJson(COACH_PROFILE_KEY,rider);
+    if(!writeJson(COACH_PROFILE_KEY,rider)){
+      $('coachSettingsFeedback').textContent='Strength equipment saved, but cycling settings could not be stored. Enable browser storage and retry.';
+      return;
+    }
     riderSelected=false;customWorkout=null;
     render();
     $('coachSettingsFeedback').textContent='✓ Saved! Your cycling, strength, and weekly plan are updated.';
