@@ -370,3 +370,12 @@ body[data-breakaway-screen="home"] #modeLanding summary:focus-visible{
     transform:none!important;
   }
 }
+
+/* Browser Back / history restoration: mode state can retain data-ride-experience.
+   Home must always paint the original navy canvas regardless of prior mode.
+   This two-attribute selector intentionally outranks the later ride-mode body theme. */
+body[data-breakaway-screen="home"][data-ride-experience]{
+  background:#071521!important;
+  color:#f4f8fa!important;
+  color-scheme:dark!important;
+}
