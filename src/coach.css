@@ -1,0 +1,175 @@
+/* Coach preview is intentionally isolated from existing Classic, Survival and Quest themes. */
+.coach-home-entry{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-height:160px;width:min(100%,1100px);margin:22px auto 34px;padding:24px 28px;text-align:left;background:linear-gradient(125deg,#132431,#1b3941 65%,#122630);color:#f5fff9;border:1px solid #57dac3;border-radius:18px;box-shadow:0 12px 30px #0006;cursor:pointer}
+.coach-home-entry .coach-entry-kicker{font:800 11px 'Instrument Sans',system-ui,sans-serif;letter-spacing:2px;color:#7fe6cb}
+.coach-home-entry strong{font:900 clamp(27px,3.8vw,48px) 'Host Grotesk',system-ui,sans-serif;letter-spacing:-2px;line-height:1}
+.coach-home-entry span:not(.coach-entry-kicker){font:500 14px 'Instrument Sans',system-ui,sans-serif}
+.coach-home-entry .coach-entry-arrow{font-weight:900!important;letter-spacing:1px;color:#a7ead5}
+.coach-home-entry:hover{border-color:white;transform:translateY(-2px)}
+.coach-screen,.coach-hud{font-family:'Instrument Sans',system-ui,sans-serif}
+.coach-screen[hidden],.coach-hud[hidden],#coachDemoControls[hidden]{display:none!important}
+.coach-screen{position:fixed;inset:0;z-index:1050;overflow-y:auto;background:#09141c;color:#eaf3f6;min-height:100dvh;padding:30px clamp(18px,4vw,65px) 70px}
+.coach-screen button,.coach-hud button{font-family:inherit;cursor:pointer}
+.coach-screen .coach-top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;max-width:1500px;margin:auto auto 28px}
+.coach-eyebrow,.coach-tag{font:800 11px 'Instrument Sans',system-ui,sans-serif;letter-spacing:1.8px;color:#79e0c6}
+.coach-top h1{font:900 clamp(36px,6.5vw,88px)/.95 'Host Grotesk',system-ui,sans-serif;letter-spacing:-.05em;margin:13px 0 11px;color:#fff}
+.coach-top h1 em{font-style:normal;color:#73dfc2}
+.coach-top p{font-size:17px;color:#a8bfc9;margin:0}
+.coach-back,.coach-demo-button{border:1px solid #72939b;background:transparent;color:#e9f7f4;border-radius:10px;padding:12px 16px;font-weight:800}
+.coach-back:hover,.coach-demo-button:hover{border-color:#85e2ca;background:#163137}
+.coach-main{max-width:1500px;margin:auto}
+.coach-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(310px,1fr);gap:18px}
+.coach-panel{background:#111f29;border:1px solid #2e4852;border-radius:18px;padding:clamp(18px,2.5vw,34px);box-shadow:0 12px 32px #0003;color:#eaf3f6}
+.coach-side{display:grid;gap:18px;align-content:start}
+.coach-section-top{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;margin-bottom:15px}
+.coach-panel h2{font:850 clamp(25px,3vw,43px)/1 'Host Grotesk',system-ui,sans-serif;letter-spacing:-1.2px;color:#fff;margin:10px 0 14px}
+.coach-panel h3{font:800 17px 'Host Grotesk',system-ui,sans-serif;color:#fff;margin:23px 0 12px}
+.coach-intro{font-size:16px;color:#afc1c8;line-height:1.5;max-width:55ch}
+.coach-label,.coach-fields label,.coach-inline-fields label{display:grid;gap:8px;font-weight:750;font-size:11px;letter-spacing:1px;color:#a8d7d2}
+.coach-select,.coach-fields input,.coach-fields select,.coach-inline-fields select{font:700 17px 'Instrument Sans',system-ui,sans-serif;color:#effaf8;background:#0a151d;border:1px solid #56747d;border-radius:9px;padding:12px;min-width:0;width:100%}
+.coach-select{margin:9px 0 16px}
+.coach-workout-info{padding:15px 18px;border-radius:12px;background:#19333d}
+.coach-workout-info>div{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:#74e7c4}
+.coach-workout-info>div span{color:#c0d4dc;font-size:12px}
+.coach-workout-info p{color:#d1dde2;margin:10px 0 0;font-size:15px}
+.coach-segments{height:88px;display:flex;align-items:flex-end;gap:4px;border-bottom:1px solid #64818a;background:repeating-linear-gradient(to top,transparent 0 21px,#233b45 22px);padding:7px 2px 0;margin:15px 0 20px}
+.coach-segment{height:100%;display:flex;align-items:end;min-width:4px}
+.coach-segment>div{width:100%;border-radius:5px 5px 0 0;min-height:3px}
+.coach-inline-fields{max-width:330px}
+.coach-mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.coach-mode-grid button{min-height:112px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:16px;background:#0d1a24;border:1px solid #4b6c76;border-radius:12px;color:#fff;text-align:left}
+.coach-mode-grid button:hover,.coach-mode-grid button:focus-visible{background:#193b40;border-color:#8bead0;outline:0}
+.coach-mode-grid strong{font:850 clamp(14px,1.9vw,22px) 'Host Grotesk',system-ui,sans-serif;letter-spacing:-.3px}
+.coach-mode-grid span{font-size:12px;color:#9abec7}
+.coach-compat,.coach-small{font-size:13px;line-height:1.5;color:#acc1c9}
+.coach-demo-button{margin-top:8px}
+.coach-status{font-size:13px;color:#76e7c4;min-height:18px}
+.coach-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.coach-fields label:last-child{grid-column:1/-1}
+#coachSaveProfile{margin-top:17px;border:0;border-radius:9px;background:#7de4c7;color:#071b20;font-weight:900;padding:12px 18px}
+.coach-week{display:grid;gap:6px}
+.coach-week button{display:grid;grid-template-columns:40px 1fr;gap:13px;align-items:center;text-align:left;color:#eaf3f6;background:#172934;border:1px solid transparent;border-radius:8px;padding:10px;font-size:13px}
+.coach-week button span{font-weight:900;color:#85b4bf}
+.coach-week button strong{font-size:13px}
+.coach-week button.coach-week-today{border-color:#80e5c8}
+.coach-week button:disabled{opacity:.55;cursor:default}
+.coach-week button:not(:disabled):hover{background:#26414b}
+.coach-history-row{display:flex;flex-direction:column;gap:4px;border-top:1px solid #33505a;padding:12px 0;font-size:14px}
+.coach-history-row span{font-size:12px;color:#a6c2c8}
+.coach-hud{position:fixed;z-index:1060;right:14px;bottom:14px;width:min(372px,calc(100vw - 28px));padding:13px 15px;background:#0e1b25;color:#f5fff8;border:1px solid #66cbb5;border-radius:14px;box-shadow:0 10px 44px #000b;line-height:1.2}
+.coach-hud-top{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:11px;letter-spacing:.5px;color:#75dfc6}
+.coach-hud-top strong{font-size:11px;white-space:nowrap}
+.coach-hud-top span{font-size:10px;color:#bfced5}
+.coach-hud-top button{border:1px solid #5b757d;background:#243943;color:white;border-radius:5px;min-width:25px;min-height:24px}
+.coach-hud-core{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding-top:12px}
+.coach-hud-core>div{display:grid;gap:4px}
+.coach-hud-core small{font-weight:750;font-size:10px;color:#9daeb8}
+.coach-hud-core strong{font:850 clamp(20px,3vw,30px) 'Host Grotesk',system-ui,sans-serif;white-space:nowrap;letter-spacing:-1px}
+.coach-hud-core strong span{font-size:12px;color:#9caebb;letter-spacing:0}
+#coachTarget{color:#86e7c4}
+.coach-interval-line{display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:11px;color:#d4e4e7}
+.coach-progress{height:5px;background:#39505a;border-radius:10px;overflow:hidden;margin-top:6px}
+#coachProgressBar{width:0%;height:100%;background:#7bdec6;transition:width .2s}
+.coach-hud p{font-size:11px;line-height:1.3;color:#cad9de;margin:9px 0}
+.coach-hud-actions{display:flex;flex-wrap:wrap;gap:5px}
+.coach-hud-actions button,#coachDemoControls button{padding:7px 9px;border:1px solid #527580;background:#1a3640;color:#f2fffc;border-radius:6px;font-size:10px;font-weight:800}
+.coach-hud-actions button:last-child{color:#ffcfbd}
+.coach-hud-minimized .coach-hud-core,.coach-hud-minimized .coach-interval-line,.coach-hud-minimized .coach-progress,.coach-hud-minimized p,.coach-hud-minimized .coach-hud-actions,.coach-hud-minimized #coachDemoControls{display:none!important}
+#coachDemoControls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:#293b47;border:1px dashed #b4dcdd;border-radius:8px;padding:9px;margin-top:10px;font-size:11px}
+#coachDemoControls label{display:grid;gap:3px;flex:1;min-width:140px}
+#coachDemoControls input{width:100%}
+.coach-finish-review{margin:16px 0;padding:18px;border:1px solid #7ed9c3;border-radius:12px;background:#172e36;color:#fff}
+.coach-finish-review h2{font-size:20px!important;color:#8fe5d0!important}
+.coach-rpe-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.coach-rpe-buttons button{background:#25424a;color:white;border:1px solid #639199;padding:9px 13px;border-radius:8px;font-weight:750}
+.coach-rpe-buttons button[aria-pressed=true]{background:#80e5c9;color:#061c1a}
+@media(max-width:860px){.coach-layout{grid-template-columns:1fr}.coach-screen{padding:20px 14px 55px}.coach-top{align-items:center}.coach-back{padding:8px;font-size:12px}.coach-mode-grid{gap:5px}.coach-mode-grid button{padding:10px;min-height:100px}.coach-home-entry{margin:14px;min-height:130px}}
+
+.coach-quick{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.coach-quick button{background:#19323c;color:#afe9dc;border:1px solid #487e81;padding:8px 10px;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.4px}
+.coach-quick button:hover{border-color:#8af3d6;background:#265047}
+
+
+/* Coach is a Classic subfeature, not a fourth home mode.
+   Full-width, image-free light-grey banner under the Route Studio navigation. */
+#openBreakawayCoach{display:none!important}
+body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute #openBreakawayCoach{
+ display:flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:space-between!important;
+ gap:clamp(12px,2.5vw,38px)!important;box-sizing:border-box!important;
+ width:100%!important;min-height:0!important;height:100%!important;
+ margin:0!important;padding:calc(12 * var(--cr-u)) clamp(16px,2.5vw,32px)!important;
+ border:1px solid #d8dee8!important;border-radius:13px!important;
+ background:#f1f3f6!important;background-image:none!important;
+ color:#17243b!important;box-shadow:0 5px 16px rgba(16,35,70,.075)!important;
+ font-family:'Instrument Sans',system-ui,sans-serif!important;text-align:left!important;cursor:pointer!important;
+ transform:none!important;line-height:1.2!important;
+}
+#openBreakawayCoach .coach-banner-copy{display:flex;flex:1 1 auto;min-width:0;flex-direction:column;align-items:flex-start;gap:4px}
+#openBreakawayCoach .coach-banner-eyebrow{
+ display:block;color:#0b4fe2;font-size:11px;font-weight:900;letter-spacing:.18em;line-height:1.1
+}
+#openBreakawayCoach .coach-banner-title{
+ display:block;color:#15253e;font-family:'Host Grotesk',system-ui,sans-serif;
+ font-size:clamp(23px,2.25vw,34px);font-weight:900;line-height:1.08;letter-spacing:-.035em
+}
+#openBreakawayCoach .coach-banner-description{
+ display:block;color:#465368;font-size:clamp(12px,1.05vw,15px);font-weight:550;
+ line-height:1.3;max-width:920px
+}
+#openBreakawayCoach .coach-banner-features{
+ display:flex;align-items:center;gap:0;flex-wrap:wrap;margin-top:8px;color:#34475f;
+ font-size:11px;font-weight:750;line-height:1.2
+}
+#openBreakawayCoach .coach-banner-features>span{display:inline-flex;align-items:center;white-space:nowrap;padding:0 11px;border-left:1px solid #bdc7d5}
+#openBreakawayCoach .coach-banner-features>span:first-child{border:0;padding-left:0}
+#openBreakawayCoach .coach-banner-features>span::before{
+ content:"✓";color:#1254e8;font-size:13px;margin-right:5px;font-weight:900
+}
+#openBreakawayCoach .coach-banner-action{
+ flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:clamp(172px,19vw,290px)
+}
+#openBreakawayCoach .coach-banner-cta{
+ display:flex;align-items:center;justify-content:center;gap:10px;box-sizing:border-box;width:100%;
+ min-height:49px;padding:13px 22px;border-radius:999px;background:#0c4ee6;color:#fff;
+ font-size:clamp(13px,1.1vw,17px);font-weight:900;letter-spacing:.03em;
+ box-shadow:0 6px 15px rgba(10,74,218,.18)
+}
+#openBreakawayCoach .coach-banner-note{
+ display:block;color:#56657a;font-size:10px;font-weight:850;letter-spacing:.13em
+}
+body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute #openBreakawayCoach:hover{
+ border-color:#a8b8d3!important;background:#e9edf4!important;box-shadow:0 7px 18px rgba(16,35,70,.13)!important
+}
+#openBreakawayCoach:hover .coach-banner-cta{background:#083bb5}
+#openBreakawayCoach:focus-visible{outline:3px solid #0a50ec!important;outline-offset:3px!important}
+.coach-classic-start{
+ width:100%;border:1px solid #8effd8!important;background:#85e9cb!important;
+ color:#092b2b!important;border-radius:11px;padding:16px;
+ font:900 15px 'Instrument Sans',system-ui,sans-serif;letter-spacing:.35px
+}
+.coach-classic-start:hover{background:#b2ffe7!important}
+@media(max-height:800px){
+ body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute #openBreakawayCoach{
+  min-height:0!important;height:100%!important;margin:0!important;padding:9px 17px!important;width:100%!important;
+ }
+ #openBreakawayCoach .coach-banner-features{display:none}
+ #openBreakawayCoach .coach-banner-title{font-size:clamp(20px,2vw,28px)}
+ #openBreakawayCoach .coach-banner-cta{min-height:43px}
+}
+@media(max-width:800px){
+ body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute #openBreakawayCoach{
+  min-height:96px!important;height:auto!important;width:100%!important;margin:0!important;
+  padding:10px 12px!important;gap:8px!important
+ }
+ #openBreakawayCoach .coach-banner-features{display:none}
+ #openBreakawayCoach .coach-banner-title{font-size:clamp(17px,3vw,24px)}
+ #openBreakawayCoach .coach-banner-description{font-size:11px}
+ #openBreakawayCoach .coach-banner-action{min-width:125px}
+ #openBreakawayCoach .coach-banner-cta{padding:9px;min-height:40px;font-size:12px}
+ #openBreakawayCoach .coach-banner-note{font-size:8px}
+}
+@media(max-width:480px){
+ #openBreakawayCoach .coach-banner-description{display:none}
+ #openBreakawayCoach .coach-banner-action{min-width:96px}
+ #openBreakawayCoach .coach-banner-cta{padding:8px 6px;font-size:10px}
+ #openBreakawayCoach .coach-banner-note{display:none}
+}

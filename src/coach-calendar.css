@@ -1,0 +1,119 @@
+/* Seven-day Coach calendar: intentionally scoped to Today.
+   The existing coaching dashboard, workout chart and strength layout are unchanged. */
+.coach-v2 .coach-calendar{
+  margin:0 0 17px;
+  min-width:0;
+}
+.coach-v2 .coach-calendar-heading{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin:0 0 9px;
+}
+.coach-v2 .coach-calendar-heading .coach-tag{font-size:12px!important;letter-spacing:.7px!important}
+.coach-v2 .coach-calendar-hint{font-size:13px;color:#415a78;font-weight:650}
+.coach-v2 .coach-calendar-strip{
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;
+  align-items:stretch;
+}
+.coach-v2 .coach-calendar-pill{
+  position:relative;display:flex;flex-direction:column;align-items:flex-start;
+  justify-content:flex-start;gap:3px;
+  width:100%;height:100%;min-height:89px;min-width:0;
+  margin:0;padding:13px 30px 13px 13px;
+  border:2px solid #4b63ac;border-radius:11px;
+  text-align:left;cursor:pointer;
+  background:#4b63ac;color:#fff;
+  box-shadow:0 2px 5px rgba(24,48,95,.1);
+  font-family:'Instrument Sans',system-ui,sans-serif;
+  transition:background .16s,border-color .16s,box-shadow .16s;
+}
+.coach-v2 .coach-calendar-pill.is-today{background:#3e5ba8;border-color:#34529e}
+.coach-v2 .coach-calendar-pill:hover{background:#385494;border-color:#385494}
+.coach-v2 .coach-calendar-pill[aria-expanded=true]{
+  background:#233f83;border-color:#86abff;
+  box-shadow:0 0 0 2px #b0caff,0 3px 9px rgba(27,58,106,.2);
+}
+.coach-v2 .coach-calendar-pill:focus-visible{
+  outline:3px solid #1256c9!important;outline-offset:3px!important
+}
+.coach-v2 .coach-calendar-date{
+  color:#f1f5ff;font-size:13px;font-weight:850;line-height:1.3
+}
+.coach-v2 .coach-calendar-activity,
+.coach-v2 .coach-calendar-strength{
+  color:#fff;font-size:13px;line-height:1.25;font-weight:700;
+  overflow-wrap:anywhere
+}
+.coach-v2 .coach-calendar-chevron{
+  position:absolute;right:11px;top:10px;
+  font-size:19px;line-height:1;color:#e3edff;font-weight:800
+}
+.coach-v2 .coach-calendar-details[hidden]{display:none!important}
+.coach-v2 .coach-calendar-details{
+  padding:17px 20px 19px;
+  margin-top:12px;border:1px solid #bfd0e8;border-radius:13px;
+  background:#edf4ff;color:#1c344f;
+  box-shadow:0 5px 18px rgba(34,63,112,.065)
+}
+.coach-v2 .coach-calendar-detail-head{
+  display:flex;justify-content:space-between;align-items:start;gap:12px;margin:0 0 11px
+}
+.coach-v2 .coach-calendar-detail-head h3{
+  margin:4px 0 0;font-family:'Host Grotesk',system-ui,sans-serif;
+  font-size:20px;font-weight:850;color:#18345b;line-height:1.25
+}
+.coach-v2 .coach-calendar-type{
+  display:block;color:#2253aa;font-weight:900;font-size:12px;
+  letter-spacing:.55px;line-height:1.3
+}
+.coach-v2 .coach-calendar-close{
+  display:grid;place-items:center;flex:0 0 auto;
+  width:44px;height:44px;border-radius:9px!important;
+  background:#fff!important;border:1px solid #b9cbe1!important;
+  color:#294c76!important;font-size:18px!important;cursor:pointer
+}
+.coach-v2 .coach-calendar-close:hover{background:#dae8fc!important}
+.coach-v2 .coach-calendar-detail-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));
+  gap:11px
+}
+.coach-v2 .coach-calendar-session{
+  display:flex;flex-direction:column;justify-content:space-between;gap:12px;
+  min-width:0;padding:14px 16px;
+  background:#fff;border:1px solid #ccd9eb;border-radius:10px
+}
+.coach-v2 .coach-calendar-session strong{
+  display:block;color:#1b3554;font-size:16px;font-weight:850;
+  margin:5px 0 3px;line-height:1.3
+}
+.coach-v2 .coach-calendar-session p{
+  margin:5px 0 0;color:#425a76;font-size:13px;line-height:1.45
+}
+.coach-v2 .coach-calendar-session button{
+  align-self:stretch;min-height:44px;
+  border:1px solid #1b56bb!important;background:#1355c8!important;
+  border-radius:8px!important;color:#fff!important;
+  padding:11px 13px!important;
+  font-size:13px!important;font-weight:850!important
+}
+.coach-v2 .coach-calendar-session button:hover{background:#073f99!important}
+@media(max-width:1190px){
+  .coach-v2 .coach-calendar-strip{
+    display:grid;grid-auto-flow:column;
+    grid-auto-columns:minmax(177px,1fr);
+    grid-template-columns:none;
+    overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;
+    padding:3px 3px 9px;
+  }
+  .coach-v2 .coach-calendar-pill{scroll-snap-align:start;min-height:86px}
+}
+@media(max-width:680px){
+  .coach-v2 .coach-calendar-heading{align-items:flex-start;flex-wrap:wrap;gap:4px}
+  .coach-v2 .coach-calendar-hint{font-size:12px}
+  .coach-v2 .coach-calendar-strip{grid-auto-columns:170px}
+  .coach-v2 .coach-calendar-pill{padding:12px 27px 12px 12px;min-height:85px}
+  .coach-v2 .coach-calendar-details{padding:13px}
+  .coach-v2 .coach-calendar-session{padding:13px}
+}
+@media(prefers-reduced-motion:reduce){
+ .coach-v2 .coach-calendar-pill{transition:none!important}
+}

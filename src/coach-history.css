@@ -1,0 +1,44 @@
+/* Strava and rider-owned activity history; scoped to Breakaway Coach only. */
+.coach-history-host{min-width:0}
+.coach-history-import-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:9px;padding:23px 16px;border:2px dashed #4e7e82;border-radius:14px;background:#102b32;transition:background .15s,border-color .15s}
+.coach-history-import-zone.coach-drop-active,.coach-history-import-zone:hover{background:#1b4147;border-color:#83f2d3}
+.coach-history-import-zone strong{font-size:14px;letter-spacing:1px;line-height:1.4;color:#fff}
+.coach-history-import-zone span{font-size:12px;color:#a9cad1}
+.coach-upload-icon{width:48px;height:48px;border:1px solid #83e2c9;border-radius:12px;color:#83e2c9;display:grid;place-items:center;font-size:32px;font-weight:800}
+.coach-upload-button{display:inline-block;background:#82e4c9!important;color:#0a1d21!important;border-radius:8px;padding:11px 21px;font-size:12px;font-weight:900;letter-spacing:.6px;cursor:pointer;margin-top:6px}
+.coach-upload-button:hover{background:#b9ffeb!important}
+.coach-import-stage{margin-top:12px;color:#89e9cf;font-size:13px;line-height:1.4}
+.coach-import-stage:empty{display:none}
+.coach-import-result{border:1px solid #59848a;border-radius:12px;background:#18343d;padding:15px;color:#e8f6f4}
+.coach-import-result>strong{color:#91f4d8;font-size:13px}
+.coach-import-result>p{color:#d3e5e8;font-size:12px}
+.coach-import-result details{font-size:12px;color:#e9c9a2;overflow-wrap:anywhere}
+.coach-import-result ul{padding-left:18px;max-height:140px;overflow:auto}
+.coach-import-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.coach-import-actions button,.coach-history-suggestions button{border:1px solid #89d6ca;padding:10px 13px;background:#7ae1c3;color:#0a1f23;border-radius:9px;font-weight:900;font-size:11px}
+.coach-import-actions button:last-child{color:#e8f7f4;background:transparent;border-color:#708c95}
+.coach-history-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:18px}
+.coach-history-stats>div{background:#1a343f;border:1px solid #3e5660;padding:12px 9px;border-radius:10px;display:flex;flex-direction:column;gap:4px}
+.coach-history-stats strong{font:850 clamp(17px,2vw,30px) 'Host Grotesk',system-ui,sans-serif;color:#fff;white-space:nowrap}
+.coach-history-stats span{color:#b7d3dc;font-size:11px;line-height:1.3}
+.coach-history-bars{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin:21px 0 14px;height:150px}
+.coach-history-bar-wrap{display:flex;flex-direction:column;min-width:0;align-items:center;justify-content:end;gap:5px}
+.coach-history-bar-wrap>span{font-size:10px;color:#bdd8d6}
+.coach-history-bar-track{width:100%;max-width:36px;flex:1;background:#203c45;border-radius:5px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.coach-history-bar-track>div{background:linear-gradient(#6ff0bf,#188c91);border-radius:5px 5px 0 0;min-height:2px}
+.coach-history-bar-wrap small{font-size:9px;color:#a8c5ca;white-space:nowrap}
+.coach-history-insights{display:grid;gap:10px}
+.coach-history-insights>div{border-top:1px solid #33525d;padding-top:11px}
+.coach-history-insights strong,.coach-history-latest>strong{font-size:11px;color:#80e6c6;letter-spacing:1px}
+.coach-history-insights p{font-size:13px;line-height:1.45;color:#d1e1e6;margin:6px 0}
+.coach-history-suggestions{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}
+.coach-history-latest{padding-top:15px;border-top:1px solid #29434d;margin-top:13px}
+.coach-history-latest>div{padding:8px 0;display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #2a444e;font-size:12px;overflow-wrap:anywhere}
+.coach-history-latest>div span{min-width:0;color:#e0f0f1}
+.coach-history-latest>div small{flex:none;color:#83bfb9}
+.coach-history-privacy{padding:11px 0;border-top:1px solid #33555b;margin-top:15px}
+.coach-history-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.coach-history-footer button{font-size:11px;font-weight:800;color:#ffc4c4;border:1px solid #7d555d;border-radius:8px;background:transparent;padding:9px}
+.coach-history-footer button:disabled{opacity:.45}
+.coach-history-footer a{color:#9df1db;font-size:12px;text-decoration:underline}
+@media(max-width:620px){.coach-history-stats{gap:5px}.coach-history-stats>div{padding:9px 6px}.coach-history-stats span{font-size:10px}.coach-history-bars{gap:2px}.coach-history-bar-wrap small{font-size:8px}.coach-history-latest>div{flex-direction:column;gap:2px}}

@@ -1,0 +1,291 @@
+/* Coach accessibility and navigation consolidation.
+   Loaded last on purpose: the early Coach prototype contained dark-theme rules,
+   low-contrast pastel labels and many 9–11px controls. This layer unifies them. */
+#breakawayCoachScreen.coach-v2{
+  --coach-ink:#193149;--coach-muted:#405a75;--coach-accent:#0c4dbd;
+  --coach-surface:#fff;--coach-ground:#f4f7fb;--coach-line:#cdd9e8;
+  background:var(--coach-ground)!important;color:var(--coach-ink)!important;
+  line-height:1.52;scrollbar-gutter:stable;
+}
+.coach-v2 .coach-top{margin-bottom:15px!important;align-items:center}
+.coach-v2 .coach-eyebrow{font-size:12px!important;letter-spacing:.8px!important;color:#24508e!important}
+.coach-v2 .coach-eyebrow span{color:#4e6177!important}
+.coach-v2 .coach-top p,.coach-v2 .coach-page-lead p{color:#425b75!important;font-size:15px!important}
+.coach-v2 .coach-top h1{font-size:clamp(28px,3.2vw,43px)!important;line-height:1.1!important}
+.coach-v2 .coach-nav{margin-bottom:22px;background:#e5ebf4;border-color:#cbd8e7}
+.coach-v2 .coach-nav button{
+  color:#344b67!important;min-height:53px!important;
+  font-size:clamp(14px,1.2vw,16px)!important;font-weight:800!important;padding:9px!important;
+}
+.coach-v2 .coach-nav button[aria-selected=true]{color:#0b47b4!important;border-color:#a9bfdc!important}
+.coach-v2 .coach-nav button:hover:not([aria-selected=true]){color:#153f83!important}
+.coach-v2 .coach-page-lead{margin-bottom:18px!important}
+.coach-v2 .coach-page-lead h2{font-size:clamp(26px,2.7vw,35px)!important;letter-spacing:-.7px!important}
+.coach-v2 .coach-panel{border-color:#cedbe9!important;box-shadow:0 3px 12px #233d5d0b!important}
+.coach-v2 .coach-small{font-size:14px!important;line-height:1.55!important;color:#465c75!important}
+.coach-v2 .coach-tag{font-size:12px!important;letter-spacing:.7px!important;color:#17479d!important}
+.coach-v2 .coach-label,.coach-v2 .coach-fields label,.coach-v2 .coach-start-controls label{
+  font-size:13px!important;font-weight:850!important;letter-spacing:.15px!important;color:#344b68!important
+}
+.coach-v2 .coach-subtle-link{font-size:14px!important;white-space:normal!important;min-height:44px!important;
+  display:inline-flex;align-items:center;justify-content:center;padding:10px!important;color:#0b4bb9!important;
+  text-decoration:underline;text-underline-offset:3px}
+.coach-v2 button,.coach-strength-overlay button{touch-action:manipulation}
+.coach-v2 button:focus-visible,.coach-v2 input:focus-visible,.coach-v2 select:focus-visible,
+.coach-v2 summary:focus-visible,.coach-strength-overlay :is(button,input,select):focus-visible{
+  outline:3px solid #0c4dbd!important;outline-offset:3px!important
+}
+.coach-v2 .coach-ftp-chip,.coach-v2 .coach-back{font-size:14px!important;min-height:44px!important;display:inline-flex;align-items:center}
+.coach-v2 .coach-back{color:#193149!important;border-color:#adc2d7!important}
+.coach-v2 .coach-profile-summary span{font-size:12px!important;color:#405a75!important}
+.coach-v2 .coach-profile-summary strong{font-size:clamp(17px,1.6vw,22px)!important}
+.coach-v2 .coach-workout-info p,.coach-v2 .coach-why,.coach-v2 .coach-start-note{font-size:14px!important;color:#36516e!important}
+.coach-v2 .coach-interval-identity>small{font-size:12px!important;color:#445d79!important}
+.coach-v2 .coach-interval-kicker,.coach-v2 .coach-interval-numbers span{font-size:12px!important;color:#34547b!important}
+.coach-v2 .coach-interval-numbers strong{font-size:17px!important}
+.coach-v2 .coach-interval-readout{background:#eaf2fd!important;border-color:#bdd3ed!important}
+.coach-v2 .coach-quick button{min-height:44px!important;border-color:#a9c2dd!important;color:#204a7f!important;font-size:14px!important}
+.coach-v2 .coach-feedback,.coach-v2 .coach-status,.coach-v2 .coach-swap-panel p{font-size:14px!important;color:#405a75!important}
+.coach-v2 .coach-library-item,.coach-v2 .coach-swap-list button,.coach-v2 .coach-upcoming-item,
+.coach-v2 .coach-day-items>button{min-height:52px!important;font-size:14px!important;border-color:#bccde1!important}
+.coach-v2 .coach-library-item strong,.coach-v2 .coach-swap-list button strong,
+.coach-v2 .coach-upcoming-item span,.coach-v2 .coach-day-items strong{font-size:14px!important;color:#223c5a!important}
+.coach-v2 .coach-library-item small,.coach-v2 .coach-swap-list button small,
+.coach-v2 .coach-upcoming-item small,.coach-v2 .coach-day-items small{font-size:12px!important;color:#4b617b!important}
+.coach-v2 .coach-upcoming-item span small{display:block;margin-top:3px;font-weight:500}
+.coach-v2 .coach-day-strength strong{color:#12644e!important}
+.coach-v2 .coach-day-strength small{color:#2c604f!important}
+.coach-v2 .coach-day-rest{font-size:14px!important;color:#425a71!important}
+.coach-v2 .coach-day-label{font-size:13px!important}
+.coach-v2 .coach-plan-summary{font-size:15px!important;color:#344e69!important}
+.coach-v2 .coach-plan-explain h3{font-size:21px!important;line-height:1.25}
+.coach-v2 .coach-plan-explain>p{font-size:15px;line-height:1.6;color:#3d5670}
+.coach-v2 .coach-plan-explain>.coach-classic-start{margin:17px 0 18px}
+.coach-v2 .coach-library-disclosure{margin-top:14px;padding:13px 0;border-top:1px solid #d7e2ee}
+.coach-v2 .coach-library-disclosure summary,.coach-v2 .coach-trainer-options summary{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  list-style:none;cursor:pointer;min-height:48px;padding:12px;
+  border:1px solid #b9cce3;border-radius:10px;background:#f1f6fd;color:#184d9b;font-weight:850;font-size:14px
+}
+.coach-v2 .coach-library-disclosure summary::-webkit-details-marker,.coach-v2 .coach-trainer-options summary::-webkit-details-marker{display:none}
+.coach-v2 .coach-library-disclosure summary::after,.coach-v2 .coach-trainer-options summary::after{content:"⌄";font-size:22px;font-weight:700;line-height:1}
+.coach-v2 .coach-library-disclosure[open] summary::after,.coach-v2 .coach-trainer-options[open] summary::after{content:"⌃"}
+.coach-v2 .coach-library-list{margin-top:13px}
+.coach-v2 .coach-trainer-options{margin:12px 0 16px}
+.coach-v2 .coach-trainer-options summary span{font-size:12px;font-weight:650;color:#3e607f}
+.coach-v2 .coach-trainer-options .coach-start-controls{padding:14px;background:#f7faff;border:1px solid #d5e2f1;border-top:0;border-radius:0 0 10px 10px}
+.coach-v2 .coach-trainer-options .coach-start-controls p{font-size:13px;color:#47617d;line-height:1.5;margin:4px 0}
+.coach-v2 #coachControl,.coach-v2 .coach-select{min-height:48px!important;font-size:15px!important;color:#1c344f!important}
+.coach-v2 .coach-classic-start{min-height:54px!important;font-size:15px!important}
+.coach-v2 .coach-setup-toolbar{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;
+  background:#e9f1fd;border:1px solid #b9d0ec;border-radius:14px;padding:17px 20px;margin-bottom:18px
+}
+.coach-v2 .coach-setup-toolbar strong{font:850 20px 'Host Grotesk',system-ui,sans-serif;color:#193e74}
+.coach-v2 .coach-setup-toolbar p{margin:3px 0;font-size:14px;color:#365676}
+.coach-v2 .coach-setup-toolbar .coach-classic-start{min-width:230px;padding:12px 20px!important}
+.coach-v2 .coach-setup-toolbar .coach-settings-feedback{grid-column:1/-1;font-size:14px;min-height:0;margin:0}
+.coach-v2 .coach-settings-grid{align-items:start}
+.coach-v2 .coach-gear-choice{min-height:55px}
+.coach-v2 .coach-gear-choice strong{font-size:14px!important;color:#243e5e!important}
+.coach-v2 .coach-gear-choice small{font-size:12px!important;color:#4b617a!important}
+.coach-v2 .coach-gear-choice input{width:20px;height:20px}
+.coach-v2 .coach-strength-fields label{font-size:13px!important;letter-spacing:.1px!important;color:#344b68!important}
+.coach-v2 .coach-strength-fields input,.coach-v2 .coach-strength-fields select{
+  min-height:48px!important;font-size:15px!important;border-color:#b5c9de!important
+}
+.coach-v2 .coach-strength-toggle{font-size:15px!important;border-color:#b3d7cb!important}
+.coach-v2 .coach-strength-settings .coach-small{font-size:14px!important}
+.coach-v2 #strengthSaved{color:#2d5c50!important}
+.coach-v2 .coach-strength-primary{grid-column:1/-1;margin-top:0!important}
+.coach-v2 .coach-strength-primary h3{font-size:26px!important}
+.coach-v2 .coach-strength-today p{font-size:14px!important;color:#35526a!important}
+.coach-v2 .coach-strength-today button{min-height:52px;font-size:15px}
+.coach-v2 .coach-strength-today button:disabled{background:#b8d4c9!important;color:#245c4e!important;cursor:default}
+.coach-v2 .coach-demo-button{margin-top:18px!important;padding:15px!important;min-height:50px;color:#16446f!important}
+.coach-v2 .coach-demo-button small{font-size:12px!important;color:#1352b1!important}
+.coach-v2 .coach-howto-step strong{font-size:15px}
+.coach-v2 .coach-howto-step p{font-size:14px;color:#425b75}
+.coach-v2 .coach-history-row span,.coach-v2 .coach-strength-history small{font-size:13px!important;color:#425c78!important}
+.coach-v2 .coach-import-stage{color:#144d9c!important;font-size:14px!important}
+.coach-v2 .coach-import-result{color:#27435f!important}
+.coach-v2 .coach-import-result details{color:#534523!important;font-size:14px!important}
+.coach-v2 .coach-import-result ul{color:#4c4230}
+.coach-v2 .coach-upload-button{font-size:14px!important;min-height:44px;display:inline-flex;align-items:center}
+.coach-v2 .coach-history-footer a{font-size:14px!important}
+.coach-v2 .coach-history-footer button{font-size:13px!important;min-height:44px!important}
+.coach-v2 .coach-history-latest>div{font-size:14px!important}
+.coach-v2 .coach-history-bar-wrap>span{font-size:12px!important}
+.coach-v2 .coach-history-bar-wrap small{font-size:11px!important}
+.coach-v2 .coach-history-insights p{font-size:14px!important;color:#3c5671!important}
+.coach-v2 .coach-history-stats span{font-size:12px!important;color:#415d7a!important}
+.coach-v2 .coach-history-stats strong{font-size:clamp(19px,2.1vw,30px)!important}
+.coach-strength-overlay{font-size:15px;line-height:1.55}
+.coach-strength-overlay .coach-strength-session-head span{font-size:13px;color:#145c4b}
+.coach-strength-overlay .coach-strength-session-head p{font-size:14px;color:#435e77}
+.coach-strength-overlay .coach-strength-session-head button{min-height:46px;font-size:14px}
+.coach-strength-overlay .coach-strength-session-note{font-size:14px;color:#235243}
+.coach-strength-overlay .coach-strength-rest{font-size:14px;color:#385873}
+.coach-strength-overlay .coach-strength-rest button{font-size:13px;min-height:44px}
+.coach-strength-overlay .coach-strength-exercise-header small{font-size:12px;color:#145f4c}
+.coach-strength-overlay .coach-strength-exercise>p{font-size:14px;color:#3c5870}
+.coach-strength-overlay .coach-strength-exercise>p.coach-strength-dose{font-size:14px}
+.coach-strength-overlay .coach-strength-exercise-header label{font-size:13px;color:#334d69}
+.coach-strength-overlay .coach-strength-exercise-header select{font-size:14px;min-height:46px}
+.coach-strength-overlay .coach-strength-set>span{font-size:13px}
+.coach-strength-overlay .coach-strength-set input{min-height:46px;font-size:14px;border-color:#b9cadb}
+.coach-strength-overlay .coach-strength-set button{min-height:46px;font-size:12px}
+.coach-strength-overlay .coach-strength-complete label{font-size:14px}
+.coach-strength-overlay .coach-strength-complete select{min-height:46px;font-size:14px}
+.coach-strength-overlay .coach-strength-complete button{min-height:52px;font-size:15px}
+.coach-strength-overlay #strengthSessionError{font-size:14px;color:#8d2830}
+@media(max-width:850px){
+  .coach-v2 .coach-setup-toolbar{grid-template-columns:1fr;padding:14px}
+  .coach-v2 .coach-setup-toolbar .coach-classic-start{min-width:0;width:100%}
+  .coach-v2 .coach-setup-toolbar .coach-settings-feedback{grid-column:auto}
+}
+@media(max-width:680px){
+  #breakawayCoachScreen.coach-v2{padding:15px 12px 38px!important}
+  .coach-v2 .coach-top{align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .coach-v2 .coach-header-actions{flex-direction:row;align-items:center;flex-wrap:wrap}
+  .coach-v2 .coach-nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:6px}
+  .coach-v2 .coach-nav button{font-size:14px!important;min-height:52px!important;white-space:normal}
+  .coach-v2 .coach-today-grid{grid-template-columns:1fr}
+  .coach-v2 .coach-page-lead{flex-wrap:wrap}
+  .coach-v2 .coach-interval-numbers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:10px}
+  .coach-v2 .coach-strength-fields,.coach-v2 .coach-fields,.coach-v2 .coach-equipment-grid{grid-template-columns:1fr}
+  .coach-v2 .coach-day-row{grid-template-columns:40px 1fr}
+  .coach-v2 .coach-day-items>button{padding:12px!important}
+  .coach-v2 .coach-trainer-options summary{flex-wrap:wrap}
+  .coach-strength-overlay{padding:12px}
+  .coach-strength-overlay .coach-strength-session-head{flex-wrap:wrap}
+  .coach-strength-overlay .coach-strength-exercise{padding:14px}
+  .coach-strength-overlay .coach-strength-set{grid-template-columns:42px 1fr 1fr;gap:6px}
+  .coach-strength-overlay .coach-strength-set button{grid-column:2/4;font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  .coach-v2 *,.coach-strength-overlay *{scroll-behavior:auto!important;transition:none!important}
+}
+
+
+/* Classic's live coaching HUD follows the same legible visual system. */
+.coach-hud{background:#fff!important;color:#193149!important;border:1px solid #9ab5d5!important;
+  box-shadow:0 12px 32px #0a1d3480!important;border-radius:15px!important;padding:15px!important}
+.coach-hud .coach-hud-top{font-size:13px!important;color:#194b99!important}
+.coach-hud .coach-hud-top strong{font-size:13px!important;color:#164991!important}
+.coach-hud .coach-hud-top span{font-size:12px!important;color:#405974!important}
+.coach-hud .coach-hud-top button{min-width:44px!important;min-height:44px!important;
+ background:#edf3fc!important;border-color:#abc3e1!important;color:#153d72!important;font-size:20px!important}
+.coach-hud .coach-hud-core{gap:9px!important}
+.coach-hud .coach-hud-core small{font-size:12px!important;color:#425c77!important}
+.coach-hud .coach-hud-core strong{color:#1d3655!important;font-size:clamp(22px,3vw,32px)!important}
+.coach-hud .coach-hud-core strong span{font-size:14px!important;color:#405b78!important}
+.coach-hud #coachTarget{color:#0c57a6!important}
+.coach-hud .coach-interval-line{font-size:13px!important;color:#3c5672!important}
+.coach-hud .coach-progress{height:9px!important;background:#d8e6f5!important}
+.coach-hud #coachProgressBar{background:#155ccd!important}
+.coach-hud p{font-size:13px!important;color:#355371!important;line-height:1.5!important}
+.coach-hud .coach-hud-actions{gap:8px!important}
+.coach-hud .coach-hud-actions button,.coach-hud #coachDemoControls button{
+ min-height:44px!important;flex:1 1 100px!important;background:#eaf2fd!important;
+ border:1px solid #aac4e6!important;color:#153d77!important;font-size:12px!important;
+ font-weight:850!important;border-radius:8px!important
+}
+.coach-hud .coach-hud-actions button:last-child{color:#9c2934!important;border-color:#d9a5ae!important;background:#fff4f5!important}
+.coach-hud #coachDemoControls{background:#f0f5fc!important;border-color:#a3bcd9!important;color:#22405f!important;font-size:13px!important}
+.coach-hud button:focus-visible{outline:3px solid #0b4bb9!important;outline-offset:2px!important}
+.coach-finish-review{background:#f6f9ff!important;color:#1d3654!important;border:1px solid #9ebcdd!important}
+.coach-finish-review h2{color:#1a4b9c!important;font-size:22px!important}
+.coach-finish-review p{color:#334d6b!important;font-size:14px!important;line-height:1.5!important}
+.coach-rpe-buttons button{min-height:44px!important;min-width:82px!important;
+ background:#ebf2fb!important;color:#1a4275!important;border:1px solid #a5bedc!important;font-size:14px!important}
+.coach-rpe-buttons button[aria-pressed=true]{background:#1559c9!important;color:#fff!important}
+
+
+/* First-time riders see a single unmistakable starting point. */
+.coach-v2 .coach-first-run[hidden]{display:none!important}
+.coach-v2 .coach-first-run{display:flex;align-items:center;justify-content:space-between;gap:18px;
+  padding:18px 21px;margin:0 0 19px;border:1px solid #aac5e9;border-radius:13px;
+  background:#e7f1ff;color:#1e416e}
+.coach-v2 .coach-first-run strong{font-size:18px;font-weight:900;color:#1a437e}
+.coach-v2 .coach-first-run p{font-size:14px;line-height:1.5;color:#345675;margin:4px 0 0}
+.coach-v2 .coach-first-run button{flex:0 0 auto;min-height:50px;padding:12px 19px;
+  border:0;border-radius:10px;background:#1152c7;color:white;font-size:15px;font-weight:900}
+.coach-v2 .coach-first-run button:hover{background:#063b9e}
+.coach-v2 .coach-ftp-chip{cursor:pointer}
+.coach-v2 .coach-ftp-chip:hover{background:#dbeaff;border-color:#84ace3}
+.coach-v2 .coach-import-actions button,.coach-v2 .coach-history-suggestions button{min-height:44px!important;font-size:13px!important}
+@media(max-width:700px){.coach-v2 .coach-first-run{flex-direction:column;align-items:stretch;padding:15px}
+ .coach-v2 .coach-first-run button{width:100%}}
+
+
+/* Keep text on navy and indigo backgrounds white. White Coach cards retain
+   their own dark ink; do not apply a global color override to descendants. */
+#breakawayCoachScreen.coach-v2 .coach-nav button,
+#breakawayCoachScreen.coach-v2 .coach-nav button span{
+  color:#fff!important;
+}
+#breakawayCoachScreen.coach-v2 .coach-nav button{
+  background:#4b63ac!important;
+  border:2px solid #4b63ac!important;
+}
+#breakawayCoachScreen.coach-v2 .coach-nav button:hover:not([aria-selected="true"]){
+  background:#385494!important;
+  border-color:#385494!important;
+  color:#fff!important;
+}
+#breakawayCoachScreen.coach-v2 .coach-nav button[aria-selected="true"]{
+  background:#243f83!important;
+  color:#fff!important;
+  border-color:#a9c8ff!important;
+  box-shadow:0 0 0 2px rgba(169,200,255,.33)!important;
+}
+#breakawayCoachScreen.coach-v2 .coach-nav button[aria-selected="true"] span{
+  color:#fff!important;
+}
+/* Headline, eyebrow, introductory text and link sit directly on the
+   navy page surface in all four Coach tabs. */
+#breakawayCoachScreen.coach-v2 .coach-view > .coach-page-lead .coach-tag,
+#breakawayCoachScreen.coach-v2 .coach-view > .coach-page-lead h2,
+#breakawayCoachScreen.coach-v2 .coach-view > .coach-page-lead p,
+#breakawayCoachScreen.coach-v2 .coach-view > .coach-page-lead .coach-subtle-link,
+#breakawayCoachScreen.coach-v2 .coach-calendar-heading .coach-tag,
+#breakawayCoachScreen.coach-v2 .coach-calendar-heading .coach-calendar-hint{
+  color:#fff!important;
+}
+/* Calendar pill contents are always white on indigo, including the active
+   and hover states; expanded detail panels remain dark-on-light. */
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill,
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill .coach-calendar-date,
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill .coach-calendar-activity,
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill .coach-calendar-strength,
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill .coach-calendar-chevron{
+  color:#fff!important;
+}
+
+/* My Setup: two independent vertical columns. Put How Coach Works immediately
+   below Your Rider Profile, irrespective of the taller equipment panel. */
+#breakawayCoachScreen.coach-v2 .coach-settings-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:start;
+  gap:18px;
+}
+#breakawayCoachScreen.coach-v2 .coach-setup-left,
+#breakawayCoachScreen.coach-v2 .coach-setup-right{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:18px;
+  align-self:start;
+  min-width:0;
+}
+#breakawayCoachScreen.coach-v2 .coach-setup-left > .coach-panel,
+#breakawayCoachScreen.coach-v2 .coach-setup-right > .coach-panel{
+  margin:0!important;
+}
+@media(max-width:980px){
+  #breakawayCoachScreen.coach-v2 .coach-settings-grid{
+    grid-template-columns:minmax(0,1fr);
+  }
+}

@@ -2296,7 +2296,8 @@ html body .trainer-diagnostic[hidden]{display:none!important}
 /* Mode selection + Survival Studio preview (not on production) */
 .mode-landing[hidden],#modeHomeButton[hidden],.survival-studio-intro[hidden]{display:none!important}
 body[data-breakaway-screen="home"]{background:#071521!important;color:#f4f8fa!important}
-body[data-breakaway-screen="home"] main,body[data-breakaway-screen="home"] header,body[data-breakaway-screen="home"] footer,body[data-breakaway-screen="home"] #trainerLabLink{display:none!important}
+/* Hide only the original app shell on the home screen. Other mounted experiences (including Coach) have their own header and main. */
+body[data-breakaway-screen="home"] > main,body[data-breakaway-screen="home"] > header,body[data-breakaway-screen="home"] > footer,body[data-breakaway-screen="home"] #trainerLabLink{display:none!important}
 body[data-breakaway-screen="home"] .mode-landing{display:block}
 .mode-landing{min-height:100vh;padding:clamp(22px,4vw,65px);max-width:1600px;margin:0 auto;color:#f5fafb;font-family:Inter,system-ui,sans-serif}
 .mode-landing-brand{display:flex;justify-content:space-between;gap:20px;align-items:center;font-weight:1000;letter-spacing:.07em;font-size:clamp(19px,2.5vw,32px)}

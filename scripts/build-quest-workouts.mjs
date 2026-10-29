@@ -1,5 +1,7 @@
 import {build} from 'esbuild';import {readFile} from 'node:fs/promises';
 await build({entryPoints:['scripts/quest-fit-entry.js'],outfile:'cycle-quest/fit-decoder.js',bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,legalComments:'eof'});
+// Rider-owned FIT imports are public Coach UI features; do not expose the private Cycle Quest API route.
+await build({entryPoints:['scripts/quest-fit-entry.js'],outfile:'public/coach-fit-decoder.js',bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,legalComments:'eof'});
 await build({entryPoints:['scripts/quest-capture-entry.js'],outfile:'cycle-quest/summary-capture.js',bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,legalComments:'eof'});
 let captureLicenses='Summary capture and browser dependencies\n\n';for(const dependency of ['html2canvas','css-line-break','text-segmentation','utrie'])captureLicenses+=dependency+'\n'+await readFile('node_modules/'+dependency+'/LICENSE','utf8')+'\n\n';await import('node:fs/promises').then(fs=>fs.writeFile('cycle-quest/SUMMARY-CAPTURE-LICENSE.txt',captureLicenses));
 let licenses='FIT decoder and browser dependencies\n\n';for(const dependency of ['fit-file-parser','buffer','base64-js','ieee754'])licenses+=dependency+'\n'+await readFile('node_modules/'+dependency+'/LICENSE','utf8')+'\n\n';await import('node:fs/promises').then(fs=>fs.writeFile('cycle-quest/FIT-PARSER-LICENSE.txt',licenses));

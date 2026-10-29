@@ -189,7 +189,7 @@
   /* Upload, heading, three-panel configuration, full-width chart. */
   body.cr-reference-mounted #screenRoute>.cr-reference {
     display:grid!important;
-    grid-template-rows:calc(44 * var(--cr-u)) calc(58 * var(--cr-u)) calc(385 * var(--cr-u)) minmax(0,1fr)!important;
+    grid-template-rows:calc(150 * var(--cr-u)) calc(44 * var(--cr-u)) calc(58 * var(--cr-u)) calc(385 * var(--cr-u)) minmax(0,1fr)!important;
     row-gap:calc(8 * var(--cr-u))!important;
     width:100%!important;
     height:100dvh!important;
@@ -670,7 +670,7 @@
       height:auto!important;
       min-height:0!important;
       overflow:visible!important;
-      grid-template-rows:auto auto auto auto!important;
+      grid-template-rows:auto auto auto auto auto!important;
       gap:14px!important;
       padding:10px 18px 28px!important;
     }
