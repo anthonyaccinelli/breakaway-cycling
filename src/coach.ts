@@ -262,9 +262,9 @@ export function mountCoach(bridge:CoachBridge){
     const nowDate=new Date();
     const dayKey=nowDate.getFullYear()+'-'+(nowDate.getMonth()+1)+'-'+nowDate.getDate();
     if(dayKey!==currentDay){currentDay=dayKey;riderSelected=false;customWorkout=null;}
-    const inputs=platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower,source:r.mode||undefined}))
+    const inputs=platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower}))
       .concat(importedRides.filter(r=>!platformRides.some(p=>Math.abs(p.start-r.start)<120000))
-        .map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower,source:'import' as const})));
+        .map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower})));
     const feedback=historyRecords().map(r=>({date:Date.parse(r.date),rpe:r.rpe}));
     const recommendation=recommendToday(rider,nowDate,inputs,feedback);
     if(!riderSelected){selected=recommendation.workoutId||'recovery';customWorkout=null;}
@@ -325,11 +325,52 @@ export function mountCoach(bridge:CoachBridge){
     $('coachSuggestion').textContent='A rules-based recommendation from your weekly schedule, saved workouts and recent rides. You can change it at any time.';
     $('coachSwapList').innerHTML=library.filter(w=>w.id!=='preview').map(w=>'<button type="button" data-swap-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+Math.round(workoutDuration(w)/60)+' min</small></span><span aria-hidden="true">→</span></button>').join('');
   }
+  function chooseWorkout(id:string,notice:string){
+    if(!library.some(w=>w.id===id))return;
+    selected=id;riderSelected=true;customWorkout=null;
+    $('coachSwapPanel').hidden=true;
+    $('coachSwapToggle').setAttribute('aria-expanded','false');
+    render();
+    $('coachAnswer').textContent=notice;
+  }
+  $('coachSwapToggle').addEventListener('click',()=>{
+    const panel=$('coachSwapPanel');
+    panel.hidden=!panel.hidden;
+    $('coachSwapToggle').setAttribute('aria-expanded',String(!panel.hidden));
+  });
+  $('coachBrowseOptional').addEventListener('click',()=>{
+    $('coachSwapPanel').hidden=false;
+    $('coachSwapToggle').setAttribute('aria-expanded','true');
+  });
+  $('coachUseRecommendation').addEventListener('click',()=>{
+    riderSelected=false;customWorkout=null;render();
+    $('coachAnswer').textContent='Back to your Coach recommendation.';
+  });
+  $('coachSwapList').addEventListener('click',event=>{
+    const target=event.target;
+    if(!(target instanceof Element))return;
+    const btn=target.closest<HTMLButtonElement>('[data-swap-workout]');
+    if(btn?.dataset.swapWorkout)chooseWorkout(btn.dataset.swapWorkout,'Workout swapped for today. Your weekly plan has not changed.');
+  });
   screen.querySelectorAll<HTMLButtonElement>('[data-coach-question]').forEach(button=>button.addEventListener('click',()=>{
     const question=button.dataset.coachQuestion;
-    if(question==='tired'){selected='recovery';render();$('coachAnswer').textContent='Recovery Spin selected. If you feel unusually fatigued or unwell, consider rest instead of adding intensity.';}
-    else if(question==='short'){selected='recovery';render();$('coachAnswer').textContent='Recovery Spin is a shorter option today. Missing one workout is better than cramming training into a busy week.';}
-    else $('coachAnswer').textContent='This '+getWorkout().category.toLowerCase()+' session supports your '+rider.goal+' goal. The weekly plan alternates demanding and easier rides, with extra recovery after very hard feedback.';
+    if(question==='tired')chooseWorkout('recovery','Easy recovery selected for today. Rest instead if you feel unusually fatigued or unwell.');
+    else if(question==='short'){
+      const w=getWorkout(),target=Math.max(15,Math.min(30,Math.floor(workoutDuration(w)/60*.65)));
+      const shorter=shortenWorkout(w,target);
+      if(shorter===w){
+        $('coachAnswer').textContent='This workout is already brief. You can swap to Recovery Spin or take a rest day.';
+      }else{
+        customWorkout=shorter;riderSelected=true;render();
+        $('coachAnswer').textContent='Shorter session prepared. Coach kept the power ranges and reduced interval durations.';
+      }
+    }else{
+      const recommended=recommendToday(rider,new Date(),
+        platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower}))
+          .concat(importedRides.filter(r=>!platformRides.some(p=>Math.abs(p.start-r.start)<120000)).map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower}))),
+        historyRecords().map(r=>({date:Date.parse(r.date),rpe:r.rpe})));
+      $('coachAnswer').textContent=recommended.reason+(riderSelected?' You have selected an alternative for today.':'');
+    }
   }));
   $('coachWeek').addEventListener('click',event=>{
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-day-workout]');
@@ -365,6 +406,7 @@ export function mountCoach(bridge:CoachBridge){
     const output=$('coachPlatformHistory');
     try{
       platformRides=await bridge.getPlatformRides();
+      try{importedRides=await loadHistoricalRides();}catch{importedRides=[];}
       const recent=platformRides.filter(r=>Number.isFinite(r.start)&&r.start>=Date.now()-7*86400000&&r.start<=Date.now());
       const hours=recent.reduce((total,r)=>total+Math.max(0,r.elapsed),0)/3600;
       const modes=['classic','survival','cyclequest'] as const;
@@ -518,6 +560,7 @@ export function mountCoach(bridge:CoachBridge){
     const seg=segmentAt(session.workout,session.elapsed);
     return {name:session.workout.name,mode:session.mode,control:session.control,remaining:formatTime(seg.remaining),target:targetWatts(session.ftp,seg.segment,session.adjusted),done:session.done};
   }
+  window.addEventListener('breakaway:history-updated',()=>{void refreshPlatformHistory();});
   render();
   mountCoachHistory($('coachHistoryImport'),{applySuggestion:(suggestion)=>{
     rider=validProfile({...rider,...suggestion});
