@@ -258,12 +258,36 @@ export function mountCoach(bridge:CoachBridge){
     if(target instanceof Element && target.closest('#openBreakawayCoach'))open();
   });
   $('coachBack').addEventListener('click',close);
+  // Single sources of truth for training schedule and recent load.
+  function weekPlan(){
+    return integratedWeek(rider,strength?.settings||defaultStrength,recommendWeek(rider,false),
+      id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+  }
+  function recentRides():CoachRecentRide[]{
+    return platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower}))
+      .concat(importedRides.filter(r=>!platformRides.some(p=>Math.abs(p.start-r.start)<120000))
+        .map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower})));
+  }
+  function recentFeedback():CoachRecentFeedback[]{
+    return historyRecords().map(r=>({date:Date.parse(r.date),rpe:r.rpe}));
+  }
+  function strengthShouldBeLight():boolean{
+    const feedback=recentFeedback().concat((strength?.history||[]).map(r=>({date:Date.parse(r.date),rpe:r.rpe})));
+    return fatigueSignals(rider,Date.now(),recentRides(),feedback).fatigued;
+  }
+  function syncSettingsForm(){
+    ($('coachFtp') as HTMLInputElement).value=String(rider.ftp);
+    ($('coachHours') as HTMLInputElement).value=String(rider.hours);
+    ($('coachDays') as HTMLInputElement).value=String(rider.days);
+    ($('coachRestDay') as HTMLSelectElement).value=String(rider.restDay);
+    ($('coachExperience') as HTMLSelectElement).value=rider.experience;
+    ($('coachGoal') as HTMLSelectElement).value=rider.goal;
+  }
   function getWorkout(){
     if(customWorkout)return customWorkout;
     const base=library.find(w=>w.id===selected)||library[0];
     if(!strength?.settings.enabled||riderSelected)return base;
-    const plan=integratedWeek(rider,strength.settings,recommendWeek(rider,false),id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
-    const today=plan.days[new Date().getDay()];
+    const today=weekPlan().days[new Date().getDay()];
     if(today.cyclingId===base.id&&today.cyclingMinutes>0&&today.cyclingMinutes*60<workoutDuration(base))
       return shortenWorkout(base,today.cyclingMinutes);
     return base;
