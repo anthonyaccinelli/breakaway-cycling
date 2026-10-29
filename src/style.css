@@ -2429,3 +2429,12 @@ body[data-ride-experience="survival"][data-breakaway-screen="route"] .route-stud
  .mode-landing .mode-card-art{max-width:480px;justify-self:center}
 }
 @media(prefers-reduced-motion:reduce){.mode-landing .mode-card-art{transition:none}}
+
+
+/* Homepage presence badge lives in the visible game-selection header. */
+.mode-landing-meta{display:flex;align-items:center;justify-content:flex-end;gap:20px}
+.mode-landing-brand .live-riders{flex:none;font-weight:650;letter-spacing:0}
+.mode-landing-brand .live-riders-count{font-size:17px}
+@media(max-width:760px){
+ .mode-landing-meta{width:100%;justify-content:space-between;gap:12px;flex-wrap:wrap}
+}
