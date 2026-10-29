@@ -14,6 +14,7 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
  let exercises:StrengthExercise[]=[];
  const checked=new Set<string>(),entered=new Map<string,string>();
  let timer:number|null=null,restUntil=0;
+ let returnFocus:HTMLElement|null=null;
  const overlay=document.createElement('section');
  overlay.className='coach-strength-overlay';overlay.id='coachStrengthOverlay';overlay.hidden=true;
  overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Guided strength session');
@@ -64,6 +65,7 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
  const key=(i:number,j:number)=>i+':'+j;
  function renderSession(){
   if(!active)return;
+  const scroll=overlay.scrollTop;
   const routine=strengthRoutine(settings,variation,light);
   const total=exercises.reduce((n,e)=>n+e.sets,0);
   overlay.innerHTML='<div class="coach-strength-session">'+
@@ -81,7 +83,7 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
        const id=key(i,j);
        return '<div class="coach-strength-set"><span>SET '+(j+1)+'</span>'+
         '<input aria-label="Repetitions: set '+(j+1)+' '+esc(exercise.name)+'" data-reps="'+id+'" maxlength="30" placeholder="'+esc(exercise.reps)+'">'+
-        '<input aria-label="Weight: set '+(j+1)+' '+esc(exercise.name)+'" data-load="'+id+'" maxlength="32" placeholder="Weight / BW">'+
+        '<input aria-label="Weight: set '+(j+1)+' '+esc(exercise.name)+'" data-load="'+id+'" maxlength="32" placeholder="Load (lb / kg / BW)">'+
         '<button type="button" aria-pressed="'+checked.has(id)+'" data-check="'+id+'">'+(checked.has(id)?'✓ DONE':'MARK DONE')+'</button></div>';
       }).join('')+'</div></section>';
     }).join('')+'</div>'+
@@ -92,6 +94,11 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
    input.value=entered.get(type+':'+input.getAttribute('data-'+type))||'';
   });
   (overlay.querySelector('#strengthRpe') as HTMLSelectElement).value=selectedRpe;
+  overlay.scrollTop=scroll;
+  if(timer!==null&&restUntil>Date.now()){
+    const label=overlay.querySelector('#strengthRestLabel');
+    if(label)label.textContent='Rest: '+Math.ceil((restUntil-Date.now())/1000)+' seconds';
+  }
  }
  overlay.addEventListener('input',event=>{
   const target=event.target;
@@ -140,15 +147,26 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
   if(!write(STRENGTH_HISTORY_KEY,next)){overlay.querySelector('#strengthSessionError')!.textContent='Could not save. Check local browser storage.';return;}
   history=next;close();callbacks.finished();
  }
- function close(){stopTimer();active=false;overlay.hidden=true;}
+ function close(){stopTimer();active=false;overlay.hidden=true;returnFocus?.focus();returnFocus=null;}
  function open(chosen:'A'|'B'='A',isLight=false,minutes?:number){
   if(!settings.enabled)return false;
   variation=chosen;light=isLight;allocatedMinutes=Math.min(settings.minutes,Math.max(15,minutes||settings.minutes));exercises=strengthRoutine(settings,variation,isLight||allocatedMinutes<20).exercises;
   if(allocatedMinutes<settings.minutes)exercises=exercises.map(e=>({...e,sets:Math.max(1,Math.min(e.sets,allocatedMinutes<25?1:2))}));
+  returnFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;
   active=true;checked.clear();entered.clear();selectedRpe='';start=Date.now();stopTimer();
   overlay.hidden=false;renderSession();overlay.scrollTop=0;
   (overlay.querySelector('#strengthExit') as HTMLButtonElement)?.focus();return true;
  }
+ overlay.addEventListener('keydown',event=>{
+   if(!active)return;
+   if(event.key==='Escape'){event.preventDefault();const exit=overlay.querySelector<HTMLButtonElement>('#strengthExit');exit?.click();return;}
+   if(event.key!=='Tab')return;
+   const focusable=Array.from(overlay.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled)'));
+   if(!focusable.length)return;
+   const first=focusable[0],last=focusable[focusable.length-1];
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+ });
  renderSettings();
  return {get settings(){return settings;},get history(){return history;},open,close,renderSettings,saveSettings,get active(){return active;},
   completedToday(){return history.some(r=>dayKey(new Date(r.date))===dayKey(new Date()));}};
