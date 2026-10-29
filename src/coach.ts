@@ -45,26 +45,9 @@ export function mountCoach(bridge:CoachBridge){
   let isDemo=false;
   let demoTimer:number|null=null;
   let demoWatts=130;
-  const trigger=document.createElement('button');
-  trigger.id='openBreakawayCoach';
-  trigger.type='button';
-  trigger.className='coach-classic-banner';
-  trigger.setAttribute('aria-label','Train with Breakaway Coach — open structured training in Classic');
-  trigger.innerHTML=
-    '<span class="coach-banner-copy">'+
-      '<span class="coach-banner-eyebrow">BREAKAWAY COACH</span>'+
-      '<span class="coach-banner-title">Train with Breakaway Coach</span>'+
-      '<span class="coach-banner-description">Structured workouts, adaptive planning, and goal-based training for Classic mode.</span>'+
-      '<span class="coach-banner-features"><span>Personalized plans</span><span>Structured workouts</span><span>Track progress</span><span>Reach your goals</span></span>'+
-    '</span>'+
-    '<span class="coach-banner-action"><span class="coach-banner-cta">OPEN COACH <span aria-hidden="true">→</span></span><span class="coach-banner-note">CLASSIC MODE ONLY</span></span>';
-  // Insert directly below Classic's navigation and above the GPX uploader / route builder.
-  // Never mount the banner into the shared mode header: it must not affect game UIs.
+  // The visible Classic Route Studio owns the Coach banner; delegate its click
+  // so it continues to work when that shell is unmounted and recreated.
   const classicRoute=document.getElementById('screenRoute');
-  const routeStudio=classicRoute?.querySelector<HTMLElement>('#routeStudio');
-  const routeHeading=routeStudio?.querySelector<HTMLElement>('.route-studio-heading');
-  if(routeHeading)routeHeading.insertAdjacentElement('afterend',trigger);
-  else if(routeStudio)routeStudio.prepend(trigger);
   const screen=document.createElement('section');
   screen.id='breakawayCoachScreen';
   screen.className='coach-screen';
@@ -114,7 +97,10 @@ export function mountCoach(bridge:CoachBridge){
     window.scrollTo(0,0);
   }
   function close(){screen.hidden=true;document.body.classList.remove('coach-planning');}
-  trigger.addEventListener('click',open);
+  classicRoute?.addEventListener('click',event=>{
+    const target=event.target;
+    if(target instanceof Element && target.closest('#openBreakawayCoach'))open();
+  });
   $('coachBack').addEventListener('click',close);
   function getWorkout(){return library.find(w=>w.id===selected)||library[0];}
   function render(){
