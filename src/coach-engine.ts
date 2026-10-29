@@ -125,6 +125,62 @@ export function recommendWeek(profile:CoachProfile, fatigue=false) {
     return {day,workoutId,reason:fatigue?'Reduced intensity after a difficult session':'Planned training session'};
   });
 }
+
+export type CoachRecentRide={
+ start:number;
+ elapsed:number;
+ avgPower:number|null;
+ source?:'classic'|'survival'|'cyclequest'|'import';
+};
+export type CoachRecentFeedback={date:number;rpe:number|null};
+export type TodayRecommendation={
+ workoutId:string|null;
+ status:'planned'|'recovery'|'rest'|'completed';
+ reason:string;
+};
+export function recommendToday(profile:CoachProfile,day:Date,rides:CoachRecentRide[]=[],feedback:CoachRecentFeedback[]=[]):TodayRecommendation {
+ const p=validProfile(profile),now=day.getTime();
+ const startOfDay=new Date(day.getFullYear(),day.getMonth(),day.getDate()).getTime();
+ const todayDay=day.getDay();
+ const scheduled=recommendWeek(p,false)[todayDay];
+ const validRides=rides.filter(r=>Number.isFinite(r.start)&&r.start<=now&&Number.isFinite(r.elapsed)&&r.elapsed>0&&r.start>=now-7*86400000);
+ const completedToday=validRides.some(r=>r.start>=startOfDay&&r.elapsed>=15*60);
+ const difficult=validRides.some(r=>now-r.start<=36*3600000&&r.elapsed>=30*60&&
+   r.avgPower!==null&&Number.isFinite(r.avgPower)&&r.avgPower>=p.ftp*.8);
+ const intenseFeedback=feedback.some(x=>Number.isFinite(x.date)&&x.date<=now&&now-x.date<=48*3600000&&x.rpe!==null&&x.rpe>=9);
+ if(completedToday) return {workoutId:null,status:'completed',
+   reason:'You already recorded a ride today. Coach is not stacking another prescribed session. Rest, or choose an optional workout.'};
+ if(!scheduled.workoutId) return {workoutId:null,status:'rest',
+   reason:'Today is outside your '+p.days+' planned training days. Rest supports consistency. You can still choose an optional workout.'};
+ if(difficult||intenseFeedback) return {workoutId:'recovery',status:'recovery',
+   reason:difficult?'A demanding ride was recorded recently. Coach has replaced the planned workout with an easy recovery spin based on duration and average power.':
+   'Your recent workout feedback indicated very high effort. Coach has selected an easier recovery spin.'};
+ const descriptions:Record<CoachGoal,string>={
+  fitness:'regular riding and consistency',ftp:'building sustainable power',
+  endurance:'aerobic endurance',race:'preparing for your cycling event'
+ };
+ return {workoutId:scheduled.workoutId,status:'planned',
+   reason:'Your '+p.days+'-day weekly schedule calls for this session to support '+descriptions[p.goal]+'. The recommendation uses your rider profile and basic scheduling rules.'};
+}
+/** Return a concrete shorter workout; preserve power ranges, warmup, and recovery segments. */
+export function shortenWorkout(workout:CoachWorkout,maxMinutes=30):CoachWorkout {
+ const current=workout.segments.reduce((sum,s)=>sum+s.minutes,0);
+ const requested=Math.max(12,Math.min(maxMinutes,current));
+ if(current<=requested)return workout;
+ const base=workout.segments.length; // each block retains at least one minute
+ if(base>=requested)return workout;
+ const remaining=requested-base;
+ const weights=workout.segments.map(s=>Math.max(0,s.minutes-1));
+ const totalWeight=weights.reduce((sum,v)=>sum+v,0);
+ const parts=workout.segments.map((s,i)=>({
+  ...s,minutes:Math.max(1,Math.floor((1+(totalWeight?weights[i]/totalWeight*remaining:0))*2)/2)
+ }));
+ let allocated=parts.reduce((sum,s)=>sum+s.minutes,0);
+ for(let i=0;allocated+.5<=requested;i=(i+1)%parts.length){parts[i].minutes+=.5;allocated+=.5;}
+ return {...workout,id:workout.id+'-short',name:workout.name+' · Short',segments:parts,
+   description:'Shortened version: '+workout.description};
+}
+
 export function feedbackRecommendation(rpe:number|null):string {
   if(rpe===null)return 'Rate how the session felt so future recommendations have more context.';
   if(rpe>=9)return 'That felt very hard. Consider recovery or rest next; do not stack another demanding workout.';
