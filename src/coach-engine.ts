@@ -39,7 +39,7 @@ export function validProfile(raw: unknown): CoachProfile {
   return {
     ftp: Math.round(bound(p.ftp, 75, 550, defaultProfile.ftp)),
     hours: bound(p.hours, 1, 20, defaultProfile.hours),
-    days: Math.round(bound(p.days, 2, 7, defaultProfile.days)),
+    days: Math.round(bound(p.days, 2, 6, defaultProfile.days)),
     restDay: Math.round(bound(p.restDay, 0, 6, defaultProfile.restDay)), 
     goal: ['fitness','ftp','endurance','race'].includes(String(p.goal)) ? p.goal as CoachGoal : 'fitness',
     experience: ['beginner','intermediate','advanced'].includes(String(p.experience)) ? p.experience as CoachExperience : 'beginner'
