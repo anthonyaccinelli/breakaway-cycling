@@ -83,3 +83,7 @@
 .coach-rpe-buttons button{background:#25424a;color:white;border:1px solid #639199;padding:9px 13px;border-radius:8px;font-weight:750}
 .coach-rpe-buttons button[aria-pressed=true]{background:#80e5c9;color:#061c1a}
 @media(max-width:860px){.coach-layout{grid-template-columns:1fr}.coach-screen{padding:20px 14px 55px}.coach-top{align-items:center}.coach-back{padding:8px;font-size:12px}.coach-mode-grid{gap:5px}.coach-mode-grid button{padding:10px;min-height:100px}.coach-home-entry{margin:14px;min-height:130px}}
+
+.coach-quick{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.coach-quick button{background:#19323c;color:#afe9dc;border:1px solid #487e81;padding:8px 10px;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.4px}
+.coach-quick button:hover{border-color:#8af3d6;background:#265047}
