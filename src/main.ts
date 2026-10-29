@@ -239,7 +239,7 @@ function buildRideTcx(){
  return `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Activities><Activity Sport="Biking"><Id>${start}</Id><Lap StartTime="${start}"><TotalTimeSeconds>${(activeRideMs/1000).toFixed(1)}</TotalTimeSeconds><DistanceMeters>${distance.toFixed(2)}</DistanceMeters><Calories>${Math.round(energyKcal)}</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${entries}</Track></Lap><Notes>${tcxEscape(routeName)}</Notes></Activity></Activities></TrainingCenterDatabase>`;
 }
 
-type SavedRide={id:string;start:string;end:string;name:string;meters:number;elapsed:number;kcal:number;gain:number;avgPower:number|null;tcx:string};
+type SavedRide={id:string;start:string;end:string;name:string;mode?:'classic'|'survival'|'cyclequest';meters:number;elapsed:number;kcal:number;gain:number;avgPower:number|null;tcx:string};
 const RIDE_DB='breakaway-local-rides-v1',RIDE_STORE='rides';
 function rideDb():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{
  const request=indexedDB.open(RIDE_DB,1);
@@ -286,7 +286,7 @@ async function archiveFinishedRide(){
  if(!rideStart||!rideEnd||rideSamples.length<2)throw Error('Not enough recorded data to archive ride.');
  try{
   const gain=points.length?gainLossThrough(distance).gain*FEET_PER_METER:rideSamples.reduce((a,x,i)=>a+(i?Math.max(0,x.elevation-rideSamples[i-1].elevation):0),0)*FEET_PER_METER;
-  await saveRide({id:rideStart,start:rideStart,end:rideEnd,name:routeName,meters:distance,elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:avgPowerDuration>0?avgPowerEnergy/avgPowerDuration:null,tcx:buildRideTcx()});
+  await saveRide({id:rideStart,start:rideStart,end:rideEnd,name:routeName,mode:rideExperience,meters:distance,elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:avgPowerDuration>0?avgPowerEnergy/avgPowerDuration:null,tcx:buildRideTcx()});
   await renderRideHistory();
  }catch(e){status('Could not save ride locally: '+String(e));throw e;}
 }
@@ -2135,8 +2135,6 @@ surviveUpdateProfileThreat();survivePanel.classList.toggle('danger',surviveOn&&s
 function surviveEnd(caught=false){if(!surviveOn)return;surviveWaitingForPedals=false;survivePedalStartSince=0;surviveOn=false;surviveCaught=caught;if(caught){const waves=Math.max(0,surviveWave-1);try{const k='breakaway-survive-beta-records',old=JSON.parse(localStorage.getItem(k)||'[]');localStorage.setItem(k,JSON.stringify([...(Array.isArray(old)?old:[]),{theme:surviveTheme,waves,duration:survivePeriod,date:new Date().toISOString()}].slice(-100)));}catch{}se('surviveRecord').textContent='CAUGHT · '+waves+' completed waves. Local record saved. Keep riding!';surviveFailScreen.querySelector('#surviveFailTheme')!.textContent=surviveTheme+' CAUGHT YOU';surviveFailScreen.querySelector('#surviveFailWaves')!.textContent=String(waves);const survivedSeconds=Math.floor(survivePeriod-60+surviveElapsed);surviveFailScreen.querySelector('#surviveFailTime')!.textContent=Math.floor(survivedSeconds/60)+':'+String(survivedSeconds%60).padStart(2,'0');surviveFailScreen.hidden=false;surviveFailDeadline=performance.now()+30000;surviveFailPedalSince=0;}else se('surviveRecord').textContent=surviveWon?'FINISH LINE REACHED · YOU SURVIVED!':'Chase ended. Normal riding continues.';surviveRender();lastOverlayPush=0;publishDesktopOverlay();}
 function surviveTick(now:number){const dt=surviveLast?Math.max(0,Math.min(1,(now-surviveLast)/1000)):0;surviveLast=now;// SURVIVE is independent of the rider's pause state: the pursuer never stops.
  if(!surviveOn)return;
- // During a coached recovery (or a paused session), the threat respects the workout.
- if(typeof coachRuntime!=='undefined'&&coachRuntime?.mode==='survival'&&coachRuntime.snapshot()?.control==='guided'&&!surviveWaitingForPedals&&(!running||coachRuntime.isRecovery())){surviveRender();return;}
  if(surviveWaitingForPedals){
   // Require sustained fresh trainer cadence, not a stale power/speed sample.
   const pedaling=connected&&realTelemetry&&cadence>=10;
@@ -2147,7 +2145,7 @@ function surviveTick(now:number){const dt=surviveLast?Math.max(0,Math.min(1,(now
   se('surviveStatus').textContent='SURVIVAL STARTED';
   surviveRender();return;
  }
- if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;if(surviveMode==='finish'){surviveChaseWattSeconds+=Math.max(0,power)*dt;surviveChaseSeconds+=dt;}surviveWave=surviveMode==='finish'?1:1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(typeof coachRuntime!=='undefined'&&coachRuntime?.mode==='survival'&&coachRuntime.snapshot()?.control==='guided'&&coachRuntime.onTarget(power)){surviveEnemyDistance=Math.min(surviveEnemyDistance,distance-50);surviveGap=distance-surviveEnemyDistance;}if(surviveMode==='finish'&&surviveFinishDistance>0&&distance>=surviveFinishDistance&&surviveGap>0){
+ if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;if(surviveMode==='finish'){surviveChaseWattSeconds+=Math.max(0,power)*dt;surviveChaseSeconds+=dt;}surviveWave=surviveMode==='finish'?1:1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(surviveMode==='finish'&&surviveFinishDistance>0&&distance>=surviveFinishDistance&&surviveGap>0){
   surviveWon=true;
   const finishGap=Math.round(surviveGap);
   surviveEnd(false);
@@ -3029,7 +3027,7 @@ mountClassicRouteReference();
 
 // Coach preview reuses the existing FTMS writer. It does not open another BLE connection.
 coachRuntime=mountCoach({
- launchMode:(mode)=>{if(mode==='cyclequest')void enterCycleQuest();else chooseRideExperience(mode);},
+ launchMode:(_mode)=>{showBreakawayScreen('route');},
  makeRoute:(seconds,structured)=>{
   ($('generatedTerrain') as HTMLSelectElement).value=structured?'flat':'rolling';
   ($('generatedDifficulty') as HTMLSelectElement).value=structured?'0.55':'1';
@@ -3048,7 +3046,8 @@ coachRuntime=mountCoach({
   input.value=String(Math.max(30,Math.min(1000,Math.round(watts))));
   input.dispatchEvent(new Event('change',{bubbles:true}));
  },
- isRiding:()=>running||!!(rideStart&&!rideEnd)
+ isRiding:()=>running||!!(rideStart&&!rideEnd),
+ getPlatformRides:async()=> (await savedRides()).map(r=>({start:Date.parse(r.start),elapsed:r.elapsed,avgPower:r.avgPower,mode:r.mode||null,name:r.name}))
 });
 
 
