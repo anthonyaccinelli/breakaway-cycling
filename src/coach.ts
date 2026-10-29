@@ -5,6 +5,7 @@ import {
 } from './coach-engine';
 import type {CoachControl, CoachMode, CoachProfile, CoachSessionRecord, CoachWorkout} from './coach-engine';
 import './coach.css';
+import {mountCoachHistory} from './coach-history-ui';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
@@ -73,7 +74,8 @@ export function mountCoach(bridge:CoachBridge){
     '<div class="coach-fields"><label>FTP (W)<input id="coachFtp" type="number" min="75" max="550" step="1"></label><label>HOURS / WEEK<input id="coachHours" type="number" min="1" max="20" step=".5"></label><label>DAYS / WEEK<input id="coachDays" type="number" min="2" max="7" step="1"></label><label>REST DAY<select id="coachRestDay"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label><label>LEVEL<select id="coachExperience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label><label>GOAL<select id="coachGoal"><option value="fitness">Ride consistently</option><option value="ftp">Increase FTP</option><option value="endurance">Build endurance</option><option value="race">Prepare to race</option></select></label></div>'+
     '<button type="button" id="coachSaveProfile">SAVE RIDER PROFILE</button><p class="coach-small">Your profile and workout history are stored in this browser. No cloud sync or generative AI is connected.</p></section>'+
     '<section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">03 / PLAN</span><span class="coach-tag">ADAPTS TO FEEDBACK</span></div><h2>THIS WEEK.</h2><div id="coachWeek" class="coach-week"></div></section>'+
-    '<section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">04 / PROGRESS</span></div><h2>RECENT RIDES.</h2><div id="coachHistory"></div></section>'+
+    '<section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">04 / PROGRESS</span></div><h2>RECENT RIDES.</h2><div id="coachHistory"></div></section>'+ 
+    '<section class="coach-panel coach-history-host" id="coachHistoryImport"></section>'+ 
     '</aside></div></main>';
   document.body.append(screen);
 
@@ -322,5 +324,10 @@ export function mountCoach(bridge:CoachBridge){
     return {name:session.workout.name,mode:session.mode,control:session.control,remaining:formatTime(seg.remaining),target:targetWatts(session.ftp,seg.segment,session.adjusted),done:session.done};
   }
   render();
+  mountCoachHistory($('coachHistoryImport'),{applySuggestion:(suggestion)=>{
+    rider=validProfile({...rider,...suggestion});
+    writeJson(COACH_PROFILE_KEY,rider);
+    render();
+  }});
   return {tick,finish,endCoaching,isRecovery,onTarget,snapshot,get mode(){return session?.mode||null;},get active(){return !!session;}};
 }
