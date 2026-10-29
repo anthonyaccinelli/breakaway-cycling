@@ -1,5 +1,6 @@
 import {mountBetaSupport} from './beta-support';
 import './style.css';
+import './homepage-fit.css';
 import {bindFullscreenButton} from './ride-fullscreen';
 import './ride-fullscreen.css';
 import {timeWeightedPower, slewGrade} from './trainer-smoothing';
