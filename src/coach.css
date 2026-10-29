@@ -87,3 +87,40 @@
 .coach-quick{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
 .coach-quick button{background:#19323c;color:#afe9dc;border:1px solid #487e81;padding:8px 10px;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.4px}
 .coach-quick button:hover{border-color:#8af3d6;background:#265047}
+
+
+/* Coach is a Classic subfeature, not a fourth home mode. */
+body[data-ride-experience="survival"] #openBreakawayCoach,
+body[data-ride-experience="cyclequest"] #openBreakawayCoach,
+body[data-breakaway-screen="home"] #openBreakawayCoach{display:none!important}
+body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute .route-studio-heading>.route-studio-hint{display:none!important}
+body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute .route-studio-heading>.coach-classic-entry{
+ grid-column:3!important;grid-row:1!important;justify-self:end!important;align-self:center!important;
+}
+.coach-classic-entry{
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;
+ color:#0c2933!important;background:#8ee8d3!important;border:1px solid #60d4b8!important;
+ border-radius:9px;padding:9px 12px;min-height:40px;font:850 12px 'Instrument Sans',system-ui,sans-serif!important;
+ letter-spacing:.25px;box-shadow:0 2px 12px #0016242a;cursor:pointer;
+}
+.coach-classic-entry .coach-classic-label{font-size:10px;opacity:.78}
+.coach-classic-entry strong{font:900 12px 'Host Grotesk',system-ui,sans-serif!important}
+.coach-classic-entry:hover{background:#c0ffef!important;filter:brightness(1.03)}
+.coach-classic-start{width:100%;border:1px solid #8effd8!important;background:#85e9cb!important;
+ color:#092b2b!important;border-radius:11px;padding:16px;font:900 15px 'Instrument Sans',system-ui,sans-serif;letter-spacing:.35px}
+.coach-classic-start:hover{background:#b2ffe7!important}
+@media(max-width:1100px){
+ body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute .route-studio-heading{
+  grid-template-columns:minmax(0,1fr) auto auto!important;gap:8px!important;
+ }
+ .coach-classic-entry .coach-classic-label{display:none}
+ .coach-classic-entry{padding:7px 9px;min-height:35px}
+}
+@media(max-width:700px){
+ body[data-ride-experience="classic"][data-breakaway-screen="route"] #screenRoute .route-studio-heading{
+  grid-template-columns:minmax(0,1fr) auto auto!important;gap:4px!important;
+ }
+ .coach-classic-entry strong{font-size:10px!important}
+ .coach-classic-entry{font-size:10px!important;padding:6px!important}
+ .coach-classic-entry .coach-classic-label{display:none}
+}
