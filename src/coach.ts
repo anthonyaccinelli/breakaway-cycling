@@ -326,6 +326,80 @@ export function mountCoach(bridge:CoachBridge){
   chart.addEventListener('pointerover',inspect);
   chart.addEventListener('focusin',inspect);
   chart.addEventListener('click',inspect);
+  function renderCalendar(){
+    const strip=$('coachCalendarStrip');
+    const details=$('coachCalendarDetails');
+    const expandedIndex=currentCalendarDays.findIndex(day=>day.key===expandedCalendarKey);
+    strip.innerHTML=currentCalendarDays.map((day,index)=>{
+      const activity=day.rideName|| (day.completedRide?'Ride completed':null);
+      const strengthName=day.strength?'Full Body Strength '+day.strength:null;
+      const summary=[activity,strengthName].filter(Boolean);
+      return '<button type="button" class="coach-calendar-pill'+(day.isToday?' is-today':'')+'"'+
+        ' data-calendar-index="'+index+'" aria-expanded="'+(day.key===expandedCalendarKey)+'" aria-controls="coachCalendarDetails"'+
+        ' aria-label="'+escapeHtml(day.title+': '+(summary.join(', ')||'Rest day')+'. Select for more information.')+'">'+
+        '<span class="coach-calendar-date">'+escapeHtml(day.label)+'</span>'+
+        '<span class="coach-calendar-activity">'+escapeHtml(activity|| (strengthName?'':'Rest day'))+'</span>'+
+        (strengthName?'<span class="coach-calendar-strength">'+escapeHtml(strengthName)+'</span>':'')+
+        '<span class="coach-calendar-chevron" aria-hidden="true">'+(day.key===expandedCalendarKey?'⌃':'⌄')+'</span></button>';
+    }).join('');
+    const day=currentCalendarDays[expandedIndex];
+    details.hidden=!day;
+    if(!day){details.innerHTML='';return;}
+    details.setAttribute('aria-label','Workouts for '+day.title);
+    const ride=day.rideId?library.find(w=>w.id===day.rideId):null;
+    const rideCard=ride?
+      '<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>'+escapeHtml(ride.name)+'</strong>'+
+      '<p>'+day.rideMinutes+' min · '+escapeHtml(ride.description)+'</p></div>'+
+      '<button type="button" data-calendar-action="ride" data-calendar-index="'+expandedIndex+'">VIEW RIDE →</button></div>':
+      day.completedRide?'<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>Ride completed today</strong><p>Coach will account for your recorded ride.</p></div></div>':'';
+    const strengthCard=day.strength?
+      '<div class="coach-calendar-session"><div><span class="coach-calendar-type">STRENGTH · NO TRAINER NEEDED</span>'+
+      '<strong>Full Body Strength '+day.strength+'</strong><p>'+day.strengthMinutes+' min · Exercises matched to your saved equipment</p></div>'+
+      '<button type="button" data-calendar-action="strength" data-calendar-index="'+expandedIndex+'">START STRENGTH →</button></div>':'';
+    const restCard=!rideCard&&!strengthCard?
+      '<div class="coach-calendar-session"><div><span class="coach-calendar-type">RECOVERY</span>'+
+      '<strong>Rest day</strong><p>No workout is scheduled. Recovery is part of your plan.</p></div></div>':'';
+    details.innerHTML='<div class="coach-calendar-detail-head"><div><span class="coach-calendar-type">DAY DETAILS</span>'+
+      '<h3>'+escapeHtml(day.title)+'</h3></div>'+
+      '<button type="button" class="coach-calendar-close" data-calendar-action="close" aria-label="Close calendar day details">✕</button></div>'+
+      '<div class="coach-calendar-detail-grid">'+rideCard+strengthCard+restCard+'</div>';
+  }
+  $('coachCalendarStrip').addEventListener('click',event=>{
+    const target=event.target;
+    if(!(target instanceof Element))return;
+    const button=target.closest<HTMLButtonElement>('[data-calendar-index]');
+    if(!button)return;
+    const day=currentCalendarDays[Number(button.dataset.calendarIndex)];
+    if(!day)return;
+    expandedCalendarKey=expandedCalendarKey===day.key?null:day.key;
+    renderCalendar();
+    // Keep keyboard focus on the chosen day after rebuilding the pill strip.
+    if(expandedCalendarKey){
+      $('coachCalendarStrip').querySelectorAll<HTMLButtonElement>('[data-calendar-index]')[Number(button.dataset.calendarIndex)]?.focus();
+    }
+  });
+  $('coachCalendarDetails').addEventListener('click',event=>{
+    const target=event.target;
+    if(!(target instanceof Element))return;
+    const button=target.closest<HTMLButtonElement>('[data-calendar-action]');
+    if(!button)return;
+    if(button.dataset.calendarAction==='close'){
+      const previous=currentCalendarDays.findIndex(day=>day.key===expandedCalendarKey);
+      expandedCalendarKey=null;
+      renderCalendar();
+      if(previous>=0)$('coachCalendarStrip').querySelectorAll<HTMLButtonElement>('[data-calendar-index]')[previous]?.focus();
+      return;
+    }
+    const day=currentCalendarDays[Number(button.dataset.calendarIndex)];
+    if(!day)return;
+    if(button.dataset.calendarAction==='ride'&&day.rideId){
+      selected=day.rideId;riderSelected=true;customWorkout=null;
+      expandedCalendarKey=null;render();
+      $('coachRecommendedName').scrollIntoView({block:'center',behavior:'smooth'});
+    }else if(button.dataset.calendarAction==='strength'&&day.strength){
+      launchStrength(day.strength,day.strengthMinutes);
+    }
+  });
   function render(){
     library=workoutLibrary(rider);
     const nowDate=new Date();
