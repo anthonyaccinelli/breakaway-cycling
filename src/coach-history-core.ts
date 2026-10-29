@@ -223,7 +223,8 @@ export function historySummary(rides:HistoricalRide[],now=Date.now()){
  for(const ride of rides)for(const week of weeks)if(ride.start>=week.start&&ride.start<week.start+604800000){week.hours+=ride.duration/3600;week.rides++;break;}
  const weeklyHours=weeks.reduce((sum,w)=>sum+w.hours,0)/8;
  const recent=rides.filter(r=>r.start<=now&&r.start>now-56*86400000);
- const best20=rides.reduce<number|null>((max,r)=>r.best20minWatts!==null&&(max===null||r.best20minWatts>max)?r.best20minWatts:max,null);
+ // Do not use an old historical peak to assign today's training zones.
+ const best20=rides.filter(r=>r.start>now-120*86400000&&r.start<=now).reduce<number|null>((max,r)=>r.best20minWatts!==null&&(max===null||r.best20minWatts>max)?r.best20minWatts:max,null);
  return {total:rides.length,recent:recent.length,weeklyHours:Math.round(weeklyHours*10)/10,weeks,
   suggestedFtp:best20!==null&&best20>100?Math.round(best20*.95):null,
   powerRides:rides.filter(r=>r.avgPower!==null).length,latest:rides[0]?.start??null,
