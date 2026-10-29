@@ -1,11 +1,13 @@
 import {
   COACH_HISTORY_KEY, COACH_PROFILE_KEY, defaultProfile, availableControls,
-  feedbackRecommendation, inTargetRange, intervalRequirements, recommendWeek, segmentAt, targetWatts,
+  feedbackRecommendation, inTargetRange, intervalRequirements, recommendToday, recommendWeek, shortenWorkout, segmentAt, targetWatts,
   validProfile, workoutDuration, workoutLibrary
 } from './coach-engine';
 import type {CoachControl, CoachMode, CoachProfile, CoachSessionRecord, CoachWorkout} from './coach-engine';
 import './coach.css';
 import {mountCoachHistory} from './coach-history-ui';
+import {loadHistoricalRides} from './coach-history-import';
+import type {HistoricalRide} from './coach-history-core';
 import './coach-v2.css';
 
 export interface CoachBridge {
@@ -38,6 +40,10 @@ export function mountCoach(bridge:CoachBridge){
   let rider:CoachProfile=profile;
   let library=workoutLibrary(rider);
   let selected='endurance';
+  let riderSelected=false;
+  let currentDay='';
+  let customWorkout:CoachWorkout|null=null;
+  let importedRides:HistoricalRide[]=[];
   let controlChoice:CoachControl='structured';
   let platformRides:Awaited<ReturnType<CoachBridge['getPlatformRides']>>=[];
   let session:Session|null=null;
@@ -73,12 +79,14 @@ export function mountCoach(bridge:CoachBridge){
 </nav>
 <div class="coach-main" role="main">
   <section class="coach-view" id="coachViewToday" role="tabpanel" aria-labelledby="coachTabToday" data-coach-view="today">
-    <div class="coach-page-lead"><div><span class="coach-tag">YOUR NEXT SESSION</span><h2>Today's ride.</h2><p id="coachSuggestion">Choose a workout, connect your trainer, and ride.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="plan">See training plan →</button></div>
+    <div class="coach-page-lead"><div><span class="coach-tag">YOUR NEXT SESSION</span><h2>Today's ride.</h2><p id="coachSuggestion">Coach selects your session from your weekly plan and recent riding.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="plan">See training plan →</button></div>
     <div class="coach-today-grid">
       <section class="coach-panel coach-workout-card">
-        <div class="coach-section-top"><span class="coach-tag">WORKOUT</span><span class="coach-feature-pill">CLASSIC ONLY</span></div>
-        <label class="coach-label" for="coachWorkout">CHOOSE YOUR WORKOUT</label>
-        <select id="coachWorkout" class="coach-select"></select>
+        <div class="coach-section-top"><span class="coach-tag">COACH RECOMMENDS</span><span id="coachRecommendationLabel" class="coach-feature-pill">YOUR PLAN</span></div>
+        <h3 id="coachRecommendedName" class="coach-recommended-name">Aerobic Builder</h3>
+        <div id="coachWhy" class="coach-why"></div>
+        <div id="coachRestState" class="coach-rest-state" hidden><p id="coachRestReason"></p><button type="button" id="coachBrowseOptional">CHOOSE AN OPTIONAL RIDE →</button></div>
+        <div id="coachWorkoutControls">
         <div id="coachWorkoutInfo" class="coach-workout-info"></div>
         <div class="coach-interval-readout" id="coachIntervalDetails" aria-live="polite" aria-atomic="true"></div>
         <div id="coachSegments" class="coach-segments" role="group" aria-label="Workout blocks: hover, focus, or tap a block to inspect its duration and wattage requirements"></div>
@@ -93,6 +101,15 @@ export function mountCoach(bridge:CoachBridge){
         <div class="coach-quick"><button type="button" data-coach-question="tired">Feeling tired?</button><button type="button" data-coach-question="short">Short on time?</button><button type="button" data-coach-question="why">Why this workout?</button></div>
         <p id="coachAnswer" class="coach-feedback" aria-live="polite">Your workout is based on your saved FTP and experience.</p>
         <p id="coachStatus" class="coach-status" role="status"></p>
+        </div>
+        <div class="coach-swap-actions">
+          <button type="button" id="coachSwapToggle" class="coach-subtle-link" aria-expanded="false" aria-controls="coachSwapPanel">Swap workout →</button>
+          <button type="button" id="coachUseRecommendation" class="coach-subtle-link" hidden>Use Coach's recommendation ↺</button>
+        </div>
+        <div id="coachSwapPanel" class="coach-swap-panel" hidden>
+          <p>Prefer something else? Choosing a different workout is optional and won't rewrite your weekly plan.</p>
+          <div id="coachSwapList" class="coach-swap-list"></div>
+        </div>
       </section>
       <aside class="coach-today-side">
         <section class="coach-panel coach-mini-card">
@@ -143,7 +160,7 @@ export function mountCoach(bridge:CoachBridge){
       <section class="coach-panel coach-howto">
         <span class="coach-tag">HOW COACH WORKS</span><h3>Three easy steps.</h3>
         <div class="coach-howto-step"><strong>1. Set your schedule</strong><p>Your FTP, days, and goals determine your starting workouts.</p></div>
-        <div class="coach-howto-step"><strong>2. Choose a workout</strong><p>Use the suggested ride or pick an alternative from the plan.</p></div>
+        <div class="coach-howto-step"><strong>2. Review today's recommendation</strong><p>Coach selects your scheduled session. You can shorten, ease, or swap it when needed.</p></div>
         <div class="coach-howto-step"><strong>3. Ride in Classic</strong><p>ERG holds power targets; SIM lets you control effort on terrain.</p></div>
         <button type="button" class="coach-subtle-link" data-navigate-coach="today">Go to today's ride →</button>
       </section>
@@ -166,7 +183,6 @@ export function mountCoach(bridge:CoachBridge){
   document.body.append(hud);
   const $=(id:string)=>byId(screen,id);
   const h=(id:string)=>byId(hud,id);
-  const workSelect=$('coachWorkout') as HTMLSelectElement;
   const styleSelect=$('coachControl') as HTMLSelectElement;
   type CoachTab='today'|'plan'|'history'|'settings';
   const tabs:Array<CoachTab>=['today','plan','history','settings'];
@@ -216,7 +232,7 @@ export function mountCoach(bridge:CoachBridge){
     if(target instanceof Element && target.closest('#openBreakawayCoach'))open();
   });
   $('coachBack').addEventListener('click',close);
-  function getWorkout(){return library.find(w=>w.id===selected)||library[0];}
+  function getWorkout(){return customWorkout||library.find(w=>w.id===selected)||library[0];}
   function showIntervalRequirements(index:number){
     const workout=getWorkout(), segment=workout.segments[index];
     if(!segment)return;
@@ -243,9 +259,28 @@ export function mountCoach(bridge:CoachBridge){
   chart.addEventListener('click',inspect);
   function render(){
     library=workoutLibrary(rider);
-    workSelect.innerHTML=library.map(w=>'<option value="'+w.id+'">'+escapeHtml(w.name)+'</option>').join('');
-    if(!library.some(w=>w.id===selected))selected='endurance';
-    workSelect.value=selected;
+    const nowDate=new Date();
+    const dayKey=nowDate.getFullYear()+'-'+(nowDate.getMonth()+1)+'-'+nowDate.getDate();
+    if(dayKey!==currentDay){currentDay=dayKey;riderSelected=false;customWorkout=null;}
+    const inputs=platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower,source:r.mode||undefined}))
+      .concat(importedRides.filter(r=>!platformRides.some(p=>Math.abs(p.start-r.start)<120000))
+        .map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower,source:'import' as const})));
+    const feedback=historyRecords().map(r=>({date:Date.parse(r.date),rpe:r.rpe}));
+    const recommendation=recommendToday(rider,nowDate,inputs,feedback);
+    if(!riderSelected){selected=recommendation.workoutId||'recovery';customWorkout=null;}
+    if(!library.some(w=>w.id===selected)){selected='recovery';customWorkout=null;}
+    const resting=!riderSelected&&!recommendation.workoutId;
+    $('coachRestState').hidden=!resting;
+    $('coachWorkoutControls').hidden=resting;
+    $('coachRecommendedName').textContent=resting
+      ?(recommendation.status==='completed'?'Ride already completed':'Rest day')
+      :getWorkout().name;
+    $('coachRecommendationLabel').textContent=riderSelected?'YOUR CHOICE':
+      recommendation.status==='recovery'?'RECOVERY ADJUSTMENT':
+      recommendation.status==='rest'||recommendation.status==='completed'?'REST RECOMMENDED':'FROM YOUR PLAN';
+    $('coachWhy').textContent=resting?'Coach recommends rest today.':'Why this session? '+recommendation.reason;
+    $('coachRestReason').textContent=recommendation.reason;
+    $('coachUseRecommendation').hidden=!riderSelected;
     const w=getWorkout(), duration=workoutDuration(w);
     $('coachWorkoutInfo').innerHTML='<div><strong>'+escapeHtml(w.category.toUpperCase())+'</strong><span>'+Math.round(duration/60)+' MINUTES · '+w.segments.length+' SEGMENTS</span></div><p>'+escapeHtml(w.description)+'</p>';
     $('coachSegments').innerHTML=w.segments.map((segment,i)=>{
@@ -264,10 +299,8 @@ export function mountCoach(bridge:CoachBridge){
     ($('coachExperience') as HTMLSelectElement).value=rider.experience;
     ($('coachGoal') as HTMLSelectElement).value=rider.goal;
     styleSelect.value=controlChoice;
-    const history=historyRecords(), last=history.at(-1);
-    const recentHardGame=platformRides.some(r=>r.mode!==null&&r.mode!=='classic'&&r.start<=Date.now()&&Date.now()-r.start<36*3600000&&r.elapsed>=1800&&r.avgPower!==null&&r.avgPower>=rider.ftp*.8);
-    const fatigue=(last?.rpe!==null && typeof last?.rpe==='number' && last.rpe>=9)||recentHardGame;
-    const week=recommendWeek(rider,!!fatigue), now=new Date().getDay();
+    const history=historyRecords();
+    const week=recommendWeek(rider,false), now=new Date().getDay();
     const weekdays=['SUN','MON','TUE','WED','THU','FRI','SAT'];
     $('coachHeaderFtp').textContent='FTP '+rider.ftp+' W';
     $('coachProfileSummary').innerHTML=
@@ -289,7 +322,8 @@ export function mountCoach(bridge:CoachBridge){
       return '<button type="button" data-day-workout="'+(assigned?.id||'')+'" '+(!assigned?'disabled':'')+' class="'+(day.day===now?'coach-week-today':'')+'"><span>'+weekdays[day.day]+'</span><strong>'+(assigned?escapeHtml(assigned.name):'Rest day')+'</strong></button>';
     }).join('');
     $('coachHistory').innerHTML=history.length?history.slice(-5).reverse().map(r=>'<div class="coach-history-row"><strong>'+escapeHtml(r.workout)+'</strong><span>'+new Date(r.date).toLocaleDateString()+' · '+Math.round(r.elapsedSeconds/60)+' min · '+escapeHtml(r.mode.toUpperCase())+'</span></div>').join(''):'<p class="coach-small">Your coached rides will appear here.</p>';
-    $('coachSuggestion').textContent=recentHardGame?'A recent Survival or Cycle Quest ride may have been demanding. Consider recovery before another hard session. This is a rough estimate from average power.':fatigue?'Your last coached workout felt very hard. Consider recovery or rest before another demanding effort.':'Choose a structured workout inside Classic. Survival and Cycle Quest remain free from training prescriptions.';
+    $('coachSuggestion').textContent='A rules-based recommendation from your weekly schedule, saved workouts and recent rides. You can change it at any time.';
+    $('coachSwapList').innerHTML=library.filter(w=>w.id!=='preview').map(w=>'<button type="button" data-swap-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+Math.round(workoutDuration(w)/60)+' min</small></span><span aria-hidden="true">→</span></button>').join('');
   }
   screen.querySelectorAll<HTMLButtonElement>('[data-coach-question]').forEach(button=>button.addEventListener('click',()=>{
     const question=button.dataset.coachQuestion;
@@ -297,18 +331,17 @@ export function mountCoach(bridge:CoachBridge){
     else if(question==='short'){selected='recovery';render();$('coachAnswer').textContent='Recovery Spin is a shorter option today. Missing one workout is better than cramming training into a busy week.';}
     else $('coachAnswer').textContent='This '+getWorkout().category.toLowerCase()+' session supports your '+rider.goal+' goal. The weekly plan alternates demanding and easier rides, with extra recovery after very hard feedback.';
   }));
-  workSelect.addEventListener('change',()=>{selected=workSelect.value;render();});
   $('coachWeek').addEventListener('click',event=>{
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-day-workout]');
-    if(button?.dataset.dayWorkout){selected=button.dataset.dayWorkout;render();navigate('today');}
+    if(button?.dataset.dayWorkout){selected=button.dataset.dayWorkout;riderSelected=true;customWorkout=null;render();navigate('today');}
   });
   $('coachPlanLibrary').addEventListener('click',event=>{
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-library-workout]');
-    if(button?.dataset.libraryWorkout){selected=button.dataset.libraryWorkout;render();navigate('today');}
+    if(button?.dataset.libraryWorkout){selected=button.dataset.libraryWorkout;riderSelected=true;customWorkout=null;render();navigate('today');}
   });
   $('coachNextUp').addEventListener('click',event=>{
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-upcoming-workout]');
-    if(button?.dataset.upcomingWorkout){selected=button.dataset.upcomingWorkout;render();navigate('today');}
+    if(button?.dataset.upcomingWorkout){selected=button.dataset.upcomingWorkout;riderSelected=true;customWorkout=null;render();navigate('today');}
   });
   styleSelect.addEventListener('change',()=>{controlChoice=styleSelect.value as CoachControl;});
   $('coachSaveProfile').addEventListener('click',()=>{
@@ -321,6 +354,7 @@ export function mountCoach(bridge:CoachBridge){
       goal:($('coachGoal') as HTMLSelectElement).value
     });
     writeJson(COACH_PROFILE_KEY,rider);
+    riderSelected=false;customWorkout=null;
     render();
     $('coachSettingsFeedback').textContent='Saved. Your recommended workouts and weekly plan are updated.';
   });
