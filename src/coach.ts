@@ -346,12 +346,15 @@ export function mountCoach(bridge:CoachBridge){
       '<div><strong>'+rider.ftp+' W</strong><span>FTP</span></div>'+
       '<div><strong>'+rider.hours+' h</strong><span>Per week</span></div>'+
       '<div><strong>'+rider.days+' days</strong><span>Training days</span></div>';
-    const upcoming=week.filter(day=>day.day>=now&&day.workoutId).slice(0,3);
-    const later=upcoming.length?upcoming:week.filter(day=>day.workoutId).slice(0,3);
-    $('coachNextUp').innerHTML=later.length?later.map(day=>{
-      const name=library.find(w=>w.id===day.workoutId)?.name||'Easy ride';
-      return '<button type="button" class="coach-upcoming-item" data-upcoming-workout="'+escapeHtml(day.workoutId||'')+'"><strong>'+weekdays[day.day]+'</strong><span>'+escapeHtml(name)+'</span><span aria-hidden="true">→</span></button>';
-    }).join(''):'<p class="coach-small">Rest and recover. Your next workout will be on the plan.</p>';
+    const upcoming=schedule.days.flatMap(day=>{
+      const entries:{day:number;name:string;type:'ride'|'strength';id:string;minutes:number}[]=[];
+      if(day.cyclingId&&day.cyclingMinutes>0)entries.push({day:day.day,name:library.find(w=>w.id===day.cyclingId)?.name||'Cycling ride',type:'ride',id:day.cyclingId,minutes:day.cyclingMinutes});
+      if(day.strength&&day.strengthMinutes>0)entries.push({day:day.day,name:'Full Body Strength '+day.strength,type:'strength',id:day.strength,minutes:day.strengthMinutes});
+      return entries;
+    }).filter(item=>item.day>=now).slice(0,3);
+    $('coachNextUp').innerHTML=upcoming.length?upcoming.map(item=>
+      '<button type="button" class="coach-upcoming-item" data-upcoming-type="'+item.type+'" data-upcoming-workout="'+escapeHtml(item.id)+'"><strong>'+weekdays[item.day]+'</strong><span>'+escapeHtml(item.name)+'<small>'+item.minutes+' min · '+(item.type==='ride'?'Ride':'Strength')+'</small></span><span aria-hidden="true">→</span></button>'
+    ).join(''):'<p class="coach-small">Your remaining days this week are for recovery.</p>';
     $('coachPlanLibrary').innerHTML=library.map(w=>{
       const mins=Math.round(workoutDuration(w)/60);
       return '<button type="button" class="coach-library-item" data-library-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+mins+' min</small></span><span aria-hidden="true">→</span></button>';
@@ -365,6 +368,12 @@ export function mountCoach(bridge:CoachBridge){
       return '<div class="coach-day-row '+(day.day===now?'coach-week-today':'')+'"><span class="coach-day-label">'+weekdays[day.day]+'</span><div class="coach-day-items">'+(cycling+lifting||'<span class="coach-day-rest">Rest day</span>')+'</div></div>';
     }).join('');
     const strengthPanel=$('coachStrengthToday');
+    const todayGrid=$('coachViewToday').querySelector<HTMLElement>('.coach-today-grid')!;
+    const todaySidebar=$('coachViewToday').querySelector<HTMLElement>('.coach-today-side')!;
+    // On a strength-only day it becomes the main card, not a hidden item in the sidebar.
+    if(strengthOnly)todayGrid.insertBefore(strengthPanel,todayGrid.firstElementChild);
+    else todaySidebar.insertBefore(strengthPanel,todaySidebar.firstElementChild);
+    strengthPanel.classList.toggle('coach-strength-primary',strengthOnly);
     strengthPanel.hidden=!strengthOnToday;
     if(strengthOnToday){
       const routine=strengthRoutine(strength!.settings,todaySchedule.strength!,lightStrength);
@@ -377,7 +386,7 @@ export function mountCoach(bridge:CoachBridge){
       ?'<div class="coach-strength-history">'+strength.history.slice(-6).reverse().map(r=>'<div><span><strong>'+escapeHtml(r.routine)+'</strong><br>'+new Date(r.date).toLocaleDateString()+'</span><small>'+r.completedSets+'/'+r.plannedSets+' sets · '+r.minutes+' min</small></div>').join('')+'</div>'
       :'<p class="coach-small">Completed strength training sessions will appear here.</p>';
     $('coachHistory').innerHTML=history.length?history.slice(-5).reverse().map(r=>'<div class="coach-history-row"><strong>'+escapeHtml(r.workout)+'</strong><span>'+new Date(r.date).toLocaleDateString()+' · '+Math.round(r.elapsedSeconds/60)+' min · '+escapeHtml(r.mode.toUpperCase())+'</span></div>').join(''):'<p class="coach-small">Your coached rides will appear here.</p>';
-    $('coachSuggestion').textContent=strength?.settings.enabled?'Your training week combines cycling, strength, and recovery within your available time.':'A rules-based recommendation from your weekly schedule, saved workouts and recent rides. You can change it at any time.';
+    $('coachSuggestion').textContent=strengthOnly?'Your strength workout is ready. No smart trainer needed.':strength?.settings.enabled?'Your next workout is ready. Cycling and strength fit within your weekly time.':'Your next workout is ready. Coach considers your schedule and recent riding.';
     $('coachSwapList').innerHTML=library.filter(w=>w.id!=='preview').map(w=>'<button type="button" data-swap-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+Math.round(workoutDuration(w)/60)+' min</small></span><span aria-hidden="true">→</span></button>').join('');
   }
   function chooseWorkout(id:string,notice:string){
@@ -461,11 +470,17 @@ export function mountCoach(bridge:CoachBridge){
   });
   $('coachNextUp').addEventListener('click',event=>{
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-upcoming-workout]');
-    if(button?.dataset.upcomingWorkout){selected=button.dataset.upcomingWorkout;riderSelected=true;customWorkout=null;render();navigate('today');}
+    if(button?.dataset.upcomingWorkout){
+      if(button.dataset.upcomingType==='strength'){
+        const schedule=integratedWeek(rider,strength!.settings,recommendWeek(rider,false),id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+        const chosen=schedule.days.find(day=>day.strength===button.dataset.upcomingWorkout&&day.day>=new Date().getDay());
+        if(chosen?.strength)launchStrength(chosen.strength,chosen.strengthMinutes);
+      }else{selected=button.dataset.upcomingWorkout;riderSelected=true;customWorkout=null;render();navigate('today');}
+    }
   });
   styleSelect.addEventListener('change',()=>{controlChoice=styleSelect.value as CoachControl;});
   $('coachSaveProfile').addEventListener('click',()=>{
-    rider=validProfile({
+    const nextProfile=validProfile({
       ftp:Number(($('coachFtp') as HTMLInputElement).value),
       hours:Number(($('coachHours') as HTMLInputElement).value),
       days:Number(($('coachDays') as HTMLInputElement).value),
@@ -473,10 +488,15 @@ export function mountCoach(bridge:CoachBridge){
       experience:($('coachExperience') as HTMLSelectElement).value,
       goal:($('coachGoal') as HTMLSelectElement).value
     });
+    if(!strength?.saveSettings()){
+      $('coachSettingsFeedback').textContent='Could not save strength equipment. Check your browser storage and try again.';
+      return;
+    }
+    rider=nextProfile;
     writeJson(COACH_PROFILE_KEY,rider);
     riderSelected=false;customWorkout=null;
     render();
-    $('coachSettingsFeedback').textContent='Saved. Your recommended workouts and weekly plan are updated.';
+    $('coachSettingsFeedback').textContent='✓ Saved! Your cycling, strength, and weekly plan are updated.';
   });
   function release(){
     if(session?.control==='structured' && !isDemo)bridge.setMode('sim');
