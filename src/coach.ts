@@ -70,19 +70,19 @@ export function mountCoach(bridge:CoachBridge){
     <p>Train with a plan. Enjoy the ride.</p>
   </div>
   <div class="coach-header-actions">
-    <span id="coachHeaderFtp" class="coach-ftp-chip">FTP 200 W</span>
+    <span id="coachHeaderFtp" class="coach-ftp-chip" title="FTP means Functional Threshold Power. Update it in My Setup.">FTP 200 W</span>
     <button type="button" class="coach-back" id="coachBack">← BACK TO CLASSIC</button>
   </div>
 </header>
 <nav class="coach-nav" role="tablist" aria-label="Breakaway Coach navigation">
-  <button type="button" id="coachTabToday" role="tab" aria-controls="coachViewToday" aria-selected="true" tabindex="0" data-coach-tab="today">◉ <span>Today's Ride</span></button>
-  <button type="button" id="coachTabPlan" role="tab" aria-controls="coachViewPlan" aria-selected="false" tabindex="-1" data-coach-tab="plan">▦ <span>Training Plan</span></button>
-  <button type="button" id="coachTabHistory" role="tab" aria-controls="coachViewHistory" aria-selected="false" tabindex="-1" data-coach-tab="history">▥ <span>Ride History</span></button>
-  <button type="button" id="coachTabSettings" role="tab" aria-controls="coachViewSettings" aria-selected="false" tabindex="-1" data-coach-tab="settings">⚙ <span>Rider Settings</span></button>
+  <button type="button" id="coachTabToday" role="tab" aria-controls="coachViewToday" aria-selected="true" tabindex="0" data-coach-tab="today">◉ <span>Today</span></button>
+  <button type="button" id="coachTabPlan" role="tab" aria-controls="coachViewPlan" aria-selected="false" tabindex="-1" data-coach-tab="plan">▦ <span>My Week</span></button>
+  <button type="button" id="coachTabHistory" role="tab" aria-controls="coachViewHistory" aria-selected="false" tabindex="-1" data-coach-tab="history">▥ <span>Progress</span></button>
+  <button type="button" id="coachTabSettings" role="tab" aria-controls="coachViewSettings" aria-selected="false" tabindex="-1" data-coach-tab="settings">⚙ <span>My Setup</span></button>
 </nav>
 <div class="coach-main" role="main">
   <section class="coach-view" id="coachViewToday" role="tabpanel" aria-labelledby="coachTabToday" data-coach-view="today">
-    <div class="coach-page-lead"><div><span class="coach-tag">YOUR NEXT SESSION</span><h2>Today's ride.</h2><p id="coachSuggestion">Coach selects your session from your weekly plan and recent riding.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="plan">See training plan →</button></div>
+    <div class="coach-page-lead"><div><span class="coach-tag">YOUR NEXT SESSION</span><h2>Today's training.</h2><p id="coachSuggestion">Coach selects your session from your weekly plan and recent riding.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="plan">View my week →</button></div>
     <div class="coach-today-grid">
       <section class="coach-panel coach-workout-card">
         <div class="coach-section-top"><span class="coach-tag">COACH RECOMMENDS</span><span id="coachRecommendationLabel" class="coach-feature-pill">YOUR PLAN</span></div>
@@ -93,15 +93,18 @@ export function mountCoach(bridge:CoachBridge){
         <div id="coachWorkoutInfo" class="coach-workout-info"></div>
         <div class="coach-interval-readout" id="coachIntervalDetails" aria-live="polite" aria-atomic="true"></div>
         <div id="coachSegments" class="coach-segments" role="group" aria-label="Workout blocks: hover, focus, or tap a block to inspect its duration and wattage requirements"></div>
-        <div class="coach-start-controls"><label for="coachControl">TRAINER CONTROL</label>
-          <select id="coachControl" class="coach-select">
-            <option value="structured">ERG — trainer holds the target power</option>
-            <option value="guided">SIM — you control effort over terrain</option>
-          </select>
-        </div>
-        <button type="button" id="coachStartClassic" class="coach-classic-start">CONTINUE TO CONNECT TRAINER <span aria-hidden="true">→</span></button>
-        <p class="coach-start-note">Next: Classic Devices. Connect your trainer and start pedaling.</p>
-        <div class="coach-quick"><button type="button" data-coach-question="tired">Feeling tired?</button><button type="button" data-coach-question="short">Short on time?</button><button type="button" data-coach-question="why">Why this workout?</button></div>
+        <details class="coach-trainer-options"><summary>Trainer options <span>Automatic power (recommended)</span></summary>
+          <div class="coach-start-controls"><label for="coachControl">HOW THE TRAINER BEHAVES</label>
+            <select id="coachControl" class="coach-select">
+              <option value="structured">Automatic power — ERG</option>
+              <option value="guided">Ride by feel — SIM</option>
+            </select>
+            <p>Automatic power holds the target watts. Ride by feel gives you power guidance while you control the effort.</p>
+          </div>
+        </details>
+        <button type="button" id="coachStartClassic" class="coach-classic-start">CONNECT MY TRAINER <span aria-hidden="true">→</span></button>
+        <p class="coach-start-note">Next: connect your trainer, then pedal to start.</p>
+        <div class="coach-quick"><button type="button" data-coach-question="tired">Feeling tired?</button><button type="button" data-coach-question="short">Short on time?</button><button type="button" data-coach-question="why">Why this ride?</button></div>
         <p id="coachAnswer" class="coach-feedback" aria-live="polite">Your workout is based on your saved FTP and experience.</p>
         <p id="coachStatus" class="coach-status" role="status"></p>
         </div>
@@ -117,26 +120,33 @@ export function mountCoach(bridge:CoachBridge){
       <aside class="coach-today-side">
         <section class="coach-panel coach-strength-today" id="coachStrengthToday" hidden></section>
         <section class="coach-panel coach-mini-card">
-          <div class="coach-section-top"><span class="coach-tag">YOUR PROFILE</span><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit →</button></div>
+          <div class="coach-section-top"><span class="coach-tag">MY TRAINING</span><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit →</button></div>
           <div id="coachProfileSummary" class="coach-profile-summary"></div>
         </section>
         <section class="coach-panel coach-mini-card">
-          <div class="coach-section-top"><span class="coach-tag">UPCOMING</span><button type="button" class="coach-subtle-link" data-navigate-coach="plan">Full week →</button></div>
-          <h3>Keep your momentum.</h3><div id="coachNextUp"></div>
+          <div class="coach-section-top"><span class="coach-tag">NEXT UP</span><button type="button" class="coach-subtle-link" data-navigate-coach="plan">Full week →</button></div>
+          <h3>Coming up</h3><div id="coachNextUp"></div>
         </section>
-        <button type="button" id="coachDemo" class="coach-demo-button">TRY THE 8-MINUTE WORKOUT DEMO <small>NO TRAINER NEEDED →</small></button>
       </aside>
     </div>
   </section>
   <section class="coach-view" id="coachViewPlan" role="tabpanel" aria-labelledby="coachTabPlan" data-coach-view="plan" hidden>
-    <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training plan.</h2><p>Select a day or browse the workout library, then head to Today's Ride.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Change schedule →</button></div>
+    <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training week.</h2><p>Your rides, strength sessions, and rest days in one place.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit my plan →</button></div>
     <div class="coach-plan-grid">
       <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS WEEK · CYCLING + STRENGTH</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
-      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">WORKOUT LIBRARY</span></div><div id="coachPlanLibrary" class="coach-library-list"></div><p class="coach-small">Initial recommendations only; detailed long-term periodization is a future feature.</p></section>
+      <section class="coach-panel coach-plan-explain"><div class="coach-section-top"><span class="coach-tag">HOW TO USE YOUR WEEK</span></div>
+        <h3>Coach makes the plan. You choose when to go.</h3>
+        <p>Tap a cycling session to review it on Today. Tap a strength session to open its guided workout. Your rest day stays free.</p>
+        <button type="button" class="coach-classic-start" data-navigate-coach="today">GO TO TODAY →</button>
+        <details class="coach-library-disclosure"><summary>Browse other cycling workouts</summary>
+          <p class="coach-small">Optional: choose a different ride without replacing your full weekly plan.</p>
+          <div id="coachPlanLibrary" class="coach-library-list"></div>
+        </details>
+      </section>
     </div>
   </section>
   <section class="coach-view" id="coachViewHistory" role="tabpanel" aria-labelledby="coachTabHistory" data-coach-view="history" hidden>
-    <div class="coach-page-lead"><div><span class="coach-tag">TRACK YOUR PROGRESS</span><h2>Ride history.</h2><p>Bring in your cycling history and review rides from all Breakaway modes.</p></div></div>
+    <div class="coach-page-lead"><div><span class="coach-tag">TRACK YOUR PROGRESS</span><h2>Your progress.</h2><p>See completed rides and strength workouts. Import past cycling activity here too.</p></div></div>
     <div class="coach-history-grid">
       <section class="coach-panel coach-history-host" id="coachHistoryImport"></section>
       <div class="coach-history-side">
@@ -147,7 +157,12 @@ export function mountCoach(bridge:CoachBridge){
     </div>
   </section>
   <section class="coach-view" id="coachViewSettings" role="tabpanel" aria-labelledby="coachTabSettings" data-coach-view="settings" hidden>
-    <div class="coach-page-lead"><div><span class="coach-tag">PERSONALIZE</span><h2>Rider settings.</h2><p>Tell Coach how you ride and how much time you have.</p></div></div>
+    <div class="coach-page-lead"><div><span class="coach-tag">PERSONALIZE</span><h2>My setup.</h2><p>Set your goals, schedule, and equipment. Save everything with one button.</p></div></div>
+    <div class="coach-setup-toolbar">
+      <div><strong>One plan. One save.</strong><p>Changes to cycling and strength settings save together.</p></div>
+      <button type="button" id="coachSaveProfile" class="coach-classic-start">SAVE MY PLAN →</button>
+      <p id="coachSettingsFeedback" class="coach-settings-feedback" role="status"></p>
+    </div>
     <div class="coach-settings-grid">
       <section class="coach-panel">
         <div class="coach-section-top"><span class="coach-tag">YOUR RIDER PROFILE</span><span class="coach-tag">LOCAL ONLY</span></div>
@@ -159,16 +174,17 @@ export function mountCoach(bridge:CoachBridge){
           <label>LEVEL<select id="coachExperience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
           <label>GOAL<select id="coachGoal"><option value="fitness">Ride consistently</option><option value="ftp">Increase FTP</option><option value="endurance">Build endurance</option><option value="race">Prepare to race</option></select></label>
         </div>
-        <button type="button" id="coachSaveProfile" class="coach-classic-start">SAVE RIDER SETTINGS →</button><p id="coachSettingsFeedback" class="coach-settings-feedback" role="status"></p>
-        <p class="coach-small">Your profile and recent coached workouts are saved in this browser. No cloud sync or generative AI is connected.</p>
+        <p class="coach-small">Your weekly training hours include both cycling and strength. You can change them any time.</p>
+        <p class="coach-small">This preview saves your training information on this device. There is no account sync.</p>
       </section>
       <section class="coach-panel coach-strength-settings" id="coachStrengthSettings"></section>
       <section class="coach-panel coach-howto">
-        <span class="coach-tag">HOW COACH WORKS</span><h3>Three easy steps.</h3>
+        <span class="coach-tag">HOW COACH WORKS</span><h3>Start in three steps</h3>
         <div class="coach-howto-step"><strong>1. Set your schedule</strong><p>Your FTP, days, and goals determine your starting workouts.</p></div>
         <div class="coach-howto-step"><strong>2. Review today's recommendation</strong><p>Coach selects your scheduled session. You can shorten, ease, or swap it when needed.</p></div>
-        <div class="coach-howto-step"><strong>3. Ride in Classic</strong><p>ERG holds power targets; SIM lets you control effort on terrain.</p></div>
-        <button type="button" class="coach-subtle-link" data-navigate-coach="today">Go to today's ride →</button>
+        <div class="coach-howto-step"><strong>3. Start your workout</strong><p>Connect your trainer for a ride. Strength workouts need no trainer.</p></div>
+        <button type="button" class="coach-subtle-link" data-navigate-coach="today">Go to Today →</button>
+        <button type="button" id="coachDemo" class="coach-demo-button">TRY A TRAINER-FREE DEMO <small>8 MINUTES · NO HARDWARE REQUIRED →</small></button>
       </section>
     </div>
   </section>
