@@ -11,6 +11,7 @@ import type {HistoricalRide} from './coach-history-core';
 import './coach-v2.css';
 import {integratedWeek,strengthRoutine} from './coach-strength';
 import {mountCoachStrength} from './coach-strength-ui';
+import './coach-ux-polish.css';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
