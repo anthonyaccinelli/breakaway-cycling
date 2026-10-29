@@ -9,7 +9,8 @@ const css=readFileSync(new URL('../src/coach.css',import.meta.url),'utf8');
 
 test('Coach is a subfeature of Classic, not a fourth home mode',()=>{
  assert.match(coach,/classicRoute=document.getElementById\('screenRoute'\)/);
- assert.match(coach,/routeHeading\|\|classicRoute\|\|document.body/);
+ assert.match(coach,/routeHeading\.insertAdjacentElement\('afterend',trigger\)/);
+ assert.match(coach,/const routeStudio=classicRoute\?\.querySelector<HTMLElement>\('#routeStudio'\)/);
  assert.doesNotMatch(coach,/bridgeHome\(\)\.append\(trigger\)/);
  assert.match(coach,/BACK TO CLASSIC/);
  assert.match(coach,/coachStartClassic/);
@@ -33,4 +34,16 @@ test('Coach dashboard is a fixed overlay that is not affected by the generic mai
  assert.match(coach,/'<div class="coach-main" role="main">/);
  assert.doesNotMatch(coach,/'<main class="coach-main">/);
  assert.match(css,/\.coach-screen\{position:fixed/);
+});
+
+test('Compact image-free Coach banner sits above Classic route creation',()=>{
+ assert.match(coach,/trigger\.className='coach-classic-banner'/);
+ assert.match(coach,/Train with Breakaway Coach/);
+ assert.match(coach,/OPEN COACH/);
+ assert.match(coach,/routeHeading\.insertAdjacentElement\('afterend',trigger\)/);
+ assert.match(css,/background:#f1f3f6!important;background-image:none!important/);
+ assert.match(css,/#openBreakawayCoach\{display:none!important\}/);
+ assert.match(css,/\[data-ride-experience="classic"\]\[data-breakaway-screen="route"\]/);
+ assert.doesNotMatch(css,/background-image:\s*url\(/);
+ assert.doesNotMatch(coach,/branding\//);
 });
