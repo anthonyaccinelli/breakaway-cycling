@@ -177,6 +177,7 @@ export function mountCoach(bridge:CoachBridge){
       <p id="coachSettingsFeedback" class="coach-settings-feedback" role="status"></p>
     </div>
     <div class="coach-settings-grid">
+      <div class="coach-setup-left">
       <section class="coach-panel">
         <div class="coach-section-top"><span class="coach-tag">YOUR RIDER PROFILE</span><span class="coach-tag">LOCAL ONLY</span></div>
         <div class="coach-fields">
@@ -190,7 +191,6 @@ export function mountCoach(bridge:CoachBridge){
         <p class="coach-small">Your weekly training hours include both cycling and strength. You can change them any time.</p>
         <p class="coach-small">This preview saves your training information on this device. There is no account sync.</p>
       </section>
-      <section class="coach-panel coach-strength-settings" id="coachStrengthSettings"></section>
       <section class="coach-panel coach-howto">
         <span class="coach-tag">HOW COACH WORKS</span><h3>Start in three steps</h3>
         <div class="coach-howto-step"><strong>1. Set your schedule</strong><p>Your FTP, days, and goals determine your starting workouts.</p></div>
@@ -199,6 +199,10 @@ export function mountCoach(bridge:CoachBridge){
         <button type="button" class="coach-subtle-link" data-navigate-coach="today">Go to Today →</button>
         <button type="button" id="coachDemo" class="coach-demo-button">TRY A TRAINER-FREE DEMO <small>8 MINUTES · NO HARDWARE REQUIRED →</small></button>
       </section>
+      </div>
+      <div class="coach-setup-right">
+        <section class="coach-panel coach-strength-settings" id="coachStrengthSettings"></section>
+      </div>
     </div>
   </section>
 </div>
