@@ -17,6 +17,8 @@ import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
 
+// Mount the existing app only after sign-in has restored account-scoped preferences.
+void (async function startBreakawayApplication(){
 // Require a verified account and restore its cloud preferences before any mode or Coach settings initialize.
 await bootAccount();
 startRiderPresence(createClient, document.getElementById('liveRidersCount'), document.getElementById('liveRiders'));
@@ -3080,3 +3082,5 @@ if(['route','ride','overlay','devices'].includes(cycleQuestReview||'')){
     else enterCycleQuest();})
   .catch(()=>enterCycleQuest());
 }
+
+})().catch(error=>{console.error('[Breakaway] App initialization failed',error);});
