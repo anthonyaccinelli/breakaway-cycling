@@ -16,7 +16,7 @@ const time=(v:unknown):number|null=>{if(v instanceof Date)return Number.isFinite
 function first(...values:unknown[]):number|null{for(const v of values){const n=val(v);if(n!==null)return n;}return null;}
 export function isCyclingSport(value:unknown):boolean {
  const sport=String(value??'').trim().toLowerCase().replace(/[\s_-]/g,'');
- return ['ride','cycling','2','virtualride','virtualcycling','ebikeride','mountainbikeride','gravelride','handcycle','velomobile','e-mountainbikeride','emtbride'].includes(sport);
+ return ['ride','cycling','biking','2','virtualride','virtualcycling','ebikeride','mountainbikeride','gravelride','handcycle','velomobile','e-mountainbikeride','emtbride'].includes(sport);
 }
 function cleanName(n:unknown):string{
  return typeof n==='string'&&n.trim()?n.trim().slice(0,120):'Cycling activity';
@@ -110,7 +110,7 @@ function haversine(a:XmlPoint,b:XmlPoint):number {
 export function parseXmlRide(text:string,filename='Activity.gpx',name?:string,stravaId:string|null=null):HistoricalRide{
  if(/<!DOCTYPE|<!ENTITY/i.test(text))throw Error('XML DTD or entity declarations are not supported.');
  const doc=new DOMParser().parseFromString(text,'application/xml');
- if(descendants(doc.documentElement,'parsererror').length||doc.querySelector('parsererror'))throw Error('Invalid activity XML.');
+ if(!doc.documentElement||descendants(doc.documentElement,'parsererror').length)throw Error('Invalid activity XML.');
  const isTcx=/\.tcx$/i.test(filename);
  const nodes=descendants(doc.documentElement,isTcx?'Trackpoint':'trkpt');
  if(nodes.length<2||nodes.length>160000)throw Error('Activity needs timestamped ride samples.');
