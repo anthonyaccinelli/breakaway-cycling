@@ -9,6 +9,8 @@ import {mountCoachHistory} from './coach-history-ui';
 import {loadHistoricalRides} from './coach-history-import';
 import type {HistoricalRide} from './coach-history-core';
 import './coach-v2.css';
+import {integratedWeek,strengthRoutine} from './coach-strength';
+import {mountCoachStrength} from './coach-strength-ui';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
@@ -46,6 +48,7 @@ export function mountCoach(bridge:CoachBridge){
   let importedRides:HistoricalRide[]=[];
   let controlChoice:CoachControl='structured';
   let platformRides:Awaited<ReturnType<CoachBridge['getPlatformRides']>>=[];
+  let strength:ReturnType<typeof mountCoachStrength>|null=null;
   let session:Session|null=null;
   let finishedId='';
   let renderAt=0;
@@ -112,6 +115,7 @@ export function mountCoach(bridge:CoachBridge){
         </div>
       </section>
       <aside class="coach-today-side">
+        <section class="coach-panel coach-strength-today" id="coachStrengthToday" hidden></section>
         <section class="coach-panel coach-mini-card">
           <div class="coach-section-top"><span class="coach-tag">YOUR PROFILE</span><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit →</button></div>
           <div id="coachProfileSummary" class="coach-profile-summary"></div>
@@ -127,7 +131,7 @@ export function mountCoach(bridge:CoachBridge){
   <section class="coach-view" id="coachViewPlan" role="tabpanel" aria-labelledby="coachTabPlan" data-coach-view="plan" hidden>
     <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training plan.</h2><p>Select a day or browse the workout library, then head to Today's Ride.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Change schedule →</button></div>
     <div class="coach-plan-grid">
-      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS WEEK</span><span class="coach-small">Select a day to load its workout</span></div><div id="coachWeek" class="coach-week"></div></section>
+      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS WEEK · CYCLING + STRENGTH</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
       <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">WORKOUT LIBRARY</span></div><div id="coachPlanLibrary" class="coach-library-list"></div><p class="coach-small">Initial recommendations only; detailed long-term periodization is a future feature.</p></section>
     </div>
   </section>
@@ -137,7 +141,8 @@ export function mountCoach(bridge:CoachBridge){
       <section class="coach-panel coach-history-host" id="coachHistoryImport"></section>
       <div class="coach-history-side">
         <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">ALL BREAKAWAY RIDES</span></div><div id="coachPlatformHistory"><p class="coach-small">Loading local rides…</p></div></section>
-        <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">COACHED WORKOUTS</span></div><div id="coachHistory"></div></section>
+        <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">COACHED RIDES</span></div><div id="coachHistory"></div></section>
+        <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">STRENGTH TRAINING LOG</span></div><div id="coachStrengthHistory"></div></section>
       </div>
     </div>
   </section>
@@ -157,6 +162,7 @@ export function mountCoach(bridge:CoachBridge){
         <button type="button" id="coachSaveProfile" class="coach-classic-start">SAVE RIDER SETTINGS →</button><p id="coachSettingsFeedback" class="coach-settings-feedback" role="status"></p>
         <p class="coach-small">Your profile and recent coached workouts are saved in this browser. No cloud sync or generative AI is connected.</p>
       </section>
+      <section class="coach-panel coach-strength-settings" id="coachStrengthSettings"></section>
       <section class="coach-panel coach-howto">
         <span class="coach-tag">HOW COACH WORKS</span><h3>Three easy steps.</h3>
         <div class="coach-howto-step"><strong>1. Set your schedule</strong><p>Your FTP, days, and goals determine your starting workouts.</p></div>
