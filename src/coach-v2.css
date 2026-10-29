@@ -167,3 +167,42 @@
  .coach-v2 .coach-today-side,.coach-v2 .coach-plan-grid,.coach-v2 .coach-settings-grid{grid-template-columns:1fr}
  .coach-v2 .coach-today-side .coach-demo-button{grid-column:1}
 }
+
+
+/* Interactive interval inspector: exact wattage and time at a glance. */
+.coach-v2 .coach-interval-readout{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:13px 16px;margin:17px 0 0;border:1px solid #d7e4f6;border-radius:11px;
+  background:#f3f7fe;color:#183252;min-height:70px;
+}
+.coach-v2 .coach-interval-identity{display:flex;flex-direction:column;gap:3px;min-width:0}
+.coach-v2 .coach-interval-kicker{font-size:10px;letter-spacing:1px;font-weight:850;color:#255cc2}
+.coach-v2 .coach-interval-identity>strong{font-size:16px;color:#152c4a;line-height:1.2}
+.coach-v2 .coach-interval-identity>small{font-size:11px;font-weight:700;color:#6b7f9a}
+.coach-v2 .coach-interval-numbers{display:flex;align-items:center;gap:clamp(10px,2vw,25px);flex-wrap:wrap}
+.coach-v2 .coach-interval-numbers>div{display:flex;flex-direction:column;gap:4px;white-space:nowrap}
+.coach-v2 .coach-interval-numbers span{font-size:9px;font-weight:900;letter-spacing:.7px;color:#6d81a0}
+.coach-v2 .coach-interval-numbers strong{font-size:clamp(14px,1.5vw,18px);font-weight:900;color:#183357}
+.coach-v2 .coach-interval-numbers>div:nth-child(2) strong{color:#1251d0}
+.coach-v2 .coach-segments{margin:9px 0 19px!important;overflow:visible!important}
+.coach-v2 .coach-segments .coach-segment{
+  box-sizing:border-box;display:flex;align-items:flex-end;height:100%;
+  min-width:6px;margin:0;position:relative;border:0!important;border-radius:0!important;
+  background:transparent!important;padding:0!important;outline-offset:4px;
+  appearance:none;cursor:crosshair;transition:filter .12s ease;
+}
+.coach-v2 .coach-segments .coach-segment .coach-segment-bar{
+  display:block;width:100%;min-height:3px;border-radius:6px 6px 0 0;transition:filter .12s,box-shadow .12s;
+}
+.coach-v2 .coach-segments .coach-segment:hover .coach-segment-bar,
+.coach-v2 .coach-segments .coach-segment:focus-visible .coach-segment-bar,
+.coach-v2 .coach-segments .coach-segment[aria-pressed="true"] .coach-segment-bar{
+  filter:saturate(1.25) brightness(.97);
+  box-shadow:inset 0 0 0 2px rgba(19,56,117,.35),0 -3px 0 #1955ce;
+}
+.coach-v2 .coach-segments .coach-segment:focus-visible{outline:3px solid #0c59d8!important;border-radius:4px!important}
+@media(max-width:630px){
+ .coach-v2 .coach-interval-readout{padding:12px;gap:13px}
+ .coach-v2 .coach-interval-numbers{gap:12px}
+ .coach-v2 .coach-interval-numbers strong{font-size:15px}
+}
