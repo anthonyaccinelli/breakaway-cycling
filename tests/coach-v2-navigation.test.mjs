@@ -21,8 +21,8 @@ test('Coach has four distinct accessible sections rather than a scrolling dashbo
 });
 test('One clear route from recommended workout to Classic Devices, and game modes never get Coach commands',()=>{
  assert.match(coach,/id="coachStartClassic"/);
- assert.match(coach,/CONTINUE TO CONNECT TRAINER/);
- assert.match(coach,/Next: Classic Devices/);
+ assert.match(coach,/CONNECT MY TRAINER/);
+ assert.match(coach,/Next: connect your trainer/);
  assert.match(main,/launchMode:\(_mode\)=>\{showBreakawayScreen\('setup'\);\}/);
  assert.doesNotMatch(coach,/data-coach-mode="survival"|data-coach-mode="cyclequest"/);
 });
