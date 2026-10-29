@@ -206,3 +206,47 @@
  .coach-v2 .coach-interval-numbers{gap:12px}
  .coach-v2 .coach-interval-numbers strong{font-size:15px}
 }
+
+
+/* Daily recommendation is the primary Classic Coach experience. Manual selection is secondary. */
+.coach-v2 [hidden]{display:none!important}
+.coach-v2 .coach-recommended-name{
+  font-family:'Host Grotesk',system-ui,sans-serif!important;
+  font-size:clamp(27px,3.2vw,42px)!important;letter-spacing:-1.3px!important;
+  line-height:1.05!important;font-weight:900!important;margin:0 0 12px!important;color:#172c47!important
+}
+.coach-v2 .coach-why{
+  padding:13px 16px;border-left:4px solid #1a5ce6;
+  background:#f0f5fe;color:#395572;font-size:13px;line-height:1.55;
+  border-radius:0 9px 9px 0;margin-bottom:17px
+}
+.coach-v2 .coach-why strong{font-weight:800;color:#2051b8}
+.coach-v2 .coach-swap-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+  margin:20px 0 0;padding-top:12px;border-top:1px solid #e5ebf4}
+.coach-v2 .coach-swap-panel{
+  margin-top:12px;background:#f8fbff;border:1px solid #dae6f6;border-radius:12px;padding:12px;
+}
+.coach-v2 .coach-swap-panel p{font-size:12px;line-height:1.5;color:#576f8c;margin:1px 5px 12px}
+.coach-v2 .coach-swap-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.coach-v2 .coach-swap-list button{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  min-width:0;text-align:left;padding:12px!important;background:#fff!important;
+  color:#244367!important;border:1px solid #dae4f1!important;border-radius:9px!important
+}
+.coach-v2 .coach-swap-list button:hover{border-color:#2770eb!important;background:#eef5ff!important}
+.coach-v2 .coach-swap-list button span:first-child{display:grid;gap:4px;min-width:0}
+.coach-v2 .coach-swap-list button strong{font-size:12px!important;font-weight:850}
+.coach-v2 .coach-swap-list button small{font-size:10px!important;color:#71859d}
+.coach-v2 .coach-rest-state{
+  background:#f7f9fd;border:1px solid #e2e9f4;border-radius:12px;
+  padding:19px;margin:0 0 13px;color:#42607d
+}
+.coach-v2 .coach-rest-state p{margin:0 0 14px;font-size:14px;line-height:1.55}
+.coach-v2 #coachBrowseOptional{border:1px solid #b8cbee;background:#eef4ff;color:#1251d2;
+  font-size:12px;font-weight:900;border-radius:8px;padding:11px 14px}
+.coach-v2 #coachBrowseOptional:hover{background:#e0ecff}
+.coach-v2 .coach-feature-pill{white-space:nowrap}
+@media(max-width:640px){
+ .coach-v2 .coach-swap-list{grid-template-columns:1fr}
+ .coach-v2 .coach-recommended-name{font-size:29px!important}
+}
