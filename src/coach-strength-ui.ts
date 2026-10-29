@@ -10,7 +10,7 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
  let settings=validStrength(read(STRENGTH_KEY)||defaultStrength);
  const stored=read(STRENGTH_HISTORY_KEY);
  let history:StrengthRecord[]=Array.isArray(stored)?stored.filter(x=>x&&typeof x.routine==='string'&&Array.isArray(x.sets)).slice(-150):[];
- let active=false,variation:'A'|'B'='A',light=false,start=0,selectedRpe='';
+ let active=false,variation:'A'|'B'='A',light=false,start=0,selectedRpe='',allocatedMinutes=30;
  let exercises:StrengthExercise[]=[];
  const checked=new Set<string>(),entered=new Map<string,string>();
  let timer:number|null=null,restUntil=0;
@@ -69,7 +69,7 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
   const routine=strengthRoutine(settings,variation,light);
   const total=exercises.reduce((n,e)=>n+e.sets,0);
   overlay.innerHTML='<div class="coach-strength-session">'+
-    '<header class="coach-strength-session-head"><div><span>BREAKAWAY COACH / STRENGTH</span><h2>'+esc(routine.title)+'</h2><p>'+routine.minutes+' min planned · '+checked.size+' / '+total+' sets logged</p></div><button type="button" id="strengthExit">← BACK TO COACH</button></header>'+
+    '<header class="coach-strength-session-head"><div><span>BREAKAWAY COACH / STRENGTH</span><h2>'+esc(routine.title)+'</h2><p>'+allocatedMinutes+' min planned · +checked.size+' / '+total+' sets logged</p></div><button type="button" id="strengthExit">← BACK TO COACH</button></header>'+
     '<div class="coach-strength-session-note">'+esc(routine.note)+' Warm up for 5 minutes. Stop or modify anything painful; use a load you can control.</div>'+
     '<div class="coach-strength-progress"><div style="width:'+Math.round(100*checked.size/Math.max(total,1))+'%"></div></div>'+
     '<div class="coach-strength-rest"><span id="strengthRestLabel">Rest as needed between sets.</span><button type="button" id="strengthRestStart">START 60s REST</button></div>'+
@@ -143,9 +143,10 @@ export function mountCoachStrength(host:HTMLElement,callbacks:{changed:()=>void;
   history=next;close();callbacks.finished();
  }
  function close(){stopTimer();active=false;overlay.hidden=true;}
- function open(chosen:'A'|'B'='A',isLight=false){
+ function open(chosen:'A'|'B'='A',isLight=false,minutes?:number){
   if(!settings.enabled)return false;
-  variation=chosen;light=isLight;exercises=strengthRoutine(settings,variation,light).exercises;
+  variation=chosen;light=isLight;allocatedMinutes=Math.min(settings.minutes,Math.max(15,minutes||settings.minutes));exercises=strengthRoutine(settings,variation,isLight||allocatedMinutes<20).exercises;
+  if(allocatedMinutes<settings.minutes)exercises=exercises.map(e=>({...e,sets:Math.max(1,Math.min(e.sets,allocatedMinutes<25?1:2))}));
   active=true;checked.clear();entered.clear();selectedRpe='';start=Date.now();stopTimer();
   overlay.hidden=false;renderSession();overlay.scrollTop=0;
   (overlay.querySelector('#strengthExit') as HTMLButtonElement)?.focus();return true;
