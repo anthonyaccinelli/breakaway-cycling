@@ -150,7 +150,8 @@ export async function collectRiderFiles(files:File[],onProgress:(info:ImportProg
    const name=item.name.replace(/^.*\//,'').replace(/\.(fit|gpx|tcx)(\.gz)?$/i,'');
    let ride:HistoricalRide;
    if(/\.fit(\.gz)?$/i.test(item.name)){
-    const {decodeFIT}=await import(/* @vite-ignore */ '/coach-fit-decoder.js');
+    const browserFitDecoder='/coach-fit-decoder.js';
+    const {decodeFIT}=await import(/* @vite-ignore */ browserFitDecoder);
     ride=parseFitRide(await decodeFIT(raw),name,meta?.ride.name,meta?.ride.stravaId??null);
    }else ride=parseXmlRide(textDecoder.decode(raw),name.replace(/\.gz$/i,''),meta?.ride.name,meta?.ride.stravaId??null);
    rides.push(ride);read++;
