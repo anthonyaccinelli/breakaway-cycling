@@ -407,7 +407,7 @@ function finishRide(){
   const reset=document.createElement('button');reset.textContent='Done — New Ride';reset.onclick=()=>{root.hidden=true;root.style.removeProperty('display');root.classList.remove('ride-summary-fullscreen');rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();resetSimController();syncManualFinishButton();update();};root.append(reset);
   root.hidden=false;root.classList.add('ride-summary-fullscreen');root.style.display='block';
  }
- const coachReview=coachRuntime?.finish();
+ const coachReview=typeof coachRuntime==='undefined'?null:coachRuntime?.finish();
  if(coachReview)$('rideSummary').append(coachReview);
  const completedRideId=rideStart;
  void archiveFinishedRide().then(()=>{const saved=readRideRecovery();if(saved?.rideStart===completedRideId)clearRideRecovery();}).catch(error=>console.warn('Ride archive failed; recovery checkpoint retained',error));
@@ -987,7 +987,7 @@ function advanceRide(now:number){
  const dt=Math.max(0,Math.min(3,(now-last)/1000||0));last=now;
  if(running&&points.length&&connected&&controlGranted&&realTelemetry){
   activeRideMs+=dt*1000;
-  coachRuntime?.tick(dt,power,cadence,realTelemetry);
+  if(typeof coachRuntime!=='undefined')coachRuntime?.tick(dt,power,cadence,realTelemetry);
   // Power measured in joules per second; estimate metabolic calories using
   // a fixed cycling efficiency. Do not accrue calories while coasting at 0 W.
   energyKcal+=Math.max(0,power)*dt/(GROSS_EFFICIENCY*4184);
@@ -2133,7 +2133,7 @@ function surviveEnd(caught=false){if(!surviveOn)return;surviveWaitingForPedals=f
 function surviveTick(now:number){const dt=surviveLast?Math.max(0,Math.min(1,(now-surviveLast)/1000)):0;surviveLast=now;// SURVIVE is independent of the rider's pause state: the pursuer never stops.
  if(!surviveOn)return;
  // During a coached recovery (or a paused session), the threat respects the workout.
- if(coachRuntime?.mode==='survival'&&!surviveWaitingForPedals&&(!running||coachRuntime.isRecovery())){surviveRender();return;}
+ if(typeof coachRuntime!=='undefined'&&coachRuntime?.mode==='survival'&&!surviveWaitingForPedals&&(!running||coachRuntime.isRecovery())){surviveRender();return;}
  if(surviveWaitingForPedals){
   // Require sustained fresh trainer cadence, not a stale power/speed sample.
   const pedaling=connected&&realTelemetry&&cadence>=10;
@@ -2144,7 +2144,7 @@ function surviveTick(now:number){const dt=surviveLast?Math.max(0,Math.min(1,(now
   se('surviveStatus').textContent='SURVIVAL STARTED';
   surviveRender();return;
  }
- if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;if(surviveMode==='finish'){surviveChaseWattSeconds+=Math.max(0,power)*dt;surviveChaseSeconds+=dt;}surviveWave=surviveMode==='finish'?1:1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(coachRuntime?.mode==='survival'&&coachRuntime.onTarget(power)){surviveEnemyDistance=Math.min(surviveEnemyDistance,distance-50);surviveGap=distance-surviveEnemyDistance;}if(surviveMode==='finish'&&surviveFinishDistance>0&&distance>=surviveFinishDistance&&surviveGap>0){
+ if(survivePrepRemaining>0){survivePrepRemaining=Math.max(0,survivePrepRemaining-dt);if(survivePrepRemaining===0){surviveEnemyDistance=distance-100;surviveEnemySpeed=Math.max(0,speed);surviveGap=100;surviveElapsed=0;surviveWave=1;}surviveRender();return;}surviveElapsed+=dt;if(surviveMode==='finish'){surviveChaseWattSeconds+=Math.max(0,power)*dt;surviveChaseSeconds+=dt;}surviveWave=surviveMode==='finish'?1:1+Math.floor(surviveElapsed/survivePeriod);surviveAdvanceEnemy(dt);if(typeof coachRuntime!=='undefined'&&coachRuntime?.mode==='survival'&&coachRuntime.onTarget(power)){surviveEnemyDistance=Math.min(surviveEnemyDistance,distance-50);surviveGap=distance-surviveEnemyDistance;}if(surviveMode==='finish'&&surviveFinishDistance>0&&distance>=surviveFinishDistance&&surviveGap>0){
   surviveWon=true;
   const finishGap=Math.round(surviveGap);
   surviveEnd(false);
@@ -2799,7 +2799,7 @@ function chooseRideExperience(mode:RideExperience,recordHistory=true){
 }
 function openModeLanding(){
  if(surviveOn){status('End your current Survival session before changing modes.');return false;}
- coachRuntime?.endCoaching();
+ if(typeof coachRuntime!=='undefined')coachRuntime?.endCoaching();
  delete document.body.dataset.deviceShortcut;
  const host=document.getElementById('cycleQuestHost');if(host)host.hidden=true;
  if(running)pauseRide();
