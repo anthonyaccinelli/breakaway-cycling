@@ -47,7 +47,8 @@ test('weekly training contains rider-defined days and a hard-session fatigue saf
   const normal=coach.recommendWeek(p,false);
   const fatigued=coach.recommendWeek(p,true);
   assert.equal(normal.filter(s=>s.workoutId).length,4);
-  assert.equal(normal[5].workoutId,null);
+  assert.equal(normal[6].workoutId,null); // Saturday is the default rest day.
+  assert.ok(normal[5].workoutId);
   assert.equal(normal.find(s=>s.workoutId).workoutId,'vo2');
   assert.equal(fatigued.find(s=>s.workoutId).workoutId,'recovery');
   assert.ok(fatigued.every(s=>['recovery','endurance',null].includes(s.workoutId)));
