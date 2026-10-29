@@ -3027,7 +3027,7 @@ mountClassicRouteReference();
 
 // Coach preview reuses the existing FTMS writer. It does not open another BLE connection.
 coachRuntime=mountCoach({
- launchMode:(_mode)=>{showBreakawayScreen('route');},
+ launchMode:(_mode)=>{showBreakawayScreen('setup');},
  makeRoute:(seconds,structured)=>{
   ($('generatedTerrain') as HTMLSelectElement).value=structured?'flat':'rolling';
   ($('generatedDifficulty') as HTMLSelectElement).value=structured?'0.55':'1';
