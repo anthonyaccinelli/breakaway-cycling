@@ -19,3 +19,6 @@ dialog.beta-dialog .beta-form-bottom button:disabled{opacity:.6;cursor:wait}
 dialog.beta-dialog [hidden]{display:none!important}
 .beta-report-open:focus-visible,.beta-access-line button:focus-visible,dialog.beta-dialog button:focus-visible{outline:3px solid #fff;outline-offset:3px}
 @media(max-width:760px){.beta-compat{padding:14px}.beta-compat-top{gap:9px}.beta-details-grid{grid-template-columns:1fr}.beta-modal-head{padding:22px 20px 15px}.beta-form-body{padding:17px 20px}.beta-form-bottom{align-items:flex-start;flex-direction:column}.beta-form-bottom button{width:100%}.beta-capabilities{gap:6px}.beta-report-global{right:12px;bottom:65px}}
+/* Preserve the approved support colors above the application's button theme. */
+.beta-report-open,dialog.beta-dialog .beta-form-bottom button,dialog.beta-dialog #beta-done,dialog.beta-dialog #beta-beta-start-quest{background:#50d8b2!important;color:#092e2b!important;border-color:#50d8b2!important}
+dialog.beta-dialog .beta-close{background:#172c3c!important;color:#eff7fa!important;border-color:#426071!important}
