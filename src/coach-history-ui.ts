@@ -68,6 +68,7 @@ export function mountCoachHistory(host:HTMLElement,callbacks:HistoryCallbacks){
    busy=true;const copy=pending;const button=$('coachConfirmImport') as HTMLButtonElement;button.disabled=true;
    try{await saveHistoricalRides(copy);activities=copy;pending=null;
     stage.textContent='Saved '+added+' new rides and enhanced '+updated+' activities on this device.';renderSummary();
+    window.dispatchEvent(new Event('breakaway:history-updated'));
    }catch(error){stage.textContent='Save failed (nothing was changed): '+String(error instanceof Error?error.message:error);}
    finally{busy=false;}
   });
@@ -98,7 +99,7 @@ export function mountCoachHistory(host:HTMLElement,callbacks:HistoryCallbacks){
   if(busy)return;
   if(!confirm('Delete all historical rides imported into Breakaway Coach on this device? Your original Strava files are not affected.'))return;
   busy=true;clear.disabled=true;
-  try{await clearHistoricalRides();pending=null;activities=[];stage.textContent='Imported history deleted from this device.';renderSummary();}
+  try{await clearHistoricalRides();pending=null;activities=[];stage.textContent='Imported history deleted from this device.';renderSummary();window.dispatchEvent(new Event('breakaway:history-updated'));}
   catch(error){stage.textContent='Delete failed: '+String(error instanceof Error?error.message:error);}
   finally{busy=false;clear.disabled=false;}
  });
