@@ -71,7 +71,7 @@ export function mountCoach(bridge:CoachBridge){
     <p>Train with a plan. Enjoy the ride.</p>
   </div>
   <div class="coach-header-actions">
-    <span id="coachHeaderFtp" class="coach-ftp-chip" title="FTP means Functional Threshold Power. Update it in My Setup.">FTP 200 W</span>
+    <button type="button" data-navigate-coach="settings" id="coachHeaderFtp" class="coach-ftp-chip" title="FTP means Functional Threshold Power. Edit this in My Setup." aria-label="Edit your FTP and training settings">FTP 200 W</button>
     <button type="button" class="coach-back" id="coachBack">← BACK TO CLASSIC</button>
   </div>
 </header>
@@ -84,6 +84,10 @@ export function mountCoach(bridge:CoachBridge){
 <div class="coach-main" role="main">
   <section class="coach-view" id="coachViewToday" role="tabpanel" aria-labelledby="coachTabToday" data-coach-view="today">
     <div class="coach-page-lead"><div><span class="coach-tag">YOUR NEXT SESSION</span><h2>Today's training.</h2><p id="coachSuggestion">Coach selects your session from your weekly plan and recent riding.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="plan">View my week →</button></div>
+    <div id="coachFirstRun" class="coach-first-run" hidden>
+      <div><strong>New to Breakaway Coach?</strong><p>Start here: set your goal, available training time, and equipment so Coach can make a plan for you.</p></div>
+      <button type="button" data-navigate-coach="settings">SET UP MY PLAN →</button>
+    </div>
     <div class="coach-today-grid">
       <section class="coach-panel coach-workout-card">
         <div class="coach-section-top"><span class="coach-tag">COACH RECOMMENDS</span><span id="coachRecommendationLabel" class="coach-feature-pill">YOUR PLAN</span></div>
@@ -343,6 +347,7 @@ export function mountCoach(bridge:CoachBridge){
     const week=recommendWeek(rider,false), now=new Date().getDay();
     const weekdays=['SUN','MON','TUE','WED','THU','FRI','SAT'];
     $('coachHeaderFtp').textContent='FTP '+rider.ftp+' W';
+    $('coachFirstRun').hidden=!!readJson(COACH_PROFILE_KEY);
     $('coachProfileSummary').innerHTML=
       '<div><strong>'+rider.ftp+' W</strong><span>FTP</span></div>'+
       '<div><strong>'+rider.hours+' h</strong><span>Per week</span></div>'+
@@ -501,6 +506,8 @@ export function mountCoach(bridge:CoachBridge){
     riderSelected=false;customWorkout=null;
     render();
     $('coachSettingsFeedback').textContent='✓ Saved! Your cycling, strength, and weekly plan are updated.';
+    navigate('today',true);
+    $('coachAnswer').textContent='Your plan is saved. Coach has prepared today’s recommendation.';
   });
   function release(){
     if(session?.control==='structured' && !isDemo)bridge.setMode('sim');
