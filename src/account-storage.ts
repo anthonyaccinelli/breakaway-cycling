@@ -89,7 +89,7 @@ export async function prepareAccountSettings(client:SupabaseClient,userId:string
 function schedule():void{
  if(!isReady||!accountId)return;
  if(pendingTimer!==undefined)clearTimeout(pendingTimer);
- pendingTimer=window.setTimeout(()=>{pendingTimer=undefined;void syncAccountSettings();},600);
+ pendingTimer=window.setTimeout(()=>{pendingTimer=undefined;void syncAccountSettings().catch(()=>{});},600);
  status('Saving…');
 }
 function installWatchers():void{
@@ -111,10 +111,10 @@ function installWatchers():void{
   if(event.key===null||trackedKey(event.key))schedule();
  });
  window.addEventListener('visibilitychange',()=>{
-  if(document.hidden)void syncAccountSettings();
+  if(document.hidden)void syncAccountSettings().catch(()=>{});
  });
- window.addEventListener('pagehide',()=>{void syncAccountSettings();});
- window.setInterval(()=>{if(isReady&&hasChanges())void syncAccountSettings();},4000);
+ window.addEventListener('pagehide',()=>{void syncAccountSettings().catch(()=>{});});
+ window.setInterval(()=>{if(isReady&&hasChanges())void syncAccountSettings().catch(()=>{});},4000);
 }
 function hasChanges():boolean{
  const current=snapshot();
@@ -144,7 +144,7 @@ export async function syncAccountSettings():Promise<void>{
    status('Unable to sync — retrying',true);
    console.warn('[Account] Preference sync failed',error);
    if(retryTimer!==undefined)clearTimeout(retryTimer);
-   retryTimer=window.setTimeout(()=>{retryTimer=undefined;void syncAccountSettings();},10000);
+   retryTimer=window.setTimeout(()=>{retryTimer=undefined;void syncAccountSettings().catch(()=>{});},10000);
    throw error;
   }
  })();
