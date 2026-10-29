@@ -59,3 +59,24 @@ test('every schedule retains the selected rest day, even for very active riders'
  assert.equal(p.days,6);
  assert.equal(week[2].workoutId,null);
 });
+
+test('fatigueSignals uses one rule for demanding rides and very hard feedback',()=>{
+ const now=Date.parse('2026-09-10T12:00:00Z');
+ const p={...coach.defaultProfile,ftp:200};
+ const hard={start:now-3600000*10,elapsed:3600,avgPower:170,source:'classic'};
+ const easy={start:now-3600000*10,elapsed:3600,avgPower:120,source:'classic'};
+ const old={start:now-3600000*40,elapsed:3600,avgPower:190,source:'classic'};
+ assert.equal(coach.fatigueSignals(p,now,[hard]).fatigued,true);
+ assert.equal(coach.fatigueSignals(p,now,[easy]).fatigued,false);
+ assert.equal(coach.fatigueSignals(p,now,[old]).fatigued,false,'rides older than 36h do not count');
+ assert.equal(coach.fatigueSignals(p,now,[],[{date:now-3600000*20,rpe:9}]).veryHardFeedback,true);
+ assert.equal(coach.fatigueSignals(p,now,[],[{date:now-3600000*60,rpe:10}]).fatigued,false,'feedback older than 48h does not count');
+ assert.equal(coach.fatigueSignals(p,now,[{start:now-1000,elapsed:600,avgPower:250}]).fatigued,false,'short rides do not count');
+});
+test('recommendToday and fatigueSignals agree on switching to recovery',()=>{
+ const day=new Date(2026,8,9,12,0,0);
+ const hard=[{start:day.getTime()-3600000*22,elapsed:3600,avgPower:180}];
+ const rec=coach.recommendToday(coach.defaultProfile,day,hard);
+ assert.equal(coach.fatigueSignals(coach.defaultProfile,day.getTime(),hard).fatigued,true);
+ assert.equal(rec.status,'recovery');
+});
