@@ -1,3 +1,4 @@
+import {createRouteSeedSelector} from './route-seed';
 import {mountBetaSupport} from './beta-support';
 import {mountCoach} from './coach';
 import './style.css';
@@ -94,6 +95,8 @@ function solveGain(target:number){
  for(let i=0;i<22;i++){const mid=(lo+hi)/2;if(estimatedGain(mid)<target)lo=mid;else hi=mid;}
  return (lo+hi)/2;
 }
+const selectRouteSeed=createRouteSeedSelector();
+let routeSeedEdited=false;
 const CHUNK=1609.344*5, STEP=80;
 // Seeded, non-repeating hill segments. Each segment has its own length, height,
 // steepness, direction and asymmetric crest. No repeating sine-wave patterns.
@@ -168,7 +171,8 @@ function prepareProcedural(isEndless:boolean){
  const gainText=($('generatedGain') as HTMLInputElement).value.trim(),targetGain=gainText===""?null:Number(gainText);
  if(targetGain!==null&&(!Number.isFinite(targetGain)||targetGain<0)){status("Enter a valid total elevation gain in feet.");return;}
  proceduralIntensity=Number(($('generatedDifficulty') as HTMLSelectElement).value);
- proceduralSeed=Number(($('generatedSeed') as HTMLInputElement).value)||Math.floor(Math.random()*1000000000);
+ proceduralSeed=selectRouteSeed(($('generatedSeed') as HTMLInputElement).value,routeSeedEdited);
+ routeSeedEdited=false;
  ($('generatedSeed') as HTMLInputElement).value=String(proceduralSeed);
  resetHills();gainScale=1;plannedGainFeet=null;
  if(!isEndless){
@@ -426,6 +430,7 @@ const SIM_TEST_WATTS=300, SIM_COMMAND_INTERVAL_MS=750;
 const SIM_GRADE_SLEW_PERCENT_PER_SECOND=0.75;
 let simAppliedGrade=NaN,simLastTime=0,simBusy=false;
 const $=(id:string)=>document.getElementById(id)!;
+$('generatedSeed').addEventListener('input',()=>{routeSeedEdited=true;});
 $('generateRoute').addEventListener('click',()=>prepareProcedural(false));
 $('endlessRoute').addEventListener('click',()=>prepareProcedural(true));
 $('surpriseRoute').addEventListener('click',()=>{
