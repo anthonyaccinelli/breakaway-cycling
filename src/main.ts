@@ -271,12 +271,19 @@ type RideSample={seconds:number; distance:number; elevation:number; power:number
 let rideSamples:RideSample[]=[];let lastSampleSecond=-1;
 // v409: local, versioned crash-recovery checkpoint. Never stores Bluetooth credentials.
 const RIDE_RECOVERY_KEY='breakaway-ride-recovery-v409';
-type RideCheckpoint={rideSessionStartDistance?:number;version:1;savedAt:number;rideStart:string;rideEnd:string|null;routeName:string;points:Point[];distance:number;speed:number;procedural:boolean;endless:boolean;proceduralSeed:number;proceduralTerrain:Terrain;proceduralIntensity:number;routeLimit:number;generatedThrough:number;gainScale:number;plannedGainFeet:number|null;retiredGainMeters:number;retiredLossMeters:number;elevationHistory:HistoryPoint[];historyStride:number;activeRideMs:number;energyKcal:number;avgPowerEnergy:number;avgPowerDuration:number;rideSamples:RideSample[]};
+type RideCheckpoint={mode?:RideExperience;questStoryChapter?:number;rideSessionStartDistance?:number;version:1;savedAt:number;rideStart:string;rideEnd:string|null;routeName:string;points:Point[];distance:number;speed:number;procedural:boolean;endless:boolean;proceduralSeed:number;proceduralTerrain:Terrain;proceduralIntensity:number;routeLimit:number;generatedThrough:number;gainScale:number;plannedGainFeet:number|null;retiredGainMeters:number;retiredLossMeters:number;elevationHistory:HistoryPoint[];historyStride:number;activeRideMs:number;energyKcal:number;avgPowerEnergy:number;avgPowerDuration:number;rideSamples:RideSample[]};
 let recoveryWriteFailed=false;
+let pendingQuestRideRecovery:RideCheckpoint|null=null;
+function recoveryMode(c:RideCheckpoint):RideExperience{
+ if(c.mode==='classic'||c.mode==='survival'||c.mode==='cyclequest')return c.mode;
+ // Older checkpoints omitted mode. Only infer Quest from a matching saved route.
+ try{const character=JSON.parse(localStorage.getItem('cycle-quest-character-v1')||'null');if(character?.route?.name===c.routeName)return 'cyclequest';}catch{}
+ return 'classic';
+}
 function clearRideRecovery(){try{localStorage.removeItem(RIDE_RECOVERY_KEY);}catch{}}
 function saveRideRecovery(){
  if(!rideStart||!points.length)return;
- const checkpoint:RideCheckpoint={rideSessionStartDistance,version:1,savedAt:Date.now(),rideStart,rideEnd,routeName,points,distance,speed,procedural,endless,proceduralSeed,proceduralTerrain,proceduralIntensity,routeLimit: Number.isFinite(routeLimit)?routeLimit:-1,generatedThrough,gainScale,plannedGainFeet,retiredGainMeters,retiredLossMeters,elevationHistory,historyStride,activeRideMs,energyKcal,avgPowerEnergy,avgPowerDuration,rideSamples};
+ const checkpoint:RideCheckpoint={mode:rideExperience,questStoryChapter,rideSessionStartDistance,version:1,savedAt:Date.now(),rideStart,rideEnd,routeName,points,distance,speed,procedural,endless,proceduralSeed,proceduralTerrain,proceduralIntensity,routeLimit: Number.isFinite(routeLimit)?routeLimit:-1,generatedThrough,gainScale,plannedGainFeet,retiredGainMeters,retiredLossMeters,elevationHistory,historyStride,activeRideMs,energyKcal,avgPowerEnergy,avgPowerDuration,rideSamples};
  try{localStorage.setItem(RIDE_RECOVERY_KEY,JSON.stringify(checkpoint));recoveryWriteFailed=false;}
  catch(error){if(!recoveryWriteFailed){console.warn('Ride autosave unavailable',error);status('Ride autosave unavailable — storage full or blocked. Export your TCX when finished.');}recoveryWriteFailed=true;}
 }
@@ -288,11 +295,17 @@ function readRideRecovery():RideCheckpoint|null{
 }
 function restoreRideRecovery(c:RideCheckpoint){
  // A restored ride is always paused. No resistance/control command is sent until the rider reconnects and presses Resume.
- running=false;rideStart=c.rideStart;rideEnd=c.rideEnd||null;routeName=c.routeName;points=c.points;distance=c.distance;speed=0;
+ running=false;rideAwaitingPedaling=false;pedalSince=0;cycleQuestHold=false;questReward=false;
+ surviveOn=false;surviveCaught=false;surviveFailScreen.hidden=true;surviveVictoryScreen.hidden=true;
+ rideStart=c.rideStart;rideEnd=c.rideEnd||null;routeName=c.routeName;points=c.points;distance=c.distance;speed=0;
  procedural=c.procedural;endless=c.endless;proceduralSeed=c.proceduralSeed;proceduralTerrain=c.proceduralTerrain;proceduralIntensity=c.proceduralIntensity;routeLimit=c.routeLimit===-1?Infinity:c.routeLimit;generatedThrough=c.generatedThrough;gainScale=c.gainScale;plannedGainFeet=c.plannedGainFeet;
  retiredGainMeters=c.retiredGainMeters||0;retiredLossMeters=c.retiredLossMeters||0;elevationHistory=c.elevationHistory||[];historyStride=c.historyStride||400;
  rideSessionStartDistance=Number.isFinite(c.rideSessionStartDistance)?Math.max(0,c.rideSessionStartDistance!):c.rideSamples[0]?.distance||0;activeRideMs=c.activeRideMs;energyKcal=c.energyKcal;avgPowerEnergy=c.avgPowerEnergy;avgPowerDuration=c.avgPowerDuration;rideSamples=c.rideSamples;lastSampleSecond=rideSamples.at(-1)?.seconds??-1;powerHistory=[];lastActiveTick=0;stationarySince=0;stationaryPromptShown=false;
- resetSimController();setRideFocus(false);$('start').textContent=rideEnd?'Let’s Ride!':'Resume ride';syncManualFinishButton();svg();update();showBreakawayScreen('ride');if(rideEnd){showRideSummary();status('Finished ride summary recovered.');}else status('Ride recovered and paused. Reconnect trainer, then resume or finish.');
+ resetSimController();setRideFocus(false);$('start').textContent=rideEnd?'Let’s Ride!':'Resume ride';syncManualFinishButton();svg();update();
+ const mode=recoveryMode(c);
+ if(mode==='cyclequest'){pendingQuestRideRecovery=c;void enterCycleQuest();}
+ else{chooseRideExperience(mode);showBreakawayScreen('ride');}
+ if(rideEnd){showRideSummary();status('Finished ride summary recovered.');}else status('Ride recovered and paused. Reconnect trainer, then resume or finish.');
 }
 function offerRideRecovery(){
  const saved=readRideRecovery();if(!saved)return;
@@ -3049,7 +3062,7 @@ async function enterCycleQuest(){
  try{const response=await fetch('/api/cycle-quest?asset=status',{credentials:'same-origin',cache:'no-store'});if(response.ok){launchCycleQuest();return;}}catch{}
  questGate.showModal();questPassword.focus();
 }
-function launchCycleQuest(recordHistory=true){delete document.body.dataset.deviceShortcut;if(recordHistory)history.pushState({...(history.state||{}),breakawayPage:'mode',breakawayMode:'cyclequest'},'');questAuthenticated=true;rideExperience='cyclequest';document.body.dataset.rideExperience='cyclequest';survivalStudio.hidden=true;cycleQuestHold=false;questReward=false;if(!questFrame.src)questFrame.src='/api/cycle-quest?asset=index.html';showCycleQuest();}
+function launchCycleQuest(recordHistory=true){delete document.body.dataset.deviceShortcut;if(recordHistory)history.pushState({...(history.state||{}),breakawayPage:'mode',breakawayMode:'cyclequest'},'');questAuthenticated=true;rideExperience='cyclequest';document.body.dataset.rideExperience='cyclequest';survivalStudio.hidden=true;cycleQuestHold=false;questReward=false;if(!questFrame.src||pendingQuestRideRecovery)questFrame.src='/api/cycle-quest?asset=index.html';showCycleQuest();}
 const questGate=document.createElement('dialog');questGate.className='quest-access-dialog';questGate.id='questAccessGate';questGate.innerHTML='<form id="questAccessForm"><span>PRIVATE BETA</span><h2>CYCLE QUEST</h2><p>Enter the beta password to begin.</p><label for="questPassword">Password</label><input id="questPassword" type="password" autocomplete="off" required maxlength="200"><p id="questAccessError" role="alert"></p><div><button type="submit">UNLOCK CYCLE QUEST</button><button type="button" id="questAccessCancel">CANCEL</button></div></form>';document.body.append(questGate);
 const questPassword=questGate.querySelector<HTMLInputElement>('#questPassword')!;
 questGate.querySelector('#questAccessCancel')!.addEventListener('click',()=>{questIntroMusic.stop();questGate.close();});
@@ -3096,8 +3109,17 @@ window.addEventListener('message',event=>{
  else if(data.type==='toggle'){if(!connected||!controlGranted||!realTelemetry){questSend({type:'navigate',page:'devices'});status('Connect your smart trainer to start Cycle Quest.');}else if(running)pauseRide();else if(rideEnd){status('Finish the ride summary before starting another ride.');}else {rideAwaitingPedaling=true;pedalSince=0;questSend({type:'notice',message:'Ready — start pedaling to begin.'});}}
  else if(data.type==='pause'){if(running)pauseRide();if(data.autoResume===false)rideAwaitingPedaling=false;}
  else if(data.type==='finish'){if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();questSend({type:'ride-finished'});}else questSend({type:'notice',message:'No active ride to finish.'});}
- else if(data.type==='route')routeFromQuest(data);
- else if(data.type==='ready'){void savedRides().then(rides=>questSend({type:'indoor-history',workouts:rides.slice(0,5000).map(r=>({start:r.start,end:r.end}))})).catch(()=>{});}
+ else if(data.type==='route'){if(pendingQuestRideRecovery){questStoryChapter=pendingQuestRideRecovery.questStoryChapter||data.route?.storyChapter||0;}else routeFromQuest(data);}
+ else if(data.type==='ready'){
+  if(pendingQuestRideRecovery){
+   const checkpoint=pendingQuestRideRecovery;pendingQuestRideRecovery=null;
+   questStoryChapter=checkpoint.questStoryChapter||questStoryChapter||0;
+   const visible=points.length<=1000?points:Array.from({length:1000},(_,i)=>points[Math.round(i/999*(points.length-1))]);
+   const start=visible[0].distance;
+   questSend({type:'recover-ride',distanceM:distance,route:{name:routeName,distance:visible.at(-1)!.distance-start,windowStart:start,endless,hasElevation:true,storyChapter:questStoryChapter||undefined,points:visible.map(p=>({d:p.distance-start,e:p.elevation}))}});
+   questSend({type:'navigate',page:'ride'});
+  }
+  void savedRides().then(rides=>questSend({type:'indoor-history',workouts:rides.slice(0,5000).map(r=>({start:r.start,end:r.end}))})).catch(()=>{});}
  else if(data.type==='summit-resolved'){questFinalSummitResolved=true;}
  else if(data.type==='hold'){setCycleQuestHold(!!data.hold);questReward=!!data.reward;questButtonLatch=plusPressed||minusPressed;}
  else if(data.type==='reward-state')questReward=!!data.reward;

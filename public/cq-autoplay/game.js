@@ -324,6 +324,16 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==
    }
    return;
   }
+  if(m.type==='recover-ride'){
+   if(m.route&&Array.isArray(m.route.points)&&Number.isFinite(m.distanceM)){
+    s.route={...s.route,...m.route};s.routeMiles=m.distanceM/METERS_PER_MILE;
+    lastLiveDistance=m.distanceM;lastLiveTime=0;running=false;
+    // Reassert encounter resistance holds after the parent engine reloads.
+    lastHold=null;message='Ride recovered and paused. Reconnect your trainer to resume.';
+    save();render();
+   }
+   return;
+  }
   if(m.type==='demo-action'){handleDemoAction(m.action);return;}
  if(m.type==='telemetry'){const now=performance.now(),dt=Number.isFinite(m.demoSeconds)?Math.min(30,m.demoSeconds):(lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0);lastLiveTime=now;live=m;if(m.running&&m.activityStartTime&&(!s.session||s.session.id!==m.activityStartTime)){s.session={id:m.activityStartTime,startXP:s.xp,startLevel:level(),startAttack:atk(),startMiles:s.rideMiles,startSeconds:s.rideSeconds,startCoins:s.coins||0,monsters:0,bosses:0,completed:false};}rewardGesture.sample(now,m.cadence);if(s.reward&&rewardChoice)rewardGesture.update(rewardChoice,now,m.cadence,m.power,m.connected);rememberIndoor(m);if(s.route?.endless&&m.routeProfile){s.route={...s.route,...m.routeProfile};}if(m.buttonsReleased)clickArmed=true;power=Math.max(0,Math.round(m.power));running=!!m.running&&!!m.connected;const previousDistance=lastLiveDistance;const delta=Math.max(0,m.distanceM-lastLiveDistance);lastLiveDistance=m.distanceM;if(!s.route?.endless){
   const c=m.summitBoss;
