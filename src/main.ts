@@ -201,7 +201,9 @@ async function generateClassicRoute():Promise<boolean>{
  const button=$('generateRoute') as HTMLButtonElement;
  const seedInput=$('generatedSeed') as HTMLInputElement;
  const gainInput=$('generatedGain') as HTMLInputElement;
- classicRouteBusy=true;button.disabled=true;
+ const originalButtonLabel=button.textContent;
+ classicRouteBusy=true;button.disabled=true;button.setAttribute('aria-busy','true');
+ button.textContent='Loading route seed…';
  try{
   if(seedLock.checked||userEnteredRouteSeed){
    const input=seedInput.value.trim();
@@ -250,7 +252,8 @@ async function generateClassicRoute():Promise<boolean>{
   status('Route seed error: '+String(error instanceof Error?error.message:error)+'. Route was not saved or restored.');
   return false;
  }finally{
-  classicRouteBusy=false;button.disabled=false;
+  classicRouteBusy=false;button.disabled=false;button.removeAttribute('aria-busy');
+  button.textContent=originalButtonLabel;
  }
 }
 // Dashboard metrics: 3-second rolling power and power-derived energy expenditure.
