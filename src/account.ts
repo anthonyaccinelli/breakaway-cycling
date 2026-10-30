@@ -7,7 +7,9 @@ let activeUser:User|null=null;
 let signingOut=false;
 let syncLabel='Saved to your account';
 let syncError=false;
-const AUTH_REDIRECT=new URL('/',window.location.origin).toString(); // Return confirmation and recovery links to the actual deployment, including preview.
+const AUTH_REDIRECT=new URL('/',window.location.origin).toString();
+const RECOVERY_REDIRECT=new URL('/?account=recovery',window.location.origin).toString();
+// Both destinations must be allowlisted under Supabase Auth → URL Configuration.
 
 type Screen='login'|'signup'|'forgot'|'reset';
 function el<T extends HTMLElement>(parent:ParentNode,id:string):T {
@@ -126,7 +128,11 @@ export async function bootAccount():Promise<void>{
  let processing=false;
  let activated=false;
  let resolving:()=>void=()=>{};
- let recoveryUrl=false;
+ const redirectParams=new URLSearchParams(location.search);
+ const authFragment=new URLSearchParams(location.hash.replace(/^#/,''));
+ const authLinkError=authFragment.get('error')||redirectParams.get('error');
+ const recoveryIntent=redirectParams.get('account')==='recovery'||authFragment.get('type')==='recovery';
+ let recoveryUrl=recoveryIntent;
  const gateCompleted=new Promise<void>(resolve=>{resolving=resolve;});
  function screenState(next:Screen):void{
   screen=next;feedback.hidden=true;feedback.textContent='';
@@ -188,12 +194,12 @@ export async function bootAccount():Promise<void>{
  client=createClient(url,key,{
   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
  });
- recoveryUrl=location.hash.includes('type=recovery')||new URLSearchParams(location.search).get('type')==='recovery';
- if(recoveryUrl)screenState('reset');
+ // Reserve recovery URLs for account access, never launch the ride mode from them.
+ if(recoveryUrl)screenState(authLinkError?'forgot':'reset');
  client.auth.onAuthStateChange((event)=>{
   if(event==='PASSWORD_RECOVERY'){
    recoveryUrl=true;
-   if(!activated)screenState('reset');
+   if(!activated){screenState('reset');password.focus();}
   }
   if(event==='SIGNED_OUT'&&activated&&!signingOut){
    eraseLocalAccountSettings();
@@ -220,15 +226,19 @@ export async function bootAccount():Promise<void>{
      if(data.session&&data.user)await activate(data.user);
      else {screenState('login');email.value=address;safelyShow('If this email is new and email delivery is enabled, a confirmation link will arrive. If you already have an account, sign in or select Forgot password. Check spam as well.',feedback,'success');}
     }else if(screen==='forgot'){
-     const {error}=await client!.auth.resetPasswordForEmail(address,{redirectTo:AUTH_REDIRECT});
+     const {error}=await client!.auth.resetPasswordForEmail(address,{redirectTo:RECOVERY_REDIRECT});
      if(error)throw error;
      safelyShow('If the address has an account, a recovery link is on its way.',feedback,'success');
     }else if(screen==='reset'){
      if(password.value.length<8)throw Error('Use at least 8 characters.');
      const {error}=await client!.auth.updateUser({password:password.value});
      if(error)throw error;
+     const {error:signOutError}=await client!.auth.signOut();
+     if(signOutError)throw signOutError;
      recoveryUrl=false;
-     location.replace(location.pathname);
+     history.replaceState(null,'',location.pathname);
+     screenState('login');
+     safelyShow('Password updated. Sign in with your new password.',feedback,'success');
     }
    }catch(error){
     safelyShow(error instanceof Error?error.message:'Something went wrong. Please try again.',feedback);
@@ -241,8 +251,18 @@ export async function bootAccount():Promise<void>{
  // getUser checks the remote session instead of trusting an unverified local token.
  try{
   const {data,error}=await client.auth.getUser();
-  if(data.user&&!recoveryUrl)await activate(data.user);
-  else if(error&&error.name!=='AuthSessionMissingError'){
+  if(authLinkError&&recoveryIntent){
+   screenState('forgot');
+   safelyShow('This reset link is invalid or has expired. Enter your email to request a fresh one.',feedback);
+  }else if(data.user&&recoveryUrl){
+   screenState('reset');
+   password.focus();
+  }else if(data.user){
+   await activate(data.user);
+  }else if(recoveryIntent){
+   screenState('forgot');
+   safelyShow('This reset link could not be verified. Request a new password-reset email.',feedback);
+  }else if(error&&error.name!=='AuthSessionMissingError'){
    safelyShow('Unable to verify session. Sign in to continue.',feedback);
   }
  }catch(error){
