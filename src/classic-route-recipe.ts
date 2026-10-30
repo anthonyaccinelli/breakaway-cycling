@@ -18,3 +18,29 @@ export function validatedClassicRecipe(value:unknown):ClassicRouteRecipe|null {
  return {seed,miles,gain_target_ft:gain,terrain:terrain as ClassicTerrain,difficulty:difficulty as ClassicRouteRecipe['difficulty'],generator_version:1};
 }
 export const randomClassicSeed=(random:()=>number=Math.random)=>Math.floor(random()*900_000_001)+100_000_000;
+
+/**
+ * Numeric seeds from before the shared registry did not encode their settings.
+ * Give any valid unregistered seed its own stable, versioned canonical route
+ * without consulting the current form; do not claim it is the historical route.
+ */
+export function deriveUnregisteredClassicRoute(seed:number):ClassicRouteRecipe {
+ if(!Number.isSafeInteger(seed)||seed<1||seed>1_000_000_000)throw Error('Invalid route seed.');
+ const mix=(salt:number)=>{
+  let n=(seed ^ Math.imul(salt,0x9e3779b1))|0;
+  n=Math.imul(n^(n>>>16),0x7feb352d);
+  n=Math.imul(n^(n>>>15),0x846ca68b);
+  return (n^(n>>>16))>>>0;
+ };
+ const miles=Number((5+(mix(11)%1901)/20).toFixed(2)); // 5–100 mi
+ const terrain=TERRAIN[mix(13)%TERRAIN.length];
+ const difficulty=DIFFICULTY[mix(17)%DIFFICULTY.length];
+ return {seed,miles,gain_target_ft:null,terrain,difficulty,generator_version:1};
+}
+
+export const CLASSIC_BUILTIN_ROUTES:Readonly<Record<number,ClassicRouteRecipe>>={
+ 3001:{seed:3001,miles:10,gain_target_ft:null,terrain:'flat',difficulty:0.55,generator_version:1},
+ 4502:{seed:4502,miles:15,gain_target_ft:null,terrain:'rolling',difficulty:1,generator_version:1},
+ 6003:{seed:6003,miles:18,gain_target_ft:1800,terrain:'mountain',difficulty:1.35,generator_version:1},
+ 937093007:{seed:937093007,miles:16.7,gain_target_ft:null,terrain:'rolling',difficulty:0.55,generator_version:1}
+};
