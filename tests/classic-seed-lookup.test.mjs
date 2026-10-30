@@ -121,3 +121,11 @@ test('invalid seeds, unsupported recipe values and seed collisions are handled',
  assert.equal(await h.generate(),true);
  assert.equal(h.fields.generatedSeed.value,'900000222');
 });
+
+test('seed-loading feedback is visible and always cleared after a request',async()=>{
+ const source=await readFile(new URL('../src/main.ts',import.meta.url),'utf8');
+ assert.match(source,/button\.textContent='Loading route seed…'/);
+ assert.match(source,/button\.textContent=originalButtonLabel;/);
+ const reference=await readFile(new URL('../src/classic-route-reference.ts',import.meta.url),'utf8');
+ assert.match(reference,/unregistered seed\/i\.test\(message\)/,'missing-legacy-settings notice is visibly surfaced');
+});
