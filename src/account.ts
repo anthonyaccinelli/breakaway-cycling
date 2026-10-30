@@ -7,7 +7,7 @@ let activeUser:User|null=null;
 let signingOut=false;
 let syncLabel='Saved to your account';
 let syncError=false;
-const AUTH_REDIRECT='https://ridebreakaway.com/';
+const AUTH_REDIRECT=new URL('/',window.location.origin).toString(); // Return confirmation and recovery links to the actual deployment, including preview.
 
 type Screen='login'|'signup'|'forgot'|'reset';
 function el<T extends HTMLElement>(parent:ParentNode,id:string):T {
