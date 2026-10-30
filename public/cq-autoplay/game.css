@@ -2309,3 +2309,5 @@ body {
   font-size: 18px;
   margin-top: 16px;
 }
+
+.cq-boss-prompt{background:#102052;color:#ffe777;padding:8px;font-size:clamp(20px,2.5vw,34px);line-height:1.05;border:2px solid #a7b2d1}.cq-boss-prompt small{display:block;color:#fff;font-size:.65em}.cq-boss-prompt[data-phase="recover"]{color:#8fffa1}.cq-boss-prompt[data-phase="stagger"]{color:#fff}.cq-mini-battle .cq-boss-prompt{font-size:19px;padding:3px;flex-shrink:0}

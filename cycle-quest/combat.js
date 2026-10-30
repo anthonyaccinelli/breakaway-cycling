@@ -85,3 +85,45 @@ export function advanceBattle(battle,playerHP,damagePerSecond,dt){
  if(group){b.hp=targets.reduce((n,e)=>n+e.hp,0);b.dps=targets.filter(e=>e.hp>1e-7).reduce((n,e)=>n+e.dps,0);}
  return {battle:b,hp,killed,outcome};
 }
+
+// Boss phases use active battle time; trainer resistance is never changed here.
+const PHASES={attack:20,brace:5,stagger:10,recover:5};
+export function bossBehavior(battle){
+ const phase=Object.hasOwn(PHASES,battle.phase)?battle.phase:'attack';
+ return {phase,remaining:Math.max(0,PHASES[phase]-(battle.phaseTime||0)),target:'50% FTP'};
+}
+export function advanceBossBattle(battle,playerHP,damagePerSecond,dt,{watts=0,cadence=0,ftp=280,maxHP=100}={}){
+ let b={...battle},hp=playerHP,remaining=Math.max(0,Number(dt)||0),outcome=null;
+ const target=Math.max(1,Number(ftp)||280)*.5;
+ while(remaining>1e-9&&!outcome){
+  const phase=bossBehavior(b).phase;
+  b.phase=phase;b.phaseTime=Math.max(0,Math.min(PHASES[phase],Number(b.phaseTime)||0));
+  const slice=Math.min(remaining,PHASES[phase]-b.phaseTime);
+  const stopped=watts<10&&cadence<=0;
+  // Recovery suspends (rather than resets) the summit escape countdown.
+  const fleeLeft=b.kind==='summit'&&phase!=='recover'&&stopped?Math.max(0,15-(b.stopped||0)):Infinity;
+  const elapsed=Math.min(slice,fleeLeft);
+  if(phase!=='recover')b.stopped=stopped?(b.stopped||0)+elapsed:0;
+  if(phase==='brace')b.bracedSeconds=(b.bracedSeconds||0)+(watts<=target?elapsed:0);
+  if(phase==='recover'){
+   if(watts<=target)hp=Math.min(maxHP,hp+5*elapsed);
+  }else{
+   const result=advanceBattle({...b,dps:phase==='stagger'||phase==='brace'?0:b.dps},hp,damagePerSecond*(phase==='stagger'?2:1),elapsed);
+   hp=result.hp;b.hp=result.battle.hp;outcome=result.outcome;
+  }
+  b.phaseTime+=elapsed;remaining-=elapsed;
+  if(!outcome&&fleeLeft<=elapsed+1e-9)outcome='flee';
+  if(!outcome&&b.phaseTime>=PHASES[phase]-1e-9){
+   b.phaseTime=0;
+   if(phase==='attack'){b.phase='brace';b.bracedSeconds=0;}
+   else if(phase==='brace'){
+    const braced=(b.bracedSeconds||0)>=3;
+    hp=Math.max(1,hp-b.dps*8*(braced?.25:1));
+    if(hp<=1)outcome='loss';
+    b.phase=braced?'stagger':'recover';
+   }else b.phase=phase==='stagger'?'recover':'attack';
+  }
+  if(elapsed<=1e-9&&!outcome&&slice>1e-9)break;
+ }
+ return {battle:b,hp,killed:0,outcome};
+}
