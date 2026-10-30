@@ -1,28 +1,52 @@
-/* Classic route studio: seed lock fits within the existing route settings row. */
+/* Classic route studio: keep the seed lock inside the existing fifth field. */
+.ride-stage #routeStudio .route-fields .route-seed-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-self: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+.ride-stage #routeStudio .route-fields .route-seed-field > label {
+  height: auto !important;
+  flex: 0 0 auto;
+  margin: 0 !important;
+}
+.ride-stage #routeStudio .route-fields .route-seed-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.ride-stage #routeStudio .route-fields .route-seed-inline > input[type="number"] {
+  width: 1% !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  margin: 0 !important;
+}
 .ride-stage #routeStudio .route-fields label.route-seed-lock {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
   justify-content: flex-start !important;
-  gap: 9px !important;
-  padding: 6px 0;
+  align-self: center !important;
+  height: auto !important;
+  flex: 0 0 auto;
+  gap: 4px !important;
+  padding: 0 !important;
+  margin: 0 !important;
   cursor: pointer;
+  white-space: nowrap;
 }
 .ride-stage #routeStudio .route-fields label.route-seed-lock input[type="checkbox"] {
-  width: 18px !important;
-  height: 18px !important;
-  min-height: 18px !important;
-  flex: 0 0 18px !important;
+  width: 17px !important;
+  height: 17px !important;
+  min-height: 17px !important;
+  flex: 0 0 17px !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
   background: transparent !important;
   accent-color: #45d6aa;
 }
-.ride-stage #routeStudio .route-fields .route-seed-lock span {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.ride-stage #routeStudio .route-fields .route-seed-lock strong { font-size: inherit; font-weight: 700; color: inherit; }
-.ride-stage #routeStudio .route-fields .route-seed-lock small { font-size: .8em; color: inherit; opacity: .84; }
+.ride-stage #routeStudio .route-fields label.route-seed-lock span { font-size: .85em; font-weight: 700; color: inherit; }
