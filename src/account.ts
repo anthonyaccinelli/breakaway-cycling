@@ -7,8 +7,13 @@ let activeUser:User|null=null;
 let signingOut=false;
 let syncLabel='Saved to your account';
 let syncError=false;
-const AUTH_REDIRECT=new URL('/',window.location.origin).toString();
-const RECOVERY_REDIRECT=new URL('/?account=recovery',window.location.origin).toString();
+// Use one stable staging domain for authentication even when a Vercel commit URL changes.
+// Production keeps using its actual ridebreakaway.com origin.
+const AUTH_ORIGIN=window.location.hostname.endsWith('.vercel.app')
+ ? 'https://breakaway-login-preview.vercel.app'
+ : window.location.origin;
+const AUTH_REDIRECT=new URL('/',AUTH_ORIGIN).toString();
+const RECOVERY_REDIRECT=new URL('/?account=recovery',AUTH_ORIGIN).toString();
 // Both destinations must be allowlisted under Supabase Auth → URL Configuration.
 
 type Screen='login'|'signup'|'forgot'|'reset';
