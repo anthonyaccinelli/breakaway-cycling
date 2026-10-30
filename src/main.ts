@@ -1,3 +1,4 @@
+import {createQuestIntroMusic} from './quest-intro-music';
 import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
 import {findClassicRoute,registerClassicRoute,randomClassicSeed,isClassicSeed,validatedClassicRecipe,deriveUnregisteredClassicRoute} from './classic-route-registry';
 import {mountBetaSupport} from './beta-support';
@@ -1111,7 +1112,7 @@ function advanceRide(now:number){
   if(!endless&&distance>=(procedural?routeLimit:points.at(-1)!.distance)){
    const summit=rideExperience==='cyclequest'?questHighestSummit():null;
    const waitForSummit=summit&&!questFinalSummitResolved&&summit.end>=(procedural?routeLimit:points.at(-1)!.distance)-100;
-   if(!waitForSummit){finishRide();status('Route complete');}
+   if(!waitForSummit&&!(rideExperience==='cyclequest'&&questStoryChapter>0)){finishRide();status('Route complete');}
   }
   if(trainerMode==='sim')void updateSimResistance(now);
   if(trainerMode==='erg'&&now-lastGearUpdate>1100){lastGearUpdate=now;void setVirtualGearResistance();}
@@ -2889,7 +2890,8 @@ function openModeLanding(){
  if(surviveOn){status('End your current Survival session before changing modes.');return false;}
  if(typeof coachRuntime!=='undefined')coachRuntime?.endCoaching();
  delete document.body.dataset.deviceShortcut;
- const host=document.getElementById('cycleQuestHost');if(host)host.hidden=true;
+ if(typeof questIntroMusic!=='undefined')questIntroMusic.stop();
+ const host=document.getElementById('cycleQuestHost');if(host){host.hidden=true;host.querySelector('iframe')?.contentWindow?.postMessage({source:'breakaway',type:'quest-audio-visibility',active:false},location.origin);}
  if(running)pauseRide();
  // A mode change pauses the ride; pedaling on the mode selector must not resume it.
  rideAwaitingPedaling=false;pedalSince=0;
@@ -2909,6 +2911,8 @@ modeLanding.querySelector('#modeDevices')!.addEventListener('click',()=>{
 modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
 modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
 modeHomeButton.addEventListener('click',()=>{if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');});
+const questIntroAudio=new Audio('/audio/cycle-quest/largo.mp3');questIntroAudio.hidden=true;questIntroAudio.dataset.questMusic='largo.mp3';document.body.append(questIntroAudio);
+const questIntroMusic=createQuestIntroMusic(questIntroAudio);
 modeLanding.querySelector('#chooseCycleQuest')!.addEventListener('click',enterCycleQuest);
 // Preview starts with mode selection, not the existing route editor.
 openModeLanding();
@@ -2948,7 +2952,7 @@ cycleQuestHost.innerHTML='<div class="quest-host-bar"><button id="questHome" typ
 document.body.append(cycleQuestHost);
 bindFullscreenButton(cycleQuestHost.querySelector<HTMLButtonElement>('#questFullscreen')!,document,message=>{status(message);questSend({type:'notice',message});});
 const questFrame=cycleQuestHost.querySelector<HTMLIFrameElement>('iframe')!;
-questFrame.setAttribute('allow','picture-in-picture; bluetooth');
+questFrame.setAttribute('allow','picture-in-picture; bluetooth; autoplay');
 const questPreviewPage=new URLSearchParams(location.search).get('cycleQuestPreview');
 questFrame.addEventListener('load',()=>{
  if(['route','devices','ride','overlay'].includes(questPreviewPage||'')){
@@ -3024,15 +3028,17 @@ window.addEventListener('cyclequest-navigate',(event:Event)=>{
  showCycleQuest();
  questSend({type:'navigate',page});
 });
-function showCycleQuest(){modeLanding.hidden=true;modeHomeButton.hidden=true;screenRoute.hidden=true;screenSetup.hidden=true;screenRide.hidden=true;cycleQuestHost.hidden=false;document.body.dataset.breakawayScreen='quest';document.body.classList.remove('ride-focus-active');window.scrollTo(0,0);}
+function showCycleQuest(){modeLanding.hidden=true;modeHomeButton.hidden=true;screenRoute.hidden=true;screenSetup.hidden=true;screenRide.hidden=true;cycleQuestHost.hidden=false;questSend({type:'quest-audio-visibility',active:true});document.body.dataset.breakawayScreen='quest';document.body.classList.remove('ride-focus-active');window.scrollTo(0,0);}
 async function enterCycleQuest(){
+ questIntroMusic.start();
  try{const response=await fetch('/api/cycle-quest?asset=status',{credentials:'same-origin',cache:'no-store'});if(response.ok){launchCycleQuest();return;}}catch{}
  questGate.showModal();questPassword.focus();
 }
 function launchCycleQuest(recordHistory=true){delete document.body.dataset.deviceShortcut;if(recordHistory)history.pushState({...(history.state||{}),breakawayPage:'mode',breakawayMode:'cyclequest'},'');questAuthenticated=true;rideExperience='cyclequest';document.body.dataset.rideExperience='cyclequest';survivalStudio.hidden=true;cycleQuestHold=false;questReward=false;if(!questFrame.src)questFrame.src='/api/cycle-quest?asset=index.html';showCycleQuest();}
 const questGate=document.createElement('dialog');questGate.className='quest-access-dialog';questGate.id='questAccessGate';questGate.innerHTML='<form id="questAccessForm"><span>PRIVATE BETA</span><h2>CYCLE QUEST</h2><p>Enter the beta password to begin.</p><label for="questPassword">Password</label><input id="questPassword" type="password" autocomplete="off" required maxlength="200"><p id="questAccessError" role="alert"></p><div><button type="submit">UNLOCK CYCLE QUEST</button><button type="button" id="questAccessCancel">CANCEL</button></div></form>';document.body.append(questGate);
 const questPassword=questGate.querySelector<HTMLInputElement>('#questPassword')!;
-questGate.querySelector('#questAccessCancel')!.addEventListener('click',()=>questGate.close());
+questGate.querySelector('#questAccessCancel')!.addEventListener('click',()=>{questIntroMusic.stop();questGate.close();});
+questGate.addEventListener('cancel',()=>questIntroMusic.stop());
 questGate.querySelector('form')!.addEventListener('submit',async event=>{event.preventDefault();const button=questGate.querySelector<HTMLButtonElement>('button[type=submit]')!;button.disabled=true;const error=questGate.querySelector('#questAccessError')!;error.textContent='';try{const result=await fetch('/api/cycle-quest',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({password:questPassword.value})});questPassword.value='';if(!result.ok){error.textContent=result.status===401?'Incorrect password. Try again.':'Beta access is temporarily unavailable.';return;}questGate.close();launchCycleQuest();}catch{error.textContent='Could not connect. Please try again.';}finally{button.disabled=false;}});
 const questReturn=document.createElement('button');questReturn.id='questReturn';questReturn.type='button';questReturn.textContent='← RETURN TO CYCLE QUEST';questReturn.hidden=true;screenSetup.querySelector('.setup-next')?.prepend(questReturn);questReturn.addEventListener('click',()=>{showCycleQuest();questSend({type:'navigate',page:'ride'});});
 cycleQuestHost.querySelector('#questHome')!.addEventListener('click',()=>{if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');});
@@ -3042,14 +3048,14 @@ cycleQuestHost.querySelector('#questDevices')!.addEventListener('click',()=>{que
  return window.open('','cycle-quest-overlay',`popup,width=${width},height=${height}`);
 };
 let questProfileRevision='';
-let questFinalSummitResolved=false;
+let questFinalSummitResolved=false;let questStoryChapter=0;
 function questHighestSummit(){return climbs.reduce<Climb|null>((best,c)=>!best||at(c.end).elevation>at(best.end).elevation||(at(c.end).elevation===at(best.end).elevation&&c.gain>best.gain)?c:best,null);}
 function routeFromQuest(data:any){
  const r=data.route;if(!r||!Array.isArray(r.points)||r.points.length<2||r.points.length>1000||!Number.isFinite(r.distance)||r.distance<10||typeof r.name!=='string')return;
  if(!r.points.every((p:any,i:number)=>Number.isFinite(p.d)&&Number.isFinite(p.e)&&p.d>=0&&(!i||p.d>r.points[i-1].d)))return;
  if(r.endless===true&&(!Number.isInteger(r.seed)||!['flat','rolling','mountain','punchy'].includes(r.terrain)||!Number.isFinite(r.windowStart||0)||(r.windowStart||0)<0))return;
  if(running)pauseRide();if(rideStart&&!rideEnd)finishRide();
- questProfileRevision='';questFinalSummitResolved=false;
+ questProfileRevision='';questFinalSummitResolved=false;questStoryChapter=Number.isInteger(r.storyChapter)&&r.storyChapter>=1&&r.storyChapter<=10?r.storyChapter:0;
  if(r.endless===true){
   procedural=true;endless=true;routeLimit=Infinity;proceduralTerrain=r.terrain;proceduralSeed=r.seed;proceduralIntensity=1;gainScale=1;plannedGainFeet=null;resetHills();resetClimbingTotals();clearElevationEditor();zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;
   const start=r.windowStart||0;points=r.points.map((p:any,i:number)=>{const a=r.points[Math.max(0,i-1)],b=r.points[Math.min(r.points.length-1,i+1)];return {distance:p.d+start,elevation:p.e,grade:(b.e-a.e)/Math.max(1,b.d-a.d)*100};});
@@ -3067,7 +3073,10 @@ function routeFromQuest(data:any){
 window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==questFrame.contentWindow||event.data?.source!=='cycle-quest'||!questAuthenticated||rideExperience!=='cyclequest'||document.body.dataset.breakawayScreen==='home')return;
  const data=event.data;
- if(data.type==='home'){if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');}
+ if(data.type==='quest-page'&&['ride','overlay','character'].includes(String(data.page))){questIntroMusic.stop();}
+ else if(data.type==='story-complete'){questStoryChapter=0;}
+ else if(data.type==='music-setting'){questIntroMusic.setEnabled(data.enabled===true);}
+ else if(data.type==='home'){if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');}
  else if(data.type==='connect'){questSend({type:'navigate',page:'devices'});}
  else if(data.type==='toggle'){if(!connected||!controlGranted||!realTelemetry){questSend({type:'navigate',page:'devices'});status('Connect your smart trainer to start Cycle Quest.');}else if(running)pauseRide();else if(rideEnd){status('Finish the ride summary before starting another ride.');}else {rideAwaitingPedaling=true;pedalSince=0;questSend({type:'notice',message:'Ready — start pedaling to begin.'});}}
  else if(data.type==='pause'){if(running)pauseRide();if(data.autoResume===false)rideAwaitingPedaling=false;}

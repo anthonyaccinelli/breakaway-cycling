@@ -13,16 +13,16 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,ope
  const section=document.createElement('section');
  section.className='cq-unified-route';
  section.setAttribute('aria-label','Create your Cycle Quest route');
- section.innerHTML='<div class="cq-workflow-overview"><button class="cq-upload-route" type="button">UPLOAD GPX ROUTE</button><div class="cq-quest-dossier"><span>✦ ADVENTURE PROTOCOL</span><b>THE ROAD IS YOUR DUNGEON</b></div></div>'
- +'<h1 class="cq-shared-section"><i>1</i> CREATE YOUR ROUTE <span>CHAPTER ROUTE STUDIO</span></h1>'
- +'<div class="cq-route-workbench"><section class="cq-workbench-controls"><span class="cq-mini-label">ADVENTURE GENERATOR</span><h2>CHOOSE YOUR TERRAIN</h2><p>Build terrain, load a GPX track, or choose a preset. Monsters, bosses and XP stay exactly as they are.</p><div class="cq-preset-grid"><button data-cq-action="custom">GENERATE ROUTE</button><button data-cq-action="surprise">SURPRISE ME!</button><button data-cq-action="endless">ENDLESS ROUTE</button><button data-mode="boss">BOSS MODE · 10 MIN</button><button data-cq-action="recovery">RECOVERY 30</button><button data-cq-action="rolling">ROLLING 45</button><button data-cq-action="climbing">CLIMBING 60</button></div><div class="cq-difficulty-label"><span>GAME MODE</span><strong class="cq-current-mode">ADVENTURE</strong></div></section>'
- +'<section class="cq-workbench-summary"><h2><i>2</i> YOUR ROUTE PREVIEW</h2><dl><div><dt>ROUTE</dt><dd class="cq-route-name">THE IRON PASS</dd></div><div><dt>DISTANCE</dt><dd class="cq-route-dist">—</dd></div><div><dt>ELEVATION GAIN</dt><dd class="cq-route-gain">—</dd></div><div><dt>TERRAIN</dt><dd class="cq-route-type">—</dd></div><div><dt>PROGRESS</dt><dd class="cq-route-progress">—</dd></div></dl></section>'
+ section.innerHTML='<div class="cq-workflow-overview"><button class="cq-upload-route" type="button">STORY MODE</button><div class="cq-quest-dossier"><span>✦ ADVENTURE PROTOCOL</span><b>THE ROAD IS YOUR DUNGEON</b></div></div>'
+ +'<h1 class="cq-shared-section"><i>1</i> CHOOSE YOUR ADVENTURE <span>STORY OR FREEROAM</span></h1>'
+ +'<div class="cq-route-workbench"><section class="cq-workbench-controls"><span class="cq-mini-label">FREEROAM ROUTE GENERATOR</span><h2>CHOOSE YOUR TERRAIN</h2><p>Story follows ten fixed 100-mile chapters. Freeroam lets you train, collect rewards, and fight without progressing the story.</p><div class="cq-preset-grid"><button data-cq-action="custom">GENERATE ROUTE</button><button data-cq-action="surprise">SURPRISE ME!</button><button data-cq-action="endless">ENDLESS ROUTE</button><button data-cq-action="recovery">RECOVERY 30</button><button data-cq-action="rolling">ROLLING 45</button><button data-cq-action="climbing">CLIMBING 60</button></div><div class="cq-difficulty-label"><span>GAME MODE</span><strong class="cq-current-mode">ADVENTURE</strong></div></section>'
+ +'<section class="cq-workbench-summary"><h2><i>2</i> YOUR ROUTE PREVIEW</h2><dl><div><dt>ROUTE</dt><dd class="cq-route-name">COASTAL BEGINNINGS</dd></div><div><dt>DISTANCE</dt><dd class="cq-route-dist">—</dd></div><div><dt>ELEVATION GAIN</dt><dd class="cq-route-gain">—</dd></div><div><dt>TERRAIN</dt><dd class="cq-route-type">—</dd></div><div><dt>PROGRESS</dt><dd class="cq-route-progress">—</dd></div></dl></section>'
  +'<section class="cq-workbench-cta"><span class="cq-mini-label">NEXT: HARDWARE CHECK</span><h2>READY TO QUEST?</h2><p>Connect your trainer to control the road. Keep your gear, character and chapters.</p><button type="button" data-cq-action="devices">CONNECT YOUR TRAINER →</button><button type="button" class="cq-outline-action" data-cq-action="ride">ENTER THE RIDE →</button></section></div>'
- +'<div class="cq-big-profile"><div class="cq-big-profile-head"><strong>ROUTE SCANNER</strong><span class="cq-quest-route-caption">CHAPTER TERRAIN / ACTUAL SAVED ROUTE</span></div><div class="cq-route-actual-profile" role="img" aria-label="Current generated route elevation profile"></div></div><div class="cq-route-inspector"><span class="cq-route-footnote">THE ROUTE IS REAL · DRAG THE YELLOW MARKER IN RIDE TO INSPECT TERRAIN</span><span>✦ CYCLE QUEST</span></div>';
+ +'<div class="cq-big-profile"><div class="cq-big-profile-head"><strong>ROUTE SCANNER</strong><span class="cq-quest-route-caption">STORY CHAPTER / FREEROAM TERRAIN</span></div><div class="cq-route-actual-profile" role="img" aria-label="Current generated route elevation profile"></div></div><div class="cq-route-inspector"><span class="cq-route-footnote">THE ROUTE IS REAL · DRAG THE YELLOW MARKER IN RIDE TO INSPECT TERRAIN</span><span>✦ CYCLE QUEST</span></div>';
  game.querySelector('.cq-header').after(section);
  const setPage=next=>{
   if(!['route','devices','ride','overlay','character'].includes(next))return;
-  page=next;game.dataset.cqPage=page;
+  page=next;game.dataset.cqPage=page;parentSend({type:'quest-page',page});
   top.querySelectorAll('[data-cq-page]').forEach(button=>{
    const current=button.dataset.cqPage===(page==='character'?'ride':page);
    button.classList.toggle('cq-unified-active',current);
@@ -41,7 +41,7 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,ope
  };
  section.addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button)return;
-  if(button.classList.contains('cq-upload-route')){oldAction('upload-gpx');return;}
+  if(button.classList.contains('cq-upload-route')){oldAction('story-route');setPage('route');sync();return;}
   switch(button.dataset.cqAction){
    case 'custom':oldAction('create-route');break;
    case 'surprise':oldAction('surprise-route');sync();break;
@@ -77,7 +77,7 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,ope
   section.querySelector('.cq-route-gain').textContent=r.hasElevation?Math.round((r.gain||0)/.3048).toLocaleString()+' FT':'FLAT SIMULATION';
   section.querySelector('.cq-route-type').textContent=(r.terrain||'IMPORTED').toUpperCase();
   section.querySelector('.cq-route-progress').textContent=(s.routeMiles||0).toFixed(1)+' MI RIDDEN';
-  section.querySelector('.cq-current-mode').textContent=(s.mode||'adventure').toUpperCase();
+  section.querySelector('.cq-current-mode').textContent=s.mode==='training'?'FREEROAM':'STORY MODE';
   const key=[r.name,r.distance,r.gain,r.points?.length,r.windowStart,r.endless].join(':');
   if(key!==routeKey){
    routeKey=key;
