@@ -6,7 +6,7 @@ export function createRouteSeedSelector(random:()=>number=Math.random){
   // Pasted or typed values win on the next Generate click, even when Lock is off.
   // Otherwise a displayed auto-generated seed is replaced with fresh terrain.
   let seed=text.trim()!==''&&Number.isFinite(parsed)&&(locked||userEntered||parsed!==previous)?parsed:Math.floor(random()*1_000_000_000)+1;
-  if(!explicit&&seed===previous)seed=(seed%1_000_000_000)+1;
+  if(!locked&&!userEntered&&seed===previous)seed=(seed%1_000_000_000)+1;
   previous=seed;
   return seed;
  };
