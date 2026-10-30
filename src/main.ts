@@ -984,25 +984,15 @@ async function setGrade(grade:number){
 // FTMS SIM exposes gradient, not virtual gearing or a hard watt limit. Translate
 // the Zwift 24-speed ratio changes into a bounded *equivalent gradient*.
 // This is an approximation, not Zwift's proprietary drivetrain simulation.
-// Climbing-assist gearing: gears 1–8 intentionally reduce trainer torque
-// beyond standard Zwift Mixed Terrain ratios. Virtual route physics remains
-// based on the actual gradient and measured rider watts.
-const CLIMB_ASSIST=[0.10,0.15,0.21,0.28,0.36,0.45,0.56,0.70] as const;
-function climbingAssist():number{return gear<=8?CLIMB_ASSIST[gear-1]:1;}
 function simRequestedGrade():number{
  const routeGrade=at(distance).grade*num('difficulty')/100;
  if(drivetrainMode==='traditional')return cycleQuestHold&&cycleQuestHeldGrade!==null?cycleQuestHeldGrade:Math.max(-12,Math.min(12,routeGrade));
  const ratio=zwiftGearMultiplier();
  const effectiveLoad=4+Math.max(0,(cycleQuestHold?cycleQuestHeldSpeed:speed)**2*0.08);
  const shifted=routeGrade+(ratio-1)*effectiveLoad;
- // Scale down BOTH grade and baseline load for low climbing gears.
- // Negative effective grades are intentional: they lower trainer resistance
- // and make 16%+ climbs pedalable at a comfortable cadence.
- const assist=climbingAssist();
- const requested=gear<=8 ? -5+(shifted+5)*assist : shifted;
  // Do not feed delayed power readings back into SIM grade; that oscillates.
  const heldOffset=cycleQuestHold&&cycleQuestHeldGrade!==null?cycleQuestHeldGrade-cycleQuestHeldRequestedGrade:0;
- return Math.max(-12,Math.min(12,requested+heldOffset));
+ return Math.max(-12,Math.min(12,shifted+heldOffset));
 }
 function resetSimController(){simAppliedGrade=NaN;simLastTime=0;trainerGrade=NaN;}
 async function updateSimResistance(now:number,immediate=false){
@@ -1012,7 +1002,7 @@ async function updateSimResistance(now:number,immediate=false){
  const elapsed=simLastTime?Math.min(2,Math.max(0,(now-simLastTime)/1000)):0;
  simLastTime=now;
  if(!Number.isFinite(simAppliedGrade))simAppliedGrade=target;
- simAppliedGrade=slewGrade(simAppliedGrade,target,elapsed,drivetrainMode==='virtual'&&gear<=8?0.65:SIM_GRADE_SLEW_PERCENT_PER_SECOND);
+ simAppliedGrade=slewGrade(simAppliedGrade,target,elapsed,SIM_GRADE_SLEW_PERCENT_PER_SECOND);
  if(Number.isFinite(trainerGrade)&&Math.abs(simAppliedGrade-trainerGrade)<0.15)return;
  simBusy=true;
  try{if(await setGrade(simAppliedGrade))trainerGrade=simAppliedGrade;}
@@ -1027,9 +1017,9 @@ async function setVirtualGearResistance(){
  const rpm=Math.max(40,cadence);
  const ratio=zwiftGearMultiplier();
  const base=1.5*(90+Math.max(-12,slope)*11)*ratio*rpm/85;
- // Low gears must also be easier in experimental virtual-gear ERG.
- const heldTarget=cycleQuestHeldErgTarget*(ZWIFT_GEAR_RATIOS[gear-1]/ZWIFT_GEAR_RATIOS[cycleQuestHeldGear-1])*(climbingAssist()/(cycleQuestHeldGear<=8?CLIMB_ASSIST[cycleQuestHeldGear-1]:1));
- const watts=Math.round(Math.max(30,Math.min(32767,cycleQuestHold&&cycleQuestHeldErgTarget>0?heldTarget:gear<=8?base*climbingAssist():base)));
+ // Apply only the selected drivetrain ratio, including during battle holds.
+ const heldTarget=cycleQuestHeldErgTarget*(ZWIFT_GEAR_RATIOS[gear-1]/ZWIFT_GEAR_RATIOS[cycleQuestHeldGear-1]);
+ const watts=Math.round(Math.max(30,Math.min(32767,cycleQuestHold&&cycleQuestHeldErgTarget>0?heldTarget:base)));
  if(Math.abs(watts-lastTarget)<5)return;
  if(await command([0x05,watts&255,watts>>8]))lastTarget=watts;
 }
