@@ -1,20 +1,20 @@
-import {createQuestMusic} from './music.js';
-import {readCharacter,MAX_XP} from './save-state.js';
-import {escapeHTML as safeText,formatClock,rewardButtons} from './ui-utils.js';
-import {battleRewards,sessionMetrics} from './rewards.js';
-import {mountQuestBaseline} from './shared-ui.js';
-import {createRewardGesture} from './reward-gesture.js';
-import {generateRoute,parseGPX,sample,grade,METERS_PER_MILE} from './routes.js';
-import {storyChapter,storyRoute} from './story-chapters.js';
-import {makeBattle,enemyGroup,encounterLevel,chapterLevels,chapterMonsters,CHAPTER_BIOMES,nextChapterEncounter,advanceBattle,advanceBossBattle,bossBehavior} from './combat.js';
-import {elevationSVG} from './profile.js';
-import {createLevelUpQueue,levelUpMarkup} from './level-up.js';
-import {initWorkoutUI} from './workout-ui.js';
-import {creditWorkout,dayAt} from './workouts.js';
+import {createQuestMusic} from '/api/cycle-quest?asset=music.js';
+import {readCharacter,MAX_XP} from '/api/cycle-quest?asset=save-state.js';
+import {escapeHTML as safeText,formatClock,rewardButtons} from '/api/cycle-quest?asset=ui-utils.js';
+import {battleRewards,sessionMetrics} from '/api/cycle-quest?asset=rewards.js';
+import {mountQuestBaseline} from '/api/cycle-quest?asset=shared-ui.js';
+import {createRewardGesture} from '/api/cycle-quest?asset=reward-gesture.js';
+import {generateRoute,parseGPX,sample,grade,METERS_PER_MILE} from '/api/cycle-quest?asset=routes.js';
+import {storyChapter,storyRoute} from '/api/cycle-quest?asset=story-chapters.js';
+import {makeBattle,enemyGroup,encounterLevel,chapterLevels,chapterMonsters,CHAPTER_BIOMES,nextChapterEncounter,advanceBattle,advanceBossBattle,bossBehavior} from '/api/cycle-quest?asset=combat.js';
+import {elevationSVG} from '/api/cycle-quest?asset=profile.js';
+import {createLevelUpQueue,levelUpMarkup} from '/api/cycle-quest?asset=level-up.js';
+import {initWorkoutUI} from '/api/cycle-quest?asset=workout-ui.js';
+import {creditWorkout,dayAt} from '/api/cycle-quest?asset=workouts.js';
 (()=>{
 'use strict';
 let questBaseline=null;
-const root=document.getElementById('cq-preview'),$=s=>root.querySelector(s),all=s=>root.querySelectorAll(s),key='cycle-quest-autoplay-preview-v1';
+const root=document.getElementById('cq-preview'),$=s=>root.querySelector(s),all=s=>root.querySelectorAll(s),key='cycle-quest-character-v1';
 const setStat=(name,value,html=false)=>all('[data-stat="'+name+'"]').forEach(el=>{if(html)el.innerHTML=value;else el.textContent=value;});
 $('.cq-route').append($('.cq-event'));
 const rewardGesture=createRewardGesture();
@@ -30,7 +30,7 @@ root.addEventListener('keydown',event=>{if(!event.target.closest('#quest-music,#
 let rewardChoice=null,warmupSeconds=0;
 const restButton=document.createElement('button');restButton.textContent='REST · RECOVER 25 HP';restButton.hidden=true;document.getElementById('pedal').after(restButton);restButton.onclick=rest;
 let persistedSave=null,externalSaveChanged=false,invalidStoredSave=false;
-const fresh=()=>({workouts:[],version:1,xp:570,hp:100,coins:0,pendingReward:null,miles:0,chapter:1,mode:'training',rideSeconds:0,rideMiles:0,nextEncounter:8,battle:null,reward:false,boss:null});
+const fresh=()=>({workouts:[],version:1,xp:0,hp:100,coins:0,pendingReward:null,miles:0,chapter:1,mode:'training',rideSeconds:0,rideMiles:0,nextEncounter:260,battle:null,reward:false,boss:null});
 const levelUps=createLevelUpQueue();let levelUp=null;
 function rest(){if(externalSaveChanged)return;s.hp=Math.min(maxHP(),s.hp+25);message='Recovered 25 HP.';save();render();}
 function displayedPower(){return Number.isFinite(live.displayPower)?Math.round(Math.max(0,live.displayPower)):power;}
@@ -56,7 +56,7 @@ async function finishQuestSummary(retry=false){
  const download=summaryDialog.querySelector('#cq-summary-download');download.disabled=true;summaryImage=null;save();if(!summaryDialog.open)summaryDialog.showModal();music.sync({battle:!!s.battle,rest:true});
  try{
   await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  const {default:capture}=await import('./summary-capture.js');
+  const {default:capture}=await import('/api/cycle-quest?asset=summary-capture.js');
   const canvas=await capture(summaryDialog,{backgroundColor:null,scale:Math.min(2,window.devicePixelRatio||1),logging:false,useCORS:true,width:summaryDialog.offsetWidth,height:Math.max(summaryDialog.offsetHeight,summaryDialog.scrollHeight),onclone:doc=>{const clone=doc.querySelector('.cq-summary-dialog');if(clone){clone.style.maxHeight='none';clone.style.height='auto';clone.style.overflow='visible';clone.querySelector('#cq-summary-download').disabled=false;}}});
   summaryImage=canvas.toDataURL('image/png');try{saveShareCard('RIDE SUMMARY',summaryImage);}catch{message='Summary image could not be saved locally; use Download image.';}
   download.disabled=false;parentSend({type:'quest-summary',lines,image:summaryImage});
@@ -113,7 +113,7 @@ function finish(win){
  const b=s.battle;if(!b)return;music.endBattle(win?'victory':'death');
  s.battle=null;s.reward=false;s.pendingReward=null;
  if(b.kind==='summit'&&!s.route?.endless)parentSend({type:'summit-resolved'});
- s.nextEncounter=35+Math.random()*20;if(b.practice){s.bossModeComplete=true;s.bossWarmupRemaining=0;}
+ s.nextEncounter=240+Math.random()*180;if(b.practice){s.bossModeComplete=true;s.bossWarmupRemaining=0;}
  if(win){
   const rewards=battleRewards(b);
   if(s.session){if(b.kind==='enemy'&&!Array.isArray(b.enemies))s.session.monsters++;else if(b.kind!=='enemy')s.session.bosses++;}
@@ -145,8 +145,13 @@ function patchMarkup(host,markup){
  const template=host.ownerDocument.createElement('template');template.innerHTML=markup;
  function patch(parent,wanted){const incoming=Array.from(wanted.childNodes);incoming.forEach((next,i)=>{let current=parent.childNodes[i];if(!current){parent.appendChild(next.cloneNode(true));return;}if(current.nodeType!==next.nodeType||(current.nodeType===1&&current.tagName!==next.tagName)){parent.replaceChild(next.cloneNode(true),current);return;}if(current.nodeType===3){if(current.nodeValue!==next.nodeValue)current.nodeValue=next.nodeValue;return;}if(current.nodeType!==1)return;for(const attr of Array.from(current.attributes))if(!next.hasAttribute(attr.name))current.removeAttribute(attr.name);for(const attr of Array.from(next.attributes))if(current.getAttribute(attr.name)!==attr.value)current.setAttribute(attr.name,attr.value);patch(current,next);});while(parent.childNodes.length>incoming.length)parent.lastChild.remove();}patch(host,template.content);
 }
-function monsterArt(b){const enemies=Array.isArray(b.enemies)?b.enemies:[{id:b.monsterId,name:b.name,hp:b.hp,max:b.max}];const art=enemies.filter(e=>['rat','crab','roper','headwind','bat','snake'].includes(e.id)&&e.hp>0);return art.length?'<div class="cq-art-group" role="group" aria-label="'+art.length+' illustrated enemies">'+art.map(e=>'<div class="cq-rat-card" style="--enemy-health:'+healthColor(e.hp,e.max)+'"><strong class="cq-rat-name">'+safeText(e.name||b.name)+' - LV '+safeText(e.level||b.level||1)+'</strong><img class="cq-rat-art" src="/monsters/'+e.id+'.png'+(['headwind','bat','snake'].includes(e.id)?'?v=animated-1':'')+'" alt="'+safeText(e.name||e.id)+'"><span class="cq-rat-hp">'+fmt(e.hp)+' / '+fmt(e.max)+' HP</span><div class="cq-enemymeter"><i style="width:'+Math.max(0,Math.min(100,e.hp/e.max*100))+'%"></i></div></div>').join('')+'</div>':'';}
-function groupBars(b,compact=false){if(!Array.isArray(b.enemies)||b.enemies.length<=1)return '';const hasArt=b.enemies.some(e=>['rat','crab','roper','headwind','bat','snake'].includes(e.id)&&e.hp>0),enemies=b.enemies.filter(e=>!['rat','crab','roper','headwind','bat','snake'].includes(e.id)||!hasArt);if(!enemies.length)return '';return '<div class="cq-group'+(compact?' cq-group-mini':'')+'">'+enemies.map(e=>'<div style="--enemy-health:'+healthColor(e.hp,e.max)+'"><span>'+safeText(e.name)+' · LV '+safeText(e.level||1)+' · '+fmt(e.hp)+' HP</span><div class="cq-enemymeter"><i style="width:'+Math.max(0,e.hp/e.max*100)+'%"></i></div></div>').join('')+'</div>';}
+function monsterArt(b,compact=false){
+ const enemies=Array.isArray(b.enemies)?b.enemies:[{id:b.monsterId,name:b.name,hp:b.hp,max:b.max,level:b.level}];
+ const illustrated=e=>['rat','crab','roper','headwind','bat','snake'].includes(e.id);
+ const visible=enemies.filter(e=>e.hp>0&&(compact||illustrated(e)));
+ return visible.length?'<div class="cq-art-group" role="group" aria-label="'+visible.length+' living enemies">'+visible.map(e=>'<div class="cq-rat-card" style="--enemy-health:'+healthColor(e.hp,e.max)+'"><strong class="cq-rat-name">'+safeText(e.name||b.name)+' - LV '+safeText(e.level||b.level||1)+'</strong>'+(illustrated(e)?'<img class="cq-rat-art" src="/monsters/'+e.id+'.png'+(['headwind','bat','snake'].includes(e.id)?'?v=animated-1':'')+'" alt="'+safeText(e.name||e.id)+'">':'')+'<span class="cq-rat-hp">'+fmt(e.hp)+' / '+fmt(e.max)+' HP</span><div class="cq-enemymeter"><i style="width:'+Math.max(0,Math.min(100,e.hp/e.max*100))+'%"></i></div></div>').join('')+'</div>':'';
+}
+function groupBars(b,compact=false){if(!Array.isArray(b.enemies)||b.enemies.length<=1)return '';const hasArt=b.enemies.some(e=>['rat','crab','roper','headwind','bat','snake'].includes(e.id)&&e.hp>0),enemies=b.enemies.filter(e=>e.hp>0&&(!['rat','crab','roper','headwind','bat','snake'].includes(e.id)||!hasArt));if(!enemies.length)return '';return '<div class="cq-group'+(compact?' cq-group-mini':'')+'">'+enemies.map(e=>'<div style="--enemy-health:'+healthColor(e.hp,e.max)+'"><span>'+safeText(e.name)+' · LV '+safeText(e.level||1)+' · '+fmt(e.hp)+' HP</span><div class="cq-enemymeter"><i style="width:'+Math.max(0,e.hp/e.max*100)+'%"></i></div></div>').join('')+'</div>';}
 
 
 
@@ -183,7 +188,7 @@ root.addEventListener('click',event=>{
  if(!event.target.closest('[data-profile-reset]'))return;
  profileInspect=null;draw();
 });
-function draw(){if(!s.route)return;all('.cq-profile').forEach((el,i)=>{let w=el.clientWidth,h=el.clientHeight;if(el.classList.contains('cq-smallprofile')&&floating&&!floating.closed){w=w||Math.max(160,floating.innerWidth-440);h=h||110;}if(!w||!h)return;if(el.classList.contains('cq-smallprofile')&&warmupSeconds>0){el.setAttribute('role','group');el.setAttribute('aria-label','Boss warmup');el.innerHTML='<div class="cq-mini-battle"><strong>BOSS WARMUP</strong><span>'+clock(Math.ceil(warmupSeconds))+' LEFT · PEDAL TO WARM UP</span></div>';return;}if(el.classList.contains('cq-smallprofile')&&levelUp){el.setAttribute('role','group');el.setAttribute('aria-label','Level up celebration');el.innerHTML=levelUpMarkup(levelUp,{hp:maxHP,attack:atk},true);return;}if(el.classList.contains('cq-smallprofile')&&(s.battle||s.reward)){el.setAttribute('role','group');el.setAttribute('aria-label',s.reward?'Victory reward choice':s.battle.name+' battle');if(s.reward){patchMarkup(el,'<div class="cq-mini-battle cq-mini-reward"><span>'+rewardLabel()+'</span>'+rewardButtons(s.pendingReward,true)+'</div>');}else{const b=s.battle;patchMarkup(el,'<div class="cq-mini-battle'+(monsterArt(b)?' cq-has-art':'')+'" style="--enemy-health:'+healthColor(b.hp,b.max)+'"><div class="cq-battleheading"><span>'+safeText(b.name)+'</span><span>UNTIL 1 HP</span></div>'+bossPrompt(b)+monsterArt(b)+(groupBars(b,true)||(!monsterArt(b)?'<div class="cq-mini-enemyhp">'+fmt(b.hp)+' HP</div><div class="cq-enemymeter" style="--enemy-health:'+healthColor(b.hp,b.max)+'"><i style="width:'+Math.max(0,b.hp/b.max*100)+'%"></i></div>':''))+'</div>');}return;}el.setAttribute('role','img');el.setAttribute('aria-label','Elevation profile: downhill, 0–3%, 3–6%, 6–9%, 9%+ grades in five blue tones; yellow rider line');const offset=s.route?.windowStart||0,current=(s.routeMiles||0)*METERS_PER_MILE,climb=running&&!document.getElementById('route-dialog')?.open?(Array.isArray(live.climbs)?live.climbs:[]).find(c=>current>=c.start&&current<c.end&&c.start>=offset&&c.end<=offset+s.route.distance):null;let displayed=s.route,progress=(current-offset)/s.route.distance;if(climb){const start=climb.start-offset,end=climb.end-offset,pts=[{d:0,e:sample(s.route,start)},...s.route.points.filter(p=>p.d>start&&p.d<end).map(p=>({d:p.d-start,e:p.e})),{d:end-start,e:sample(s.route,end)}];displayed={...s.route,distance:end-start,points:pts};progress=(current-climb.start)/(climb.end-climb.start);}const inspectable=!el.classList.contains('cq-smallprofile'),profileStart=climb?climb.start:offset;el.dataset.profileStart=String(profileStart);el.dataset.profileLength=String(displayed.distance);if(inspectable&&profileInspect!==null)progress=(profileInspect-profileStart)/displayed.distance;const bosses=(Array.isArray(live.climbs)?live.climbs:[]).filter(c=>summitChoices.get(Math.round(c.end))&&!summitSeen.has(Math.round(c.end))).map(c=>(c.end-(climb?climb.start:offset))/displayed.distance).filter(v=>v>=0&&v<=1);displayed={...displayed,summits:bosses};const eta=climb&&live.speed>1?Math.ceil((climb.end-current)/(live.speed*METERS_PER_MILE/3600)/60):null;el.style.touchAction=inspectable?'none':'';el.style.cursor=inspectable?'crosshair':'';el.innerHTML=elevationSVG(displayed,sample,w,h,progress)+(inspectable&&profileInspect!==null?'<div style="position:absolute;bottom:4px;left:6px;z-index:3;background:#102052;color:#fff;padding:4px 7px;font-size:16px">PREVIEW '+(profileInspect/METERS_PER_MILE).toFixed(2)+' MI · '+Math.round(sample(s.route,Math.max(0,Math.min(s.route.distance,profileInspect-offset)))/.3048)+' FT · '+grade(s.route,Math.max(0,Math.min(s.route.distance,profileInspect-offset))).toFixed(1)+'% <button type="button" data-profile-reset style="cursor:pointer">FOLLOW RIDER</button></div>':'')+(climb?'<div class="cq-climb-hud">'+safeText(climb.category)+' · '+((climb.end-current)/METERS_PER_MILE).toFixed(2)+' MI LEFT · ETA '+(eta===null?'—':eta+' MIN')+'</div>':'')+(el.classList.contains('cq-smallprofile')?'<div class="cq-overlay-grade" aria-label="Current route grade">'+currentGrade()+'</div>':'');});}
+function draw(){if(!s.route)return;all('.cq-profile').forEach((el,i)=>{let w=el.clientWidth,h=el.clientHeight;if(el.classList.contains('cq-smallprofile')&&floating&&!floating.closed){w=w||Math.max(160,floating.innerWidth-440);h=h||110;}if(!w||!h)return;if(el.classList.contains('cq-smallprofile')&&warmupSeconds>0){el.setAttribute('role','group');el.setAttribute('aria-label','Boss warmup');el.innerHTML='<div class="cq-mini-battle"><strong>BOSS WARMUP</strong><span>'+clock(Math.ceil(warmupSeconds))+' LEFT · PEDAL TO WARM UP</span></div>';return;}if(el.classList.contains('cq-smallprofile')&&levelUp){el.setAttribute('role','group');el.setAttribute('aria-label','Level up celebration');el.innerHTML=levelUpMarkup(levelUp,{hp:maxHP,attack:atk},true);return;}if(el.classList.contains('cq-smallprofile')&&(s.battle||s.reward)){el.setAttribute('role','group');el.setAttribute('aria-label',s.reward?'Victory reward choice':s.battle.name+' battle');if(s.reward){patchMarkup(el,'<div class="cq-mini-battle cq-mini-reward"><span>'+rewardLabel()+'</span>'+rewardButtons(s.pendingReward,true)+'</div>');}else{const b=s.battle;patchMarkup(el,'<div class="cq-mini-battle'+(monsterArt(b,true)?' cq-has-art':'')+'" style="--enemy-health:'+healthColor(b.hp,b.max)+'"><div class="cq-battleheading"><span>'+safeText(b.name)+'</span><span>UNTIL 1 HP</span></div>'+bossPrompt(b)+monsterArt(b,true)+(!monsterArt(b,true)?'<div class="cq-mini-enemyhp">'+fmt(b.hp)+' HP</div><div class="cq-enemymeter" style="--enemy-health:'+healthColor(b.hp,b.max)+'"><i style="width:'+Math.max(0,b.hp/b.max*100)+'%"></i></div>':'')+'</div>');}return;}el.setAttribute('role','img');el.setAttribute('aria-label','Elevation profile: downhill, 0–3%, 3–6%, 6–9%, 9%+ grades in five blue tones; yellow rider line');const offset=s.route?.windowStart||0,current=(s.routeMiles||0)*METERS_PER_MILE,climb=running&&!document.getElementById('route-dialog')?.open?(Array.isArray(live.climbs)?live.climbs:[]).find(c=>current>=c.start&&current<c.end&&c.start>=offset&&c.end<=offset+s.route.distance):null;let displayed=s.route,progress=(current-offset)/s.route.distance;if(climb){const start=climb.start-offset,end=climb.end-offset,pts=[{d:0,e:sample(s.route,start)},...s.route.points.filter(p=>p.d>start&&p.d<end).map(p=>({d:p.d-start,e:p.e})),{d:end-start,e:sample(s.route,end)}];displayed={...s.route,distance:end-start,points:pts};progress=(current-climb.start)/(climb.end-climb.start);}const inspectable=!el.classList.contains('cq-smallprofile'),profileStart=climb?climb.start:offset;el.dataset.profileStart=String(profileStart);el.dataset.profileLength=String(displayed.distance);if(inspectable&&profileInspect!==null)progress=(profileInspect-profileStart)/displayed.distance;const bosses=(Array.isArray(live.climbs)?live.climbs:[]).filter(c=>summitChoices.get(Math.round(c.end))&&!summitSeen.has(Math.round(c.end))).map(c=>(c.end-(climb?climb.start:offset))/displayed.distance).filter(v=>v>=0&&v<=1);displayed={...displayed,summits:bosses};const eta=climb&&live.speed>1?Math.ceil((climb.end-current)/(live.speed*METERS_PER_MILE/3600)/60):null;el.style.touchAction=inspectable?'none':'';el.style.cursor=inspectable?'crosshair':'';el.innerHTML=elevationSVG(displayed,sample,w,h,progress)+(inspectable&&profileInspect!==null?'<div style="position:absolute;bottom:4px;left:6px;z-index:3;background:#102052;color:#fff;padding:4px 7px;font-size:16px">PREVIEW '+(profileInspect/METERS_PER_MILE).toFixed(2)+' MI · '+Math.round(sample(s.route,Math.max(0,Math.min(s.route.distance,profileInspect-offset)))/.3048)+' FT · '+grade(s.route,Math.max(0,Math.min(s.route.distance,profileInspect-offset))).toFixed(1)+'% <button type="button" data-profile-reset style="cursor:pointer">FOLLOW RIDER</button></div>':'')+(climb?'<div class="cq-climb-hud">'+safeText(climb.category)+' · '+((climb.end-current)/METERS_PER_MILE).toFixed(2)+' MI LEFT · ETA '+(eta===null?'—':eta+' MIN')+'</div>':'')+(el.classList.contains('cq-smallprofile')?'<div class="cq-overlay-grade" aria-label="Current route grade">'+currentGrade()+'</div>':'');});}
 function currentGrade(){const g=live.connected?live.grade:s.route?grade(s.route,(s.routeMiles||0)*METERS_PER_MILE-(s.route.windowStart||0)):0;return (g>=0?'+':'')+g.toFixed(1)+'%';}
 let previousEvent='';
 function renderRideReadouts(session, L, remaining) {
@@ -282,32 +287,6 @@ function rememberIndoor(m){
  s.workouts||=[];const entry=s.workouts.find(w=>w.id===id);if(entry)entry.end=Math.max(entry.end,end);else if(s.workouts.length<5000)s.workouts.push({id,name:'Ride Breakaway indoor ride',kind:'indoor',family:'cycling',source:'Ride Breakaway',start,end,day:dayAt(start),xp:0,miles:0});
 }
 initWorkoutUI({root,getState:()=>s,apply:claimWorkout,canOpen:canPlan});
-// Injected into the autoplay build only. Production never accepts demo actions.
-function handleDemoAction(action){
- rewardChoice=null;
- if(action==='claim'){choose('coins');return;}
- if(action==='win'||action==='lose'){if(s.battle)finish(action==='win');render();return;}
- levelUps.clear();levelUp=null;s.battle=null;s.reward=false;s.pendingReward=null;
- const crab=/^crab-([123])$/.exec(action),ratCount={rat:1,'rats-2':2,rats:3}[action];
- const fixedRat=/^rat-level-(1|6|10)$/.exec(action);
- if(crab||ratCount||fixedRat||['headwind','bat','snake','new-mobs'].includes(action)||action==='mixed-rats'){
-  const id=['headwind','bat','snake'].includes(action)?action:crab?'crab':'rat';
-  const levels=action==='mixed-rats'?[1,6,10]:Array.from({length:crab?Number(crab[1]):ratCount||1},()=>fixedRat?Number(fixedRat[1]):chapterLevels(s.chapter,s.miles).min);
-  s.battle=enemyGroup((action==='new-mobs'?[{level:1,id:'headwind'},{level:2,id:'bat'},{level:2,id:'snake'}]:levels.map(level=>({level,id}))).map(({level,id})=>makeBattle('enemy',{level,monsterId:id})));
-  showEncounterView();message='Enemy-level artwork preview';
- }else if(action==='group'){encounter('enemy',3);return;}
- else if(action==='chapter-1'||action==='chapter-2'){
-  s.chapter=action==='chapter-1'?1:2;s.miles=0;s.boss=null;s.chapterEncounter=null;message='Previewing '+CHAPTER_BIOMES[s.chapter].name;
- }else if(action==='reset'){
-  s=fresh();s.route=generateRoute(15,'rolling',null,42077);s.routeMiles=0;lastLiveDistance=0;
-  parentSend({type:'route',route:s.route});message='Autoplay preview reset.';
- }else if(action==='level'){award(threshold(level()+1)-s.xp);s.nextEncounter=20;}
- else if(action==='reward'){
-  s.pendingReward=battleRewards(makeBattle('enemy',{level:chapterLevels(s.chapter,s.miles).min,monsterId:'rat'}));award(s.pendingReward.xp);s.reward=true;message='XP earned! Choose health or coins.';
- }else if(['enemy','summit','boss'].includes(action)){if(action==='boss')s.mode='adventure';encounter(action);}
- save();render();
-}
-
 window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==window.parent||e.data?.source!=='breakaway')return;const m=e.data;if(externalSaveChanged){parentSend({type:'pause'});return;}
  if(m.type==='quest-audio-visibility'){music.suspend(!m.active);if(m.active)parentSend({type:'quest-page',page:questBaseline?.getPage?.()||'route'});return;}
  if(m.type==='notice'){message=String(m.message||'');render();return;}
@@ -319,8 +298,7 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==
    }
    return;
   }
-  if(m.type==='demo-action'){handleDemoAction(m.action);return;}
- if(m.type==='telemetry'){const now=performance.now(),dt=Number.isFinite(m.demoSeconds)?Math.min(30,m.demoSeconds):(lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0);lastLiveTime=now;live=m;if(m.running&&m.activityStartTime&&(!s.session||s.session.id!==m.activityStartTime)){s.session={id:m.activityStartTime,startXP:s.xp,startLevel:level(),startAttack:atk(),startMiles:s.rideMiles,startSeconds:s.rideSeconds,startCoins:s.coins||0,monsters:0,bosses:0,completed:false};}rewardGesture.sample(now,m.cadence);if(s.reward&&rewardChoice)rewardGesture.update(rewardChoice,now,m.cadence,m.power,m.connected);rememberIndoor(m);if(s.route?.endless&&m.routeProfile){s.route={...s.route,...m.routeProfile};}if(m.buttonsReleased)clickArmed=true;power=Math.max(0,Math.round(m.power));running=!!m.running&&!!m.connected;const previousDistance=lastLiveDistance;const delta=Math.max(0,m.distanceM-lastLiveDistance);lastLiveDistance=m.distanceM;if(!s.route?.endless){
+  if(m.type==='telemetry'){const now=performance.now(),dt=lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0;lastLiveTime=now;live=m;if(m.running&&m.activityStartTime&&(!s.session||s.session.id!==m.activityStartTime)){s.session={id:m.activityStartTime,startXP:s.xp,startLevel:level(),startAttack:atk(),startMiles:s.rideMiles,startSeconds:s.rideSeconds,startCoins:s.coins||0,monsters:0,bosses:0,completed:false};}rewardGesture.sample(now,m.cadence);if(s.reward&&rewardChoice)rewardGesture.update(rewardChoice,now,m.cadence,m.power,m.connected);rememberIndoor(m);if(s.route?.endless&&m.routeProfile){s.route={...s.route,...m.routeProfile};}if(m.buttonsReleased)clickArmed=true;power=Math.max(0,Math.round(m.power));running=!!m.running&&!!m.connected;const previousDistance=lastLiveDistance;const delta=Math.max(0,m.distanceM-lastLiveDistance);lastLiveDistance=m.distanceM;if(!s.route?.endless){
   const c=m.summitBoss;
   summitChoices.clear();
   if(c&&Number.isFinite(c.end)){

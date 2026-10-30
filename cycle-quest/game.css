@@ -2311,3 +2311,20 @@ body {
 }
 
 .cq-boss-prompt{background:#102052;color:#ffe777;padding:8px;font-size:clamp(20px,2.5vw,34px);line-height:1.05;border:2px solid #a7b2d1}.cq-boss-prompt small{display:block;color:#fff;font-size:.65em}.cq-boss-prompt[data-phase="recover"]{color:#8fffa1}.cq-boss-prompt[data-phase="stagger"]{color:#fff}.cq-mini-battle .cq-boss-prompt{font-size:19px;padding:3px;flex-shrink:0}
+
+/* One equal-width health card per living enemy, including enemies without art. */
+#cq-preview .cq-mini-battle .cq-art-group .cq-rat-card {
+  min-width: 0;
+  overflow: hidden;
+}
+#cq-preview .cq-mini-battle .cq-art-group .cq-rat-name {
+  z-index: 1;
+  top: 3%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0;
+}
+#cq-preview .cq-mini-battle .cq-art-group .cq-rat-card img.cq-rat-art {
+  top: 18%;
+  height: 52% !important;
+}
