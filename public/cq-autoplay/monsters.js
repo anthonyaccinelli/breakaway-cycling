@@ -250,14 +250,6 @@ export const MONSTERS=Object.freeze([
     "baseAttack": 0.19
   },
   {
-    "id": "stirge",
-    "name": "Stirge",
-    "type": "beast",
-    "tier": 2,
-    "baseHP": 8000,
-    "baseAttack": 0.23
-  },
-  {
     "id": "mastiff",
     "name": "Mastiff",
     "type": "beast",
@@ -266,9 +258,9 @@ export const MONSTERS=Object.freeze([
     "baseAttack": 0.2
   },
   {
-    "id": "kobold",
-    "name": "Kobold",
-    "type": "humanoid",
+    "id": "snake",
+    "name": "Snake",
+    "type": "beast",
     "tier": 2,
     "baseHP": 7900,
     "baseAttack": 0.2

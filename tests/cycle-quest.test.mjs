@@ -9,15 +9,15 @@ const {readCharacter}=await loadQuestModule('save-state.js');
 const fresh=()=>({version:1,xp:24000,hp:100,miles:50,chapter:1,mode:'adventure',rideSeconds:100,rideMiles:2,nextEncounter:0,reward:false,boss:null});
 
 test('canonical roster has one rat and no obsolete tabletop combat numbers',()=>{
- assert.equal(MONSTERS.length,314);assert.equal(new Set(MONSTERS.map(m=>m.id)).size,314);
+ assert.equal(MONSTERS.length,313);assert.equal(new Set(MONSTERS.map(m=>m.id)).size,313);
  assert.equal(MONSTERS.filter(m=>m.id==='rat').length,1);assert(!MONSTERS.some(m=>m.id==='giant-rat'));
  for(const m of MONSTERS){assert(m.baseHP>0&&m.baseAttack>0&&m.tier>=1);for(const key of ['hp','attack','damage','cr','level'])assert.equal(m[key],undefined);}
 });
-test('approved rat and Stirge stats and XP use the enemy own level',()=>{
+test('approved rat and Bat stats and XP use the enemy own level',()=>{
  for(const [level,hp,dps,xp] of [[1,7500,.2,150],[2,8100,.21,175],[6,11020,.27,275],[10,14993,.34,375],[18,27750,.54,575]]){
   const b=makeBattle('enemy',{monsterId:'rat',level});assert.equal(b.hp,hp);assert.equal(b.dps,dps);assert.equal(b.reward,xp);
  }
- const stirge=makeBattle('enemy',{monsterId:'stirge',level:2});assert.equal(stirge.hp,8640);assert.equal(stirge.dps,.24);assert.equal(stirge.reward,175);
+ const bat=makeBattle('enemy',{monsterId:'bat',level:2});assert.equal(bat.hp,7992);assert.equal(bat.dps,.17);assert.equal(bat.reward,175);
 });
 test('rider telemetry and rider progression cannot affect enemy or boss stats',()=>{
  for(const kind of ['enemy','boss','summit']){

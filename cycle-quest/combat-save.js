@@ -1,5 +1,5 @@
 import {COMBAT_VERSION,MONSTERS,makeBattle,enemyGroup,chapterLevels} from '/api/cycle-quest?asset=combat.js';
-const canonical=id=>id==='giant-rat'?'rat':id;
+const canonical=id=>({'giant-rat':'rat',stirge:'bat',kobold:'snake'}[id]||id);
 const ids=new Set(MONSTERS.map(m=>m.id));
 const contentLevel=(level,chapter)=>Math.max(chapterLevels(chapter).min,Math.min(chapterLevels(chapter,100).max,Math.floor(level)||chapterLevels(chapter).min));
 const fraction=b=>b.max>0?Math.max(0,Math.min(1,b.hp/b.max)):1;
@@ -8,7 +8,9 @@ export function migrateCombatSave(state){
  delete state.battleCapPct;
  if(state.chapterEncounter){if(Array.isArray(state.chapterEncounter.bag))state.chapterEncounter.bag=[...new Set(state.chapterEncounter.bag.map(canonical))];state.chapterEncounter.last=canonical(state.chapterEncounter.last);}
  for(const key of ['battle','boss']){
-  const old=state[key];if(!old||old.combatVersion===COMBAT_VERSION)continue;
+  const old=state[key];if(!old)continue;
+  const renamed=canonical(old.monsterId)!==old.monsterId||old.enemies?.some(e=>canonical(e.id)!==e.id);
+  if(old.combatVersion===COMBAT_VERSION&&!renamed)continue;
   const kind=key==='boss'?'boss':old.kind,identity=canonical(old.monsterId);let fresh;
   if(kind==='enemy'){
    const entries=old.enemies||[{id:identity,name:old.name,hp:old.hp,max:old.max,level:old.level}];

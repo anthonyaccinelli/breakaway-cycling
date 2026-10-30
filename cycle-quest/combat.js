@@ -9,7 +9,7 @@ const ownLevel=value=>clamp(Math.floor(Number(value)||1),1,MAX_ENEMY_LEVEL);
 const cents=value=>Math.round(value*100)/100;
 const species=new Map(MONSTERS.map(m=>[m.id,m]));
 export const CHAPTER_BIOMES=Object.freeze({
- 1:{name:'THE VERDANT WILDS',biome:'forest',monsters:['rat','stirge','kobold','goblin','wolf','giant-fire-beetle','giant-spider','worg']},
+ 1:{name:'THE VERDANT WILDS',biome:'forest',monsters:['rat','bat','snake','goblin','wolf','giant-fire-beetle','giant-spider','worg']},
  2:{name:'THE HAUNTED MOOR',biome:'moor',monsters:['skeleton','zombie','ghoul','shadow','specter','death-dog','gnoll','harpy']}
 });
 // Content levels only. Rider level, FTP and entering watts are never inputs.

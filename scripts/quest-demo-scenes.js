@@ -6,10 +6,10 @@ function handleDemoAction(action){
  levelUps.clear();levelUp=null;s.battle=null;s.reward=false;s.pendingReward=null;
  const crab=/^crab-([123])$/.exec(action),ratCount={rat:1,'rats-2':2,rats:3}[action];
  const fixedRat=/^rat-level-(1|6|10)$/.exec(action);
- if(crab||ratCount||fixedRat||action==='headwind'||action==='mixed-rats'){
-  const id=action==='headwind'?'headwind':crab?'crab':'rat';
+ if(crab||ratCount||fixedRat||['headwind','bat','snake','new-mobs'].includes(action)||action==='mixed-rats'){
+  const id=['headwind','bat','snake'].includes(action)?action:crab?'crab':'rat';
   const levels=action==='mixed-rats'?[1,6,10]:Array.from({length:crab?Number(crab[1]):ratCount||1},()=>fixedRat?Number(fixedRat[1]):chapterLevels(s.chapter,s.miles).min);
-  s.battle=enemyGroup(levels.map(level=>makeBattle('enemy',{level,monsterId:id})));
+  s.battle=enemyGroup((action==='new-mobs'?[{level:1,id:'headwind'},{level:2,id:'bat'},{level:2,id:'snake'}]:levels.map(level=>({level,id}))).map(({level,id})=>makeBattle('enemy',{level,monsterId:id})));
   showEncounterView();message='Enemy-level artwork preview';
  }else if(action==='group'){encounter('enemy',3);return;}
  else if(action==='chapter-1'||action==='chapter-2'){
