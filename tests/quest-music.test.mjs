@@ -37,3 +37,7 @@ test('a delayed play promise cannot start a stale fanfare timer after leaving',a
  const {music,tracks,timers}=fixture();let release;tracks[1].play=()=>new Promise(resolve=>release=resolve);
  music.sync({battle:true});music.sync({});music.sync({rest:true});release();await settled();assert.equal(timers.size,0);assert.equal(music.state().scene,'rest');
 });
+test('victory uses the dedicated 0–5-second asset and always restarts at zero',async()=>{
+ const {music,tracks}=fixture();assert.ok(tracks[1].src.endsWith('/victory-opening-0-5.wav'));
+ music.sync({battle:true});tracks[1].currentTime=5;music.sync({});await settled();assert.equal(tracks[1].currentTime,0);assert.equal(tracks[1].loop,false);
+});

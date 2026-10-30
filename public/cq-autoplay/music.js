@@ -3,7 +3,7 @@ export function createQuestMusic({makeAudio=src=>{const audio=new Audio(src);aud
  const key='cycle-quest-music-enabled';
  let enabled=true;try{enabled=storage?.getItem(key)!=='false';}catch{}
  const tracks=Object.fromEntries(['battle','victory','rest'].map(name=>{
-  const file=name==='battle'?'do-or-die':name,audio=makeAudio('/audio/cycle-quest/'+file+'.mp3');
+  const file={battle:'do-or-die.mp3',victory:'victory-opening-0-5.wav',rest:'rest.mp3'}[name],audio=makeAudio('/audio/cycle-quest/'+file);
   audio.preload='none';audio.loop=name!=='victory';audio.volume=.6;return [name,audio];
  }));
  let scene='silent',wasBattle=false,blocked=false,suspended=false,paused=false,generation=0,timer=null,playing=false;
@@ -13,7 +13,7 @@ export function createQuestMusic({makeAudio=src=>{const audio=new Audio(src);aud
  function halt(){generation++;clearTimer();playing=false;for(const audio of Object.values(tracks)){audio.pause();try{audio.currentTime=0;}catch{}}}
  function play(){
   if(!enabled||suspended||paused||scene==='silent'||playing)return;
-  const audio=tracks[scene],token=++generation;playing=true;
+  const audio=tracks[scene],token=++generation;if(scene==='victory')audio.currentTime=0;playing=true;
   try{Promise.resolve(audio.play()).then(()=>{
    if(token!==generation)return;blocked=false;notify();
    if(scene==='victory')timer=schedule(()=>{timer=null;select('silent');},5000);
