@@ -1,3 +1,4 @@
+import {createQuestIntroMusic} from './quest-intro-music';
 import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
 import {findClassicRoute,registerClassicRoute,randomClassicSeed,isClassicSeed,validatedClassicRecipe,deriveUnregisteredClassicRoute} from './classic-route-registry';
 import {mountBetaSupport} from './beta-support';
@@ -2889,6 +2890,7 @@ function openModeLanding(){
  if(surviveOn){status('End your current Survival session before changing modes.');return false;}
  if(typeof coachRuntime!=='undefined')coachRuntime?.endCoaching();
  delete document.body.dataset.deviceShortcut;
+ if(typeof questIntroMusic!=='undefined')questIntroMusic.stop();
  const host=document.getElementById('cycleQuestHost');if(host){host.hidden=true;host.querySelector('iframe')?.contentWindow?.postMessage({source:'breakaway',type:'quest-audio-visibility',active:false},location.origin);}
  if(running)pauseRide();
  // A mode change pauses the ride; pedaling on the mode selector must not resume it.
@@ -2909,6 +2911,8 @@ modeLanding.querySelector('#modeDevices')!.addEventListener('click',()=>{
 modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
 modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
 modeHomeButton.addEventListener('click',()=>{if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');});
+const questIntroAudio=new Audio('/audio/cycle-quest/largo.mp3');questIntroAudio.hidden=true;questIntroAudio.dataset.questMusic='largo.mp3';document.body.append(questIntroAudio);
+const questIntroMusic=createQuestIntroMusic(questIntroAudio);
 modeLanding.querySelector('#chooseCycleQuest')!.addEventListener('click',enterCycleQuest);
 // Preview starts with mode selection, not the existing route editor.
 openModeLanding();
@@ -3026,13 +3030,15 @@ window.addEventListener('cyclequest-navigate',(event:Event)=>{
 });
 function showCycleQuest(){modeLanding.hidden=true;modeHomeButton.hidden=true;screenRoute.hidden=true;screenSetup.hidden=true;screenRide.hidden=true;cycleQuestHost.hidden=false;questSend({type:'quest-audio-visibility',active:true});document.body.dataset.breakawayScreen='quest';document.body.classList.remove('ride-focus-active');window.scrollTo(0,0);}
 async function enterCycleQuest(){
+ questIntroMusic.start();
  try{const response=await fetch('/api/cycle-quest?asset=status',{credentials:'same-origin',cache:'no-store'});if(response.ok){launchCycleQuest();return;}}catch{}
  questGate.showModal();questPassword.focus();
 }
 function launchCycleQuest(recordHistory=true){delete document.body.dataset.deviceShortcut;if(recordHistory)history.pushState({...(history.state||{}),breakawayPage:'mode',breakawayMode:'cyclequest'},'');questAuthenticated=true;rideExperience='cyclequest';document.body.dataset.rideExperience='cyclequest';survivalStudio.hidden=true;cycleQuestHold=false;questReward=false;if(!questFrame.src)questFrame.src='/api/cycle-quest?asset=index.html';showCycleQuest();}
 const questGate=document.createElement('dialog');questGate.className='quest-access-dialog';questGate.id='questAccessGate';questGate.innerHTML='<form id="questAccessForm"><span>PRIVATE BETA</span><h2>CYCLE QUEST</h2><p>Enter the beta password to begin.</p><label for="questPassword">Password</label><input id="questPassword" type="password" autocomplete="off" required maxlength="200"><p id="questAccessError" role="alert"></p><div><button type="submit">UNLOCK CYCLE QUEST</button><button type="button" id="questAccessCancel">CANCEL</button></div></form>';document.body.append(questGate);
 const questPassword=questGate.querySelector<HTMLInputElement>('#questPassword')!;
-questGate.querySelector('#questAccessCancel')!.addEventListener('click',()=>questGate.close());
+questGate.querySelector('#questAccessCancel')!.addEventListener('click',()=>{questIntroMusic.stop();questGate.close();});
+questGate.addEventListener('cancel',()=>questIntroMusic.stop());
 questGate.querySelector('form')!.addEventListener('submit',async event=>{event.preventDefault();const button=questGate.querySelector<HTMLButtonElement>('button[type=submit]')!;button.disabled=true;const error=questGate.querySelector('#questAccessError')!;error.textContent='';try{const result=await fetch('/api/cycle-quest',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({password:questPassword.value})});questPassword.value='';if(!result.ok){error.textContent=result.status===401?'Incorrect password. Try again.':'Beta access is temporarily unavailable.';return;}questGate.close();launchCycleQuest();}catch{error.textContent='Could not connect. Please try again.';}finally{button.disabled=false;}});
 const questReturn=document.createElement('button');questReturn.id='questReturn';questReturn.type='button';questReturn.textContent='← RETURN TO CYCLE QUEST';questReturn.hidden=true;screenSetup.querySelector('.setup-next')?.prepend(questReturn);questReturn.addEventListener('click',()=>{showCycleQuest();questSend({type:'navigate',page:'ride'});});
 cycleQuestHost.querySelector('#questHome')!.addEventListener('click',()=>{if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');});
@@ -3067,7 +3073,9 @@ function routeFromQuest(data:any){
 window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==questFrame.contentWindow||event.data?.source!=='cycle-quest'||!questAuthenticated||rideExperience!=='cyclequest'||document.body.dataset.breakawayScreen==='home')return;
  const data=event.data;
- if(data.type==='home'){if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');}
+ if(data.type==='quest-page'&&['ride','overlay','character'].includes(String(data.page))){questIntroMusic.stop();}
+ else if(data.type==='music-setting'){questIntroMusic.setEnabled(data.enabled===true);}
+ else if(data.type==='home'){if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');}
  else if(data.type==='connect'){questSend({type:'navigate',page:'devices'});}
  else if(data.type==='toggle'){if(!connected||!controlGranted||!realTelemetry){questSend({type:'navigate',page:'devices'});status('Connect your smart trainer to start Cycle Quest.');}else if(running)pauseRide();else if(rideEnd){status('Finish the ride summary before starting another ride.');}else {rideAwaitingPedaling=true;pedalSince=0;questSend({type:'notice',message:'Ready — start pedaling to begin.'});}}
  else if(data.type==='pause'){if(running)pauseRide();if(data.autoResume===false)rideAwaitingPedaling=false;}

@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createQuestMusic} from '../cycle-quest/music.js';
-function fixture(saved=null){
+function fixture(saved=null,random=()=>.25){
  const tracks=[],timers=new Map(),values=new Map(saved===null?[]:[['cycle-quest-music-enabled',saved]]);let id=0;
- const music=createQuestMusic({makeAudio(src){const a={src,currentTime:0,plays:0,pauses:0,listeners:{},play(){this.plays++;return Promise.resolve();},pause(){this.pauses++;},addEventListener(name,fn){this.listeners[name]=fn;}};tracks.push(a);return a;},storage:{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)},schedule(fn,ms){timers.set(++id,{fn,ms});return id;},cancel(id){timers.delete(id);}});
+ const music=createQuestMusic({random,makeAudio(src){const a={src,duration:120,currentTime:0,plays:0,pauses:0,listeners:{},play(){this.plays++;return Promise.resolve();},pause(){this.pauses++;},addEventListener(name,fn){this.listeners[name]=fn;}};tracks.push(a);return a;},storage:{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)},schedule(fn,ms){timers.set(++id,{fn,ms});return id;},cancel(id){timers.delete(id);}});
  return {music,tracks,timers,values};
 }
 const settled=()=>new Promise(resolve=>setImmediate(resolve));
@@ -40,4 +40,20 @@ test('a delayed play promise cannot start a stale fanfare timer after leaving',a
 test('victory uses the dedicated 0–5-second asset and always restarts at zero',async()=>{
  const {music,tracks}=fixture();assert.ok(tracks[1].src.endsWith('/victory-opening-0-5.wav'));
  music.sync({battle:true});tracks[1].currentTime=5;music.sync({});await settled();assert.equal(tracks[1].currentTime,0);assert.equal(tracks[1].loop,false);
+});
+test('new battles start at different positions but pause/resume keeps the current position',async()=>{
+ const {music,tracks}=fixture();music.sync({battle:true});await settled();assert.equal(tracks[0].currentTime,30);
+ tracks[0].currentTime=37;music.sync({battle:true,paused:true});music.sync({battle:true});await settled();assert.equal(tracks[0].currentTime,37);
+ music.endBattle('victory');music.sync({});music.sync({battle:true});await settled();assert.equal(tracks[0].currentTime,90);
+});
+test('defeats play Game Over once, victories play fanfare, and fleeing plays neither',async()=>{
+ const {music,tracks}=fixture();music.sync({battle:true});music.endBattle('death');music.sync({});await settled();assert.equal(music.state().scene,'death');assert.equal(tracks[4].plays,1);assert.equal(tracks[1].plays,0);assert.equal(tracks[4].loop,false);
+ for(let i=0;i<10;i++)music.sync({});assert.equal(tracks[4].plays,1);
+ tracks[4].listeners.ended();assert.equal(music.state().scene,'silent');
+ music.sync({battle:true});music.endBattle('flee');music.sync({});await settled();assert.equal(music.state().scene,'silent');assert.equal(tracks[1].plays,0);
+});
+test('Take Flight follows the actual level-up screen and is interrupted by a new battle',async()=>{
+ const {music,tracks}=fixture();music.sync({levelUp:true});await settled();assert.equal(tracks[3].plays,1);assert.ok(tracks[3].src.endsWith('/take-flight.mp3'));
+ music.sync({levelUp:true});assert.equal(tracks[3].plays,1);music.sync({});assert.equal(music.state().scene,'silent');
+ music.sync({levelUp:true});music.sync({battle:true});await settled();assert.equal(music.state().scene,'battle');assert.equal(tracks[3].currentTime,0);
 });

@@ -22,7 +22,7 @@ export function mountQuestBaseline({root,getState,getLive,getView,changeView,ope
  game.querySelector('.cq-header').after(section);
  const setPage=next=>{
   if(!['route','devices','ride','overlay','character'].includes(next))return;
-  page=next;game.dataset.cqPage=page;
+  page=next;game.dataset.cqPage=page;parentSend({type:'quest-page',page});
   top.querySelectorAll('[data-cq-page]').forEach(button=>{
    const current=button.dataset.cqPage===(page==='character'?'ride':page);
    button.classList.toggle('cq-unified-active',current);
