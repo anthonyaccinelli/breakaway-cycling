@@ -1,3 +1,4 @@
+import {virtualGearTarget,advanceRoadSpeed} from './virtual-drivetrain';
 import {createQuestIntroMusic} from './quest-intro-music';
 import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
 import {findClassicRoute,registerClassicRoute,randomClassicSeed,isClassicSeed,validatedClassicRecipe,deriveUnregisteredClassicRoute} from './classic-route-registry';
@@ -35,18 +36,20 @@ const CYCLING_POWER_MEASUREMENT='00002a63-0000-1000-8000-00805f9b34fb';
 const CONTROL='00002ad9-0000-1000-8000-00805f9b34fb';
 const STATUS='00002ada-0000-1000-8000-00805f9b34fb';
 const BIKE='00002ad2-0000-1000-8000-00805f9b34fb';
+let cycleQuestHeldSlope:number|null=null;
 let cycleQuestHold=false;let cycleQuestHeldSpeed=0;
 let cycleQuestHeldGrade:number|null=null,cycleQuestHeldRequestedGrade=0,cycleQuestHeldErgTarget=0,cycleQuestHeldGear=6;
 function setCycleQuestHold(hold:boolean){
  if(hold&&!cycleQuestHold){
+  cycleQuestHeldSlope=at(distance).grade*num('difficulty')/100;
   cycleQuestHeldRequestedGrade=simRequestedGrade();
   cycleQuestHeldGrade=Number.isFinite(trainerGrade)?trainerGrade:cycleQuestHeldRequestedGrade;
   cycleQuestHeldSpeed=speed;cycleQuestHeldErgTarget=lastTarget;cycleQuestHeldGear=gear;
  }
  cycleQuestHold=hold;
- if(!hold)cycleQuestHeldGrade=null;
+ if(!hold){cycleQuestHeldGrade=null;cycleQuestHeldSlope=null;}
 }
-let drivetrainMode:'traditional'|'virtual'='traditional';let realTelemetry=false;let trainerMode:'sim'|'erg'|'target'='sim';let lastTarget=0;let targetErgWatts=180;let lastFixedErgCommand=0;let controlResponseWaiter:((v:DataView)=>void)|null=null;let controlQueue=Promise.resolve();let points:Point[]=[];let distance=0;let speed=0;let power=0;let cadence=0;let gear=6;let running=false;let last=0;let device:BLEDevice;let control:any;let connected=false;let controlGranted=false;let pending=false;let trainerGrade=NaN;
+let drivetrainMode:'traditional'|'virtual'='traditional';let realTelemetry=false;let trainerMode:'sim'|'erg'|'target'='sim';let lastTarget=0;let targetErgWatts=180;let lastFixedErgCommand=0;let controlResponseWaiter:((v:DataView)=>void)|null=null;let controlQueue=Promise.resolve();let points:Point[]=[];let distance=0;let speed=0;let power=0;let cadence=0;let cadenceReceivedAt=-Infinity;let gear=6;let running=false;let last=0;let device:BLEDevice;let control:any;let connected=false;let controlGranted=false;let pending=false;let trainerGrade=NaN;
 // Procedural routes: deterministic, streaming terrain; never allocate the entire endless route.
 type Terrain = 'flat'|'rolling'|'mountain'|'punchy';
 let procedural=false, endless=false, proceduralSeed=0, proceduralTerrain:Terrain='rolling', proceduralIntensity=1;
@@ -495,16 +498,11 @@ function finishRide(){
  void archiveFinishedRide().then(()=>{const saved=readRideRecovery();if(saved?.rideStart===completedRideId)clearRideRecovery();}).catch(error=>console.warn('Ride archive failed; recovery checkpoint retained',error));
  status('Ride complete');
 }
-// Zwift default Mixed Terrain 1x24 published virtual gear ratios.
-// Ratios are relative to gear 12 (2.40), matching Zwift's midpoint reference.
-const ZWIFT_GEAR_RATIOS:readonly number[]=[
- 0.75,0.87,0.99,1.11,1.23,1.38,1.53,1.68,
- 1.86,2.04,2.22,2.40,2.61,2.82,3.03,3.24,
- 3.49,3.74,3.99,4.24,4.54,4.84,5.14,5.49
-];
-const zwiftGearMultiplier=()=>ZWIFT_GEAR_RATIOS[gear-1]/ZWIFT_GEAR_RATIOS[11];
-const SIM_TEST_WATTS=300, SIM_COMMAND_INTERVAL_MS=750;
+// Traditional drivetrain SIM stays a direct gradient command. Virtual gears
+// use cadence-based road-load power commands through the FTMS fallback below.
+const SIM_COMMAND_INTERVAL_MS=750;
 const SIM_GRADE_SLEW_PERCENT_PER_SECOND=0.75;
+let virtualPowerBusy=false,virtualPowerLastTime=-Infinity;
 let simAppliedGrade=NaN,simLastTime=0,simBusy=false;
 const $=(id:string)=>document.getElementById(id)!;
 const seedLock=$('lockGeneratedSeed') as HTMLInputElement;
@@ -981,21 +979,13 @@ async function setGrade(grade:number){
  v.setUint8(5,Math.min(255,Math.round(num('crr')*10000)));v.setUint8(6,51);
  return command(Array.from(new Uint8Array(b)));
 }
-// FTMS SIM exposes gradient, not virtual gearing or a hard watt limit. Translate
-// the Zwift 24-speed ratio changes into a bounded *equivalent gradient*.
-// This is an approximation, not Zwift's proprietary drivetrain simulation.
 function simRequestedGrade():number{
  const routeGrade=at(distance).grade*num('difficulty')/100;
- if(drivetrainMode==='traditional')return cycleQuestHold&&cycleQuestHeldGrade!==null?cycleQuestHeldGrade:Math.max(-12,Math.min(12,routeGrade));
- const ratio=zwiftGearMultiplier();
- const effectiveLoad=4+Math.max(0,(cycleQuestHold?cycleQuestHeldSpeed:speed)**2*0.08);
- const shifted=routeGrade+(ratio-1)*effectiveLoad;
- // Do not feed delayed power readings back into SIM grade; that oscillates.
- const heldOffset=cycleQuestHold&&cycleQuestHeldGrade!==null?cycleQuestHeldGrade-cycleQuestHeldRequestedGrade:0;
- return Math.max(-12,Math.min(12,shifted+heldOffset));
+ return cycleQuestHold&&cycleQuestHeldGrade!==null?cycleQuestHeldGrade:Math.max(-12,Math.min(12,routeGrade));
 }
-function resetSimController(){simAppliedGrade=NaN;simLastTime=0;trainerGrade=NaN;}
+function resetSimController(){simAppliedGrade=NaN;simLastTime=0;trainerGrade=NaN;virtualPowerLastTime=-Infinity;lastTarget=-1;}
 async function updateSimResistance(now:number,immediate=false){
+ if(drivetrainMode==='virtual'&&trainerMode==='sim'){await setVirtualGearResistance(immediate);return;}
  if(trainerMode!=='sim'||!running||!connected||!controlGranted||!realTelemetry||simBusy)return;
  if(!immediate&&simLastTime&&now-simLastTime<SIM_COMMAND_INTERVAL_MS)return;
  const target=simRequestedGrade();
@@ -1008,20 +998,21 @@ async function updateSimResistance(now:number,immediate=false){
  try{if(await setGrade(simAppliedGrade))trainerGrade=simAppliedGrade;}
  finally{simBusy=false;}
 }
-// Experimental fixed-Cog shifting approximation: use ERG target watts computed
-// from cadence, gear and slope. NOT Zwift's proprietary gear/torque algorithm.
-// Standard FTMS ERG commands are supported on many trainers but may feel unlike SIM.
-async function setVirtualGearResistance(){
- if(drivetrainMode!=='virtual'||!connected||!controlGranted||!running||!realTelemetry||trainerMode!=='erg')return;
- const slope=at(distance).grade*num('difficulty')/100;
- const rpm=Math.max(40,cadence);
- const ratio=zwiftGearMultiplier();
- const base=1.5*(90+Math.max(-12,slope)*11)*ratio*rpm/85;
- // Apply only the selected drivetrain ratio, including during battle holds.
- const heldTarget=cycleQuestHeldErgTarget*(ZWIFT_GEAR_RATIOS[gear-1]/ZWIFT_GEAR_RATIOS[cycleQuestHeldGear-1]);
- const watts=Math.round(Math.max(30,Math.min(32767,cycleQuestHold&&cycleQuestHeldErgTarget>0?heldTarget:base)));
- if(Math.abs(watts-lastTarget)<5)return;
- if(await command([0x05,watts&255,watts>>8]))lastTarget=watts;
+// Standard FTMS fallback: emulate a selected drivetrain with continuously
+// updated power targets. Both route modes share this path for virtual shifting.
+// Holding an encounter freezes terrain, never watts/cadence or the selected gear.
+async function setVirtualGearResistance(immediate=false){
+ if(drivetrainMode!=='virtual'||!connected||!controlGranted||!running||!realTelemetry||trainerMode==='target'||virtualPowerBusy)return;
+ const now=performance.now();
+ if(!immediate&&now-virtualPowerLastTime<250)return;
+ const rpm=now-cadenceReceivedAt<=3000?cadence:0;
+ const slope=cycleQuestHold&&cycleQuestHeldSlope!==null?cycleQuestHeldSlope:at(distance).grade*num('difficulty')/100;
+ const target=virtualGearTarget(gear,rpm,{massKg:Math.max(35,weightKg('weight')+weightKg('bikeWeight')),gradePercent:slope,crr:Math.max(0,num('crr'))});
+ const watts=Math.round(target.watts);
+ if(watts===lastTarget&&now-virtualPowerLastTime<2000)return;
+ virtualPowerBusy=true;virtualPowerLastTime=now;
+ try{if(await command([0x05,watts&255,(watts>>8)&255]))lastTarget=watts;}
+ finally{virtualPowerBusy=false;}
 }
 // True constant-wattage ERG: direct FTMS Set Target Power (0x05).
 // Route elevation and virtual gears have no effect on the requested power.
@@ -1041,7 +1032,7 @@ function parseBikeData(v:DataView){
  // Speed is present when bit 0 is 0. Cadence and power are optional.
  if(!has(0)&&o+2<=v.byteLength){/* speed available but virtual route uses modeled speed */o+=2;}
  if(has(1))o+=2; // average speed
- if(has(2)&&o+2<=v.byteLength){cadence=v.getUint16(o,true)/2;o+=2;}
+ if(has(2)&&o+2<=v.byteLength){cadence=v.getUint16(o,true)/2;cadenceReceivedAt=performance.now();o+=2;}
  if(has(3))o+=2; // average cadence
  if(has(4))o+=3; // total distance
  if(has(5))o+=2; // resistance level
@@ -1062,7 +1053,7 @@ function parseBikeData(v:DataView){
  if(rideAwaitingPedaling&&!running&&!rideEnd&&!document.getElementById('stationaryRidePrompt')&&(breakawayScreen==='ride'||(rideExperience==='cyclequest'&&document.body.dataset.breakawayScreen==='quest'))&&points.length&&connected&&controlGranted&&(cadence>=20||power>=15)){if(!pedalSince)pedalSince=Date.now();if(Date.now()-pedalSince>=3000){pedalSince=0;beginRide();}}else if(!running)pedalSince=0;
  update();
 }
-function shift(delta:number){if(drivetrainMode!=='virtual')return;gear=Math.max(1,Math.min(24,gear+delta));update();if(trainerMode==='erg')void setVirtualGearResistance();else if(trainerMode==='sim'&&running)void updateSimResistance(performance.now(),true);}
+function shift(delta:number){if(drivetrainMode!=='virtual')return;gear=Math.max(1,Math.min(24,gear+delta));update();if(trainerMode==='erg')void setVirtualGearResistance(true);else if(trainerMode==='sim'&&running)void updateSimResistance(performance.now(),true);}
 let lastChartUpdate=0;let lastGearUpdate=0;
 function advanceRide(now:number){
  const dt=Math.max(0,Math.min(3,(now-last)/1000||0));last=now;
@@ -1076,9 +1067,9 @@ function advanceRide(now:number){
   // Time-stepped road dynamics: pedaling force, gravity, rolling friction,
   // and aerodynamic drag. Coasting works at zero watts on flats and descents.
   const mass=Math.max(35,weightKg('weight')+weightKg('bikeWeight'));
-  const airDensity=1.225,cdA=0.38,g=9.80665;
+
   const crr=Math.max(0,num('crr'));
-  const watts=Math.max(0,power)*0.975;
+  const watts=Math.max(0,power);
   const steps=Math.max(1,Math.ceil(dt/0.05));
   const step=dt/steps;
   if(procedural)ensureTerrain();
@@ -1086,17 +1077,8 @@ function advanceRide(now:number){
    // Freeze route progress without discarding momentum. This keeps virtual gearing
    // and trainer load continuous through battles, rewards and level-up screens.
    if(cycleQuestHold)break;
-   const grade=at(distance).grade/100;
-   const angle=Math.atan(grade);
-   const gravityForce=mass*g*Math.sin(angle);
-   const rollingForce=mass*g*Math.cos(angle)*crr;
-   const aeroForce=0.5*airDensity*cdA*speed*speed;
-   // At low speed, cap the driving force to avoid infinite force at launch.
-   const driveForce=Math.min(700,watts/Math.max(speed,1.5));
-   const acceleration=(driveForce-gravityForce-rollingForce-aeroForce)/mass;
    const oldSpeed=speed;
-   speed=Math.max(0,Math.min(35,speed+acceleration*step));
-   if(watts>=35&&cadence>=30)speed=Math.max(speed,0.25);
+   speed=advanceRoadSpeed(speed,watts,step,{massKg:mass,gradePercent:at(distance).grade,crr});
    const limit=procedural?routeLimit:points.at(-1)!.distance;
    distance=Math.min(limit,distance+(oldSpeed+speed)*0.5*step);
    if(distance>=limit)break;
@@ -1110,7 +1092,7 @@ function advanceRide(now:number){
    if(!waitForSummit&&!(rideExperience==='cyclequest'&&questStoryChapter>0)){finishRide();status('Route complete');}
   }
   if(trainerMode==='sim')void updateSimResistance(now);
-  if(trainerMode==='erg'&&now-lastGearUpdate>1100){lastGearUpdate=now;void setVirtualGearResistance();}
+  if(trainerMode==='erg'&&now-lastGearUpdate>250){lastGearUpdate=now;void setVirtualGearResistance();}
   if(trainerMode==='target'&&now-lastGearUpdate>1500){lastGearUpdate=now;void setFixedErgPower();}
   recordRideSample();
   update();
@@ -1143,7 +1125,7 @@ function parseCyclingPowerMeasurement(v:DataView){
   if(lastSnapCrank){
    const dr=(rev-lastSnapCrank.rev+65536)%65536;
    const dt=(eventTime-lastSnapCrank.time+65536)%65536;
-   if(dt>0&&dr>0&&dr<20)cadence=Math.min(200,Math.round(dr*60*1024/dt));
+   if(dt>0&&dr>0&&dr<20){cadence=Math.min(200,Math.round(dr*60*1024/dt));cadenceReceivedAt=performance.now();}
   }
   lastSnapCrank={rev,time:eventTime};
  }
@@ -1223,7 +1205,7 @@ function applyDrivetrainMode(){
  ($('virtualShiftingSettings') as HTMLElement).hidden=!virtual;
  ($('connectClick') as HTMLButtonElement).disabled=!virtual;
  ($('drivetrainHelp') as HTMLElement).textContent=virtual
-  ?'Virtual gear controls adjust resistance in supported modes. Zwift Click is optional; on-screen and keyboard shifting are also available.'
+  ?'Virtual gears use gear ratio, cadence, rider weight and slope to calculate pedal resistance. Live cadence is required. Keep the chain in one gear. Zwift Click, keyboard and on-screen shifting are supported.'
   :'Use your physical cassette and chainrings. In SIM mode, Breakaway sends the route gradient directly to the trainer without virtual gear adjustments. ERG target mode ignores elevation.';
  if(!virtual&&trainerMode==='erg'){
   trainerMode='sim';($('trainerMode') as HTMLSelectElement).value='sim';
@@ -1628,7 +1610,7 @@ $('nativeProfile').addEventListener('click',async()=>{
    .survive-hud-grid>.survive-hud-metric:nth-child(4){grid-column:1;grid-row:2}
    .survive-hud-grid>.survive-hud-metric:nth-child(6){grid-column:3;grid-row:2}
    @media(max-width:800px){.tile b{font-size:17px}.tile small{font-size:9px}#overlayTop strong{font-size:9px}}
-  
+
    body:is([data-ride-experience="classic"],[data-ride-experience="survival"]){background:#f5f5f7;color:#1d1d1f}
    body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) .tile{background:#fff!important;border-color:#d2d2d7!important;color:#1d1d1f!important}
    body:is([data-ride-experience="classic"],[data-ride-experience="survival"]) #overlayContent:not(.survive-overlay) :is(.tile b,.tile small,#overlayTop strong,#overlayLabel){color:#1d1d1f!important}
