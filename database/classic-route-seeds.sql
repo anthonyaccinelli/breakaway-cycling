@@ -26,5 +26,7 @@ create policy "Guest riders may register immutable shareable Classic routes"
 insert into public.classic_route_seeds (seed,miles,gain_target_ft,terrain,difficulty,generator_version)
 values (3001,10,null,'flat',0.55,1),
        (4502,15,null,'rolling',1,1),
-       (6003,18,1800,'mountain',1.35,1)
+       (6003,18,1800,'mountain',1.35,1),
+       -- Known pre-registry example: 16.7 mi Easy Rolling Hills, natural gain rounds to 534 ft.
+       (937093007,16.7,null,'rolling',0.55,1)
 on conflict (seed) do nothing;
