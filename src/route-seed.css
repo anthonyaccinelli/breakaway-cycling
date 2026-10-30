@@ -1,52 +1,77 @@
-/* Classic route studio: keep the seed lock inside the existing fifth field. */
+/* Classic only: keep the seed and its lock in ONE existing route-field
+   grid cell. Do not introduce another row or change the Quick Start layout. */
 .ride-stage #routeStudio .route-fields .route-seed-field {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-self: stretch;
-  gap: 4px;
-  min-width: 0;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  align-self: stretch !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  grid-column: auto !important;
 }
 .ride-stage #routeStudio .route-fields .route-seed-field > label {
   height: auto !important;
-  flex: 0 0 auto;
+  flex: 0 0 auto !important;
   margin: 0 !important;
+  line-height: 1.35 !important;
 }
 .ride-stage #routeStudio .route-fields .route-seed-inline {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) max-content !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
 }
 .ride-stage #routeStudio .route-fields .route-seed-inline > input[type="number"] {
-  width: 1% !important;
+  display: block !important;
+  width: 100% !important;
   min-width: 0 !important;
-  flex: 1 1 auto !important;
+  flex: none !important;
   margin: 0 !important;
 }
 .ride-stage #routeStudio .route-fields label.route-seed-lock {
-  display: flex !important;
+  display: inline-flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  justify-content: flex-start !important;
+  justify-content: center !important;
   align-self: center !important;
-  height: auto !important;
-  flex: 0 0 auto;
   gap: 4px !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  flex: none !important;
   padding: 0 !important;
   margin: 0 !important;
   cursor: pointer;
   white-space: nowrap;
 }
 .ride-stage #routeStudio .route-fields label.route-seed-lock input[type="checkbox"] {
-  width: 17px !important;
-  height: 17px !important;
-  min-height: 17px !important;
-  flex: 0 0 17px !important;
+  display: block !important;
+  width: 16px !important;
+  height: 16px !important;
+  min-height: 16px !important;
+  flex: none !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
   background: transparent !important;
   accent-color: #45d6aa;
 }
-.ride-stage #routeStudio .route-fields label.route-seed-lock span { font-size: .85em; font-weight: 700; color: inherit; }
+.ride-stage #routeStudio .route-fields label.route-seed-lock span {
+  font-size: .85em;
+  font-weight: 700;
+  color: inherit;
+}
+/* Smaller viewports still keep the seed + lock on one horizontal line. */
+@media (max-width: 750px) {
+  .ride-stage #routeStudio .route-fields .route-seed-inline { gap: 4px !important; }
+  .ride-stage #routeStudio .route-fields label.route-seed-lock { gap: 3px !important; }
+  .ride-stage #routeStudio .route-fields label.route-seed-lock span { font-size: 10px; }
+}
