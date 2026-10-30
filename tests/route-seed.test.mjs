@@ -62,3 +62,14 @@ test('Classic lock stays beside the seed input without becoming a sixth route se
  assert.match(fields,/<div class="route-seed-inline"><input id="generatedSeed"[^>]*\/><label class="route-seed-lock"/);
  assert.match(css,/grid-template-columns:\s*minmax\(0, 1fr\) max-content\s*!important/);
 });
+
+test('Classic reference layout styles the mounted controls instead of hidden #routeStudio',async()=>{
+ const reference=await readFile(new URL('../src/classic-route-reference.ts',import.meta.url),'utf8');
+ const css=await readFile(new URL('../src/route-seed.css',import.meta.url),'utf8');
+ assert.match(reference,/move\(builder!,controls\)/,'Route Reference moves builder into .cr-controls');
+ assert.match(css,/@layer classicRouteReference/,'matches existing important CSS layer');
+ assert.match(css,/body\[data-ride-experience="classic"\]\.cr-reference-mounted #screenRoute \.cr-controls \.route-seed-inline/);
+ assert.match(css,/grid-template-columns:\s*minmax\(0, 1fr\) max-content\s*!important/);
+ assert.match(css,/label\.route-seed-lock > input#lockGeneratedSeed/);
+ assert.match(css,/width:\s*18px\s*!important/);
+});
