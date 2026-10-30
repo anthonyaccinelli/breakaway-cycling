@@ -21,7 +21,7 @@ export function validatedClassicRecipe(value:unknown):ClassicRouteRecipe|null {
  if(!TERRAIN.includes(terrain as ClassicTerrain)||!DIFFICULTY.includes(difficulty as any)||generator_version!==1)return null;
  return {seed,miles,gain_target_ft:gain,terrain:terrain as ClassicTerrain,difficulty:difficulty as ClassicRouteRecipe['difficulty'],generator_version:1};
 }
-export const randomClassicSeed=(random:()=>number=Math.random)=>Math.floor(random()*1_000_000_000)+1;
+export const randomClassicSeed=(random:()=>number=Math.random)=>Math.floor(random()*900_000_001)+100_000_000;
 const url=import.meta.env.VITE_SUPABASE_URL as string|undefined;
 const key=(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY||import.meta.env.VITE_SUPABASE_ANON_KEY) as string|undefined;
 let cloud:SupabaseClient|null=null;
