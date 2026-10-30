@@ -1,5 +1,5 @@
 import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
-import {findClassicRoute,registerClassicRoute,randomClassicSeed,isClassicSeed,validatedClassicRecipe,type ClassicRouteRecipe} from './classic-route-registry';
+import {findClassicRoute,registerClassicRoute,randomClassicSeed,isClassicSeed,validatedClassicRecipe,deriveUnregisteredClassicRoute} from './classic-route-registry';
 import {mountBetaSupport} from './beta-support';
 import {mountCoach} from './coach';
 import './style.css';
@@ -205,9 +205,11 @@ async function generateClassicRoute():Promise<boolean>{
  try{
   if(seedLock.checked||userEnteredRouteSeed){
    const input=seedInput.value.trim();
-   if(!isClassicSeed(input)){status('Invalid route seed: enter a saved positive numeric seed.');return false;}
-   const recipe=await findClassicRoute(Number(input));
-   if(!recipe){status('Invalid route seed: no saved route found for '+input+'. Older seeds were not recorded; generate a new route to receive a shareable seed.');return false;}
+   if(!isClassicSeed(input)){status('Invalid route seed: enter a positive numeric seed up to 1000000000.');return false;}
+   const savedRecipe=await findClassicRoute(Number(input));
+   // If it was never registered, derive the SAME canonical recipe everywhere.
+   // This cannot reconstruct unrecorded historical custom settings.
+   const recipe=savedRecipe??deriveUnregisteredClassicRoute(Number(input));
    ($('generatedMiles') as HTMLInputElement).value=String(recipe.miles);
    ($('generatedTerrain') as HTMLSelectElement).value=recipe.terrain;
    ($('generatedDifficulty') as HTMLSelectElement).value=String(recipe.difficulty);
@@ -216,7 +218,9 @@ async function generateClassicRoute():Promise<boolean>{
    seedInput.value=String(recipe.seed);
    seedLock.checked=true;userEnteredRouteSeed=true;
    if(!prepareProcedural(false))return false;
-   status('Restored saved route '+recipe.seed+' — '+recipe.miles+' mi; terrain and elevation settings loaded.');
+   status(savedRecipe
+    ?'Restored saved route '+recipe.seed+' — '+recipe.miles+' mi; terrain and elevation settings loaded.'
+    :'Generated consistent route from unregistered seed '+recipe.seed+' — '+recipe.miles+' mi. Older custom route settings cannot be recovered.');
    saveQuickRide();
    return true;
   }
