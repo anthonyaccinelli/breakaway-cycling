@@ -2587,6 +2587,7 @@ function readQuickRide():QuickRideSettings|null{
 function saveQuickRide(){
  const value={} as QuickRideSettings;
  for(const [key,id] of Object.entries(quickRideIds)) (value as unknown as Record<string,string>)[key]=(document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value;
+ value.gain=readRouteGainTarget(value.gain,generatedGainIsAutoFilled);
  try{localStorage.setItem(QUICK_RIDE_KEY,JSON.stringify(value));}catch{}
 }
 // Quick starts deliberately reuse the same route generator and trainer setup.
@@ -2611,6 +2612,8 @@ for(const preset of quickPresets){
   for(const [key,id] of Object.entries(quickRideIds)){
    (document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value=preset[key as keyof QuickRideSettings];
   }
+  generatedGainIsAutoFilled=false;
+  seedLock.checked=true; // Quick Start presets intentionally reproduce their preset seed.
   (document.getElementById('generateRoute') as HTMLButtonElement).click();
   if(!points.length)return;
   saveQuickRide();
