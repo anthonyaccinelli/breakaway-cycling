@@ -98,6 +98,7 @@ function solveGain(target:number){
 }
 const selectRouteSeed=createRouteSeedSelector();
 let generatedGainIsAutoFilled=false;
+let userEnteredRouteSeed=false;
 const CHUNK=1609.344*5, STEP=80;
 // Seeded, non-repeating hill segments. Each segment has its own length, height,
 // steepness, direction and asymmetric crest. No repeating sine-wave patterns.
@@ -173,7 +174,8 @@ function prepareProcedural(isEndless:boolean){
  const gainText=readRouteGainTarget(gainField.value,generatedGainIsAutoFilled),targetGain=gainText===""?null:Number(gainText);
  if(targetGain!==null&&(!Number.isFinite(targetGain)||targetGain<0)){status("Enter a valid total elevation gain in feet.");return;}
  proceduralIntensity=Number(($('generatedDifficulty') as HTMLSelectElement).value);
- proceduralSeed=selectRouteSeed(($('generatedSeed') as HTMLInputElement).value,($('lockGeneratedSeed') as HTMLInputElement).checked);
+ proceduralSeed=selectRouteSeed(($('generatedSeed') as HTMLInputElement).value,($('lockGeneratedSeed') as HTMLInputElement).checked,userEnteredRouteSeed);
+ userEnteredRouteSeed=false;
  ($('generatedSeed') as HTMLInputElement).value=String(proceduralSeed);
  resetHills();gainScale=1;plannedGainFeet=null;
  if(!isEndless){
@@ -436,7 +438,10 @@ const SIM_GRADE_SLEW_PERCENT_PER_SECOND=0.75;
 let simAppliedGrade=NaN,simLastTime=0,simBusy=false;
 const $=(id:string)=>document.getElementById(id)!;
 const seedLock=$('lockGeneratedSeed') as HTMLInputElement;
-$('generatedSeed').addEventListener('input',()=>{seedLock.checked=($('generatedSeed') as HTMLInputElement).value.trim()!=='';});
+const routeSeedInput=$('generatedSeed') as HTMLInputElement;
+// Explicit paste/typing must use that seed on Generate, not auto-regenerate it.
+routeSeedInput.addEventListener('paste',()=>{userEnteredRouteSeed=true;seedLock.checked=true;});
+routeSeedInput.addEventListener('input',()=>{userEnteredRouteSeed=true;seedLock.checked=routeSeedInput.value.trim()!=='';});
 $('generatedGain').addEventListener('input',()=>{generatedGainIsAutoFilled=false;});
 $('generateRoute').addEventListener('click',()=>prepareProcedural(false));
 $('endlessRoute').addEventListener('click',()=>prepareProcedural(true));
@@ -457,6 +462,7 @@ $('surpriseRoute').addEventListener('click',()=>{
  difficultyInput.value=String(difficultyOptions[Math.floor(Math.random()*difficultyOptions.length)]);
  seedInput.value=String(Math.floor(Math.random()*1000000000)+1);
  seedLock.checked=false;
+ userEnteredRouteSeed=false;
  generatedGainIsAutoFilled=false;
  prepareProcedural(false);
 });
