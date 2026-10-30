@@ -46,7 +46,7 @@ test('Classic form offers seed locking and does not silently round route distanc
  const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
  const main=await readFile(new URL('../src/main.ts',import.meta.url),'utf8');
  assert.match(html,/id="lockGeneratedSeed"/);
- assert.match(main,/seedLock\.checked=\(\$\('generatedSeed'\)/);
+ assert.match(main,/seedLock\.checked=routeSeedInput\.value\.trim\(\)!==''/);
  assert.match(main,/seedLock\.checked=false;/);
  assert.match(main,/readRouteGainTarget\(gainField\.value,generatedGainIsAutoFilled\)/);
  assert.doesNotMatch(main,/\$\('generatedMiles'\).*\.toFixed\(1\)/);
@@ -72,4 +72,21 @@ test('Classic reference layout styles the mounted controls instead of hidden #ro
  assert.match(css,/grid-template-columns:\s*minmax\(0, 1fr\) max-content\s*!important/);
  assert.match(css,/label\.route-seed-lock > input#lockGeneratedSeed/);
  assert.match(css,/width:\s*18px\s*!important/);
+});
+
+test('pasting the same seed uses it on the next Generate even if Lock is off',()=>{
+ const select=createRouteSeedSelector(()=>.37);
+ const first=select('4821');
+ assert.equal(first,4821);
+ assert.notEqual(select('4821',false,false),4821,'auto-filled seed regenerates');
+ assert.equal(select('4821',false,true),4821,'pasted seed is honored once');
+ assert.equal(select('4821',false,true),4821,'re-pasting the same seed works');
+ assert.notEqual(select('4821',false,false),4821,'after paste, unlocked Generate regenerates again');
+});
+test('pasted seed and typed seed are tracked by the actual Generate Route handler',async()=>{
+ const main=await readFile(new URL('../src/main.ts',import.meta.url),'utf8');
+ assert.match(main,/routeSeedInput\.addEventListener\('paste',\(\)=>\{userEnteredRouteSeed=true;/);
+ assert.match(main,/routeSeedInput\.addEventListener\('input',\(\)=>\{userEnteredRouteSeed=true;/);
+ assert.match(main,/selectRouteSeed\(\(\$\('generatedSeed'\)[^;]*userEnteredRouteSeed\)/);
+ assert.match(main,/userEnteredRouteSeed=false;\s*\(\$\('generatedSeed'\)/,'manual flag clears after generation');
 });
