@@ -2889,7 +2889,7 @@ function openModeLanding(){
  if(surviveOn){status('End your current Survival session before changing modes.');return false;}
  if(typeof coachRuntime!=='undefined')coachRuntime?.endCoaching();
  delete document.body.dataset.deviceShortcut;
- const host=document.getElementById('cycleQuestHost');if(host)host.hidden=true;
+ const host=document.getElementById('cycleQuestHost');if(host){host.hidden=true;host.querySelector('iframe')?.contentWindow?.postMessage({source:'breakaway',type:'quest-audio-visibility',active:false},location.origin);}
  if(running)pauseRide();
  // A mode change pauses the ride; pedaling on the mode selector must not resume it.
  rideAwaitingPedaling=false;pedalSince=0;
@@ -2948,7 +2948,7 @@ cycleQuestHost.innerHTML='<div class="quest-host-bar"><button id="questHome" typ
 document.body.append(cycleQuestHost);
 bindFullscreenButton(cycleQuestHost.querySelector<HTMLButtonElement>('#questFullscreen')!,document,message=>{status(message);questSend({type:'notice',message});});
 const questFrame=cycleQuestHost.querySelector<HTMLIFrameElement>('iframe')!;
-questFrame.setAttribute('allow','picture-in-picture; bluetooth');
+questFrame.setAttribute('allow','picture-in-picture; bluetooth; autoplay');
 const questPreviewPage=new URLSearchParams(location.search).get('cycleQuestPreview');
 questFrame.addEventListener('load',()=>{
  if(['route','devices','ride','overlay'].includes(questPreviewPage||'')){
@@ -3024,7 +3024,7 @@ window.addEventListener('cyclequest-navigate',(event:Event)=>{
  showCycleQuest();
  questSend({type:'navigate',page});
 });
-function showCycleQuest(){modeLanding.hidden=true;modeHomeButton.hidden=true;screenRoute.hidden=true;screenSetup.hidden=true;screenRide.hidden=true;cycleQuestHost.hidden=false;document.body.dataset.breakawayScreen='quest';document.body.classList.remove('ride-focus-active');window.scrollTo(0,0);}
+function showCycleQuest(){modeLanding.hidden=true;modeHomeButton.hidden=true;screenRoute.hidden=true;screenSetup.hidden=true;screenRide.hidden=true;cycleQuestHost.hidden=false;questSend({type:'quest-audio-visibility',active:true});document.body.dataset.breakawayScreen='quest';document.body.classList.remove('ride-focus-active');window.scrollTo(0,0);}
 async function enterCycleQuest(){
  try{const response=await fetch('/api/cycle-quest?asset=status',{credentials:'same-origin',cache:'no-store'});if(response.ok){launchCycleQuest();return;}}catch{}
  questGate.showModal();questPassword.focus();
