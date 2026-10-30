@@ -51,3 +51,14 @@ test('Classic form offers seed locking and does not silently round route distanc
  assert.match(main,/readRouteGainTarget\(gainField\.value,generatedGainIsAutoFilled\)/);
  assert.doesNotMatch(main,/\$\('generatedMiles'\).*\.toFixed\(1\)/);
 });
+
+test('Classic lock stays beside the seed input without becoming a sixth route setting',async()=>{
+ const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
+ const css=await readFile(new URL('../src/route-seed.css',import.meta.url),'utf8');
+ const fields=html.match(/<div class="route-fields">([\s\S]*?)<\/div><div class="route-actions">/)?.[1];
+ assert.ok(fields,'route settings panel found');
+ assert.equal((fields.match(/<label>/g)||[]).length,4,'only four top-level traditional settings');
+ assert.equal((fields.match(/class="route-seed-field"/g)||[]).length,1,'seed and lock occupy fifth setting');
+ assert.match(fields,/<div class="route-seed-inline"><input id="generatedSeed"[^>]*\/><label class="route-seed-lock"/);
+ assert.match(css,/grid-template-columns:\s*minmax\(0, 1fr\) max-content\s*!important/);
+});
