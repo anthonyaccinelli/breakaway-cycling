@@ -1,7 +1,8 @@
-import {createRouteSeedSelector} from './route-seed';
+import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
 import {mountBetaSupport} from './beta-support';
 import {mountCoach} from './coach';
 import './style.css';
+import './route-seed.css';
 import './homepage-fit.css';
 import {bindFullscreenButton} from './ride-fullscreen';
 import './ride-fullscreen.css';
@@ -96,7 +97,8 @@ function solveGain(target:number){
  return (lo+hi)/2;
 }
 const selectRouteSeed=createRouteSeedSelector();
-let routeSeedEdited=false;
+let generatedGainIsAutoFilled=false;
+let userEnteredRouteSeed=false;
 const CHUNK=1609.344*5, STEP=80;
 // Seeded, non-repeating hill segments. Each segment has its own length, height,
 // steepness, direction and asymmetric crest. No repeating sine-wave patterns.
@@ -168,11 +170,12 @@ function prepareProcedural(isEndless:boolean){
  if(!isEndless&&(!input||!Number.isFinite(mi)||mi<=0||mi>Number.MAX_SAFE_INTEGER/1609.344)){status('Enter a valid positive distance in miles.');return;}
  procedural=true;endless=isEndless;routeLimit=isEndless?Infinity:mi*1609.344;
  proceduralTerrain=($('generatedTerrain') as HTMLSelectElement).value as Terrain;
- const gainText=($('generatedGain') as HTMLInputElement).value.trim(),targetGain=gainText===""?null:Number(gainText);
+ const gainField=$('generatedGain') as HTMLInputElement;
+ const gainText=readRouteGainTarget(gainField.value,generatedGainIsAutoFilled),targetGain=gainText===""?null:Number(gainText);
  if(targetGain!==null&&(!Number.isFinite(targetGain)||targetGain<0)){status("Enter a valid total elevation gain in feet.");return;}
  proceduralIntensity=Number(($('generatedDifficulty') as HTMLSelectElement).value);
- proceduralSeed=selectRouteSeed(($('generatedSeed') as HTMLInputElement).value,routeSeedEdited);
- routeSeedEdited=false;
+ proceduralSeed=selectRouteSeed(($('generatedSeed') as HTMLInputElement).value,($('lockGeneratedSeed') as HTMLInputElement).checked,userEnteredRouteSeed);
+ userEnteredRouteSeed=false;
  ($('generatedSeed') as HTMLInputElement).value=String(proceduralSeed);
  resetHills();gainScale=1;plannedGainFeet=null;
  if(!isEndless){
@@ -182,7 +185,11 @@ function prepareProcedural(isEndless:boolean){
  routeName=`${isEndless?'Endless':'Generated'} ${proceduralTerrain} ride (seed ${proceduralSeed})`;
  clearElevationEditor();zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;resetClimbingTotals();points=[];generatedThrough=0;distance=0;speed=0;rideStart=null;rideEnd=null;clearRideRecovery();running=false;resetRideMetrics();
  resetSimController();setRideFocus(false);$('start').textContent='Let’s Ride!';if(!isEndless&&routeLimit/STEP<=250000)appendTerrain(routeLimit);else ensureTerrain();svg();update();
- if(!isEndless){const actualGain=Math.round(gainLossThrough(routeLimit).gain*FEET_PER_METER);($('generatedGain') as HTMLInputElement).value=String(actualGain);($('generatedMiles') as HTMLInputElement).value=(routeLimit/METERS_PER_MILE).toFixed(1);}
+ if(!isEndless&&gainText===''){
+  // Show the calculated gain without turning it into a target for the next generation.
+  gainField.value=String(Math.round(gainLossThrough(routeLimit).gain*FEET_PER_METER));
+  generatedGainIsAutoFilled=true;
+ }
  status(`${isEndless?'Endless ride ready':`Generated ${mi} mi route ready`} — connect trainer and pedal to begin.`);
 }
 // Dashboard metrics: 3-second rolling power and power-derived energy expenditure.
@@ -430,7 +437,12 @@ const SIM_TEST_WATTS=300, SIM_COMMAND_INTERVAL_MS=750;
 const SIM_GRADE_SLEW_PERCENT_PER_SECOND=0.75;
 let simAppliedGrade=NaN,simLastTime=0,simBusy=false;
 const $=(id:string)=>document.getElementById(id)!;
-$('generatedSeed').addEventListener('input',()=>{routeSeedEdited=true;});
+const seedLock=$('lockGeneratedSeed') as HTMLInputElement;
+const routeSeedInput=$('generatedSeed') as HTMLInputElement;
+// Explicit paste/typing must use that seed on Generate, not auto-regenerate it.
+routeSeedInput.addEventListener('paste',()=>{userEnteredRouteSeed=true;seedLock.checked=true;});
+routeSeedInput.addEventListener('input',()=>{userEnteredRouteSeed=true;seedLock.checked=routeSeedInput.value.trim()!=='';});
+$('generatedGain').addEventListener('input',()=>{generatedGainIsAutoFilled=false;});
 $('generateRoute').addEventListener('click',()=>prepareProcedural(false));
 $('endlessRoute').addEventListener('click',()=>prepareProcedural(true));
 $('surpriseRoute').addEventListener('click',()=>{
@@ -449,6 +461,9 @@ $('surpriseRoute').addEventListener('click',()=>{
  terrainInput.value=terrainOptions[Math.floor(Math.random()*terrainOptions.length)];
  difficultyInput.value=String(difficultyOptions[Math.floor(Math.random()*difficultyOptions.length)]);
  seedInput.value=String(Math.floor(Math.random()*1000000000)+1);
+ seedLock.checked=false;
+ userEnteredRouteSeed=false;
+ generatedGainIsAutoFilled=false;
  prepareProcedural(false);
 });
 
@@ -2578,6 +2593,7 @@ function readQuickRide():QuickRideSettings|null{
 function saveQuickRide(){
  const value={} as QuickRideSettings;
  for(const [key,id] of Object.entries(quickRideIds)) (value as unknown as Record<string,string>)[key]=(document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value;
+ value.gain=readRouteGainTarget(value.gain,generatedGainIsAutoFilled);
  try{localStorage.setItem(QUICK_RIDE_KEY,JSON.stringify(value));}catch{}
 }
 // Quick starts deliberately reuse the same route generator and trainer setup.
@@ -2602,6 +2618,8 @@ for(const preset of quickPresets){
   for(const [key,id] of Object.entries(quickRideIds)){
    (document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value=preset[key as keyof QuickRideSettings];
   }
+  generatedGainIsAutoFilled=false;
+  seedLock.checked=true; // Quick Start presets intentionally reproduce their preset seed.
   (document.getElementById('generateRoute') as HTMLButtonElement).click();
   if(!points.length)return;
   saveQuickRide();

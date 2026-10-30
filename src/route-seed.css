@@ -1,0 +1,117 @@
+/* Classic Route Reference moves .route-builder out of #routeStudio and into
+   #screenRoute .cr-controls. Style the ACTUAL mounted control hierarchy, not
+   the original (hidden) source location. Keep Lock within seed grid cell. */
+@layer classicRouteReference {
+ body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-fields .route-seed-field {
+   display: flex !important;
+   flex-direction: column !important;
+   justify-content: flex-end !important;
+   align-self: stretch !important;
+   gap: 5px !important;
+   grid-column: auto !important;
+   width: 100% !important;
+   min-width: 0 !important;
+   height: auto !important;
+   min-height: 0 !important;
+   margin: 0 !important;
+   padding: 0 !important;
+ }
+ body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-seed-field > label[for="generatedSeed"] {
+   display: block !important;
+   width: auto !important;
+   height: auto !important;
+   min-height: 0 !important;
+   flex: 0 0 auto !important;
+   margin: 0 !important;
+   padding: 0 !important;
+ }
+ body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-seed-inline {
+   display: grid !important;
+   grid-template-columns: minmax(0, 1fr) max-content !important;
+   align-items: center !important;
+   gap: 8px !important;
+   width: 100% !important;
+   min-width: 0 !important;
+   min-height: 0 !important;
+   margin: 0 !important;
+   padding: 0 !important;
+ }
+ body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-seed-inline > input#generatedSeed {
+   display: block !important;
+   width: 100% !important;
+   min-width: 0 !important;
+   max-width: 100% !important;
+   flex: 1 1 auto !important;
+   margin: 0 !important;
+   box-sizing: border-box !important;
+ }
+ body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-seed-inline > label.route-seed-lock {
+   display: inline-flex !important;
+   flex-direction: row !important;
+   align-items: center !important;
+   justify-content: center !important;
+   align-self: center !important;
+   gap: 5px !important;
+   width: auto !important;
+   min-width: 0 !important;
+   height: auto !important;
+   min-height: 0 !important;
+   flex: 0 0 auto !important;
+   margin: 0 !important;
+   padding: 0 3px !important;
+   cursor: pointer !important;
+   white-space: nowrap !important;
+ }
+ body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-seed-inline > label.route-seed-lock > input#lockGeneratedSeed {
+   display: block !important;
+   width: 18px !important;
+   min-width: 18px !important;
+   max-width: 18px !important;
+   height: 18px !important;
+   min-height: 18px !important;
+   max-height: 18px !important;
+   flex: 0 0 18px !important;
+   margin: 0 !important;
+   padding: 0 !important;
+   border: 0 !important;
+   border-radius: 3px !important;
+   background: transparent !important;
+   appearance: auto !important;
+   accent-color: #1452e8 !important;
+   box-shadow: none !important;
+ }
+ body[data-ride-experience="classic"].cr-reference-mounted #screenRoute .cr-controls .route-seed-inline > label.route-seed-lock > span {
+   display: inline !important;
+   margin: 0 !important;
+   font-weight: 700 !important;
+   color: #424c5e !important;
+   font-size: clamp(12px, .74vw, 14px) !important;
+   line-height: 1.2 !important;
+ }
+}
+
+/* Also keep the original route studio compact when the reference shell is not mounted. */
+.ride-stage #routeStudio .route-fields .route-seed-field { min-width: 0; }
+.ride-stage #routeStudio .route-fields .route-seed-inline {
+ display: grid !important;
+ grid-template-columns: minmax(0, 1fr) max-content !important;
+ gap: 6px !important;
+ align-items: center !important;
+ min-width: 0 !important;
+}
+.ride-stage #routeStudio .route-fields .route-seed-inline > input#generatedSeed { width:100% !important; min-width:0 !important; }
+.ride-stage #routeStudio .route-fields .route-seed-inline > label.route-seed-lock {
+ display: inline-flex !important;
+ flex-direction: row !important;
+ align-items: center !important;
+ gap: 5px !important;
+ width: auto !important;
+ height: auto !important;
+ margin: 0 !important;
+ padding: 0 !important;
+ white-space: nowrap !important;
+}
+.ride-stage #routeStudio .route-fields .route-seed-inline > label.route-seed-lock > input#lockGeneratedSeed {
+ width: 17px !important; height: 17px !important; min-height: 17px !important;
+ padding: 0 !important; margin: 0 !important; flex: 0 0 17px !important;
+}
