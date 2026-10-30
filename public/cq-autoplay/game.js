@@ -1,20 +1,20 @@
-import {createQuestMusic} from '/api/cycle-quest?asset=music.js';
-import {readCharacter,MAX_XP} from '/api/cycle-quest?asset=save-state.js';
-import {escapeHTML as safeText,formatClock,rewardButtons} from '/api/cycle-quest?asset=ui-utils.js';
-import {battleRewards,sessionMetrics} from '/api/cycle-quest?asset=rewards.js';
-import {mountQuestBaseline} from '/api/cycle-quest?asset=shared-ui.js';
-import {createRewardGesture} from '/api/cycle-quest?asset=reward-gesture.js';
-import {generateRoute,parseGPX,sample,grade,METERS_PER_MILE} from '/api/cycle-quest?asset=routes.js';
-import {storyChapter,storyRoute} from '/api/cycle-quest?asset=story-chapters.js';
-import {makeBattle,enemyGroup,encounterLevel,chapterLevels,chapterMonsters,CHAPTER_BIOMES,nextChapterEncounter,advanceBattle,advanceBossBattle,bossBehavior} from '/api/cycle-quest?asset=combat.js';
-import {elevationSVG} from '/api/cycle-quest?asset=profile.js';
-import {createLevelUpQueue,levelUpMarkup} from '/api/cycle-quest?asset=level-up.js';
-import {initWorkoutUI} from '/api/cycle-quest?asset=workout-ui.js';
-import {creditWorkout,dayAt} from '/api/cycle-quest?asset=workouts.js';
+import {createQuestMusic} from './music.js';
+import {readCharacter,MAX_XP} from './save-state.js';
+import {escapeHTML as safeText,formatClock,rewardButtons} from './ui-utils.js';
+import {battleRewards,sessionMetrics} from './rewards.js';
+import {mountQuestBaseline} from './shared-ui.js';
+import {createRewardGesture} from './reward-gesture.js';
+import {generateRoute,parseGPX,sample,grade,METERS_PER_MILE} from './routes.js';
+import {storyChapter,storyRoute} from './story-chapters.js';
+import {makeBattle,enemyGroup,encounterLevel,chapterLevels,chapterMonsters,CHAPTER_BIOMES,nextChapterEncounter,advanceBattle,advanceBossBattle,bossBehavior} from './combat.js';
+import {elevationSVG} from './profile.js';
+import {createLevelUpQueue,levelUpMarkup} from './level-up.js';
+import {initWorkoutUI} from './workout-ui.js';
+import {creditWorkout,dayAt} from './workouts.js';
 (()=>{
 'use strict';
 let questBaseline=null;
-const root=document.getElementById('cq-preview'),$=s=>root.querySelector(s),all=s=>root.querySelectorAll(s),key='cycle-quest-character-v1';
+const root=document.getElementById('cq-preview'),$=s=>root.querySelector(s),all=s=>root.querySelectorAll(s),key='cycle-quest-autoplay-preview-v1';
 const setStat=(name,value,html=false)=>all('[data-stat="'+name+'"]').forEach(el=>{if(html)el.innerHTML=value;else el.textContent=value;});
 $('.cq-route').append($('.cq-event'));
 const rewardGesture=createRewardGesture();
@@ -30,7 +30,7 @@ root.addEventListener('keydown',event=>{if(!event.target.closest('#quest-music,#
 let rewardChoice=null,warmupSeconds=0;
 const restButton=document.createElement('button');restButton.textContent='REST · RECOVER 25 HP';restButton.hidden=true;document.getElementById('pedal').after(restButton);restButton.onclick=rest;
 let persistedSave=null,externalSaveChanged=false,invalidStoredSave=false;
-const fresh=()=>({workouts:[],version:1,xp:0,hp:100,coins:0,pendingReward:null,miles:0,chapter:1,mode:'training',rideSeconds:0,rideMiles:0,nextEncounter:260,battle:null,reward:false,boss:null});
+const fresh=()=>({workouts:[],version:1,xp:570,hp:100,coins:0,pendingReward:null,miles:0,chapter:1,mode:'training',rideSeconds:0,rideMiles:0,nextEncounter:8,battle:null,reward:false,boss:null});
 const levelUps=createLevelUpQueue();let levelUp=null;
 function rest(){if(externalSaveChanged)return;s.hp=Math.min(maxHP(),s.hp+25);message='Recovered 25 HP.';save();render();}
 function displayedPower(){return Number.isFinite(live.displayPower)?Math.round(Math.max(0,live.displayPower)):power;}
@@ -56,7 +56,7 @@ async function finishQuestSummary(retry=false){
  const download=summaryDialog.querySelector('#cq-summary-download');download.disabled=true;summaryImage=null;save();if(!summaryDialog.open)summaryDialog.showModal();music.sync({battle:!!s.battle,rest:true});
  try{
   await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  const {default:capture}=await import('/api/cycle-quest?asset=summary-capture.js');
+  const {default:capture}=await import('./summary-capture.js');
   const canvas=await capture(summaryDialog,{backgroundColor:null,scale:Math.min(2,window.devicePixelRatio||1),logging:false,useCORS:true,width:summaryDialog.offsetWidth,height:Math.max(summaryDialog.offsetHeight,summaryDialog.scrollHeight),onclone:doc=>{const clone=doc.querySelector('.cq-summary-dialog');if(clone){clone.style.maxHeight='none';clone.style.height='auto';clone.style.overflow='visible';clone.querySelector('#cq-summary-download').disabled=false;}}});
   summaryImage=canvas.toDataURL('image/png');try{saveShareCard('RIDE SUMMARY',summaryImage);}catch{message='Summary image could not be saved locally; use Download image.';}
   download.disabled=false;parentSend({type:'quest-summary',lines,image:summaryImage});
@@ -113,7 +113,7 @@ function finish(win){
  const b=s.battle;if(!b)return;music.endBattle(win?'victory':'death');
  s.battle=null;s.reward=false;s.pendingReward=null;
  if(b.kind==='summit'&&!s.route?.endless)parentSend({type:'summit-resolved'});
- s.nextEncounter=240+Math.random()*180;if(b.practice){s.bossModeComplete=true;s.bossWarmupRemaining=0;}
+ s.nextEncounter=35+Math.random()*20;if(b.practice){s.bossModeComplete=true;s.bossWarmupRemaining=0;}
  if(win){
   const rewards=battleRewards(b);
   if(s.session){if(b.kind==='enemy'&&!Array.isArray(b.enemies))s.session.monsters++;else if(b.kind!=='enemy')s.session.bosses++;}
@@ -287,6 +287,32 @@ function rememberIndoor(m){
  s.workouts||=[];const entry=s.workouts.find(w=>w.id===id);if(entry)entry.end=Math.max(entry.end,end);else if(s.workouts.length<5000)s.workouts.push({id,name:'Ride Breakaway indoor ride',kind:'indoor',family:'cycling',source:'Ride Breakaway',start,end,day:dayAt(start),xp:0,miles:0});
 }
 initWorkoutUI({root,getState:()=>s,apply:claimWorkout,canOpen:canPlan});
+// Injected into the autoplay build only. Production never accepts demo actions.
+function handleDemoAction(action){
+ rewardChoice=null;
+ if(action==='claim'){choose('coins');return;}
+ if(action==='win'||action==='lose'){if(s.battle)finish(action==='win');render();return;}
+ levelUps.clear();levelUp=null;s.battle=null;s.reward=false;s.pendingReward=null;
+ const crab=/^crab-([123])$/.exec(action),ratCount={rat:1,'rats-2':2,rats:3}[action];
+ const fixedRat=/^rat-level-(1|6|10)$/.exec(action);
+ if(crab||ratCount||fixedRat||['headwind','bat','snake','new-mobs'].includes(action)||action==='mixed-rats'){
+  const id=['headwind','bat','snake'].includes(action)?action:crab?'crab':'rat';
+  const levels=action==='mixed-rats'?[1,6,10]:Array.from({length:crab?Number(crab[1]):ratCount||1},()=>fixedRat?Number(fixedRat[1]):chapterLevels(s.chapter,s.miles).min);
+  s.battle=enemyGroup((action==='new-mobs'?[{level:1,id:'headwind'},{level:2,id:'bat'},{level:2,id:'snake'}]:levels.map(level=>({level,id}))).map(({level,id})=>makeBattle('enemy',{level,monsterId:id})));
+  showEncounterView();message='Enemy-level artwork preview';
+ }else if(action==='group'){encounter('enemy',3);return;}
+ else if(action==='chapter-1'||action==='chapter-2'){
+  s.chapter=action==='chapter-1'?1:2;s.miles=0;s.boss=null;s.chapterEncounter=null;message='Previewing '+CHAPTER_BIOMES[s.chapter].name;
+ }else if(action==='reset'){
+  s=fresh();s.route=generateRoute(15,'rolling',null,42077);s.routeMiles=0;lastLiveDistance=0;
+  parentSend({type:'route',route:s.route});message='Autoplay preview reset.';
+ }else if(action==='level'){award(threshold(level()+1)-s.xp);s.nextEncounter=20;}
+ else if(action==='reward'){
+  s.pendingReward=battleRewards(makeBattle('enemy',{level:chapterLevels(s.chapter,s.miles).min,monsterId:'rat'}));award(s.pendingReward.xp);s.reward=true;message='XP earned! Choose health or coins.';
+ }else if(['enemy','summit','boss'].includes(action)){if(action==='boss')s.mode='adventure';encounter(action);}
+ save();render();
+}
+
 window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==window.parent||e.data?.source!=='breakaway')return;const m=e.data;if(externalSaveChanged){parentSend({type:'pause'});return;}
  if(m.type==='quest-audio-visibility'){music.suspend(!m.active);if(m.active)parentSend({type:'quest-page',page:questBaseline?.getPage?.()||'route'});return;}
  if(m.type==='notice'){message=String(m.message||'');render();return;}
@@ -298,7 +324,8 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==
    }
    return;
   }
-  if(m.type==='telemetry'){const now=performance.now(),dt=lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0;lastLiveTime=now;live=m;if(m.running&&m.activityStartTime&&(!s.session||s.session.id!==m.activityStartTime)){s.session={id:m.activityStartTime,startXP:s.xp,startLevel:level(),startAttack:atk(),startMiles:s.rideMiles,startSeconds:s.rideSeconds,startCoins:s.coins||0,monsters:0,bosses:0,completed:false};}rewardGesture.sample(now,m.cadence);if(s.reward&&rewardChoice)rewardGesture.update(rewardChoice,now,m.cadence,m.power,m.connected);rememberIndoor(m);if(s.route?.endless&&m.routeProfile){s.route={...s.route,...m.routeProfile};}if(m.buttonsReleased)clickArmed=true;power=Math.max(0,Math.round(m.power));running=!!m.running&&!!m.connected;const previousDistance=lastLiveDistance;const delta=Math.max(0,m.distanceM-lastLiveDistance);lastLiveDistance=m.distanceM;if(!s.route?.endless){
+  if(m.type==='demo-action'){handleDemoAction(m.action);return;}
+ if(m.type==='telemetry'){const now=performance.now(),dt=Number.isFinite(m.demoSeconds)?Math.min(30,m.demoSeconds):(lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0);lastLiveTime=now;live=m;if(m.running&&m.activityStartTime&&(!s.session||s.session.id!==m.activityStartTime)){s.session={id:m.activityStartTime,startXP:s.xp,startLevel:level(),startAttack:atk(),startMiles:s.rideMiles,startSeconds:s.rideSeconds,startCoins:s.coins||0,monsters:0,bosses:0,completed:false};}rewardGesture.sample(now,m.cadence);if(s.reward&&rewardChoice)rewardGesture.update(rewardChoice,now,m.cadence,m.power,m.connected);rememberIndoor(m);if(s.route?.endless&&m.routeProfile){s.route={...s.route,...m.routeProfile};}if(m.buttonsReleased)clickArmed=true;power=Math.max(0,Math.round(m.power));running=!!m.running&&!!m.connected;const previousDistance=lastLiveDistance;const delta=Math.max(0,m.distanceM-lastLiveDistance);lastLiveDistance=m.distanceM;if(!s.route?.endless){
   const c=m.summitBoss;
   summitChoices.clear();
   if(c&&Number.isFinite(c.end)){
