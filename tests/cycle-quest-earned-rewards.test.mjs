@@ -54,3 +54,7 @@ test('mixed-level victory grants the summed 800 XP once and never scales by ride
   const restored=fixture(c.saved);vm.runInContext('restoreRewardState();choose("coins")',restored);assert.equal(restored.s.xp,xp+800);assert.equal(restored.s.coins,75);
  }
 });
+test('Boss Mode victory awards rewards without unlocking chapters or changing mileage',()=>{
+ const c=fixture({mode:'boss',chapter:2,miles:42,battle:{kind:'boss',practice:true,reward:2625}});
+ vm.runInContext('finish(true)',c);assert.equal(c.s.chapter,2);assert.equal(c.s.miles,42);assert.equal(c.s.xp,2625);assert.equal(c.s.bossModeComplete,true);assert.equal(c.s.bossWarmupRemaining,0);
+});

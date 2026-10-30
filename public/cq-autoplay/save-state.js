@@ -40,7 +40,8 @@ export function validCharacter(state){
  return !!state&&typeof state==='object'&&state.version===1
   &&nonnegative(state.xp)&&state.xp<=MAX_XP&&nonnegative(state.hp)
   &&nonnegative(state.miles)&&state.miles<=100&&Number.isInteger(state.chapter)&&state.chapter>=1
-  &&['adventure','training'].includes(state.mode)&&nonnegative(state.rideSeconds)&&nonnegative(state.rideMiles)&&nonnegative(state.nextEncounter)
+  &&optional(state.bossWarmupRemaining,n=>nonnegative(n)&&n<=600)&&optional(state.bossModeComplete,n=>typeof n==='boolean')
+  &&['adventure','training','boss'].includes(state.mode)&&nonnegative(state.rideSeconds)&&nonnegative(state.rideMiles)&&nonnegative(state.nextEncounter)
   &&typeof state.reward==='boolean'&&optional(state.coins,n=>Number.isSafeInteger(n)&&n>=0)
   &&(!state.pendingReward||(state.reward&&validPendingReward(state.pendingReward)))
   &&optional(state.routeMiles,nonnegative)&&validRoute(state.route)&&validLedger(state.workouts)
