@@ -28,7 +28,7 @@ test('No Coach intervals, ERG commands, or game target adjustments are available
  assert.match(main,/launchMode:\(_mode\)=>\{showBreakawayScreen\('setup'\);\}/);
 });
 test('All three riding modes tag saved activities for training awareness only',()=>{
- assert.match(main,/mode:rideExperience,meters:distance/);
+ assert.match(main,/mode:rideExperience,meters:sessionDistanceMeters\(\)/);
  assert.match(main,/getPlatformRides:async\(\)=> \(await savedRides\(\)\)\.map/);
  assert.match(coach,/ALL BREAKAWAY RIDES/);
  assert.match(coach,/recommendToday\(rider,nowDate,inputs,feedback\)/);

@@ -314,7 +314,7 @@ function offerRideRecovery(){
  const saved=readRideRecovery();if(!saved)return;
  const overlay=document.createElement('div');overlay.className='stationary-ride-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
  const dialog=document.createElement('div');dialog.className='stationary-ride-dialog';const title=document.createElement('h2');title.textContent='Recover your ride?';const detail=document.createElement('p');
- const minutes=Math.floor(saved.activeRideMs/60000);detail.textContent=`${saved.routeName} · ${(saved.distance/METERS_PER_MILE).toFixed(2)} mi · ${minutes} min recorded. Saved ${new Date(saved.savedAt).toLocaleString()}. The saved ride will reopen ${saved.rideEnd?"at its summary":"paused"}.`;
+ const minutes=Math.floor(saved.activeRideMs/60000);detail.textContent=`${saved.routeName} · ${(sessionDistanceMeters(saved.distance,saved.rideSessionStartDistance??saved.rideSamples[0]?.distance??0)/METERS_PER_MILE).toFixed(2)} mi · ${minutes} min recorded. Saved ${new Date(saved.savedAt).toLocaleString()}. The saved ride will reopen ${saved.rideEnd?"at its summary":"paused"}.`;
  const actions=document.createElement('div');actions.className='stationary-ride-actions';const discard=document.createElement('button');discard.className='secondary';discard.textContent='Discard saved ride';const recover=document.createElement('button');recover.textContent='Recover ride';
  discard.onclick=()=>{clearRideRecovery();overlay.remove();};recover.onclick=()=>{try{restoreRideRecovery(saved);overlay.remove();}catch(error){console.error('Recovery failed',error);status('Could not restore saved ride. Reload to try again.');}};
  actions.append(discard,recover);dialog.append(title,detail,actions);overlay.append(dialog);document.body.append(overlay);recover.focus();
@@ -326,15 +326,23 @@ function recordRideSample(){
  lastSampleSecond=seconds;
  rideSamples.push({seconds,distance,elevation:at(distance).elevation,power:Math.round(Math.max(0,power)),cadence:Math.round(Math.max(0,cadence)),heartRate:Number(($('heartRate').textContent||'').trim())||null});
 }
+// Route position includes earlier Story rides; activity totals start at this session's origin.
+function sessionDistanceMeters(routeDistance=distance,startDistance=rideSessionStartDistance){return Math.max(0,routeDistance-startDistance);}
+function sessionGainFeet(){
+ if(points.length)return Math.max(0,gainLossThrough(distance).gain-gainLossThrough(rideSessionStartDistance).gain)*FEET_PER_METER;
+ return rideSamples.reduce((total,s,i)=>total+(i?Math.max(0,s.elevation-rideSamples[i-1].elevation):0),0)*FEET_PER_METER;
+}
 function tcxEscape(v:string){return v.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]!));}
 function buildRideTcx(){
  if(!rideStart||!rideEnd||rideSamples.length<2)throw Error('Not enough recorded ride data to upload.');
  const startMs=Date.parse(rideStart),start=new Date(startMs).toISOString();
- const entries=rideSamples.map(s=>{
+ const entries=rideSamples.map((s,i)=>{
+  const previous=rideSamples[i-1],seconds=s.seconds-(previous?.seconds??0);
+  const sampleSpeed=seconds>0?Math.max(0,s.distance-(previous?.distance??rideSessionStartDistance))/seconds:0;
   const t=new Date(startMs+s.seconds*1000).toISOString();
-  return `<Trackpoint><Time>${t}</Time><AltitudeMeters>${s.elevation.toFixed(2)}</AltitudeMeters><DistanceMeters>${s.distance.toFixed(2)}</DistanceMeters>${s.heartRate!==null?`<HeartRateBpm><Value>${s.heartRate}</Value></HeartRateBpm>`:''}<Cadence>${s.cadence}</Cadence><Extensions><TPX xmlns="http://www.garmin.com/xmlschemas/ActivityExtension/v2"><Watts>${s.power}</Watts><Speed>${(s.seconds>0?s.distance/s.seconds:0).toFixed(2)}</Speed></TPX></Extensions></Trackpoint>`;
+  return `<Trackpoint><Time>${t}</Time><AltitudeMeters>${s.elevation.toFixed(2)}</AltitudeMeters><DistanceMeters>${sessionDistanceMeters(s.distance).toFixed(2)}</DistanceMeters>${s.heartRate!==null?`<HeartRateBpm><Value>${s.heartRate}</Value></HeartRateBpm>`:''}<Cadence>${s.cadence}</Cadence><Extensions><TPX xmlns="http://www.garmin.com/xmlschemas/ActivityExtension/v2"><Watts>${s.power}</Watts><Speed>${sampleSpeed.toFixed(2)}</Speed></TPX></Extensions></Trackpoint>`;
  }).join('');
- return `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Activities><Activity Sport="Biking"><Id>${start}</Id><Lap StartTime="${start}"><TotalTimeSeconds>${(activeRideMs/1000).toFixed(1)}</TotalTimeSeconds><DistanceMeters>${distance.toFixed(2)}</DistanceMeters><Calories>${Math.round(energyKcal)}</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${entries}</Track></Lap><Notes>${tcxEscape(routeName)}</Notes></Activity></Activities></TrainingCenterDatabase>`;
+ return `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Activities><Activity Sport="Biking"><Id>${start}</Id><Lap StartTime="${start}"><TotalTimeSeconds>${(activeRideMs/1000).toFixed(1)}</TotalTimeSeconds><DistanceMeters>${sessionDistanceMeters().toFixed(2)}</DistanceMeters><Calories>${Math.round(energyKcal)}</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${entries}</Track></Lap><Notes>${tcxEscape(routeName)}</Notes></Activity></Activities></TrainingCenterDatabase>`;
 }
 
 type SavedRide={id:string;start:string;end:string;name:string;mode?:'classic'|'survival'|'cyclequest';meters:number;elapsed:number;kcal:number;gain:number;avgPower:number|null;tcx:string};
@@ -383,8 +391,8 @@ async function renderRideHistory(){
 async function archiveFinishedRide(){
  if(!rideStart||!rideEnd||rideSamples.length<2)throw Error('Not enough recorded data to archive ride.');
  try{
-  const gain=points.length?gainLossThrough(distance).gain*FEET_PER_METER:rideSamples.reduce((a,x,i)=>a+(i?Math.max(0,x.elevation-rideSamples[i-1].elevation):0),0)*FEET_PER_METER;
-  await saveRide({id:rideStart,start:rideStart,end:rideEnd,name:routeName,mode:rideExperience,meters:distance,elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:avgPowerDuration>0?avgPowerEnergy/avgPowerDuration:null,tcx:buildRideTcx()});
+  const gain=sessionGainFeet();
+  await saveRide({id:rideStart,start:rideStart,end:rideEnd,name:routeName,mode:rideExperience,meters:sessionDistanceMeters(),elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:avgPowerDuration>0?avgPowerEnergy/avgPowerDuration:null,tcx:buildRideTcx()});
   await renderRideHistory();
  }catch(e){status('Could not save ride locally: '+String(e));throw e;}
 }
@@ -420,15 +428,15 @@ function checkStationaryRide(now:number){
 let avgPowerEnergy=0, avgPowerDuration=0;
 function showRideSummary(){
  const root=$('rideSummary');
- const gain=(()=>{try{return points.length?gainLossThrough(distance).gain*FEET_PER_METER:rideSamples.reduce((acc,s,i)=>acc+(i?Math.max(0,s.elevation-rideSamples[i-1].elevation):0),0)*FEET_PER_METER;}catch{return 0;}})();
+ const gain=(()=>{try{return sessionGainFeet();}catch{return 0;}})();
  const elapsed=rideClock();
  const values:[string,string][]=[
-  ['Distance',`${(distance/METERS_PER_MILE).toFixed(2)} mi`],
+  ['Distance',`${(sessionDistanceMeters()/METERS_PER_MILE).toFixed(2)} mi`],
   ['Ride time',elapsed],
   ['Elevation gain',`${Math.round(gain).toLocaleString()} ft`],
   ['Estimated calories',`${Math.round(energyKcal)} kcal`],
   ['Average power',avgPowerDuration>0?`${Math.round(avgPowerEnergy/avgPowerDuration)} W`:'—'],
-  ['Average speed',activeRideMs>0?`${(distance/(activeRideMs/1000)*MPH_PER_MPS).toFixed(1)} mph`:'—'],
+  ['Average speed',activeRideMs>0?`${(sessionDistanceMeters()/(activeRideMs/1000)*MPH_PER_MPS).toFixed(1)} mph`:'—'],
   ['Maximum power',rideSamples.length?`${rideSamples.reduce((max,s)=>Math.max(max,s.power),0)} W`:'—'],
   ['Average cadence',rideSamples.some(s=>s.cadence>0)?`${Math.round(rideSamples.reduce((a,s)=>a+s.cadence,0)/rideSamples.length)} rpm`:'—'],
   ['Maximum cadence',rideSamples.length?`${rideSamples.reduce((max,s)=>Math.max(max,s.cadence),0)} rpm`:'—'],
@@ -442,7 +450,7 @@ function showRideSummary(){
  for(const [label,value] of values){const item=document.createElement('div');item.className='ride-summary-stat';const small=document.createElement('small');small.textContent=label;const strong=document.createElement('strong');strong.textContent=value;item.append(small,strong);grid.append(item);}
  root.append(grid);
  renderAdvancedRideCharts(root,rideSamples,Number((document.getElementById('ftp') as HTMLInputElement|null)?.value)||250);
- const saveTcx=document.createElement('button');saveTcx.type='button';saveTcx.className='secondary';saveTcx.textContent='Download TCX';saveTcx.onclick=()=>{try{downloadTcx({id:rideStart||'',start:rideStart||'',end:rideEnd||'',name:routeName,meters:distance,elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:null,tcx:buildRideTcx()});}catch(e){status(String(e));}};root.append(saveTcx);
+ const saveTcx=document.createElement('button');saveTcx.type='button';saveTcx.className='secondary';saveTcx.textContent='Download TCX';saveTcx.onclick=()=>{try{downloadTcx({id:rideStart||'',start:rideStart||'',end:rideEnd||'',name:routeName,meters:sessionDistanceMeters(),elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:null,tcx:buildRideTcx()});}catch(e){status(String(e));}};root.append(saveTcx);
  const garminBox=document.createElement('section');garminBox.className='garmin-export-card';garminBox.setAttribute('aria-label','Garmin Connect export');
  const garminTitle=document.createElement('h3');garminTitle.textContent='Garmin Connect';
  const garminInfo=document.createElement('p');garminInfo.className='note';garminInfo.textContent='Automatic activity upload is not connected yet. Garmin’s standard Activity API imports rides from Garmin into partner apps; sending Breakaway rides to Garmin requires a separately approved upload integration. For now, export this ride and import it into Garmin Connect.';
@@ -451,7 +459,7 @@ function showRideSummary(){
  garminDownload.addEventListener('click',()=>{
   // Open in the user gesture before initiating the file download, avoiding popup blockers.
   const connectTab=window.open('https://connect.garmin.com/modern/activities','_blank','noopener,noreferrer');
-  try{downloadTcx({id:rideStart||'',start:rideStart||'',end:rideEnd||'',name:routeName,meters:distance,elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:null,tcx:buildRideTcx()});}
+  try{downloadTcx({id:rideStart||'',start:rideStart||'',end:rideEnd||'',name:routeName,meters:sessionDistanceMeters(),elapsed:activeRideMs/1000,kcal:energyKcal,gain,avgPower:null,tcx:buildRideTcx()});}
   catch(e){status('Could not download ride: '+String(e));}
   if(!connectTab)status('Ride download started. Allow pop-ups to open Garmin Connect automatically.');
  });
@@ -958,7 +966,7 @@ function update(){const currentClimb=refreshClimbState();const p=at(distance),ma
  const liveGrade=$('profileLiveGrade');const hud=gradeHud(displayGrade());const barGrade=document.getElementById('profileBarGrade');if(barGrade){barGrade.textContent=hud.label;barGrade.style.color=hud.color;}
  if(liveGrade){liveGrade.textContent=hud.label;liveGrade.style.color=hud.color;liveGrade.style.fontSize=hud.size+'px';liveGrade.innerHTML=hud.label+climbHud(currentClimb);}
  $('totalGain').textContent=Math.round(points.length?gainLossThrough(distance).gain*FEET_PER_METER:0).toLocaleString();
- $('distance').textContent=(distance/METERS_PER_MILE).toFixed(2);$('remaining').textContent=(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2));$('grade').textContent=p.grade.toFixed(1);$('elapsedTime').textContent=rideClock();$('beersEarned').textContent=(energyKcal/BEER_KCAL).toFixed(2);$('caloriesBurned').textContent=Math.round(energyKcal).toLocaleString();$('speed').textContent=(speed*MPH_PER_MPS).toFixed(1);$('power').textContent=threeSecondWatts()?.toFixed(0)??'—';$('cadence').textContent=realTelemetry?cadence.toFixed(0):'—';$('gear').textContent=drivetrainMode==='virtual'?String(gear):'—';
+ $('distance').textContent=(sessionDistanceMeters()/METERS_PER_MILE).toFixed(2);$('remaining').textContent=(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2));$('grade').textContent=p.grade.toFixed(1);$('elapsedTime').textContent=rideClock();$('beersEarned').textContent=(energyKcal/BEER_KCAL).toFixed(2);$('caloriesBurned').textContent=Math.round(energyKcal).toLocaleString();$('speed').textContent=(speed*MPH_PER_MPS).toFixed(1);$('power').textContent=threeSecondWatts()?.toFixed(0)??'—';$('cadence').textContent=realTelemetry?cadence.toFixed(0):'—';$('gear').textContent=drivetrainMode==='virtual'?String(gear):'—';
  refreshInspection();
  updateFloatingProfile();
  refreshHeartRateProfile();
@@ -1520,14 +1528,14 @@ function syncProfileCharts(){
 function profileSnapshot(){
  const p=at(distance),max=points.at(-1)?.distance||0;
  const chartCopy=$('chart').cloneNode(true) as HTMLElement;const live=chartCopy.querySelector<HTMLElement>('#profileLiveGrade');if(live){const hud=gradeHud(displayGrade());live.textContent=hud.label;live.style.color=hud.color;live.style.fontSize=(document.body.dataset.rideExperience==='classic'?hud.size*.8:hud.size)+'px';}
- return {kind:'gpx-profile',chart:chartCopy.innerHTML,distance:(distance/METERS_PER_MILE).toFixed(2)+' mi',grade:displayGrade().toFixed(1)+'%',elevation:Math.round(p.elevation*FEET_PER_METER)+' ft',progress:endless?0:(max?distance/max:0)};
+ return {kind:'gpx-profile',chart:chartCopy.innerHTML,distance:(sessionDistanceMeters()/METERS_PER_MILE).toFixed(2)+' mi',grade:displayGrade().toFixed(1)+'%',elevation:Math.round(p.elevation*FEET_PER_METER)+' ft',progress:endless?0:(max?distance/max:0)};
 }
 function publishProfile(){
  if(popout&&!popout.closed)popout.postMessage(profileSnapshot(),location.origin);
 }
 function updateFloatingProfile(){
  const p=at(distance),max=points.at(-1)?.distance||0;
- $('floatDistance').textContent=(distance/METERS_PER_MILE).toFixed(2)+' mi';
+ $('floatDistance').textContent=(sessionDistanceMeters()/METERS_PER_MILE).toFixed(2)+' mi';
  $('floatGrade').textContent=displayGrade().toFixed(1)+'%';
  const floatingHud=$('floatLiveGrade');if(floatingHud){const hud=gradeHud(displayGrade());floatingHud.textContent=hud.label;floatingHud.style.color=hud.color;floatingHud.style.fontSize=(['classic','survival'].includes(document.body.dataset.rideExperience||'')?hud.size*.8:hud.size)+'px';floatingHud.innerHTML=hud.label+climbHud(climbNow());}
  $('floatElevation').textContent=Math.round(p.elevation*FEET_PER_METER)+' ft';
@@ -1966,7 +1974,7 @@ function publishDesktopOverlay(){
   cadence:realTelemetry?Math.round(cadence):null,
   heartRate:($('heartRate').textContent||'').trim(),
   speed:(speed*MPH_PER_MPS).toFixed(1),
-  distance:(distance/METERS_PER_MILE).toFixed(2),
+  distance:(sessionDistanceMeters()/METERS_PER_MILE).toFixed(2),
   remaining:(endless?'∞':((max-distance)/METERS_PER_MILE).toFixed(2)),
   grade:p.grade.toFixed(1),elevation:Math.round(p.elevation*FEET_PER_METER),
   totalGain:Math.round(points.length?gainLossThrough(distance).gain*FEET_PER_METER:0).toLocaleString(),
@@ -2204,7 +2212,7 @@ function surviveRender(){const c=surviveData();
   gameSet('surviveGamePower',threeSecondWatts()?.toFixed(0)??'—');
   gameSet('surviveGameGear',drivetrainMode==='virtual'?String(gear):'—');
   gameSet('surviveGameHR',document.getElementById('heartRate')?.textContent?.trim()||'—');
-  gameSet('surviveGameDistance',(distance/METERS_PER_MILE).toFixed(2));
+  gameSet('surviveGameDistance',(sessionDistanceMeters()/METERS_PER_MILE).toFixed(2));
   gameSet('surviveGameAscent',String(Math.round(gainLossThrough(distance).gain*FEET_PER_METER)));
  }
 surviveUpdateProfileThreat();survivePanel.classList.toggle('danger',surviveOn&&surviveGap<65);survivePanel.classList.toggle('critical',surviveOn&&surviveGap<25);se('surviveHudMain').hidden=!(surviveOn||surviveCaught);se('surviveStatus').textContent=surviveWon?'YOU SURVIVED':surviveCaught?'CAUGHT':surviveOn?(c.warming?'PREPARE':surviveMode==='finish'?'RACE TO FINISH':surviveTheme):'READY';se('surviveWave').textContent=String(c.wave);se('surviveGap').textContent=c.warming?'—':c.gap+' m';se('surviveYouMph').textContent=c.you.toFixed(1);se('surviveThreatMph').textContent=c.enemy.toFixed(1);se('survivePhase').textContent=surviveMode==='finish'&&!c.warming?'FINISH LINE':c.phase==='RECOVER'?'RECOVER & PREPARE':c.phase;se('surviveCountdown').textContent=surviveFormatTime(c.remaining);se('surviveMessage').textContent=c.message;se('surviveRiderDot').style.left='calc(100% - 13px)';se('surviveThreatDot').style.left='calc('+Math.max(2,96-94*c.gap/(c.gap+100))+'% - 5px)';(se('surviveStart') as HTMLButtonElement).disabled=surviveOn;(se('surviveStop') as HTMLButtonElement).disabled=!surviveOn;}
@@ -3132,7 +3140,7 @@ window.setInterval(()=>{
    routeProfile={endless:true,windowStart:start,distance:visible.at(-1)!.distance-start,hasElevation:true,gain:visible.slice(1).reduce((sum,p,i)=>sum+Math.max(0,p.elevation-visible[i].elevation),0),points:visible.map(p=>({d:p.distance-start,e:p.elevation}))};
   }
  }
- questSend({type:'telemetry',routeProfile,ascentFeet:gainLossThrough(distance).gain*FEET_PER_METER,climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade,gain:c.gain,elevation:at(c.end).elevation})),summitBoss:!endless?questHighestSummit():null,connected:connected&&realTelemetry&&controlGranted,running,sessionSeconds:activeRideMs/1000,sessionDistanceM:Math.max(0,distance-rideSessionStartDistance),power:Math.max(0,power),displayPower:threeSecondWatts(),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),riderWeightKg:weightKg('weight'),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
+ questSend({type:'telemetry',routeProfile,ascentFeet:sessionGainFeet(),climbs:climbs.map(c=>({start:c.start,end:c.end,category:c.category,meanGrade:c.meanGrade,gain:c.gain,elevation:at(c.end).elevation})),summitBoss:!endless?questHighestSummit():null,connected:connected&&realTelemetry&&controlGranted,running,sessionSeconds:activeRideMs/1000,sessionDistanceM:sessionDistanceMeters(),power:Math.max(0,power),displayPower:threeSecondWatts(),cadence:Math.max(0,cadence),heartRate:($('heartRate').textContent||'—').trim(),speed:speed*MPH_PER_MPS,gear,ftp:Math.max(50,Number(($('ftp') as HTMLInputElement).value)||280),riderWeightKg:weightKg('weight'),activityStartTime:rideStart,distanceM:distance,grade:p.grade,elevation:p.elevation,routeComplete:!!rideEnd,buttonsReleased:!plusPressed&&!minusPressed});
 },200);
 
 // Survival v2 is UI-only; initialize after the original controls/listeners exist.
