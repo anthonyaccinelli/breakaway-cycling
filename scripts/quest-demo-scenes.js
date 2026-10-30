@@ -20,6 +20,6 @@ function handleDemoAction(action){
  }else if(action==='level'){award(threshold(level()+1)-s.xp);s.nextEncounter=20;}
  else if(action==='reward'){
   s.pendingReward=battleRewards(makeBattle('enemy',{level:chapterLevels(s.chapter,s.miles).min,monsterId:'rat'}));award(s.pendingReward.xp);s.reward=true;message='XP earned! Choose health or coins.';
- }else if(['enemy','summit','boss'].includes(action))encounter(action);
+ }else if(['enemy','summit','boss'].includes(action)){if(action==='boss')s.mode='adventure';encounter(action);}
  save();render();
 }

@@ -1112,7 +1112,7 @@ function advanceRide(now:number){
   if(!endless&&distance>=(procedural?routeLimit:points.at(-1)!.distance)){
    const summit=rideExperience==='cyclequest'?questHighestSummit():null;
    const waitForSummit=summit&&!questFinalSummitResolved&&summit.end>=(procedural?routeLimit:points.at(-1)!.distance)-100;
-   if(!waitForSummit){finishRide();status('Route complete');}
+   if(!waitForSummit&&!(rideExperience==='cyclequest'&&questStoryChapter>0)){finishRide();status('Route complete');}
   }
   if(trainerMode==='sim')void updateSimResistance(now);
   if(trainerMode==='erg'&&now-lastGearUpdate>1100){lastGearUpdate=now;void setVirtualGearResistance();}
@@ -3048,14 +3048,14 @@ cycleQuestHost.querySelector('#questDevices')!.addEventListener('click',()=>{que
  return window.open('','cycle-quest-overlay',`popup,width=${width},height=${height}`);
 };
 let questProfileRevision='';
-let questFinalSummitResolved=false;
+let questFinalSummitResolved=false;let questStoryChapter=0;
 function questHighestSummit(){return climbs.reduce<Climb|null>((best,c)=>!best||at(c.end).elevation>at(best.end).elevation||(at(c.end).elevation===at(best.end).elevation&&c.gain>best.gain)?c:best,null);}
 function routeFromQuest(data:any){
  const r=data.route;if(!r||!Array.isArray(r.points)||r.points.length<2||r.points.length>1000||!Number.isFinite(r.distance)||r.distance<10||typeof r.name!=='string')return;
  if(!r.points.every((p:any,i:number)=>Number.isFinite(p.d)&&Number.isFinite(p.e)&&p.d>=0&&(!i||p.d>r.points[i-1].d)))return;
  if(r.endless===true&&(!Number.isInteger(r.seed)||!['flat','rolling','mountain','punchy'].includes(r.terrain)||!Number.isFinite(r.windowStart||0)||(r.windowStart||0)<0))return;
  if(running)pauseRide();if(rideStart&&!rideEnd)finishRide();
- questProfileRevision='';questFinalSummitResolved=false;
+ questProfileRevision='';questFinalSummitResolved=false;questStoryChapter=Number.isInteger(r.storyChapter)&&r.storyChapter>=1&&r.storyChapter<=10?r.storyChapter:0;
  if(r.endless===true){
   procedural=true;endless=true;routeLimit=Infinity;proceduralTerrain=r.terrain;proceduralSeed=r.seed;proceduralIntensity=1;gainScale=1;plannedGainFeet=null;resetHills();resetClimbingTotals();clearElevationEditor();zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;
   const start=r.windowStart||0;points=r.points.map((p:any,i:number)=>{const a=r.points[Math.max(0,i-1)],b=r.points[Math.min(r.points.length-1,i+1)];return {distance:p.d+start,elevation:p.e,grade:(b.e-a.e)/Math.max(1,b.d-a.d)*100};});
@@ -3074,6 +3074,7 @@ window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==questFrame.contentWindow||event.data?.source!=='cycle-quest'||!questAuthenticated||rideExperience!=='cyclequest'||document.body.dataset.breakawayScreen==='home')return;
  const data=event.data;
  if(data.type==='quest-page'&&['ride','overlay','character'].includes(String(data.page))){questIntroMusic.stop();}
+ else if(data.type==='story-complete'){questStoryChapter=0;}
  else if(data.type==='music-setting'){questIntroMusic.setEnabled(data.enabled===true);}
  else if(data.type==='home'){if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');}
  else if(data.type==='connect'){questSend({type:'navigate',page:'devices'});}
