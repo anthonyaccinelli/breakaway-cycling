@@ -1,0 +1,21 @@
+/* Classic route studio: keep the seed control compact in the existing grid. */
+.route-fields label.route-seed-lock {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.route-fields .route-seed-lock input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  padding: 0;
+  accent-color: #45d6aa;
+}
+.route-fields .route-seed-lock span { display: flex; flex-direction: column; gap: 2px; }
+.route-fields .route-seed-lock strong { font-size: inherit; font-weight: 700; color: #fff; }
+.route-fields .route-seed-lock small { font-size: 0.8em; color: #c4d7df; }
