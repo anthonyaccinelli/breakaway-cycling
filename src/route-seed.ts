@@ -1,4 +1,4 @@
-// Auto-filled seeds describe the last preview; explicitly entered seeds reproduce it.
+// Auto-filled seeds describe the last preview; locked seeds recreate that route.
 export function createRouteSeedSelector(random:()=>number=Math.random){
  let previous:number|null=null;
  return (text:string,explicit=false)=>{
@@ -8,4 +8,10 @@ export function createRouteSeedSelector(random:()=>number=Math.random){
   previous=seed;
   return seed;
  };
+}
+
+// The calculated gain displayed after a natural-terrain preview is informational,
+// not a new target. Keep user-entered targets unchanged across generation.
+export function readRouteGainTarget(displayedGain:string,isCalculatedGain:boolean){
+ return isCalculatedGain?'':displayedGain.trim();
 }
