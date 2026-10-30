@@ -1,9 +1,11 @@
 // Auto-filled seeds describe the last preview; locked seeds recreate that route.
 export function createRouteSeedSelector(random:()=>number=Math.random){
  let previous:number|null=null;
- return (text:string,explicit=false)=>{
+ return (text:string,locked=false,userEntered=false)=>{
   const parsed=Number(text);
-  let seed=text.trim()!==''&&Number.isFinite(parsed)&&(explicit||parsed!==previous)?parsed:Math.floor(random()*1_000_000_000)+1;
+  // Pasted or typed values win on the next Generate click, even when Lock is off.
+  // Otherwise a displayed auto-generated seed is replaced with fresh terrain.
+  let seed=text.trim()!==''&&Number.isFinite(parsed)&&(locked||userEntered||parsed!==previous)?parsed:Math.floor(random()*1_000_000_000)+1;
   if(!explicit&&seed===previous)seed=(seed%1_000_000_000)+1;
   previous=seed;
   return seed;
