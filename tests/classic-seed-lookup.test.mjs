@@ -14,7 +14,7 @@ const snippet=ts.transpileModule(mainSource.slice(start,end),{compilerOptions:{t
 
 function harness({manual=true,seed='937093007',lookup=null,register=async()=> 'saved',newSeed=()=>900123456}={}){
  const fields={
-  generateRoute:{disabled:false},
+  generateRoute:{disabled:false,textContent:'Generate Route',attributes:new Map(),setAttribute(name,value){this.attributes.set(name,value);},removeAttribute(name){this.attributes.delete(name);}},
   generatedSeed:{value:seed},
   generatedGain:{value:'123'},
   generatedMiles:{value:'3'},
