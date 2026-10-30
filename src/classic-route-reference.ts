@@ -147,7 +147,7 @@ export function mountClassicRouteReference():void {
   const statusObserver=new MutationObserver(()=>{
    if(!document.body.classList.contains('cr-reference-mounted'))return;
    const message=status.textContent||'';
-   const invalid=/error|could not|invalid|must|exceeds|enter a valid|failed/i.test(message);
+   const invalid=/error|could not|invalid|must|exceeds|enter a valid|failed|unregistered seed/i.test(message);
    error.hidden=!invalid;if(invalid)error.textContent=message;
   });
   statusObserver.observe(status,{childList:true,characterData:true,subtree:true});
