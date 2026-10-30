@@ -1,4 +1,4 @@
-import {createRouteSeedSelector} from './route-seed';
+import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
 import {mountBetaSupport} from './beta-support';
 import {mountCoach} from './coach';
 import './style.css';
@@ -170,7 +170,7 @@ function prepareProcedural(isEndless:boolean){
  procedural=true;endless=isEndless;routeLimit=isEndless?Infinity:mi*1609.344;
  proceduralTerrain=($('generatedTerrain') as HTMLSelectElement).value as Terrain;
  const gainField=$('generatedGain') as HTMLInputElement;
- const gainText=generatedGainIsAutoFilled?'':gainField.value.trim(),targetGain=gainText===""?null:Number(gainText);
+ const gainText=readRouteGainTarget(gainField.value,generatedGainIsAutoFilled),targetGain=gainText===""?null:Number(gainText);
  if(targetGain!==null&&(!Number.isFinite(targetGain)||targetGain<0)){status("Enter a valid total elevation gain in feet.");return;}
  proceduralIntensity=Number(($('generatedDifficulty') as HTMLSelectElement).value);
  proceduralSeed=selectRouteSeed(($('generatedSeed') as HTMLInputElement).value,($('lockGeneratedSeed') as HTMLInputElement).checked);
