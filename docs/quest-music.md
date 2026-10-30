@@ -1,9 +1,9 @@
 # Cycle Quest music
 
-User-supplied Sara Garrard tracks, with browser-ready battle/rest MP3s and an exact five-second victory WAV:
+User-supplied Sara Garrard tracks, with browser-ready battle/rest MP3s and an exact ten-second victory WAV:
 
 - **Do or Die {Boss Battle} loop**: loops during all enemy, summit and chapter boss fights.
-- **Victory! {Fanfare} loop**: only the original WAV frames from 0.000 through 5.000 seconds are included in `victory-opening-0-5.wav`, with no compression or seek offset. Every playback explicitly starts at zero. Plays after victory; defeats use Game Over and fleeing is silent; a new battle or inn screen interrupts it.
+- **Victory! {Fanfare} loop**: only the original WAV frames from 0.000 through 10.000 seconds are included in `victory-opening-0-10.wav`, with no compression or seek offset. Every playback explicitly starts at zero. Plays for ten seconds after victory, with an 0.8-second crossfade from battle and a gentle fade over the final 1.5 seconds; defeats use Game Over and fleeing is silent; a new battle or inn screen interrupts it.
 - **Rest**: loops while the end-of-ride summary is open. The action and summary title read **Rest at Inn**. Closing the summary stops the track.
 
 One music controller lives in the game iframe, including when the overlay is open. It prevents overlapping tracks and cancels stale fanfare timers. Battle music pauses with the game, mute preference is saved on the device, and leaving Cycle Quest silences music. If browser autoplay is blocked, the control displays **Enable Music** for a user gesture. Main iframe delegates autoplay but browser policy still applies. No changes to combat, healing, XP, trainer control or ride completion rules.
