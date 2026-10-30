@@ -1,21 +1,28 @@
-/* Classic route studio: keep the seed control compact in the existing grid. */
-.route-fields label.route-seed-lock {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
+/* Classic route studio: seed lock fits within the existing route settings row. */
+.ride-stage #routeStudio .route-fields label.route-seed-lock {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 9px !important;
   padding: 6px 0;
   cursor: pointer;
 }
-.route-fields .route-seed-lock input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
-  margin: 0;
-  padding: 0;
+.ride-stage #routeStudio .route-fields label.route-seed-lock input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  flex: 0 0 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
   accent-color: #45d6aa;
 }
-.route-fields .route-seed-lock span { display: flex; flex-direction: column; gap: 2px; }
-.route-fields .route-seed-lock strong { font-size: inherit; font-weight: 700; color: #fff; }
-.route-fields .route-seed-lock small { font-size: 0.8em; color: #c4d7df; }
+.ride-stage #routeStudio .route-fields .route-seed-lock span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ride-stage #routeStudio .route-fields .route-seed-lock strong { font-size: inherit; font-weight: 700; color: inherit; }
+.ride-stage #routeStudio .route-fields .route-seed-lock small { font-size: .8em; color: inherit; opacity: .84; }
