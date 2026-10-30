@@ -1,6 +1,6 @@
 import {createClient, type SupabaseClient} from '@supabase/supabase-js';
-import {validatedClassicRecipe,type ClassicRouteRecipe} from './classic-route-recipe';
-export {randomClassicSeed,isClassicSeed,validatedClassicRecipe} from './classic-route-recipe';
+import {CLASSIC_BUILTIN_ROUTES,validatedClassicRecipe,type ClassicRouteRecipe} from './classic-route-recipe';
+export {randomClassicSeed,isClassicSeed,validatedClassicRecipe,deriveUnregisteredClassicRoute} from './classic-route-recipe';
 export type {ClassicRouteRecipe,ClassicTerrain} from './classic-route-recipe';
 
 // Read-only seed lookups work for everyone. Registry writes are immutable,
@@ -13,6 +13,8 @@ function client():SupabaseClient {
  return cloud??(cloud=createClient(url,key));
 }
 export async function findClassicRoute(seed:number):Promise<ClassicRouteRecipe|null>{
+ // These are immutable built-ins and work without an external request.
+ if(Object.prototype.hasOwnProperty.call(CLASSIC_BUILTIN_ROUTES,seed))return CLASSIC_BUILTIN_ROUTES[seed];
  const {data,error}=await client().from('classic_route_seeds')
   .select('seed,miles,gain_target_ft,terrain,difficulty,generator_version')
   .eq('seed',seed).maybeSingle();
