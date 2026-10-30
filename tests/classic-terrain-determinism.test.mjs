@@ -45,3 +45,10 @@ test('natural-gain terrain remains exactly deterministic across re-generations',
  const recreated=buildRoute(75012,37.5,'mountain',1.35,null);
  assert.deepEqual(recreated,original);
 });
+
+test('the pre-registry sample seed 937093007 reproduces its original 534-ft natural gain',()=>{
+ const route=buildRoute(937093007,16.7,'rolling',0.55,null);
+ const ascent=route.slice(1).reduce((gain,p,i)=>gain+Math.max(0,p[1]-route[i][1]),0);
+ assert.equal(Math.round(ascent*3.280839895),534);
+ assert.deepEqual(buildRoute(937093007,16.7,'rolling',0.55,null),route);
+});

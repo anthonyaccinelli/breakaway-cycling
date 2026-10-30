@@ -1,4 +1,5 @@
 import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
+import {findClassicRoute,registerClassicRoute,randomClassicSeed,isClassicSeed,validatedClassicRecipe,deriveUnregisteredClassicRoute} from './classic-route-registry';
 import {mountBetaSupport} from './beta-support';
 import {mountCoach} from './coach';
 import './style.css';
@@ -164,15 +165,15 @@ function appendTerrain(target:number){
  if(endless&&points.length>1200){const cutoff=Math.max(0,distance-3*1609.344);let i=0;while(i<points.length-2&&points[i+1].distance<cutoff)i++;if(i>0){accumulateRetiredTerrain(i);points.splice(0,i);}}
 }
 function ensureTerrain(){if(!procedural)return;const ahead=distance+CHUNK; if(generatedThrough<ahead)appendTerrain(Math.ceil(ahead/CHUNK)*CHUNK);}
-function prepareProcedural(isEndless:boolean){
+function prepareProcedural(isEndless:boolean):boolean{
  if(rideStart&&!rideEnd)finishRide();
  const input=($('generatedMiles') as HTMLInputElement).value.trim();const mi=Number(input);
- if(!isEndless&&(!input||!Number.isFinite(mi)||mi<=0||mi>Number.MAX_SAFE_INTEGER/1609.344)){status('Enter a valid positive distance in miles.');return;}
+ if(!isEndless&&(!input||!Number.isFinite(mi)||mi<=0||mi>Number.MAX_SAFE_INTEGER/1609.344)){status('Enter a valid positive distance in miles.');return false;}
  procedural=true;endless=isEndless;routeLimit=isEndless?Infinity:mi*1609.344;
  proceduralTerrain=($('generatedTerrain') as HTMLSelectElement).value as Terrain;
  const gainField=$('generatedGain') as HTMLInputElement;
  const gainText=readRouteGainTarget(gainField.value,generatedGainIsAutoFilled),targetGain=gainText===""?null:Number(gainText);
- if(targetGain!==null&&(!Number.isFinite(targetGain)||targetGain<0)){status("Enter a valid total elevation gain in feet.");return;}
+ if(targetGain!==null&&(!Number.isFinite(targetGain)||targetGain<0)){status("Enter a valid total elevation gain in feet.");return false;}
  proceduralIntensity=Number(($('generatedDifficulty') as HTMLSelectElement).value);
  proceduralSeed=selectRouteSeed(($('generatedSeed') as HTMLInputElement).value,($('lockGeneratedSeed') as HTMLInputElement).checked,userEnteredRouteSeed);
  userEnteredRouteSeed=false;
@@ -180,7 +181,7 @@ function prepareProcedural(isEndless:boolean){
  resetHills();gainScale=1;plannedGainFeet=null;
  if(!isEndless){
   try{gainScale=targetGain===null?1:targetGain===0?0:solveGain(targetGain);plannedGainFeet=estimatedGain(gainScale);}
-  catch(error){status(String(error));return;}
+  catch(error){status(String(error));return false;}
  }
  routeName=`${isEndless?'Endless':'Generated'} ${proceduralTerrain} ride (seed ${proceduralSeed})`;
  clearElevationEditor();zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;resetClimbingTotals();points=[];generatedThrough=0;distance=0;speed=0;rideStart=null;rideEnd=null;clearRideRecovery();running=false;resetRideMetrics();
@@ -191,6 +192,69 @@ function prepareProcedural(isEndless:boolean){
   generatedGainIsAutoFilled=true;
  }
  status(`${isEndless?'Endless ride ready':`Generated ${mi} mi route ready`} — connect trainer and pedal to begin.`);
+ return true;
+}
+// Classic seed-only recall: the saved recipe is the source of truth.
+let classicRouteBusy=false;
+async function generateClassicRoute():Promise<boolean>{
+ if(classicRouteBusy)return false;
+ const button=$('generateRoute') as HTMLButtonElement;
+ const seedInput=$('generatedSeed') as HTMLInputElement;
+ const gainInput=$('generatedGain') as HTMLInputElement;
+ const originalButtonLabel=button.textContent;
+ classicRouteBusy=true;button.disabled=true;button.setAttribute('aria-busy','true');
+ button.textContent='Loading route seed…';
+ try{
+  if(seedLock.checked||userEnteredRouteSeed){
+   const input=seedInput.value.trim();
+   if(!isClassicSeed(input)){status('Invalid route seed: enter a positive numeric seed up to 1000000000.');return false;}
+   const savedRecipe=await findClassicRoute(Number(input));
+   // If it was never registered, derive the SAME canonical recipe everywhere.
+   // This cannot reconstruct unrecorded historical custom settings.
+   const recipe=savedRecipe??deriveUnregisteredClassicRoute(Number(input));
+   ($('generatedMiles') as HTMLInputElement).value=String(recipe.miles);
+   ($('generatedTerrain') as HTMLSelectElement).value=recipe.terrain;
+   ($('generatedDifficulty') as HTMLSelectElement).value=String(recipe.difficulty);
+   gainInput.value=recipe.gain_target_ft===null?'':String(recipe.gain_target_ft);
+   generatedGainIsAutoFilled=false;
+   seedInput.value=String(recipe.seed);
+   seedLock.checked=true;userEnteredRouteSeed=true;
+   if(!prepareProcedural(false))return false;
+   status(savedRecipe
+    ?'Restored saved route '+recipe.seed+' — '+recipe.miles+' mi; terrain and elevation settings loaded.'
+    :'Generated consistent route from unregistered seed '+recipe.seed+' — '+recipe.miles+' mi. Older custom route settings cannot be recovered.');
+   saveQuickRide();
+   return true;
+  }
+  // No seed was entered: make a NEW route and permanently bind its recipe to
+  // a unique random code. Never overwrite someone else's saved route.
+  const mileage=Number(($('generatedMiles') as HTMLInputElement).value);
+  const gainText=readRouteGainTarget(gainInput.value,generatedGainIsAutoFilled);
+  const terrain=($('generatedTerrain') as HTMLSelectElement).value;
+  const difficulty=Number(($('generatedDifficulty') as HTMLSelectElement).value);
+  for(let attempt=0;attempt<6;attempt++){
+   const recipe=validatedClassicRecipe({seed:randomClassicSeed(),miles:mileage,
+     gain_target_ft:gainText===''?null:Number(gainText),terrain,difficulty,generator_version:1});
+   if(!recipe){status('Invalid route settings: enter a valid distance, difficulty, terrain and optional elevation gain.');return false;}
+   seedInput.value=String(recipe.seed);
+   seedLock.checked=true;userEnteredRouteSeed=true;
+   if(!prepareProcedural(false))return false;
+   const saved=await registerClassicRoute(recipe);
+   if(saved==='collision')continue;
+   seedLock.checked=false; // Subsequent Generate clicks make fresh terrain.
+   status('Route saved! Seed '+recipe.seed+' recreates this route with no other inputs.');
+   saveQuickRide();
+   return true;
+  }
+  status('Could not allocate a unique route seed. Please try Generate Route again.');
+  return false;
+ }catch(error){
+  status('Route seed error: '+String(error instanceof Error?error.message:error)+'. Route was not saved or restored.');
+  return false;
+ }finally{
+  classicRouteBusy=false;button.disabled=false;button.removeAttribute('aria-busy');
+  button.textContent=originalButtonLabel;
+ }
 }
 // Dashboard metrics: 3-second rolling power and power-derived energy expenditure.
 // 24% assumed gross efficiency; 150 kcal per illustrative beer (not alcohol guidance).
@@ -443,7 +507,7 @@ const routeSeedInput=$('generatedSeed') as HTMLInputElement;
 routeSeedInput.addEventListener('paste',()=>{userEnteredRouteSeed=true;seedLock.checked=true;});
 routeSeedInput.addEventListener('input',()=>{userEnteredRouteSeed=true;seedLock.checked=routeSeedInput.value.trim()!=='';});
 $('generatedGain').addEventListener('input',()=>{generatedGainIsAutoFilled=false;});
-$('generateRoute').addEventListener('click',()=>prepareProcedural(false));
+$('generateRoute').addEventListener('click',()=>{if(document.body.dataset.rideExperience==='classic')void generateClassicRoute();else prepareProcedural(false);});
 $('endlessRoute').addEventListener('click',()=>prepareProcedural(true));
 $('surpriseRoute').addEventListener('click',()=>{
  const terrainInput=$('generatedTerrain') as HTMLSelectElement;
@@ -464,7 +528,7 @@ $('surpriseRoute').addEventListener('click',()=>{
  seedLock.checked=false;
  userEnteredRouteSeed=false;
  generatedGainIsAutoFilled=false;
- prepareProcedural(false);
+ if(document.body.dataset.rideExperience==='classic')void generateClassicRoute();else prepareProcedural(false);
 });
 
 const num=(id:string)=>Number(($(id) as HTMLInputElement).value);
@@ -2614,14 +2678,13 @@ for(const preset of quickPresets){
  button.type='button';
  button.className='quick-preset-button secondary';
  button.textContent=preset.name;
- button.addEventListener('click',()=>{
+ button.addEventListener('click',async()=>{
   for(const [key,id] of Object.entries(quickRideIds)){
    (document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value=preset[key as keyof QuickRideSettings];
   }
   generatedGainIsAutoFilled=false;
   seedLock.checked=true; // Quick Start presets intentionally reproduce their preset seed.
-  (document.getElementById('generateRoute') as HTMLButtonElement).click();
-  if(!points.length)return;
+  if(!await generateClassicRoute())return;
   saveQuickRide();
   refreshQuickRide();
   // Keep riders in Route Studio so they can inspect the generated elevation
