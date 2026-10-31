@@ -18,6 +18,7 @@ import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
 import {mountSurvivalCockpit} from './survival-cockpit';
 import {mountClassicCockpit} from './classic-cockpit';
 import {mountClassicRouteReference} from './classic-route-reference';
+import {mountPedalkinRouteStudio} from './pedalkin-route';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
@@ -532,7 +533,7 @@ const routeSeedInput=$('generatedSeed') as HTMLInputElement;
 routeSeedInput.addEventListener('paste',()=>{userEnteredRouteSeed=true;seedLock.checked=true;});
 routeSeedInput.addEventListener('input',()=>{userEnteredRouteSeed=true;seedLock.checked=routeSeedInput.value.trim()!=='';});
 $('generatedGain').addEventListener('input',()=>{generatedGainIsAutoFilled=false;});
-$('generateRoute').addEventListener('click',()=>{if(document.body.dataset.rideExperience==='classic')void generateClassicRoute();else prepareProcedural(false);});
+$('generateRoute').addEventListener('click',()=>{if(['classic','pedalkin'].includes(document.body.dataset.rideExperience||''))void generateClassicRoute();else prepareProcedural(false);});
 $('endlessRoute').addEventListener('click',()=>prepareProcedural(true));
 $('surpriseRoute').addEventListener('click',()=>{
  const terrainInput=$('generatedTerrain') as HTMLSelectElement;
@@ -553,7 +554,7 @@ $('surpriseRoute').addEventListener('click',()=>{
  seedLock.checked=false;
  userEnteredRouteSeed=false;
  generatedGainIsAutoFilled=false;
- if(document.body.dataset.rideExperience==='classic')void generateClassicRoute();else prepareProcedural(false);
+ if(['classic','pedalkin'].includes(document.body.dataset.rideExperience||''))void generateClassicRoute();else prepareProcedural(false);
 });
 
 const num=(id:string)=>Number(($(id) as HTMLInputElement).value);
@@ -2822,7 +2823,7 @@ window.setInterval(checkAutomaticRideCountdown,500);
 showBreakawayScreen('route');
 
 // Two distinct entry experiences, sharing the real route editor and trainer workflow.
-type RideExperience='classic'|'survival'|'cyclequest';
+type RideExperience='classic'|'survival'|'cyclequest'|'pedalkin';
 let rideExperience:RideExperience='classic';
 const modeLanding=document.createElement('section');
 modeLanding.id='modeLanding';
@@ -2928,6 +2929,13 @@ modeLanding.querySelector('#modeDevices')!.addEventListener('click',()=>{
 });
 modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
 modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
+const pedalkinCard=document.createElement('button');
+pedalkinCard.type='button';pedalkinCard.id='choosePedalkin';
+pedalkinCard.className='mode-card mode-card-pedalkin';
+pedalkinCard.setAttribute('aria-label','Explore Pedalkin — cozy creature collecting cycling game, route studio first draft');
+pedalkinCard.innerHTML='<span class="pk-mode-top">✳ A NEW LITTLE ADVENTURE</span><strong>PEDALKIN</strong><span class="pk-mode-scene" aria-hidden="true">♣　♠　✿　♣</span><span class="pk-mode-bottom">EXPLORE · RIDE · BEFRIEND</span>';
+modeLanding.querySelector('.mode-landing-cards')!.append(pedalkinCard);
+pedalkinCard.addEventListener('click',()=>chooseRideExperience('pedalkin'));
 modeHomeButton.addEventListener('click',()=>{if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');});
 const questIntroAudio=new Audio('/audio/cycle-quest/largo.mp3');questIntroAudio.hidden=true;questIntroAudio.dataset.questMusic='largo.mp3';document.body.append(questIntroAudio);
 const questIntroMusic=createQuestIntroMusic(questIntroAudio);
@@ -2940,7 +2948,7 @@ window.addEventListener('popstate',event=>{
  if(state?.breakawayPage==='mode'){
   if(surviveOn){status('End your current Survival session before changing modes.');return;}
   if(state.breakawayMode==='cyclequest'){if(questAuthenticated)launchCycleQuest(false);else enterCycleQuest();}
-  else if(state.breakawayMode==='classic'||state.breakawayMode==='survival')chooseRideExperience(state.breakawayMode,false);
+  else if(state.breakawayMode==='classic'||state.breakawayMode==='survival'||state.breakawayMode==='pedalkin')chooseRideExperience(state.breakawayMode,false);
  }else if(!openModeLanding())history.pushState({...(state||{}),breakawayPage:'mode',breakawayMode:rideExperience},'');
 });
 
@@ -3147,6 +3155,7 @@ window.setInterval(()=>{
 mountSurvivalCockpit();
 mountClassicCockpit();
 mountClassicRouteReference();
+mountPedalkinRouteStudio();
 
 // Coach preview reuses the existing FTMS writer. It does not open another BLE connection.
 mountAccountControls();
@@ -3174,6 +3183,22 @@ coachRuntime=mountCoach({
  getPlatformRides:async()=> (await savedRides()).map(r=>({start:Date.parse(r.start),elapsed:r.elapsed,avgPower:r.avgPower,mode:r.mode||null,name:r.name}))
 });
 
+
+// Pedalkin preview: opens the actual shared route generator and navigation.
+const pedalkinPreviewScreen=new URLSearchParams(location.search).get('pedalkinPreview');
+if(['route','setup','ride'].includes(pedalkinPreviewScreen||'')){
+ chooseRideExperience('pedalkin',false);
+ if(!points.length){
+  ($('generatedDifficulty') as HTMLSelectElement).value='0.55';
+  ($('generatedTerrain') as HTMLSelectElement).value='rolling';
+  ($('generatedMiles') as HTMLInputElement).value='15';
+  ($('generatedGain') as HTMLInputElement).value='';
+  ($('generateRoute') as HTMLButtonElement).click();
+ }
+ // Route and devices are safe to preview; actual ride requires FTMS trainer.
+ showBreakawayScreen(pedalkinPreviewScreen==='ride'?'route':pedalkinPreviewScreen as BreakawayScreen);
+ if(pedalkinPreviewScreen==='route')requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
+}
 
 // Preview-branch entry points are design-only and never start a trainer,
 // spoof BLE sensor data or bypass the live ride's safety checks.
