@@ -10,7 +10,7 @@ export function mountPedalkinRide():void {
  const ride=document.getElementById('screenRide');
  if(!ride)return;
  const previewChoice=new URLSearchParams(location.search).get('pedalkinPreview');
- const demo=previewChoice==='ride'||previewChoice==='encounter'||previewChoice==='explore';
+ const demo=['route','setup','ride','encounter','explore'].includes(previewChoice||'');
  const host=document.createElement('section');
  host.className='pk-ride-host';
  host.hidden=true;
@@ -34,7 +34,7 @@ export function mountPedalkinRide():void {
  const dismiss=host.querySelector<HTMLButtonElement>('.pk-popup-dismiss')!;
  let explored:string|null=null;
  let encounterSvg:string|null=null;
- let stageName:'explore'|'encounter'='explore';
+ let stageName:'explore'|'encounter'=previewChoice==='encounter'?'encounter':'explore';
  let wildness=48;
  let patience=48;
  let outcome:'captured'|'escaped'|null=null;
