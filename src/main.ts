@@ -279,7 +279,7 @@ type RideCheckpoint={mode?:RideExperience;questStoryChapter?:number;rideSessionS
 let recoveryWriteFailed=false;
 let pendingQuestRideRecovery:RideCheckpoint|null=null;
 function recoveryMode(c:RideCheckpoint):RideExperience{
- if(c.mode==='classic'||c.mode==='survival'||c.mode==='cyclequest')return c.mode;
+ if(c.mode==='classic'||c.mode==='survival'||c.mode==='cyclequest'||c.mode==='pedalkin')return c.mode;
  // Older checkpoints omitted mode. Only infer Quest from a matching saved route.
  try{const character=JSON.parse(localStorage.getItem('cycle-quest-character-v1')||'null');if(character?.route?.name===c.routeName)return 'cyclequest';}catch{}
  return 'classic';
@@ -346,7 +346,7 @@ function buildRideTcx(){
  return `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Activities><Activity Sport="Biking"><Id>${start}</Id><Lap StartTime="${start}"><TotalTimeSeconds>${(activeRideMs/1000).toFixed(1)}</TotalTimeSeconds><DistanceMeters>${sessionDistanceMeters().toFixed(2)}</DistanceMeters><Calories>${Math.round(energyKcal)}</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${entries}</Track></Lap><Notes>${tcxEscape(routeName)}</Notes></Activity></Activities></TrainingCenterDatabase>`;
 }
 
-type SavedRide={id:string;start:string;end:string;name:string;mode?:'classic'|'survival'|'cyclequest';meters:number;elapsed:number;kcal:number;gain:number;avgPower:number|null;tcx:string};
+type SavedRide={id:string;start:string;end:string;name:string;mode?:'classic'|'survival'|'cyclequest'|'pedalkin';meters:number;elapsed:number;kcal:number;gain:number;avgPower:number|null;tcx:string};
 const RIDE_DB='breakaway-local-rides-v1-'+getAccountUserId(),RIDE_STORE='rides';
 function rideDb():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{
  const request=indexedDB.open(RIDE_DB,1);
