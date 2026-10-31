@@ -135,7 +135,17 @@ export function mountPedalkinHandheldRoute():void {
  const scrubNode=at<HTMLElement>('.pk-v2-scrub');
  function refreshVisual(){
   if(shell.hidden)return;
-  for(const {node,real} of stats)node.textContent=real?.textContent?.trim()||'—';
+  for(const {node,real} of stats){
+   const value=real?.textContent?.trim()||'—';
+   node.textContent=value;
+   node.title=value;
+  }
+  // studioDifficulty is a verbose workout description, not the concise
+  // terrain name shown in the user's Illustrator route preview card.
+  const terrainLabel=original.terrain!.selectedOptions[0]?.textContent?.trim()||'—';
+  const terrainStat=at<HTMLElement>('[data-pk-stat="terrain"]');
+  terrainStat.textContent=terrainLabel;
+  terrainStat.title=terrainLabel;
   const chart=original.chart!.querySelector('svg');
   if(chart){
    const clone=chart.cloneNode(true) as SVGSVGElement;
