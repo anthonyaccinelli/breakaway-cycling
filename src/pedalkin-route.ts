@@ -16,6 +16,9 @@ export function mountPedalkinRouteStudio():void {
  const hiddenUpload=input?.closest<HTMLElement>('.route-import');
  const hiddenDifficulty=difficulty?.closest<HTMLElement>('label');
  const status=byId('status');
+ const elevationInput=byId('generatedGain') as HTMLInputElement|null;
+ const elevationLabelText=elevationInput?.closest('label')?.firstChild;
+ const originalElevationLabel=elevationLabelText?.nodeType===Node.TEXT_NODE?elevationLabelText.textContent:null;
  if(!route||!studio||!builder||!preview||!input||!hiddenUpload||!hiddenDifficulty)return;
 
  const shell=document.createElement('div');
@@ -81,6 +84,9 @@ export function mountPedalkinRouteStudio():void {
   // but don't render the original browser picker or a Difficulty field twice.
   move(hiddenUpload!,hiddenControls);
   move(hiddenDifficulty!,hiddenControls);
+  // Pedalkin-only compact label keeps all three route fields on one line.
+  if(elevationLabelText&&originalElevationLabel!==null)elevationLabelText.textContent='Total Elevation';
+  if(elevationInput)elevationInput.title='Total elevation gain (feet)';
   document.body.classList.add('pk-route-mounted');
   updateStatus();
  }
@@ -88,6 +94,8 @@ export function mountPedalkinRouteStudio():void {
   if(!shell.isConnected)return;
   for(const {node,home} of moves.reverse())home.replaceWith(node);
   moves.length=0;
+  if(elevationLabelText&&originalElevationLabel!==null)elevationLabelText.textContent=originalElevationLabel;
+  if(elevationInput)elevationInput.removeAttribute('title');
   shell.remove();
   document.body.classList.remove('pk-route-mounted');
  }
