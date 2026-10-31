@@ -39,11 +39,11 @@ body.pk-v2-route-active #screenRoute{isolation:auto!important}
 /* Cover the bitmap's old checkbox and label once, then draw one real label.
    The real underlying lockGeneratedSeed still owns the persisted state. */
 body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-lock-control{
- position:absolute!important;left:45.7%!important;top:44.65%!important;
- width:3.93%!important;height:4.25%!important;min-width:0!important;
- padding:0 0.22cqw!important;margin:0!important;
+ position:absolute!important;left:45.7%!important;top:44.35%!important;
+ width:4.46%!important;height:4.0%!important;min-width:0!important;
+ padding:0 0.12cqw 0 0.80cqw!important;margin:0!important;
  display:flex!important;align-items:center!important;justify-content:flex-start!important;
- gap:0.30cqw!important;background:#fcfcfd!important;color:#0f292f!important;
+ gap:0.30cqw!important;background:#ffffff!important;color:#0f292f!important;
  font:600 0.78cqw/1 Arial,Helvetica,sans-serif!important;
  white-space:nowrap!important;overflow:hidden!important;z-index:7!important;
  pointer-events:auto!important;cursor:pointer!important;
@@ -120,7 +120,7 @@ body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid{
  grid-template-rows:repeat(2,minmax(0,1fr))!important;
  column-gap:0.34cqw!important;row-gap:0.35cqw!important;
  padding:0.08cqw!important;margin:0!important;
- background:#fcfcfd!important;border:0!important;border-radius:0!important;
+ background:#ffffff!important;border:0!important;border-radius:0!important;
  overflow:hidden!important;z-index:8!important;pointer-events:auto!important;
 }
 body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid>button.pk-v2-hit{
