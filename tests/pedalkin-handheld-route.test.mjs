@@ -42,3 +42,20 @@ test('user-supplied full handheld image appears as sole art layer with aligned c
  assert.match(css,/\.pk-v2-live-chart/);
  assert.match(css,/background:#0f292f!important/);
 });
+
+test('route facts stay inside the Illustrator preview pane and never spill over the console',()=>{
+ const block=css.match(/\.pk-v2-route-stats\{([\s\S]*?)\}/)?.[1]||'';
+ const read=(prop)=>Number(block.match(new RegExp(prop+':([0-9.]+)%'))?.[1]);
+ const x=read('left'),w=read('width');
+ assert(Number.isFinite(x)&&Number.isFinite(w));
+ assert(x>=51&&x<53,'stats aligned with preview body');
+ assert(x+w<=69.8,'stats overlay must fit inside x=1339/1920 preview card');
+ assert.match(block,/overflow:hidden!important/);
+ assert.match(css,/\.pk-v2-route-stats>div\{/);
+ assert.match(css,/text-overflow:ellipsis!important/);
+ assert.doesNotMatch(block,/left:59\.6%/);
+});
+test('terrain shows the selected biome, not the verbose generated difficulty summary',()=>{
+ assert.match(code,/original\.terrain!\.selectedOptions\[0\]\?\.textContent/);
+ assert.match(code,/terrainStat\.textContent=terrainLabel/);
+});
