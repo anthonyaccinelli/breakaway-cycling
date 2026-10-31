@@ -62,3 +62,14 @@ test('terrain shows the selected biome, not the verbose generated difficulty sum
  assert.match(code,/original\.terrain!\.selectedOptions\[0\]\?\.textContent/);
  assert.match(code,/terrainStat\.textContent=terrainLabel/);
 });
+
+test('screen metrics and chart are forcibly clipped to their Illustrator LCD bounds',()=>{
+ assert.match(css,/\.pk-v2-live \.pk-v2-route-stats\{/);
+ assert.match(css,/left:51\.65%!important;top:35\.50%!important;/);
+ assert.match(css,/width:17\.55%!important;height:13\.55%!important;/);
+ assert.match(css,/clip-path:inset\(0\)!important;/);
+ assert.match(css,/\.pk-v2-route-stats>div\{/);
+ assert.match(css,/overflow:hidden!important;text-overflow:ellipsis!important;/);
+ assert.match(css,/\.pk-v2-live \.pk-v2-live-chart\{/);
+ assert.match(css,/contain:paint!important;/);
+});
