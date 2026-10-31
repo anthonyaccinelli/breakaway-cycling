@@ -41,10 +41,23 @@ body.pk-v2-route-active #screenRoute{isolation:auto!important}
  border:0.05cqw solid #89939c!important;border-radius:0!important;
  accent-color:#0f292f!important;cursor:pointer;box-shadow:none!important;
 }
-.pk-v2-route-stats{position:absolute;left:59.6%;top:36.82%;width:19.55%;height:12.7%;
- padding:0 0.2cqw;background:#fff!important;color:#172028!important;
- font:500 0.9cqw/1.48 Arial,Helvetica,sans-serif!important;white-space:nowrap;
- overflow:hidden;letter-spacing:0!important;text-shadow:none!important;
+/* Match the Illustrator preview card: source artwork is at x=967..1339,
+   while the route facts start near x=992. The former 59.6% left position
+   placed this white overlay halfway OUTSIDE the console screen. */
+.pk-v2-route-stats{
+ position:absolute;left:51.65%;top:36.85%;width:17.95%;height:12.8%;
+ padding:0.14cqw 0.14cqw 0.14cqw 0.2cqw!important;
+ background:#fff!important;color:#172028!important;
+ font:500 0.85cqw/1.42 Arial,Helvetica,sans-serif!important;
+ text-align:left!important;white-space:nowrap!important;
+ overflow:hidden!important;letter-spacing:0!important;text-shadow:none!important;
+ border:0!important;box-shadow:none!important;
+}
+.pk-v2-route-stats>div{
+ display:block!important;width:100%!important;max-width:100%!important;
+ margin:0!important;padding:0!important;min-width:0!important;
+ white-space:nowrap!important;overflow:hidden!important;
+ text-overflow:ellipsis!important;line-height:1.42!important;
 }
 .pk-v2-route-stats b{font-weight:750;color:#10191d}
 .pk-v2-live-chart{
