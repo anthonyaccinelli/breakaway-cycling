@@ -1,0 +1,40 @@
+/* Workout import is opt-in; no new Coach tab or extra navigation step. */
+.coach-v2 .coach-import-workout{margin:13px 0;border:1px solid #aec8e8;border-radius:12px;background:#f4f8ff;color:#203c5c;overflow:hidden}
+.coach-v2 .coach-import-workout>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;min-height:54px;padding:14px 17px;font-size:15px;font-weight:900;color:#1650b3;cursor:pointer}
+.coach-v2 .coach-import-workout>summary::-webkit-details-marker{display:none}
+.coach-v2 .coach-import-workout>summary::after{content:'⌄';font-size:22px}
+.coach-v2 .coach-import-workout[open]>summary::after{content:'⌃'}
+.coach-v2 .coach-import-workout[open]>summary{background:#e8f1ff}
+.coach-v2 .coach-import-body{padding:17px;background:white;border-top:1px solid #ccdced;display:grid;gap:12px}
+.coach-v2 .coach-import-body p{color:#425c78;font-size:14px;line-height:1.55;margin:0}
+.coach-v2 .coach-import-body>label,.coach-v2 .coach-import-step label{font-size:12px;font-weight:900;letter-spacing:.3px;color:#345677}
+.coach-v2 .coach-import-body textarea,.coach-v2 .coach-import-body input:not([type=file]),
+.coach-v2 .coach-import-body select{
+ box-sizing:border-box;width:100%;min-height:44px;padding:10px 11px;border:1px solid #a9bfdc;border-radius:9px;background:#fbfdff;
+ color:#1b385a;font-size:14px;font-family:'Instrument Sans',system-ui,sans-serif;
+}
+.coach-v2 .coach-import-body textarea{resize:vertical;min-height:112px;line-height:1.6}
+.coach-v2 .coach-import-body [type=file]{width:100%;padding:12px;border:1px dashed #8daed3;border-radius:9px;background:#f5faff;color:#26496d;font-size:14px}
+.coach-v2 .coach-import-actions,.coach-v2 .coach-import-save-actions{display:flex;gap:9px;flex-wrap:wrap}
+.coach-v2 .coach-import-actions button,.coach-v2 .coach-import-save-actions button{
+ min-height:48px;padding:11px 16px;border-radius:9px;border:1px solid #9fb8da;background:#edf4ff;color:#1650aa;font-weight:850;font-size:13px;
+}
+.coach-v2 .coach-import-actions button:first-child,.coach-v2 #coachImportUse{background:#1559c8!important;color:#fff!important;border-color:#1559c8!important}
+.coach-v2 .coach-import-actions button:hover,.coach-v2 .coach-import-save-actions button:hover{filter:brightness(.94)}
+.coach-v2 .coach-import-help{font-size:12px!important;color:#526b84!important}
+.coach-v2 #coachImportStatus{color:#244c80;font-weight:750;font-size:14px}
+.coach-v2 .coach-import-photo img{display:block;max-width:100%;max-height:230px;object-fit:contain;border:1px solid #d5e0ef;border-radius:9px;background:#fafafa}
+.coach-v2 #coachImportReview[hidden]{display:none!important}
+.coach-v2 #coachImportReview{display:grid;gap:11px;padding-top:14px;border-top:1px solid #d5e3f3}
+.coach-v2 .coach-import-review-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.coach-v2 .coach-import-review-head strong{font-size:19px;color:#1a385e}
+.coach-v2 .coach-import-review-head span{font-size:11px;font-weight:800;color:#567391}
+.coach-v2 .coach-import-table-head{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px;font-weight:850;color:#486481}
+.coach-v2 .coach-import-step{display:grid;grid-template-columns:1fr 1fr;gap:12px;border:1px solid #d1deee;background:#f7fbff;border-radius:10px;padding:12px}
+.coach-v2 .coach-import-step>div{display:grid;gap:6px;align-content:start;min-width:0}
+.coach-v2 .coach-import-range{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.coach-v2 .coach-import-range label{display:grid;gap:4px}
+.coach-v2 .coach-import-range input:disabled{opacity:.35}
+.coach-v2 .coach-import-warning{background:#fff7e9;border:1px solid #edce91;border-radius:8px;padding:10px 12px;color:#77511e!important}
+@media(max-width:700px){.coach-v2 .coach-import-step{grid-template-columns:1fr}.coach-v2 .coach-import-table-head{display:none}.coach-v2 .coach-import-review-head{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.coach-v2 .coach-import-workout *{transition:none!important}}
