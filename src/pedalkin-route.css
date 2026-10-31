@@ -1,0 +1,538 @@
+/* Pedalkin / 01 Route: dedicated 90s-inspired visual skin.
+   The real route controls and elevation chart are MOVED, never cloned.
+   Scope all overrides to Pedalkin so other ride modes remain unchanged. */
+body.pk-route-mounted {
+ --pk-ink:#112e33;
+ --pk-dark:#0d3037;
+ --pk-forest:#1a494a;
+ --pk-cream:#ffeed0;
+ --pk-paper:#fff7e7;
+ --pk-moss:#648a6d;
+ --pk-orange:#e7a55a;
+ --pk-line:#14363b;
+ color:var(--pk-ink)!important;
+ background:var(--pk-dark)!important;
+ overflow:hidden!important;
+}
+body.pk-route-mounted main,
+body.pk-route-mounted main>.ride-workspace,
+body.pk-route-mounted #screenRoute{
+ box-sizing:border-box!important;
+ width:100%!important; max-width:none!important;
+ min-height:0!important;height:100dvh!important;max-height:100dvh!important;
+ margin:0!important;padding:0!important;border:0!important;
+ border-radius:0!important;box-shadow:none!important;
+ overflow:hidden!important;
+ background:var(--pk-dark)!important;
+}
+body.pk-route-mounted main>.breakaway-brand-bar,
+body.pk-route-mounted main>.browser-compatibility,
+body.pk-route-mounted main>p,
+body.pk-route-mounted #screenRoute #routeStudio,
+body.pk-route-mounted #screenRoute #survivalStudio,
+body.pk-route-mounted #modeHomeButton,
+body.pk-route-mounted a[href="/trainer-lab.html"] {display:none!important}
+body.pk-route-mounted #screenRoute {position:relative!important;display:block!important}
+body.pk-route-mounted .pk-route-shell,
+body.pk-route-mounted .pk-route-shell * {box-sizing:border-box!important}
+body.pk-route-mounted .pk-route-shell {
+ position:absolute;inset:0;z-index:5;
+ width:100%;height:100%;color:var(--pk-ink);
+ display:flex;flex-direction:column;
+ background:var(--pk-dark);
+ font-family:"Instrument Sans",Arial,sans-serif;
+}
+body.pk-route-mounted .pk-header {
+ flex:none; height:84px; display:grid;
+ grid-template-columns:minmax(230px,1fr) auto minmax(180px,1fr);
+ align-items:center; gap:22px;
+ background:var(--pk-dark); border-bottom:5px solid #f1dfb8;
+ padding:0 clamp(18px,2.6vw,50px);color:var(--pk-cream);
+ box-shadow:0 3px 0 #56827d;
+}
+body.pk-route-mounted .pk-brand{display:flex;align-items:center;gap:13px;line-height:1}
+body.pk-route-mounted .pk-brand-star {font-size:36px;color:#f4c36a}
+body.pk-route-mounted .pk-brand strong{
+ font:normal 48px/0.88 "VT323",monospace;
+ letter-spacing:2px;display:block;color:var(--pk-cream);
+}
+body.pk-route-mounted .pk-brand small{
+ display:block;margin-top:4px;letter-spacing:2px;
+ color:#b2cfc1;font-size:9px;font-weight:800;
+}
+body.pk-route-mounted .pk-nav{display:flex;gap:10px;align-items:center}
+body.pk-route-mounted .pk-nav button,
+body.pk-route-mounted .pk-home{
+ appearance:none!important;display:inline-flex!important;align-items:center;justify-content:center;
+ gap:10px;min-height:42px;padding:9px 16px!important;border-radius:4px!important;
+ box-shadow:none!important;background:#21454a!important;border:2px solid #67827c!important;
+ color:#f7ebcc!important;font:normal 19px/1 "VT323",monospace!important;
+ letter-spacing:.7px;cursor:pointer!important;white-space:nowrap;
+}
+body.pk-route-mounted .pk-nav button:hover,
+body.pk-route-mounted .pk-home:hover{background:#36615e!important;color:#fff!important}
+body.pk-route-mounted .pk-nav button.pk-nav-active{
+ background:var(--pk-cream)!important;color:var(--pk-ink)!important;border-color:#f1d59e!important;
+}
+body.pk-route-mounted .pk-nav button span{color:#e9b96a}
+body.pk-route-mounted .pk-nav button.pk-nav-active span{color:#ae6639}
+body.pk-route-mounted .pk-home{justify-self:end;font-size:17px!important;padding-inline:14px!important}
+body.pk-route-mounted .pk-scroll{
+ flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;
+ padding:clamp(18px,2.2vh,27px) clamp(16px,2.65vw,52px) 13px;
+ background:radial-gradient(ellipse at 20% 15%,#285657 0,#163e42 38%,#0e3238 100%);
+ scrollbar-color:#769486 #14393b;
+}
+body.pk-route-mounted .pk-intro{
+ display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
+ color:var(--pk-cream);padding:0 5px 20px;
+}
+body.pk-route-mounted .pk-kicker,
+body.pk-route-mounted .pk-step-number{
+ font:normal 21px/1.1 "VT323",monospace!important;
+ text-transform:uppercase;letter-spacing:1.6px;
+}
+body.pk-route-mounted .pk-kicker{color:#e8b868}
+body.pk-route-mounted .pk-intro h1{
+ color:#fff0cd!important;margin:3px 0 3px!important;
+ font:normal clamp(44px,4.6vw,76px)/.92 "VT323",monospace!important;letter-spacing:1.5px;
+}
+body.pk-route-mounted .pk-intro h1 span{color:#edb768}
+body.pk-route-mounted .pk-intro p{
+ margin:0;line-height:1.35;font-size:14px;max-width:700px;color:#cfdfd1;
+}
+body.pk-route-mounted .pk-intro-right{
+ display:flex;align-items:center;gap:12px;color:#d5d4b1;
+ font:normal 18px/1.05 "VT323",monospace;text-align:right;letter-spacing:1px;white-space:nowrap;
+}
+body.pk-route-mounted .pk-leaf{font-size:46px;color:#f5c97b}
+body.pk-route-mounted .pk-columns{
+ display:grid;grid-template-columns:minmax(390px,0.93fr) minmax(510px,1.45fr);
+ gap:clamp(14px,1.4vw,24px);align-items:stretch;
+ min-height:min(680px,calc(100dvh - 257px));
+}
+body.pk-route-mounted .pk-panel{
+ position:relative;display:flex;flex-direction:column;min-width:0;
+ background:var(--pk-cream)!important;color:var(--pk-ink)!important;
+ border:4px solid #0b2d31!important;border-radius:4px!important;
+ outline:3px solid #ecd8aa;outline-offset:-10px;
+ box-shadow:6px 6px 0 #091f27;
+ padding:clamp(14px,1.5vw,28px)!important;
+ overflow:hidden;
+}
+body.pk-route-mounted .pk-panel-top{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ padding-bottom:14px;border-bottom:2px dashed #9db59e;
+}
+body.pk-route-mounted .pk-step-number{color:#5b8265}
+body.pk-route-mounted .pk-panel-top h2{
+ margin:4px 0 2px!important;color:#15343b!important;
+ font:normal clamp(30px,2.4vw,47px)/.95 "VT323",monospace!important;
+}
+body.pk-route-mounted .pk-panel-top p{
+ margin:0;color:#5b7770;font-size:12px;line-height:1.3;font-weight:600;
+}
+body.pk-route-mounted .pk-sprig{color:#63916a;font-size:47px}
+body.pk-route-mounted .pk-route-mark{font-size:34px;color:#688e74}
+body.pk-route-mounted .pk-import-line{
+ display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:13px 0 10px;
+}
+body.pk-route-mounted .pk-import-line button{
+ border:2px solid #315959!important;background:#e9f0d5!important;color:#1a4e4f!important;
+ border-radius:3px!important;box-shadow:2px 2px 0 #8da99d!important;
+ font:normal 19px/1.1 "VT323",monospace!important;
+ padding:9px 15px!important;cursor:pointer;
+}
+body.pk-route-mounted .pk-import-line button:hover{background:#d1e4c8!important}
+body.pk-route-mounted #pkUploadName{font-size:11px;font-weight:650;color:#617c70;min-width:0;overflow:hidden;text-overflow:ellipsis}
+body.pk-route-mounted .pk-builder-host{flex:1;min-height:0;display:flex;flex-direction:column}
+body.pk-route-mounted .pk-builder-host>.route-builder{
+ display:flex!important;flex-direction:column!important;flex:1!important;
+ height:auto!important;min-height:0!important;width:100%!important;max-width:none!important;
+ margin:0!important;padding:0!important;border:0!important;background:transparent!important;
+ box-shadow:none!important;overflow:visible!important;
+}
+body.pk-route-mounted .pk-builder-host .route-import,
+body.pk-route-mounted .pk-builder-host .route-import-divider,
+body.pk-route-mounted .pk-builder-host .route-panel-heading,
+body.pk-route-mounted .pk-builder-host .route-tip{display:none!important}
+body.pk-route-mounted .pk-builder-host .route-fields{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:12px 15px!important;grid-auto-rows:auto!important;
+ margin:0!important;padding:0!important;
+}
+body.pk-route-mounted .pk-builder-host .route-fields label,
+body.pk-route-mounted .pk-builder-host .route-seed-field>label{
+ display:flex!important;flex-direction:column!important;justify-content:flex-start!important;
+ gap:5px!important;min-width:0!important;margin:0!important;align-items:stretch!important;
+ color:#244c51!important;text-transform:uppercase!important;
+ font:normal 20px/1.1 "VT323",monospace!important;
+ letter-spacing:.4px!important;
+}
+body.pk-route-mounted .pk-builder-host .route-seed-field{
+ min-width:0!important;align-self:auto!important;
+}
+body.pk-route-mounted .pk-builder-host .route-fields input,
+body.pk-route-mounted .pk-builder-host .route-fields select{
+ display:block!important;width:100%!important;min-width:0!important;min-height:42px!important;
+ height:43px!important;margin:0!important;padding:5px 12px!important;
+ background:var(--pk-paper)!important;color:var(--pk-ink)!important;
+ font:normal 22px/1 "VT323",monospace!important;
+ border:2px solid #80988a!important;border-radius:3px!important;
+ box-shadow:2px 2px 0 #c4d4b9!important;
+ outline-offset:2px!important;
+}
+body.pk-route-mounted .pk-builder-host input:focus,
+body.pk-route-mounted .pk-builder-host select:focus,
+body.pk-route-mounted .pk-route-shell button:focus-visible{outline:3px solid #d6934c!important}
+body.pk-route-mounted .pk-builder-host .route-seed-inline{display:flex!important;align-items:center!important;gap:10px!important}
+body.pk-route-mounted .pk-builder-host .route-seed-inline>input{flex:1!important;min-width:0!important}
+body.pk-route-mounted .pk-builder-host .route-seed-lock{
+ flex:none!important;display:flex!important;flex-direction:row!important;
+ align-items:center!important;gap:4px!important;padding:6px!important;
+ background:#e1ead3!important;border:1px solid #8da78f!important;
+ min-height:42px!important;font-size:15px!important;
+}
+body.pk-route-mounted .pk-builder-host .route-seed-lock input{
+ width:15px!important;height:15px!important;min-height:15px!important;
+ box-shadow:none!important;
+}
+body.pk-route-mounted .pk-builder-host .route-actions{
+ display:grid!important;grid-template-columns:1.6fr 1fr 1fr!important;gap:9px!important;
+ margin:17px 0 10px!important;padding:0!important;align-items:stretch;
+}
+body.pk-route-mounted .pk-builder-host button,
+body.pk-route-mounted .pk-builder-host .route-actions button{
+ border:2px solid #345c55!important;border-radius:3px!important;
+ box-shadow:3px 3px 0 #a4b8a5!important;
+ background:#e3eacb!important;color:#1b4644!important;
+ font:normal clamp(18px,1.35vw,24px)/1 "VT323",monospace!important;
+ padding:10px 8px!important;min-height:46px!important;
+ width:100%!important;white-space:normal!important;cursor:pointer!important;
+}
+body.pk-route-mounted .pk-builder-host #generateRoute{
+ background:#295b55!important;color:#fff7df!important;border-color:#103c3d!important;
+}
+body.pk-route-mounted .pk-builder-host button:hover{filter:brightness(1.09)}
+body.pk-route-mounted .pk-builder-host .route-quick-action-row{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ gap:13px!important;margin-top:auto!important;padding:7px 0 0!important;
+}
+body.pk-route-mounted .pk-builder-host .quick-preset-bar{
+ display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ gap:7px!important;width:100%!important;margin:0!important;padding:0!important;
+ background:transparent!important;border:0!important;
+}
+body.pk-route-mounted .pk-builder-host .quick-preset-label{
+ color:#6b8a72!important;font:normal 18px/1 "VT323",monospace!important;
+ margin-right:4px!important;
+}
+body.pk-route-mounted .pk-builder-host .quick-preset-button{
+ width:auto!important;min-height:32px!important;padding:7px 10px!important;
+ font:normal 18px/1 "VT323",monospace!important;
+ box-shadow:none!important;background:#f8f3dd!important;
+}
+body.pk-route-mounted .pk-builder-host #enjoyRide{
+ display:block!important;width:100%!important;min-height:55px!important;
+ padding:10px!important;margin:0!important;
+ background:#dfab65!important;color:#173b3d!important;border:3px solid #a16f41!important;
+ box-shadow:3px 3px 0 #af8b57!important;
+ font:normal clamp(24px,1.7vw,31px)/1 "VT323",monospace!important;
+}
+body.pk-route-mounted .pk-status[hidden]{display:none!important}
+body.pk-route-mounted .pk-status{
+ flex:none;background:#f7dfcf;color:#842d2a;border-left:4px solid #b94645;
+ padding:7px 10px;margin:10px 0 0;font-size:12px;font-weight:700;
+}
+body.pk-route-mounted .pk-preview-panel{background:#f9eccf!important}
+body.pk-route-mounted .pk-preview-host{
+ flex:1;min-height:0;display:flex;flex-direction:column;margin-top:13px;
+}
+body.pk-route-mounted .pk-preview-host .route-studio-live-preview{
+ display:flex!important;flex-direction:column!important;flex:1!important;
+ min-height:0!important;height:100%!important;width:100%!important;
+ padding:0!important;margin:0!important;
+ border:0!important;background:transparent!important;
+ box-shadow:none!important;overflow:visible!important;
+}
+body.pk-route-mounted .pk-preview-host .route-studio-live-heading{
+ display:block!important;flex:none!important;padding:0!important;
+ margin:0 0 10px!important;background:transparent!important;border:0!important;
+}
+body.pk-route-mounted .pk-preview-host .route-studio-live-heading>div:first-child,
+body.pk-route-mounted .pk-preview-host .route-quick-facts{display:none!important}
+body.pk-route-mounted .pk-preview-host .studio-live-stats{
+ display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ gap:5px!important;width:100%!important;padding:0!important;margin:0!important;
+ border:0!important;background:transparent!important;
+}
+body.pk-route-mounted .pk-preview-host .studio-live-stats>span{
+ display:flex!important;flex-direction:column!important;
+ gap:4px!important;padding:8px 9px!important;
+ background:#e7edcf!important;color:#47655d!important;
+ border:1px solid #a3b49a!important;text-transform:uppercase;
+ font:normal clamp(13px,1vw,18px)/1 "VT323",monospace!important;
+}
+body.pk-route-mounted .pk-preview-host .studio-live-stats b{
+ color:#214b46!important;font:normal clamp(19px,1.55vw,29px)/1 "VT323",monospace!important;
+}
+body.pk-route-mounted .pk-preview-host .studio-elevation-controls{
+ display:flex!important;gap:7px!important;flex-wrap:wrap!important;align-items:center!important;
+ padding:5px 0!important;margin:0!important;order:1;
+}
+body.pk-route-mounted .pk-preview-host .studio-elevation-controls button{
+ border:1px solid #a5b7a5!important;border-radius:3px!important;
+ background:#edf1d8!important;color:#244c48!important;
+ padding:6px 10px!important;font:normal 18px/1 "VT323",monospace!important;
+ box-shadow:none!important;cursor:pointer;
+}
+body.pk-route-mounted .pk-preview-host .studio-elevation-controls .note{font-size:11px!important;color:#667e70!important}
+body.pk-route-mounted .pk-preview-host .studio-live-chart{
+ flex:1!important;display:block!important;order:2!important;min-height:180px!important;
+ width:100%!important;max-width:none!important;
+ background:#163c3f!important;border:5px solid #123037!important;
+ border-radius:3px!important;overflow:hidden!important;
+ box-shadow:inset 0 0 0 2px #9bc19f!important;margin:3px 0 8px!important;
+ padding:0!important;
+}
+body.pk-route-mounted .pk-preview-host .studio-live-chart svg{
+ display:block!important;width:100%!important;height:100%!important;
+ min-height:0!important;max-height:none!important;
+ background:#173e3d!important;border:0!important;border-radius:0!important;
+}
+body.pk-route-mounted .pk-preview-host .studio-scrub-readout{
+ display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+ justify-content:space-between!important;gap:8px!important;order:3!important;
+ color:#35594f!important;margin:0!important;padding:9px 12px!important;
+ background:#e4eccc!important;border:1px solid #acbca6!important;
+ font:normal 17px/1 "VT323",monospace!important;
+}
+body.pk-route-mounted .pk-preview-host .studio-scrub-readout b{
+ font:normal 20px/1 "VT323",monospace!important;color:#173e3e!important;
+}
+body.pk-route-mounted .pk-preview-host .studio-scrub-readout .note{font-size:11px!important;color:#6c8072!important}
+body.pk-route-mounted .pk-preview-bottom{
+ text-align:center;padding-top:11px;margin-top:auto;
+ color:#77977c;font:normal 19px/1 "VT323",monospace;letter-spacing:1.4px;
+}
+body.pk-route-mounted .pk-preview-bottom span{color:#cf9957;padding-inline:10px}
+body.pk-route-mounted .pk-footer{
+ display:flex;justify-content:space-between;gap:18px;color:#d2ddcd;
+ padding:15px 5px 2px;font-size:11px;letter-spacing:1px;font-weight:700;
+}
+body.pk-route-mounted .pk-footer b{color:#f1af8e;font-size:17px}
+@media(max-width:1200px) {
+ body.pk-route-mounted .pk-header{height:74px;padding:0 17px;gap:12px;grid-template-columns:1fr auto auto}
+ body.pk-route-mounted .pk-brand strong{font-size:40px}
+ body.pk-route-mounted .pk-brand small{font-size:8px}
+ body.pk-route-mounted .pk-nav button{padding:7px 9px!important;font-size:17px!important}
+ body.pk-route-mounted .pk-intro-right{display:none}
+ body.pk-route-mounted .pk-columns{grid-template-columns:minmax(360px,0.96fr) minmax(430px,1.15fr)}
+ body.pk-route-mounted .pk-panel{padding:15px!important}
+ body.pk-route-mounted .pk-builder-host .route-actions{grid-template-columns:1fr 1fr!important}
+ body.pk-route-mounted .pk-builder-host #generateRoute{grid-column:span 2}
+ body.pk-route-mounted .pk-preview-host .studio-live-stats{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media(max-width:880px){
+ body.pk-route-mounted .pk-header{height:auto;min-height:70px;grid-template-columns:1fr auto;grid-template-areas:"brand home" "nav nav";padding:10px 17px;gap:9px}
+ body.pk-route-mounted .pk-brand{grid-area:brand}
+ body.pk-route-mounted .pk-home{grid-area:home}
+ body.pk-route-mounted .pk-nav{grid-area:nav;justify-content:center}
+ body.pk-route-mounted .pk-scroll{padding:20px 16px;overflow-y:auto!important}
+ body.pk-route-mounted .pk-columns{grid-template-columns:1fr;min-height:auto;gap:20px}
+ body.pk-route-mounted .pk-panel{min-height:0;padding:18px!important}
+ body.pk-route-mounted .pk-preview-host .studio-live-chart{height:260px!important;min-height:260px!important;flex:none!important}
+ body.pk-route-mounted .pk-intro p{font-size:12px}
+ body.pk-route-mounted .pk-footer{flex-direction:column;align-items:center;text-align:center}
+}
+@media(max-width:520px){
+ body.pk-route-mounted .pk-brand strong{font-size:35px}
+ body.pk-route-mounted .pk-header{padding:8px 10px}
+ body.pk-route-mounted .pk-brand-star{font-size:26px}
+ body.pk-route-mounted .pk-nav{gap:4px}
+ body.pk-route-mounted .pk-nav button{padding:7px 4px!important;font-size:14px!important;min-height:36px}
+ body.pk-route-mounted .pk-home{font-size:14px!important;padding:8px!important}
+ body.pk-route-mounted .pk-intro h1{font-size:53px!important}
+ body.pk-route-mounted .pk-builder-host .route-fields{gap:10px!important}
+ body.pk-route-mounted .pk-builder-host .route-actions{gap:6px!important}
+ body.pk-route-mounted .pk-preview-host .studio-live-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body.pk-route-mounted .pk-preview-host .studio-scrub-readout .note{display:none!important}
+}
+
+/* Pedalkin launch card on this preview branch (the other three retain their art). */
+.mode-landing-cards:has(#choosePedalkin){
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+#choosePedalkin.mode-card{
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:space-between!important;padding:22px 12px 18px!important;
+ min-width:0!important;min-height:0!important;gap:5px!important;
+ background:linear-gradient(180deg,#1a4548 0%,#2a6058 61%,#1e454a 100%)!important;
+ border:4px solid #f6e8c6!important;border-radius:6px!important;
+ box-shadow:inset 0 0 0 4px #133b3d!important;
+ color:#fff1ce!important;overflow:hidden!important;
+ text-align:center;cursor:pointer;
+}
+#choosePedalkin .pk-mode-top{font:normal clamp(13px,1.1vw,21px)/1 "VT323",monospace!important;letter-spacing:1px;color:#f7c879}
+#choosePedalkin strong{font:normal clamp(36px,4vw,72px)/.9 "VT323",monospace!important;letter-spacing:2px}
+#choosePedalkin .pk-mode-scene{font-size:clamp(27px,4.2vw,70px)!important;color:#c4deb3!important;white-space:nowrap}
+#choosePedalkin .pk-mode-bottom{font:normal clamp(14px,1.3vw,24px)/1 "VT323",monospace!important;letter-spacing:1px;color:#f8deac}
+#choosePedalkin:hover{filter:brightness(1.12)}
+@media(max-width:900px){
+ .mode-landing-cards:has(#choosePedalkin){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* ROUTE MAKER — second draft: Classic-inspired 3 + 1 alignment and contrast.
+   Include the screen and ID selectors to win over older global route CSS. */
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-hidden-controls,
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-hidden-controls * {
+ display:none!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields {
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ grid-auto-rows:auto!important;
+ align-items:stretch!important;
+ gap:17px 14px!important;
+ margin:14px 0 13px!important;
+ padding:0!important;
+ width:100%!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields > label {
+ display:flex!important;
+ flex-direction:column!important;
+ justify-content:flex-start!important;
+ align-items:stretch!important;
+ gap:8px!important;
+ height:auto!important;
+ min-width:0!important;
+ min-height:87px!important;
+ padding:0!important;
+ color:#122d32!important;
+ font:700 clamp(17px,1.25vw,21px)/1.12 "VT323",monospace!important;
+ text-transform:none!important;
+ letter-spacing:.4px!important;
+ text-shadow:none!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields > label > :is(input,select),
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields #generatedSeed {
+ background:#fff8e9!important;
+ color:#112d32!important;
+ -webkit-text-fill-color:#112d32!important;
+ color-scheme:light!important;
+ opacity:1!important;
+ border:2px solid #7b9889!important;
+ border-radius:3px!important;
+ box-shadow:2px 2px 0 #bbcdbb!important;
+ height:47px!important;
+ min-height:47px!important;
+ width:100%!important;
+ min-width:0!important;
+ padding:7px 11px!important;
+ font:normal 24px/1 "VT323",monospace!important;
+ margin-top:auto!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host #generatedTerrain option {
+ color:#112d32!important;
+ background:#fff8e9!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-field {
+ display:flex!important;
+ flex-direction:column!important;
+ grid-column:1 / -1!important;
+ grid-row:2!important;
+ align-self:start!important;
+ width:min(580px,100%)!important;
+ max-width:100%!important;
+ min-width:0!important;
+ margin:0!important;
+ padding:0!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-field > label {
+ display:block!important;
+ height:auto!important;
+ min-height:0!important;
+ margin:0 0 8px!important;
+ padding:0!important;
+ color:#122d32!important;
+ font:700 clamp(17px,1.25vw,21px)/1.12 "VT323",monospace!important;
+ text-transform:none!important;
+ letter-spacing:.4px!important;
+ text-shadow:none!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-inline {
+ display:flex!important;
+ flex-direction:row!important;
+ justify-content:flex-start!important;
+ align-items:center!important;
+ gap:12px!important;
+ width:100%!important;
+ min-width:0!important;
+ min-height:47px!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-inline > #generatedSeed {
+ flex:1 1 auto!important;
+ width:auto!important;
+ max-width:none!important;
+ margin:0!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-inline > .route-seed-lock {
+ display:inline-flex!important;
+ flex:0 0 auto!important;
+ flex-direction:row!important;
+ justify-content:center!important;
+ align-items:center!important;
+ gap:8px!important;
+ min-height:47px!important;
+ height:47px!important;
+ width:auto!important;
+ max-width:none!important;
+ margin:0!important;
+ padding:5px 12px!important;
+ border:2px solid #829d88!important;
+ background:#e4ebd3!important;
+ color:#173638!important;
+ font:700 19px/1 "VT323",monospace!important;
+ text-transform:none!important;
+ box-shadow:2px 2px 0 #bdcdb9!important;
+ cursor:pointer;
+ white-space:nowrap!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-lock > #lockGeneratedSeed {
+ flex:none!important;
+ display:inline-block!important;
+ width:19px!important;
+ height:19px!important;
+ min-height:19px!important;
+ margin:0!important;
+ padding:0!important;
+ box-shadow:none!important;
+ accent-color:#24594e!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #accountGlobalMenu { display:none!important; }
+@media(max-width:1200px) {
+ body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields {
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;
+ }
+ body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields > label {
+  font-size:17px!important;
+ }
+}
+@media(max-width:620px) {
+ body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields {
+  grid-template-columns:1fr!important;
+  gap:14px!important;
+ }
+ body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-field {
+  grid-column:1!important;
+  grid-row:auto!important;
+  width:100%!important;
+ }
+ body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields > label {
+  min-height:75px!important;
+ }
+}
+
+/* Keep the account popover from floating over route controls; access it from mode home. */
+body.pk-route-mounted[data-breakaway-screen="route"] #accountGlobalMenu{display:none!important}
