@@ -381,3 +381,155 @@ body.pk-route-mounted .pk-footer b{color:#f1af8e;font-size:17px}
 @media(max-width:900px){
  .mode-landing-cards:has(#choosePedalkin){grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
+
+/* ROUTE MAKER — second draft: Classic-inspired 3 + 1 alignment and contrast.
+   Include the screen and ID selectors to win over older global route CSS. */
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-hidden-controls,
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-hidden-controls * {
+ display:none!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields {
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ grid-auto-rows:auto!important;
+ align-items:stretch!important;
+ gap:17px 14px!important;
+ margin:14px 0 13px!important;
+ padding:0!important;
+ width:100%!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields > label {
+ display:flex!important;
+ flex-direction:column!important;
+ justify-content:flex-start!important;
+ align-items:stretch!important;
+ gap:8px!important;
+ height:auto!important;
+ min-width:0!important;
+ min-height:87px!important;
+ padding:0!important;
+ color:#122d32!important;
+ font:700 clamp(17px,1.25vw,21px)/1.12 "VT323",monospace!important;
+ text-transform:none!important;
+ letter-spacing:.4px!important;
+ text-shadow:none!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields > label > :is(input,select),
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields #generatedSeed {
+ background:#fff8e9!important;
+ color:#112d32!important;
+ -webkit-text-fill-color:#112d32!important;
+ color-scheme:light!important;
+ opacity:1!important;
+ border:2px solid #7b9889!important;
+ border-radius:3px!important;
+ box-shadow:2px 2px 0 #bbcdbb!important;
+ height:47px!important;
+ min-height:47px!important;
+ width:100%!important;
+ min-width:0!important;
+ padding:7px 11px!important;
+ font:normal 24px/1 "VT323",monospace!important;
+ margin-top:auto!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host #generatedTerrain option {
+ color:#112d32!important;
+ background:#fff8e9!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-field {
+ display:flex!important;
+ flex-direction:column!important;
+ grid-column:1 / -1!important;
+ grid-row:2!important;
+ align-self:start!important;
+ width:min(580px,100%)!important;
+ max-width:100%!important;
+ min-width:0!important;
+ margin:0!important;
+ padding:0!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-field > label {
+ display:block!important;
+ height:auto!important;
+ min-height:0!important;
+ margin:0 0 8px!important;
+ padding:0!important;
+ color:#122d32!important;
+ font:700 clamp(17px,1.25vw,21px)/1.12 "VT323",monospace!important;
+ text-transform:none!important;
+ letter-spacing:.4px!important;
+ text-shadow:none!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-inline {
+ display:flex!important;
+ flex-direction:row!important;
+ justify-content:flex-start!important;
+ align-items:center!important;
+ gap:12px!important;
+ width:100%!important;
+ min-width:0!important;
+ min-height:47px!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-inline > #generatedSeed {
+ flex:1 1 auto!important;
+ width:auto!important;
+ max-width:none!important;
+ margin:0!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-inline > .route-seed-lock {
+ display:inline-flex!important;
+ flex:0 0 auto!important;
+ flex-direction:row!important;
+ justify-content:center!important;
+ align-items:center!important;
+ gap:8px!important;
+ min-height:47px!important;
+ height:47px!important;
+ width:auto!important;
+ max-width:none!important;
+ margin:0!important;
+ padding:5px 12px!important;
+ border:2px solid #829d88!important;
+ background:#e4ebd3!important;
+ color:#173638!important;
+ font:700 19px/1 "VT323",monospace!important;
+ text-transform:none!important;
+ box-shadow:2px 2px 0 #bdcdb9!important;
+ cursor:pointer;
+ white-space:nowrap!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-lock > #lockGeneratedSeed {
+ flex:none!important;
+ display:inline-block!important;
+ width:19px!important;
+ height:19px!important;
+ min-height:19px!important;
+ margin:0!important;
+ padding:0!important;
+ box-shadow:none!important;
+ accent-color:#24594e!important;
+}
+body.pk-route-mounted[data-breakaway-screen="route"] #accountGlobalMenu { display:none!important; }
+@media(max-width:1200px) {
+ body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields {
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;
+ }
+ body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields > label {
+  font-size:17px!important;
+ }
+}
+@media(max-width:620px) {
+ body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields {
+  grid-template-columns:1fr!important;
+  gap:14px!important;
+ }
+ body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-seed-field {
+  grid-column:1!important;
+  grid-row:auto!important;
+  width:100%!important;
+ }
+ body.pk-route-mounted[data-breakaway-screen="route"] #screenRoute .pk-route-shell .pk-builder-host .route-fields > label {
+  min-height:75px!important;
+ }
+}
