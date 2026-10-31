@@ -140,7 +140,7 @@ export function importZwo(xml:string):WorkoutParseResult{
  const tag=/<(SteadyState|Warmup|Cooldown|FreeRide|IntervalsT)\b([^>]*?)\/?>/gi;
  let match:RegExpExecArray|null;
  const attr=(raw:string,key:string):number|null=>{
-  const m=new RegExp('\\b'+key+'\\s*=\\s*["\\']([^"\\']+)["\\']','i').exec(raw);
+  const m=new RegExp("\\b"+key+"\\s*=\\s*[\"']([^\"']+)[\"']","i").exec(raw);
   return m?Number(m[1]):null;
  };
  const addStep=(label:string,seconds:number,low:number|null,high:number|null)=>{
