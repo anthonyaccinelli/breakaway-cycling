@@ -1,0 +1,251 @@
+/* Pedalkin / Create Route
+   Exact Classic reference layout: 2048 x 1044, same grid measurements,
+   same route generator, same control positions, same elevation preview.
+   ONLY color, copy, and previously requested Pedalkin field exclusions differ.
+   Palette sampled from user-supplied strip on 2026-10-31:
+   #0F292F / #21484E / #FBC5AB / #FFFFFF.
+*/
+@layer classicRouteReference {
+  body[data-ride-experience="pedalkin"].cr-reference-mounted.pk-classic-reference {
+    --pk-deep:#0f292f;
+    --pk-pine:#21484e;
+    --pk-peach:#fbc5ab;
+    --pk-white:#ffffff;
+    --cr-blue:var(--pk-pine);
+    --cr-yellow:var(--pk-peach);
+    --cr-bg:var(--pk-white);
+    --cr-u:min(calc(100vw / 2048),calc(100dvh / 1044));
+    color:var(--pk-deep)!important;
+    color-scheme:light!important;
+    background:var(--pk-white)!important;
+    overflow:hidden!important;
+  }
+  body.pk-classic-reference #screenRoute>.cr-reference {
+    color:var(--pk-deep)!important;
+    background:var(--pk-white)!important;
+  }
+  body.pk-classic-reference #screenRoute>.sc-masthead .sc-brand small,
+  body.pk-classic-reference #screenRoute>.sc-masthead .sc-tabs button {
+    color:var(--pk-pine)!important;
+  }
+  body.pk-classic-reference #screenRoute>.sc-masthead .sc-tabs button.sc-active {
+    background:var(--pk-pine)!important;
+    color:var(--pk-white)!important;
+  }
+  body.pk-classic-reference #screenRoute>.sc-masthead .sc-mode-change,
+  body.pk-classic-reference #screenRoute button.cr-upload {
+    background:var(--pk-pine)!important;
+    color:var(--pk-white)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-heading,
+  body.pk-classic-reference #screenRoute .cr-summary h2,
+  body.pk-classic-reference #screenRoute .cr-summary .studio-live-stats,
+  body.pk-classic-reference #screenRoute .cr-summary .studio-live-stats b {
+    color:var(--pk-deep)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-heading>span,
+  body.pk-classic-reference #screenRoute .cr-summary .route-step {
+    background:var(--pk-pine)!important;
+    color:var(--pk-white)!important;
+  }
+  /* Occupies the exact same top 150-unit slot as Classic's Coach banner.
+     Unlike the Classic Coach banner, this is not a misleading clickable button. */
+  body.pk-classic-reference #screenRoute .pk-classic-banner:not([hidden]) {
+    display:flex!important;
+    grid-row:1!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    align-items:flex-start!important;
+    position:relative!important;
+    padding:calc(17 * var(--cr-u)) calc(28 * var(--cr-u))!important;
+    margin:0!important;
+    width:100%!important;
+    min-height:0!important;
+    background:var(--pk-deep)!important;
+    border:calc(4 * var(--cr-u)) solid var(--pk-pine)!important;
+    border-radius:calc(8 * var(--cr-u))!important;
+    color:var(--pk-white)!important;
+    overflow:hidden!important;
+    gap:calc(7 * var(--cr-u))!important;
+  }
+  body.pk-classic-reference #screenRoute .pk-classic-banner .pk-banner-title {
+    font-size:calc(46 * var(--cr-u))!important;
+    line-height:.94!important;
+    font-weight:850!important;
+    letter-spacing:calc(4 * var(--cr-u))!important;
+    color:var(--pk-peach)!important;
+  }
+  body.pk-classic-reference #screenRoute .pk-classic-banner .pk-banner-subtitle {
+    font-size:calc(19 * var(--cr-u))!important;
+    font-weight:750!important;
+    letter-spacing:calc(1.3 * var(--cr-u))!important;
+    color:var(--pk-white)!important;
+  }
+  body.pk-classic-reference #screenRoute .pk-classic-banner .pk-banner-detail {
+    position:absolute!important;
+    right:calc(33 * var(--cr-u))!important;
+    bottom:calc(31 * var(--cr-u))!important;
+    font-size:calc(18 * var(--cr-u))!important;
+    font-weight:750!important;
+    color:var(--pk-peach)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-config {
+    background:var(--pk-pine)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls .route-fields>label {
+    color:var(--pk-white)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls .route-fields :is(input,select) {
+    background:var(--pk-white)!important;
+    color:var(--pk-deep)!important;
+    -webkit-text-fill-color:var(--pk-deep)!important;
+    color-scheme:light!important;
+    border-color:var(--pk-peach)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls .route-fields select option {
+    color:var(--pk-deep)!important;
+    background:var(--pk-white)!important;
+  }
+  /* Keep Pedalkin's earlier decision: no Difficulty selector.
+     Its route generation value remains present and unchanged for the engine. */
+  body.pk-classic-reference #screenRoute .cr-controls .route-fields>label:has(> #generatedDifficulty) {
+    display:none!important;
+  }
+  /* Classic's two-column field widths preserved. Only placement differs so
+     the four visible Pedalkin controls occupy the same two-by-two grid. */
+  body.pk-classic-reference #screenRoute .cr-controls .route-fields>label:has(> #generatedTerrain) {
+    grid-column:1!important;
+    grid-row:1!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls .route-fields>label:has(> #generatedMiles) {
+    grid-column:2!important;
+    grid-row:1!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls .route-fields>label:has(> #generatedGain) {
+    grid-column:1!important;
+    grid-row:2!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls .route-seed-field {
+    display:flex!important;
+    flex-direction:column!important;
+    grid-column:2!important;
+    grid-row:2!important;
+    margin:0!important;
+    padding:0!important;
+    min-width:0!important;
+    width:100%!important;
+    gap:calc(2 * var(--cr-u))!important;
+    color:var(--pk-white)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls .route-seed-field>label {
+    margin:0!important;
+    padding:0!important;
+    height:calc(19 * var(--cr-u))!important;
+    color:var(--pk-white)!important;
+    font-size:calc(14.4 * var(--cr-u))!important;
+    line-height:calc(19 * var(--cr-u))!important;
+    font-weight:750!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls .route-seed-inline {
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    gap:calc(7 * var(--cr-u))!important;
+    min-height:0!important;
+    width:100%!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls #generatedSeed {
+    width:calc(100% - 93 * var(--cr-u))!important;
+    flex:1 1 auto!important;
+    min-width:0!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls .route-seed-lock {
+    display:inline-flex!important;
+    justify-content:center!important;
+    align-items:center!important;
+    flex:0 0 auto!important;
+    width:calc(84 * var(--cr-u))!important;
+    height:calc(42 * var(--cr-u))!important;
+    margin:0!important;
+    padding:0 calc(5 * var(--cr-u))!important;
+    border:1px solid var(--pk-peach)!important;
+    border-radius:calc(8 * var(--cr-u))!important;
+    background:var(--pk-white)!important;
+    color:var(--pk-deep)!important;
+    font-size:calc(12 * var(--cr-u))!important;
+    line-height:1!important;
+    font-weight:750!important;
+    cursor:pointer!important;
+    white-space:nowrap!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-controls .route-seed-lock input {
+    flex:none!important;
+    width:calc(16 * var(--cr-u))!important;
+    height:calc(16 * var(--cr-u))!important;
+    min-height:0!important;
+    padding:0!important;
+    margin:0 calc(4 * var(--cr-u)) 0 0!important;
+    accent-color:var(--pk-pine)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-reference :is(.route-actions,.quick-preset-bar) button,
+  body.pk-classic-reference #screenRoute .cr-tools button {
+    background:var(--pk-peach)!important;
+    color:var(--pk-deep)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-reference .quick-preset-bar button {
+    background:var(--pk-white)!important;
+    color:var(--pk-deep)!important;
+    border:1px solid var(--pk-peach)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-summary>.route-studio-live-preview {
+    border-color:var(--pk-peach)!important;
+    background:var(--pk-white)!important;
+    box-shadow:0 0 0 calc(3 * var(--cr-u)) var(--pk-deep)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-callout #enjoyRide {
+    border-color:var(--pk-peach)!important;
+    background:var(--pk-white)!important;
+    color:var(--pk-deep)!important;
+    box-shadow:0 0 0 calc(3 * var(--cr-u)) var(--pk-deep)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-profile #studioLiveChart,
+  body.pk-classic-reference #screenRoute .cr-profile #studioLiveChart svg {
+    background:var(--pk-deep)!important;
+    border-color:var(--pk-pine)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-profile .studio-scrub-marker {
+    stroke:var(--pk-peach)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-profile .studio-scrub-readout,
+  body.pk-classic-reference #screenRoute .cr-profile .studio-scrub-readout :is(span,b),
+  body.pk-classic-reference #screenRoute .cr-profile .studio-scrub-readout>.note {
+    background:var(--pk-peach)!important;
+    color:var(--pk-deep)!important;
+  }
+  body.pk-classic-reference #screenRoute .cr-error {
+    color:var(--pk-peach)!important;
+  }
+  body.pk-classic-reference[data-breakaway-screen="route"] #accountGlobalMenu {
+    display:none!important;
+  }
+  @media(max-width:1100px){
+    body.pk-classic-reference {overflow:auto!important}
+    body.pk-classic-reference #screenRoute .pk-classic-banner:not([hidden]){
+      min-height:140px!important;
+      padding:16px 22px!important;
+    }
+    body.pk-classic-reference #screenRoute .pk-classic-banner .pk-banner-title{font-size:36px!important}
+    body.pk-classic-reference #screenRoute .pk-classic-banner .pk-banner-subtitle{font-size:15px!important}
+    body.pk-classic-reference #screenRoute .pk-classic-banner .pk-banner-detail{
+      position:static!important;font-size:12px!important;
+    }
+  }
+  @media(max-width:540px){
+    body.pk-classic-reference #screenRoute .cr-controls .route-seed-field>label{
+      font-size:12px!important;height:19px!important;line-height:19px!important;
+    }
+    body.pk-classic-reference #screenRoute .cr-controls .route-seed-lock{
+      width:76px!important;height:42px!important;font-size:11px!important;
+    }
+  }
+}
