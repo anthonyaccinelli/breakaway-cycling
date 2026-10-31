@@ -21,7 +21,7 @@ export function mountClassicRouteReference():void {
  if(!route||!studio||!builder||!upload||!summary||!chart||!scrub||!edit||!next)return;
 
  const shell=document.createElement('div');shell.className='cr-reference';
- shell.innerHTML='<button type="button" id="openBreakawayCoach" class="coach-classic-banner" aria-label="Train with Breakaway Coach — open structured training in Classic">'+
+ shell.innerHTML='<div class="pk-classic-banner" hidden><span class="pk-banner-title">PEDALKIN</span><span class="pk-banner-subtitle">A LITTLE WONDER, EVERY MILE.</span><span class="pk-banner-detail">EXPLORE. RIDE. BEFRIEND.</span></div><button type="button" id="openBreakawayCoach" class="coach-classic-banner" aria-label="Train with Breakaway Coach — open structured training in Classic">'+
   '<span class="coach-banner-copy"><span class="coach-banner-eyebrow">BREAKAWAY COACH</span><span class="coach-banner-title">Train with Breakaway Coach</span>'+
   '<span class="coach-banner-description">Structured workouts, adaptive planning, and goal-based training for Classic mode.</span>'+
   '<span class="coach-banner-features"><span>Personalized plans</span><span>Structured workouts</span><span>Track progress</span><span>Reach your goals</span></span></span>'+
@@ -75,13 +75,17 @@ export function mountClassicRouteReference():void {
  function mount(){
   if(document.body.classList.contains('cr-reference-mounted'))return;
   document.body.classList.add('cr-reference-mounted');
+  const isPedalkin=document.body.dataset.rideExperience==='pedalkin';
   const isSurvival=document.body.dataset.rideExperience==='survival';
+  document.body.classList.toggle('pk-classic-reference',isPedalkin);
+  const pedalkinBanner=shell.querySelector<HTMLElement>('.pk-classic-banner');
+  if(pedalkinBanner)pedalkinBanner.hidden=!isPedalkin;
   document.body.classList.toggle('sr-reference-mounted',isSurvival);
   error.hidden=true;
   route!.append(shell);
   const survival=document.body.dataset.rideExperience==='survival';
   const coachBanner=shell.querySelector<HTMLButtonElement>('#openBreakawayCoach');
-  if(coachBanner)coachBanner.hidden=survival;
+  if(coachBanner)coachBanner.hidden=survival||isPedalkin;
   survivalRow.hidden=!survival;
   if(survival){
    const prompts=['CHOOSE GAME MODE','CHOOSE DIFFICULTY','CHOOSE THREAT'];
@@ -110,13 +114,13 @@ export function mountClassicRouteReference():void {
    if(label?.nodeType===Node.TEXT_NODE){statText.push({node:label,text:label.textContent||''});label.textContent=statLabels[index]||label.textContent;}
   });
   const gainLabel=document.getElementById('generatedGain')?.closest('label')?.firstChild;
-  if(gainLabel?.nodeType===Node.TEXT_NODE){statText.push({node:gainLabel,text:gainLabel.textContent||''});gainLabel.textContent='Total elevation gain (feet)';}
+  if(gainLabel?.nodeType===Node.TEXT_NODE){statText.push({node:gainLabel,text:gainLabel.textContent||''});gainLabel.textContent=isPedalkin?'Total Elevation':'Total elevation gain (feet)';}
   editingLabel();formatChart();
  }
  const statText:{node:Node;text:string}[]=[];
  function unmount(){
   if(!document.body.classList.contains('cr-reference-mounted'))return;
-  document.body.classList.remove('cr-reference-mounted','sr-reference-mounted');
+  document.body.classList.remove('cr-reference-mounted','sr-reference-mounted','pk-classic-reference');
   for(const {node,home} of moves.reverse()){home.replaceWith(node);}
   moves.length=0;
   for(const {node,html} of copies)node.innerHTML=html;
@@ -130,9 +134,12 @@ export function mountClassicRouteReference():void {
   shell.remove();survivalRow.hidden=true;
  }
  function sync(){
-  const active=['classic','survival'].includes(document.body.dataset.rideExperience||'')&&document.body.dataset.breakawayScreen==='route';
+  const active=['classic','survival','pedalkin'].includes(document.body.dataset.rideExperience||'')&&document.body.dataset.breakawayScreen==='route';
   if(!active){unmount();return;}
   const survival=document.body.dataset.rideExperience==='survival';
+  const pedalkin=document.body.dataset.rideExperience==='pedalkin';
+  if(document.body.classList.contains('cr-reference-mounted') &&
+     document.body.classList.contains('pk-classic-reference')!==pedalkin)unmount();
   if(document.body.classList.contains('cr-reference-mounted') &&
      document.body.classList.contains('sr-reference-mounted')!==survival)unmount();
   mount();
