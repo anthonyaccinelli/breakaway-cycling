@@ -21,24 +21,25 @@ test('ride uses the two exact 1920x1080 Illustrator artboards rather than a redr
  assert.doesNotMatch(encounter,/WILD PEDALKIN ART/);
 });
 
-test('both Illustrator artboards use the shipped working pixel forest rather than broken JPEG',async()=>{
- const forest=await readFile(new URL('../public/pedalkin/forest-placeholder.svg',import.meta.url),'utf8');
- assert.match(forest,/<svg[^>]+viewBox="0 0 512 288"/);
- assert.match(forest,/shape-rendering="crispEdges"/);
- assert.match(forest,/<title>Pixelated pine forest clearing placeholder for Pedalkin<\/title>/);
+test('latest Illustrator artboards use the uploaded pixel forest image without changing alignment',()=>{
  for(const svg of [explore,encounter]){
-  assert.match(svg,/xlink:href="\/pedalkin\/forest-placeholder\.svg"/);
-  assert.doesNotMatch(svg,/xlink:href="\/pedalkin\/forest\.jpg"/);
+  assert.match(svg,/xlink:href="\/pedalkin\/forest-from-illustrator\.png"/);
+  assert.match(svg,/transform="translate\(360 111\.27\) scale\(1\.75 1\.78\)"/);
+  assert.doesNotMatch(svg,/\/pedalkin\/forest-placeholder\.svg/);
  }
 });
-test('encounter retains a 460x370 crab; both artboards replace green buddy circle with crab',()=>{
- assert.match(encounter,/<image id="pk-encounter-crab" x="730" y="355" width="460" height="370"/);
+test('exact new buddy positions follow each uploaded alignment',()=>{
+ assert.match(explore,/<image id="pk-buddy-crab" x="1664" y="603\.8" width="120" height="98"/);
+ assert.match(encounter,/<image id="pk-buddy-crab" x="1664" y="600\.8" width="120" height="98"/);
  for(const svg of [explore,encounter]){
-  assert.match(svg,/<image id="pk-buddy-crab" x="1664" y="605" width="120" height="98"/);
-  assert.doesNotMatch(svg,/<circle class="st\d+" cx="1724" cy="655\.8" r="37"/);
+  assert.doesNotMatch(svg,/<circle class="st\d+" cx="1724" cy="(?:649\.8|652\.8)" r="37"/);
   assert.doesNotMatch(svg,/BUDDY ART/);
   assert.match(svg,/xlink:href="data:image\/png;base64,/);
  }
+});
+test('encounter preserves 460x370 crab in the original creature bounding area',()=>{
+ assert.match(encounter,/<image id="pk-encounter-crab" x="730" y="355" width="460" height="370"/);
+ assert.doesNotMatch(encounter,/<rect class="st\d+" x="725" y="360" width="470" height="360"/);
  assert.doesNotMatch(explore,/id="pk-encounter-crab"/);
 });
 test('four menu hotspots remain interactive without legacy blue button rectangles',()=>{
