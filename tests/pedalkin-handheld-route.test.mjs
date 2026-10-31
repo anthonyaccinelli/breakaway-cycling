@@ -34,7 +34,7 @@ test('working 01 Route V2 reuses generator, preview and navigation; never genera
 test('user-supplied full handheld image appears as sole art layer with aligned click targets',()=>{
  assert.match(css,/aspect-ratio:16\/9/);
  assert.match(css,/container-type:inline-size/);
- assert.match(css,/\.pk-v2-generate\{/);
+ assert.match(css,/\.pk-v2-actions-grid\{/);
  assert.match(css,/\.pk-v2-nav-devices\{/);
  assert.match(css,/\.pk-v2-pad-a\{/);
  assert.match(css,/#0f292f/);
@@ -72,4 +72,30 @@ test('screen metrics and chart are forcibly clipped to their Illustrator LCD bou
  assert.match(css,/overflow:hidden!important;text-overflow:ellipsis!important;/);
  assert.match(css,/\.pk-v2-live \.pk-v2-live-chart\{/);
  assert.match(css,/contain:paint!important;/);
+});
+
+test('exactly one live lock checkbox and label replace the doubled screenshot control',()=>{
+ assert.equal((code.match(/class="pk-v2-lock"/g)||[]).length,1);
+ assert.match(code,/<label class="pk-v2-lock-control"><input class="pk-v2-lock" type="checkbox"\/><span>Lock<\/span><\/label>/);
+ assert.match(css,/\.pk-v2-lock-control\{/);
+ assert.match(css,/background:#fcfcfd!important/);
+ assert.match(css,/\.pk-v2-lock-control input\.pk-v2-lock\{/);
+ assert.match(css,/position:static!important/);
+ assert.doesNotMatch(css,/\.pk-v2-live input\.pk-v2-lock\{/);
+});
+
+test('route buttons share one six-child three-column two-row grid and equal dimensions',()=>{
+ assert.match(code,/<div class="pk-v2-actions-grid" role="group"/);
+ const group=code.match(/<div class="pk-v2-actions-grid"[^>]*>([\s\S]*?)<\/div>/)?.[1]||'';
+ const controls=['pk-v2-generate','pk-v2-surprise','pk-v2-endless','pk-v2-recovery','pk-v2-rolling','pk-v2-climbing'];
+ assert.equal((group.match(/<button /g)||[]).length,6);
+ for(const name of controls)assert(group.includes('class="pk-v2-hit '+name+'"'),name);
+ assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important/);
+ assert.match(css,/grid-template-rows:repeat\(2,minmax\(0,1fr\)\)!important/);
+ assert.match(css,/\.pk-v2-actions-grid>button\.pk-v2-hit\{/);
+ assert.match(css,/width:100%!important;height:100%!important/);
+ assert.match(css,/position:static!important/);
+ assert.match(css,/\.pk-v2-actions-grid>button:nth-child\(-n\+3\)/);
+ assert.doesNotMatch(css,/\.pk-v2-generate\{left:/);
+ assert.doesNotMatch(css,/\.pk-v2-generate:after/);
 });
