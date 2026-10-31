@@ -12,8 +12,11 @@ export function mountPedalkinRouteStudio():void {
  const builder=studio?.querySelector<HTMLElement>('.route-builder');
  const preview=studio?.querySelector<HTMLElement>('.route-studio-live-preview');
  const input=byId('gpx') as HTMLInputElement|null;
+ const difficulty=byId('generatedDifficulty') as HTMLSelectElement|null;
+ const hiddenUpload=input?.closest<HTMLElement>('.route-import');
+ const hiddenDifficulty=difficulty?.closest<HTMLElement>('label');
  const status=byId('status');
- if(!route||!studio||!builder||!preview||!input)return;
+ if(!route||!studio||!builder||!preview||!input||!hiddenUpload||!hiddenDifficulty)return;
 
  const shell=document.createElement('div');
  shell.className='pk-route-shell';
@@ -45,6 +48,7 @@ export function mountPedalkinRouteStudio():void {
      </div>
      <div class="pk-import-line"><button type="button" id="pkUpload">↑ UPLOAD GPX / TCX</button><span id="pkUploadName">Or make a route below</span></div>
      <div class="pk-builder-host"></div>
+     <div class="pk-hidden-controls" hidden aria-hidden="true"></div>
      <p id="pkStatus" class="pk-status" role="status" aria-live="polite"></p>
     </section>
     <section class="pk-panel pk-preview-panel" aria-labelledby="pkPreviewTitle">
@@ -62,6 +66,7 @@ export function mountPedalkinRouteStudio():void {
   </div>`;
  const builderHost=shell.querySelector<HTMLElement>('.pk-builder-host')!;
  const previewHost=shell.querySelector<HTMLElement>('.pk-preview-host')!;
+ const hiddenControls=shell.querySelector<HTMLElement>('.pk-hidden-controls')!;
  const moves:{node:HTMLElement;home:Comment}[]=[];
  function move(node:HTMLElement,target:HTMLElement){
   const home=document.createComment('pedalkin-original-position');
@@ -72,6 +77,10 @@ export function mountPedalkinRouteStudio():void {
   route!.append(shell);
   move(builder!,builderHost);
   move(preview!,previewHost);
+  // Preserve the actual file picker and difficulty select for the shared engine,
+  // but don't render the original browser picker or a Difficulty field twice.
+  move(hiddenUpload!,hiddenControls);
+  move(hiddenDifficulty!,hiddenControls);
   document.body.classList.add('pk-route-mounted');
   updateStatus();
  }
