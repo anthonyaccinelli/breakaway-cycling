@@ -78,7 +78,7 @@ test('exactly one live lock checkbox and label replace the doubled screenshot co
  assert.equal((code.match(/class="pk-v2-lock"/g)||[]).length,1);
  assert.match(code,/<label class="pk-v2-lock-control"><input class="pk-v2-lock" type="checkbox"\/><span>Lock<\/span><\/label>/);
  assert.match(css,/\.pk-v2-lock-control\{/);
- assert.match(css,/background:#fcfcfd!important/);
+ assert.match(css,/background:#ffffff!important/);
  assert.match(css,/\.pk-v2-lock-control input\.pk-v2-lock\{/);
  assert.match(css,/position:static!important/);
  assert.doesNotMatch(css,/\.pk-v2-live input\.pk-v2-lock\{/);
