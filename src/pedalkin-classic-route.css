@@ -89,6 +89,10 @@
     font-weight:750!important;
     color:var(--pk-peach)!important;
   }
+  body.pk-classic-reference #screenRoute .coach-classic-banner[hidden],
+  body.pk-classic-reference #screenRoute .pk-classic-banner[hidden] {
+    display:none!important;
+  }
   body.pk-classic-reference #screenRoute .cr-config {
     background:var(--pk-pine)!important;
   }
