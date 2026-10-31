@@ -3,70 +3,66 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const main=await readFile(new URL('../src/main.ts',import.meta.url),'utf8');
-const route=await readFile(new URL('../src/pedalkin-route.ts',import.meta.url),'utf8');
-const css=await readFile(new URL('../src/pedalkin-route.css',import.meta.url),'utf8');
+const classic=await readFile(new URL('../src/classic-route-reference.ts',import.meta.url),'utf8');
+const cockpit=await readFile(new URL('../src/classic-cockpit.ts',import.meta.url),'utf8');
+const classicCss=await readFile(new URL('../src/classic-route-reference.css',import.meta.url),'utf8');
+const pedalkinCss=await readFile(new URL('../src/pedalkin-classic-route.css',import.meta.url),'utf8');
 
-test('Pedalkin is separate selectable mode and deep-linkable to Create Route',()=>{
+test('Pedalkin is a selectable separate mode with navigable deep-link',()=>{
  assert.match(main,/type RideExperience='classic'\|'survival'\|'cyclequest'\|'pedalkin'/);
  assert.match(main,/chooseRideExperience\('pedalkin'\)/);
  assert.match(main,/pedalkinPreview/);
- assert.match(main,/mountPedalkinRouteStudio\(\)/);
  assert.match(main,/breakawayMode==='pedalkin'/);
 });
 
-test('Pedalkin does not fork generator, BLE ownership, or duplicate live route inputs',()=>{
- assert.match(main,/\['classic','pedalkin'\]\.includes\(document\.body\.dataset\.rideExperience\|\|''\)\)void generateClassicRoute/);
- assert.match(route,/move\(builder!,builderHost\)/);
- assert.match(route,/move\(preview!,previewHost\)/);
- assert.match(route,/home\.replaceWith\(node\)/);
- assert.doesNotMatch(route,/(?:cloneNode|setGrade\(|requestDevice\(|connect\(|simulatePower|fakeTrainer)/);
- assert.match(route,/\('pkUpload'\).*input\.click|#pkUpload/);
+test('Pedalkin reuses the exact Classic route implementation, rather than a parallel layout',()=>{
+ assert.match(classic,/\['classic','survival','pedalkin'\]/);
+ assert.match(classic,/move\(builder!,controls\);move\(summary!,summaryHost\);move\(edit!,tools\);move\(next!,callout\)/);
+ assert.match(classic,/move\(chart!,profile\);move\(scrub!,profile\)/);
+ assert.match(main,/import '\.\/pedalkin-classic-route\.css'/);
+ assert.doesNotMatch(main,/mountPedalkinRouteStudio\(/);
+ assert.match(cockpit,/dataset\.rideExperience==='pedalkin'&&document\.body\.dataset\.breakawayScreen==='route'/);
 });
 
-test('Pedalkin navigation uses original app step buttons, never fake links',()=>{
- for(const id of ['stepRoute','stepSetup','stepRide','modeHomeButton'])assert(route.includes(id),id);
- assert.match(route,/\[data-pk-step\]/);
- assert.match(route,/\.click\(\)/);
+test('Classic dimensions 2048 by 1044 and 3-panel grid are inherited without changes',()=>{
+ assert.match(classicCss,/2048x1044 reference/);
+ assert.match(classicCss,/--cr-u:min\(calc\(100vw \/ 2048\),calc\(100dvh \/ 1044\)\)/);
+ assert.match(classicCss,/grid-template-columns:minmax\(0,770fr\) minmax\(0,502fr\) minmax\(0,576fr\)/);
+ assert.match(classicCss,/calc\(385 \* var\(--cr-u\)\)/);
+ assert.match(pedalkinCss,/--cr-u:min\(calc\(100vw \/ 2048\),calc\(100dvh \/ 1044\)\)/);
 });
 
-test('Route studio is scoped to Pedalkin and leaves existing modes alone',()=>{
- assert.match(css,/body\.pk-route-mounted/);
- assert.match(route,/rideExperience==='pedalkin'/);
- assert.match(route,/breakawayScreen==='route'/);
- assert.doesNotMatch(route,/cycleQuestHold|setVirtualGearResistance|simRequestedGrade/);
+test('Palette matches the uploaded color swatch exactly',()=>{
+ for(const hex of ['#0f292f','#21484e','#fbc5ab','#ffffff'])assert(pedalkinCss.includes(hex),hex);
+ assert.match(pedalkinCss,/#0F292F \/ #21484E \/ #FBC5AB \/ #FFFFFF/);
 });
 
-test('Pedalkin has one visible upload action; the native chooser stays attached but hidden',()=>{
- assert.match(route,/id="pkUpload"/);
- assert.match(route,/const hiddenUpload=input\?\.closest<HTMLElement>\('\.route-import'\)/);
- assert.match(route,/move\(hiddenUpload!,hiddenControls\)/);
- assert.match(route,/class="pk-hidden-controls" hidden aria-hidden="true"/);
- assert.match(css,/\.pk-hidden-controls(?:,|\s*\{)/);
+test('Route maker keeps the actual generator, upload and equipment connection',()=>{
+ assert.match(classic,/uploadButton\.addEventListener\('click',\(\)=>upload\.click\(\)\)/);
+ assert.match(classic,/copy\(document\.getElementById\('generateRoute'\),'Generate Route'\)/);
+ assert.match(classic,/copy\(document\.getElementById\('surpriseRoute'\),'Surprise Me!'\)/);
+ assert.match(classic,/copy\(document\.getElementById\('endlessRoute'\),'Endless Route'\)/);
+ assert.match(classic,/copy\(summary!\.querySelector<HTMLElement>\('h2'\),'Your Route Preview'\)/);
+ assert.match(classic,/copy\(note,survival\?/);
 });
 
-test('Difficulty is not a visible Pedalkin field; generator still retains the original select',()=>{
- assert.match(route,/const hiddenDifficulty=difficulty\?\.closest<HTMLElement>\('label'\)/);
- assert.match(route,/move\(hiddenDifficulty!,hiddenControls\)/);
- assert.match(route,/home\.replaceWith\(node\)/);
- assert.doesNotMatch(route,/hidden(?:Upload|Difficulty)\??\.remove\(\)/);
+test('Difficulty remains hidden in Pedalkin but the original generator select is not removed',()=>{
+ assert.match(pedalkinCss,/\.route-fields>label:has\(> #generatedDifficulty\)/);
+ assert.match(pedalkinCss,/display:none!important;/);
+ assert.match(pedalkinCss,/\.route-seed-field/);
+ assert.match(pedalkinCss,/\.route-seed-lock/);
+ assert.match(classic,/gainLabel\.textContent=isPedalkin\?'Total Elevation'/);
 });
 
-test('Terrain, miles and gain align in three columns, with the seed and lock below',()=>{
- assert.match(css,/\.pk-builder-host \.route-fields\s*\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/);
- assert.match(css,/\.route-seed-field\s*\{[\s\S]*?grid-column:1 \/ -1!important;[\s\S]*?grid-row:2!important;/);
- assert.match(css,/\.route-seed-inline > \.route-seed-lock/);
- assert.match(css,/\.route-seed-lock > #lockGeneratedSeed/);
+test('Only Pedalkin gets the new banner; Coach stays in Classic',()=>{
+ assert.match(classic,/class="pk-classic-banner" hidden/);
+ assert.match(classic,/coachBanner\.hidden=survival\|\|isPedalkin/);
+ assert.match(classic,/pedalkinBanner\.hidden=!isPedalkin/);
+ assert.match(classic,/document\.body\.classList\.remove\('cr-reference-mounted','sr-reference-mounted','pk-classic-reference'\)/);
+ assert.match(pedalkinCss,/\.pk-classic-banner:not\(\[hidden\]\)/);
 });
 
-test('Field labels and values explicitly use dark text to defeat global white-label CSS',()=>{
- assert.match(css,/\.route-fields > label\s*\{[\s\S]*?color:#122d32!important;/);
- assert.match(css,/\.route-fields > label > :is\(input,select\)/);
- assert.match(css,/-webkit-text-fill-color:#112d32!important;/);
- assert.match(css,/color-scheme:light!important;/);
-});
-
-test('Total Elevation stays compact in Pedalkin and restores in other modes',()=>{
- assert.match(route,/elevationLabelText\.textContent='Total Elevation'/);
- assert.match(route,/elevationLabelText\.textContent=originalElevationLabel/);
- assert.match(route,/elevationInput\.title='Total elevation gain \(feet\)'/);
+test('The route skin does not change actual SIM grade, shifting or ride recording',()=>{
+ assert.doesNotMatch(pedalkinCss,/(?:simRequestedGrade|setVirtualGearResistance|setGrade|rideMeters)/);
+ assert.doesNotMatch(classic,/(?:simRequestedGrade|setVirtualGearResistance|setGrade)\(/);
 });
