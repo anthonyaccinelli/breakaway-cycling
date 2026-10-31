@@ -21,12 +21,13 @@ export function mountClassicRouteReference():void {
  if(!route||!studio||!builder||!upload||!summary||!chart||!scrub||!edit||!next)return;
 
  const shell=document.createElement('div');shell.className='cr-reference';
- shell.innerHTML='<div class="pk-classic-banner" hidden><span class="pk-banner-title">PEDALKIN</span><span class="pk-banner-subtitle">A LITTLE WONDER, EVERY MILE.</span><span class="pk-banner-detail">EXPLORE. RIDE. BEFRIEND.</span></div><button type="button" id="openBreakawayCoach" class="coach-classic-banner" aria-label="Train with Breakaway Coach — open structured training in Classic">'+
+ shell.innerHTML='<button type="button" id="openBreakawayCoach" class="coach-classic-banner" aria-label="Train with Breakaway Coach — open structured training in Classic">'+
   '<span class="coach-banner-copy"><span class="coach-banner-eyebrow">BREAKAWAY COACH</span><span class="coach-banner-title">Train with Breakaway Coach</span>'+
   '<span class="coach-banner-description">Structured workouts, adaptive planning, and goal-based training for Classic mode.</span>'+
   '<span class="coach-banner-features"><span>Personalized plans</span><span>Structured workouts</span><span>Track progress</span><span>Reach your goals</span></span></span>'+
   '<span class="coach-banner-action"><span class="coach-banner-cta">OPEN COACH <span aria-hidden="true">→</span></span><span class="coach-banner-note">CLASSIC MODE ONLY</span></span></button>'+
   '<div class="cr-upload-row"><button type="button" class="cr-upload" aria-controls="gpx">Upload GPX Route</button></div><div class="sr-mode-row" hidden><span class="sr-mode-step" aria-hidden="true">1</span><div class="sr-mode-controls" role="group" aria-label="Survival game setup"></div></div><h1 class="cr-heading"><span aria-hidden="true">1</span>Create Your Route</h1><div class="cr-config"><div class="cr-controls"></div><div class="cr-summary"></div><div class="cr-actions"><div class="cr-tools"></div><div class="cr-callout"></div></div></div><div class="cr-profile"></div>';
+ shell.insertAdjacentHTML('afterbegin','<div class="pk-classic-banner" hidden><span class="pk-banner-title">PEDALKIN</span><span class="pk-banner-subtitle">A LITTLE WONDER, EVERY MILE.</span><span class="pk-banner-detail">EXPLORE. RIDE. BEFRIEND.</span></div>');
  const uploadButton=shell.querySelector<HTMLButtonElement>('.cr-upload')!;
  uploadButton.addEventListener('click',()=>upload.click());
  upload.addEventListener('change',()=>{uploadButton.title=upload.files?.[0]?.name||'Upload a GPX or TCX route';});
