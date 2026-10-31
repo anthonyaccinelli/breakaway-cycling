@@ -35,3 +35,31 @@ test('Route studio is scoped to Pedalkin and leaves existing modes alone',()=>{
  assert.match(route,/breakawayScreen==='route'/);
  assert.doesNotMatch(route,/cycleQuestHold|setVirtualGearResistance|simRequestedGrade/);
 });
+
+test('Pedalkin has one visible upload action; the native chooser stays attached but hidden',()=>{
+ assert.match(route,/id="pkUpload"/);
+ assert.match(route,/const hiddenUpload=input\?\.closest<HTMLElement>\('\.route-import'\)/);
+ assert.match(route,/move\(hiddenUpload!,hiddenControls\)/);
+ assert.match(route,/class="pk-hidden-controls" hidden aria-hidden="true"/);
+ assert.match(css,/\.pk-hidden-controls(?:,|\s*\{)/);
+});
+
+test('Difficulty is not a visible Pedalkin field; generator still retains the original select',()=>{
+ assert.match(route,/const hiddenDifficulty=difficulty\?\.closest<HTMLElement>\('label'\)/);
+ assert.match(route,/move\(hiddenDifficulty!,hiddenControls\)/);
+ assert.doesNotMatch(route,/\.remove\(\)/);
+});
+
+test('Terrain, miles and gain align in three columns, with the seed and lock below',()=>{
+ assert.match(css,/\.pk-builder-host \.route-fields\s*\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/);
+ assert.match(css,/\.route-seed-field\s*\{[\s\S]*?grid-column:1 \/ -1!important;[\s\S]*?grid-row:2!important;/);
+ assert.match(css,/\.route-seed-inline > \.route-seed-lock/);
+ assert.match(css,/\.route-seed-lock > #lockGeneratedSeed/);
+});
+
+test('Field labels and values explicitly use dark text to defeat global white-label CSS',()=>{
+ assert.match(css,/\.route-fields > label\s*\{[\s\S]*?color:#122d32!important;/);
+ assert.match(css,/\.route-fields > label > :is\(input,select\)/);
+ assert.match(css,/-webkit-text-fill-color:#112d32!important;/);
+ assert.match(css,/color-scheme:light!important;/);
+});
