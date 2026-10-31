@@ -11,7 +11,12 @@ export type CoachProfile = {
   goal: CoachGoal;
   experience: CoachExperience;
 };
-export type CoachSegment = { name: string; minutes: number; low: number; high: number };
+export type CoachSegment = {
+ name:string;minutes:number;low:number;high:number;
+ targetKind?:'heart_rate'|'power'|'ftp'|'open';
+ heartRateLow?:number;heartRateHigh?:number;
+ powerLow?:number;powerHigh?:number;
+};
 export type CoachWorkout = { id: string; name: string; description: string; segments: CoachSegment[]; category: string };
 export type CoachSessionRecord = {
   id: string;
@@ -99,11 +104,16 @@ export function intervalRequirements(ftp:number,segment:CoachSegment){
  };
 }
 export function targetWatts(ftp:number, segment:CoachSegment, adjustment=1): number {
+  if(segment.targetKind==='heart_rate'||segment.targetKind==='open')return 0;
+  if(segment.targetKind==='power')return Math.max(30,Math.min(1000,Math.round(((segment.powerLow??0)+(segment.powerHigh??0))/2*adjustment)));
   const center=(segment.low+segment.high)/2;
   return Math.max(30,Math.min(1000,Math.round(ftp*center*adjustment)));
 }
 export function inTargetRange(watts:number,ftp:number,segment:CoachSegment,adjustment=1):boolean {
-  return Number.isFinite(watts) && watts>=ftp*segment.low*adjustment*.95 && watts<=ftp*segment.high*adjustment*1.05;
+  if(segment.targetKind==='heart_rate'||segment.targetKind==='open')return false;
+  const low=segment.targetKind==='power'?(segment.powerLow??0):ftp*segment.low;
+  const high=segment.targetKind==='power'?(segment.powerHigh??0):ftp*segment.high;
+  return Number.isFinite(watts) && watts>=low*adjustment*.95 && watts<=high*adjustment*1.05;
 }
 export function availableControls(_mode:CoachMode): CoachControl[] {
   return ['structured','guided'];
