@@ -35,7 +35,7 @@ export function mountPedalkinHandheldRoute():void {
     <select class="pk-v2-biome" aria-label="Biome / terrain"></select>
     <input class="pk-v2-gain" type="number" step="1" min="0" placeholder="Natural terrain" aria-label="Total elevation gain (feet)"/>
     <input class="pk-v2-seed" type="number" step="1" min="1" max="1000000000" placeholder="Auto" aria-label="Route seed"/>
-    <input class="pk-v2-lock" type="checkbox" aria-label="Lock route seed"/>
+    <label class="pk-v2-lock-control"><input class="pk-v2-lock" type="checkbox"/><span>Lock</span></label>
     <div class="pk-v2-route-stats" aria-live="polite">
       <div>Distance: <b data-pk-stat="miles">—</b></div>
       <div>Elevation gain: <b data-pk-stat="gain">—</b></div>
@@ -46,12 +46,14 @@ export function mountPedalkinHandheldRoute():void {
     <div class="pk-v2-live-chart" role="img" aria-label="Live generated route elevation profile"></div>
     <div class="pk-v2-scrub" aria-live="polite"></div>
     <button class="pk-v2-hit pk-v2-upload" type="button" aria-label="Upload GPX or TCX route"></button>
-    <button class="pk-v2-hit pk-v2-generate" type="button" aria-label="Generate route"></button>
-    <button class="pk-v2-hit pk-v2-surprise" type="button" aria-label="Surprise me with a route"></button>
-    <button class="pk-v2-hit pk-v2-endless" type="button" aria-label="Start endless route"></button>
-    <button class="pk-v2-hit pk-v2-recovery" type="button" aria-label="Quick start: Recovery 30"></button>
-    <button class="pk-v2-hit pk-v2-rolling" type="button" aria-label="Quick start: Rolling 45"></button>
-    <button class="pk-v2-hit pk-v2-climbing" type="button" aria-label="Quick start: Climbing 60"></button>
+    <div class="pk-v2-actions-grid" role="group" aria-label="Route generator and quick-start presets">
+      <button class="pk-v2-hit pk-v2-generate" type="button">Generate Route</button>
+      <button class="pk-v2-hit pk-v2-surprise" type="button">Surprise Me!</button>
+      <button class="pk-v2-hit pk-v2-endless" type="button">Endless Route</button>
+      <button class="pk-v2-hit pk-v2-recovery" type="button">Recovery 30</button>
+      <button class="pk-v2-hit pk-v2-rolling" type="button">Rolling 45</button>
+      <button class="pk-v2-hit pk-v2-climbing" type="button">Climbing 60</button>
+    </div>
     <button class="pk-v2-hit pk-v2-next" type="button" aria-label="Ready for your adventure? Connect trainer"></button>
     <button class="pk-v2-hit pk-v2-nav-route" type="button" aria-label="01 Route (current)" aria-current="page"></button>
     <button class="pk-v2-hit pk-v2-nav-devices" type="button" aria-label="02 Devices"></button>
