@@ -17,7 +17,6 @@ import {calendarDays} from './coach-calendar';
 import type {CoachCalendarDay} from './coach-calendar';
 import './coach-calendar.css';
 import {mountWorkoutImporter,readCustomWorkouts} from './coach-workout-import-ui';
-import {GARMIN_BASE_EXAMPLE} from './coach-workout-builder';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
@@ -310,16 +309,24 @@ export function mountCoach(bridge:CoachBridge){
       return shortenWorkout(base,today.cyclingMinutes);
     return base;
   }
+  function segmentTargetSummary(segment:CoachWorkout['segments'][number]){
+    if(segment.targetKind==='heart_rate')return {label:'HEART-RATE RANGE',value:segment.heartRateLow+'–'+segment.heartRateHigh+' bpm',secondary:'Follow by heart rate · SIM',target:'NOT ERG'};
+    if(segment.targetKind==='open')return {label:'GUIDANCE',value:'Ride by feel',secondary:'Open target · SIM',target:'NOT ERG'};
+    if(segment.targetKind==='power')return {label:'POWER RANGE',value:segment.powerLow+'–'+segment.powerHigh+' W',secondary:'Fixed watts',target:targetWatts(rider.ftp,segment)+' W'};
+    const info=intervalRequirements(rider.ftp,segment);
+    return {label:'POWER RANGE',value:info.range,secondary:info.ftpRange,target:info.target+' W'};
+  }
   function showIntervalRequirements(index:number){
     const workout=getWorkout(), segment=workout.segments[index];
     if(!segment)return;
     const requirements=intervalRequirements(rider.ftp,segment);
+    const target=segmentTargetSummary(segment);
     $('coachIntervalDetails').innerHTML=
       '<div class="coach-interval-identity"><span class="coach-interval-kicker">BLOCK '+(index+1)+' / '+workout.segments.length+'</span>'+
-      '<strong>'+escapeHtml(segment.name)+'</strong><small>'+requirements.ftpRange+'</small></div>'+
+      '<strong>'+escapeHtml(segment.name)+'</strong><small>'+escapeHtml(target.secondary)+'</small></div>'+
       '<div class="coach-interval-numbers"><div><span>DURATION</span><strong>'+requirements.duration+'</strong></div>'+
-      '<div><span>POWER RANGE</span><strong>'+requirements.range+'</strong></div>'+
-      '<div><span>ERG TARGET</span><strong>'+requirements.target+' W</strong></div></div>';
+      '<div><span>'+target.label+'</span><strong>'+escapeHtml(target.value)+'</strong></div>'+
+      '<div><span>'+(segment.targetKind==='heart_rate'||segment.targetKind==='open'?'TRAINER CONTROL':'ERG TARGET')+'</span><strong>'+target.target+'</strong></div></div>';
     $('coachSegments').querySelectorAll<HTMLButtonElement>('[data-coach-segment]').forEach(button=>{
       button.setAttribute('aria-pressed',String(Number(button.dataset.coachSegment)===index));
     });
@@ -445,10 +452,11 @@ export function mountCoach(bridge:CoachBridge){
     if(options)options.hidden=hrGuided;
     $('coachAnswer').textContent=hrGuided?'Heart-rate and free-ride steps use SIM guidance. ERG resistance control is disabled; connect an HR monitor to see actual bpm.':'Workout targets are based on your saved FTP or explicit watts.';
     $('coachSegments').innerHTML=w.segments.map((segment,i)=>{
-      const color=segment.low<.6?'#86b5da':segment.low<.8?'#63d8bd':segment.low<1?'#f9be70':'#fb7489';
-      const height=Math.max(24,Math.min(100,Math.round(segment.high*80)));
+      const color=segment.targetKind==='heart_rate'?'#75b2d5':segment.targetKind==='open'?'#9ca9bd':segment.low<.6?'#86b5da':segment.low<.8?'#63d8bd':segment.low<1?'#f9be70':'#fb7489';
+      const height=segment.targetKind==='heart_rate'||segment.targetKind==='open'?65:Math.max(24,Math.min(100,Math.round(segment.high*80)));
       const info=intervalRequirements(rider.ftp,segment);
-      const description=segment.name+' — '+info.duration+' duration, '+info.range+' power range, '+info.target+' W ERG target ('+info.ftpRange+')';
+      const target=segmentTargetSummary(segment);
+      const description=segment.name+' — '+info.duration+' duration, '+target.value+' · '+target.secondary;
       return '<button type="button" class="coach-segment" data-coach-segment="'+i+'" aria-pressed="false" aria-label="'+escapeHtml(description)+'" title="'+escapeHtml(description)+'" style="flex:'+segment.minutes+'">'+
         '<span class="coach-segment-bar" aria-hidden="true" style="height:'+height+'%;background:'+color+'"></span></button>';
     }).join('');
@@ -785,6 +793,12 @@ export function mountCoach(bridge:CoachBridge){
   }
   window.addEventListener('breakaway:history-updated',()=>{void refreshPlatformHistory();});
   strength=mountCoachStrength($('coachStrengthSettings'),{finished:()=>{render();navigate('history');}});
+  mountWorkoutImporter($('coachWorkoutImporter'),workout=>{
+    selected=workout.id;riderSelected=true;customWorkout=workout;
+    render();navigate('today');
+    $('coachRecommendationLabel').textContent='YOUR IMPORTED WORKOUT';
+    $('coachWhy').textContent='You created this workout. Coach is following its exact duration and targets, not replacing them with a recommended ride.';
+  });
   syncSettingsForm();
   render();
   mountCoachHistory($('coachHistoryImport'),{applySuggestion:(suggestion)=>{
