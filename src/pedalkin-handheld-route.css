@@ -45,7 +45,7 @@ body.pk-v2-route-active #screenRoute{isolation:auto!important}
    while the route facts start near x=992. The former 59.6% left position
    placed this white overlay halfway OUTSIDE the console screen. */
 .pk-v2-route-stats{
- position:absolute;left:51.65%;top:36.85%;width:17.95%;height:12.8%;
+ position:absolute;left:51.65%;top:36.85%;width:17.95%;height:12.1%;
  padding:0.14cqw 0.14cqw 0.14cqw 0.2cqw!important;
  background:#fff!important;color:#172028!important;
  font:500 0.85cqw/1.42 Arial,Helvetica,sans-serif!important;
