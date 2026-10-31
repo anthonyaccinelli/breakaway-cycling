@@ -1,98 +1,87 @@
 # Creature collector — Zone 2 first (prototype contract)
 
-This is a **new game**, not a Cycle Quest redesign. It may reuse Ride Breakaway's
-FTMS connection, virtual drivetrain, ride physics, and account infrastructure.
-Existing Classic, Survival and Cycle Quest behavior must remain unchanged.
+This is a **new game**, not a Cycle Quest redesign. Reuse the existing Ride
+Breakaway trainer interface, route progression, physics and account
+infrastructure without affecting Classic, Survival or Cycle Quest.
 
 ## Goal
-Make long Zone 2 indoor rides enjoyable via discovery, creature collecting, a
-creature journal, companionship and restrained personality challenges. Normal
-encounters should be achievable within the rider's selected Zone 2 range.
-Avoid prescribed sprint intervals, arbitrary post-challenge capture dice rolls,
-or combat/health/attack/defense stats.
+Make long Zone 2 indoor rides enjoyable through discovery, collecting,
+creature personalities, a creature journal and companionship. Capture attempts
+should be engaging without requiring physical intensity outside Zone 2,
+except for explicitly optional Chaotic encounters.
+
+## Encounters are visual/gameplay overlays only — DO NOT pause or flatten routes
+**Revised design decision:** Remove the earlier idea that an encounter would
+pause the authored route and override resistance with a flat 0% grade.
+
+- Generated routes and uploaded GPX routes **continue advancing normally**
+  during every creature encounter.
+- Actual gradient and trainer resistance remain entirely controlled by the
+  existing ride engine, regardless of creature appearance, temperament,
+  successful capture, escape, or dismissal.
+- Never call encounter-specific `setGrade`, override
+  `simRequestedGrade` / `setVirtualGearResistance`, enter a Cycle Quest
+  battle hold, freeze route progress, or insert flat terrain into the route.
+- Speed, distance, elevation, ascent, elapsed time, moving time, history,
+  summary and TCX/FIT samples continue using the original ride pipeline.
+  Do not add a second distance accumulator for encounters.
+- Encounter scoring may **read** the usual smoothed watt telemetry. It must
+  never alter resistance, trainer mode, shift state, route simulation or
+  recording behavior. Appearance and dismissal should be seamless.
+- Mid-climb, mid-descent, virtual shifting, natural cadence changes and short
+  resistance/power spikes must be handled through generous windows, smoothing
+  and brief penalty grace periods. A change of terrain alone should never
+  cause an immediate capture failure.
+- A training workout in ERG mode must retain its prescribed power. Creatures
+  adjust to the workout rather than altering the workout to suit the creature.
+- The player remains free to maintain their intended Zone 2 effort and ride
+  uninterrupted even if they ignore an encounter.
 
 ## Personalities
 Shy, Calm, Energetic, Playful, Stubborn, Unpredictable, plus **Chaotic**.
-The first six operate within the selected Zone 2 target range. Adapt to
-the workout (especially fixed-wattage ERG sessions), not the other way around.
-Use visual / audible cues before power preference changes, forgiving power
-windows and brief smoothing/grace periods.
+The first six operate within the rider's selected Zone 2 power envelope;
+challenge is about observation, relaxed consistency and forgiving behaviors,
+not sprints or sudden resistance changes.
+Unpredictable personality changes should have clear cues and transition
+periods. Avoid punitive raw-watts thresholds that ignore terrain or drift.
 
-**Chaotic** creatures are exceptional, opt-in near-max short-effort challenges.
-Schedule 1–2 opportunities per 50 **lifetime** miles using a persisted player
-seed. Schedule across multiple rides, not per route; mark encountered event IDs
-as processed, including declined/skipped ones. When opted out, do not interrupt
-a Zone 2 session. Calibrate from the player's best actual 10-second power
-rather than FTP. Prototype target: 90% of that best for 10 uninterrupted
-seconds, with a 40-second patience budget. These figures are tuning targets,
-not a training prescription. Users must be able to decline without penalty,
-and a hardware ERG controller must never force an unrequested maximal load.
+**Chaotic** creatures are exceptionally rare and fully optional near-max
+effort encounters. Schedule 1–2 appearance opportunities per 50 **lifetime**
+miles, deterministically using a persisted player seed, across multiple
+rides. Mark each attempted or skipped event ID as processed to avoid repeats
+after reconnect/recovery. An opt-out or declined encounter has no penalty.
+Calibrate against actual best ten-second power (FTP is insufficient):
+prototype target 90% of recorded ten-second best, held for ten seconds,
+with 40 seconds of patience. Tune after real rider feedback.
+The rider decides whether to exert themself: software must never force a
+maximal trainer load or change the resistance for a Chaotic encounter.
+If an ERG workout prevents such an effort, allow a no-penalty skip.
 
-## Route hold and honest distance accounting
-The existing Cycle Quest battle hold freezes distance and holds the previous
-slope. Do NOT reuse it directly for the collector.
+## Companion progression
+No combat levels, health, attack or defense. Companions earn
+**Companionship** while riding together, unlocking new behaviors, animations,
+journal stories, cosmetic rewards and species-specific evolution.
+Progression should encourage consistency and time in the saddle without
+pressuring riders toward high intensity.
 
-For the collector, track two monotonic, distinct counters:
-- **routeMeters**: location along GPX/generated route, paused during encounters;
-- **rideMeters**: total *physical/virtual* distance pedaled, including all
-  encounter minutes, used for on-screen session distance, milestones, lifetime
-  discovery events, and exported TCX/FIT DistanceMeters.
-
-On encounter enter:
-1. Snapshot route position and elevation.
-2. Pause routeMeters, scenery position and climb/elevation progress.
-3. Transition SIM trainer grade to **0%** (smooth ramp, no abrupt load spike);
-   for virtual drivetrain, calculate cadence-based virtual resistance at 0%.
-   For prescribed target ERG, **keep** the requested watts unchanged.
-4. Continue real power/cadence/time/energy and calculate rideMeters from
-   actual measured watts with the shared flat-road speed physics. No synthetic
-   fixed speed, invented power or distance. Do not use Cycle Quest's
-   route-distance freeze as the TCX distance accumulator.
-
-On exit (capture, escape, pause or disconnect):
-1. Finish the flat segment's accumulated rideMeters.
-2. Restore the exact saved route location; do not jump forward through the
-   route or count the flat segment twice.
-3. Smoothly restore route resistance and resume normal distance advancement.
-4. Continue to record TCX timestamps and rideMeters monotonically, with
-   elevation held at the encounter point until route progress resumes.
-
-Keep live file export, route/profile rendering, background telemetry and ride
-checkpoint recovery in sync with the separated counters. If the app pauses
-or loses BLE, never integrate wall-clock time without valid recent telemetry.
-
-### Integration points for future collector mode
-- `src/main.ts`: give the new mode its own route/ride distance state.
-- `advanceRide()`: normal route advances *both* routeMeters and rideMeters;
-  active encounters call `advanceFlatEncounter` for rideMeters only.
-- `simRequestedGrade()` and `setVirtualGearResistance()`: use
-  `encounterRoadGrade` while the collector encounter is active.
-- `recordRideSample()`, `sessionDistanceMeters()`, `tcx()`, summary,
-  ride autosave and overlays: use rideMeters for *ridden* distance, and
-  routeMeters for remaining route, ascent, terrain and chapter position.
-- Do not change Cycle Quest's existing hold, physics, or save-state schema.
-
-## Why companions progress
-No traditional levels or battle XP. A selected companion instead gains
-**Companionship** from time spent riding together. This is a friendship
-meter, not combat power: unlock animations, journal entries, cosmetics,
-small narrative moments and (for selected species) evolution.
-Do not create performance-enhancing collection rewards that pressure
-players to train harder.
-
-## Validation checklist before connecting the new mode to hardware
-- SIM physical cassette and virtual shifting: 0% grade during encounter.
-- Fixed ERG target: prescribed watts unaffected.
-- Start encounter halfway up a climb; route and elevation freeze, TCX
-  ride distance continues increasing, then original grade returns smoothly.
-- Finish, fail, pause, disconnect, resume/autosave: no missing or doubled miles.
-- Short rides share Chaotic mileage schedule; skipping events and reconnecting
-  cannot reroll or repeat rare encounters.
-- No unrequested intense efforts during a Zone 2 workout.
-- Never alter Cycle Quest, Classic or Survival implicitly.
+## Integration and regression validation before a playable preview
+- During a capture on a steep climb, route distance, current grade,
+  physical resistance and ascent must follow the *same* path as a ride with
+  no encounter at all.
+- The same invariant holds for a descent, a sudden virtual shift, a GPX
+  route, an endless generated route and a fixed ERG workout.
+- Starting/ending/escaping encounters must not alter TCX/FIT samples,
+  route checkpoints, odometer or session summary.
+- Momentary terrain, power and shifting variations do not immediately
+  invalidate a normal creature capture.
+- Short rides share a persistent Chaotic schedule without rerolling skipped
+  or already processed encounters.
+- Only deliberate opt-in riders receive Chaotic near-max capture prompts.
+- Classic, Survival and Cycle Quest remain unchanged.
 
 ## Status
-This branch contains isolated, tested game-engine primitives only.
-**No collector mode UI, mode selection, hardware bridge, TCX integration,
-or live encounter has been wired yet.** Those require an intentional
-new-mode integration and trainer validation before a preview release.
+This branch contains isolated creature-collector personality and Chaotic
+encounter primitives, plus tests. **No new game mode, creature capture UI,
+hardware bridge or live encounter system is wired yet.**
+Flat encounter physics, resistance overrides and route-pausing code were
+removed from the prototype after the design revision.
