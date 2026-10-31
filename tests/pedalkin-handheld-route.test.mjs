@@ -50,6 +50,9 @@ test('route facts stay inside the Illustrator preview pane and never spill over 
  assert(Number.isFinite(x)&&Number.isFinite(w));
  assert(x>=51&&x<53,'stats aligned with preview body');
  assert(x+w<=69.8,'stats overlay must fit inside x=1339/1920 preview card');
+ const y=read('top'),h=read('height');
+ assert(y*10.8>=380&&y*10.8<=389,'mask covers baked-in first metric but not heading');
+ assert((y+h)*10.8<=530,'mask stops above the panel bottom border');
  assert.match(block,/overflow:hidden!important/);
  assert.match(css,/\.pk-v2-route-stats>div\{/);
  assert.match(css,/text-overflow:ellipsis!important/);
