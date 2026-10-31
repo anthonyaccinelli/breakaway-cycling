@@ -16,12 +16,15 @@ import {dayKey,escapeHtml,readJson,writeJson} from './coach-dom';
 import {calendarDays} from './coach-calendar';
 import type {CoachCalendarDay} from './coach-calendar';
 import './coach-calendar.css';
+import {mountWorkoutImporter,readCustomWorkouts} from './coach-workout-import-ui';
+import {GARMIN_BASE_EXAMPLE} from './coach-workout-builder';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
   makeRoute:(durationSeconds:number,structured:boolean)=>void;
   setMode:(mode:'target'|'sim')=>void;
   setTarget:(watts:number)=>void;
+  getHeartRate?:()=>number|null;
   isRiding:()=>boolean;
   getPlatformRides:()=>Promise<{start:number;elapsed:number;avgPower:number|null;mode:'classic'|'survival'|'cyclequest'|null;name:string}[]>;
 }
@@ -129,6 +132,7 @@ export function mountCoach(bridge:CoachBridge){
           <p>Prefer something else? Choosing a different workout is optional and won't rewrite your weekly plan.</p>
           <div id="coachSwapList" class="coach-swap-list"></div>
         </div>
+        <div id="coachWorkoutImporter"></div>
       </section>
       <aside class="coach-today-side">
         <section class="coach-panel coach-strength-today" id="coachStrengthToday" hidden></section>
@@ -405,7 +409,7 @@ export function mountCoach(bridge:CoachBridge){
     }
   });
   function render(){
-    library=workoutLibrary(rider);
+    library=workoutLibrary(rider).concat(readCustomWorkouts());
     const nowDate=new Date();
     const todayKey=dayKey(nowDate);
     if(todayKey!==currentDay){currentDay=todayKey;riderSelected=false;customWorkout=null;expandedCalendarKey=null;}
@@ -421,7 +425,7 @@ export function mountCoach(bridge:CoachBridge){
     const strengthOnly=strengthOnToday&&!todaySchedule.cyclingId;
     const lightStrength=strengthShouldBeLight();
     if(!riderSelected){selected=recommendation.workoutId||'recovery';customWorkout=null;}
-    if(!library.some(w=>w.id===selected)){selected='recovery';customWorkout=null;}
+    if(!library.some(w=>w.id===selected)&&!customWorkout){selected='recovery';}
     const resting=!riderSelected&&(!recommendation.workoutId||strengthOnly);
     $('coachRestState').hidden=!resting;
     $('coachWorkoutControls').hidden=resting;
@@ -436,6 +440,10 @@ export function mountCoach(bridge:CoachBridge){
     $('coachUseRecommendation').hidden=!riderSelected;
     const w=getWorkout(), duration=workoutDuration(w);
     $('coachWorkoutInfo').innerHTML='<div><strong>'+escapeHtml(w.category.toUpperCase())+'</strong><span>'+Math.round(duration/60)+' MINUTES · '+w.segments.length+' SEGMENTS</span></div><p>'+escapeHtml(w.description)+'</p>';
+    const hrGuided=w.segments.some(x=>x.targetKind==='heart_rate'||x.targetKind==='open');
+    const options=screen.querySelector<HTMLElement>('.coach-trainer-options');
+    if(options)options.hidden=hrGuided;
+    $('coachAnswer').textContent=hrGuided?'Heart-rate and free-ride steps use SIM guidance. ERG resistance control is disabled; connect an HR monitor to see actual bpm.':'Workout targets are based on your saved FTP or explicit watts.';
     $('coachSegments').innerHTML=w.segments.map((segment,i)=>{
       const color=segment.low<.6?'#86b5da':segment.low<.8?'#63d8bd':segment.low<1?'#f9be70':'#fb7489';
       const height=Math.max(24,Math.min(100,Math.round(segment.high*80)));
