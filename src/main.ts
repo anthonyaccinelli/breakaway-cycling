@@ -20,6 +20,7 @@ import {mountClassicCockpit} from './classic-cockpit';
 import {mountClassicRouteReference} from './classic-route-reference';
 import './pedalkin-classic-route.css';
 import {mountPedalkinRide} from './pedalkin-ride';
+import {mountPedalkinHandheldRoute} from './pedalkin-handheld-route';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
@@ -3157,6 +3158,7 @@ mountSurvivalCockpit();
 mountClassicCockpit();
 mountClassicRouteReference();
 // Pedalkin shares the mounted Classic route reference; no duplicate route shell.
+mountPedalkinHandheldRoute();
 mountPedalkinRide();
 
 // Coach preview reuses the existing FTMS writer. It does not open another BLE connection.
