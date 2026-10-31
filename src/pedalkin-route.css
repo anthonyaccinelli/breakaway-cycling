@@ -533,3 +533,6 @@ body.pk-route-mounted[data-breakaway-screen="route"] #accountGlobalMenu { displa
   min-height:75px!important;
  }
 }
+
+/* Keep the account popover from floating over route controls; access it from mode home. */
+body.pk-route-mounted[data-breakaway-screen="route"] #accountGlobalMenu{display:none!important}
