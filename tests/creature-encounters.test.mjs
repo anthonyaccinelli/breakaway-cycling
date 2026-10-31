@@ -11,56 +11,19 @@ async function loadTs(path) {
   return import('data:text/javascript;base64,' + Buffer.from(transpile(source)).toString('base64'));
 }
 const {
-  CREATURE_PERSONALITIES, encounterRoadGrade, beginFlatEncounter, endFlatEncounter,
-  advanceFlatEncounter, chaoticAppearancesForBlock, chaoticAppearancesCrossed,
+  CREATURE_PERSONALITIES, chaoticAppearancesForBlock, chaoticAppearancesCrossed,
   chaoticTargetWatts, newChaoticAttempt, advanceChaoticAttempt
 } = await loadTs('../src/creature-collector/encounters.ts');
-const {advanceRoadSpeed} = await loadTs('../src/virtual-drivetrain.ts');
 
 test('new collector includes Chaotic without altering the existing RPG', () => {
   assert.equal(CREATURE_PERSONALITIES.length, 7);
   assert(CREATURE_PERSONALITIES.includes('chaotic'));
 });
 
-test('flat encounter requests flat grade for SIM and virtual shifting but not fixed ERG', () => {
-  for (const mode of ['sim', 'erg']) {
-    assert.equal(encounterRoadGrade(true, 9, mode), 0);
-    assert.equal(encounterRoadGrade(true, -6, mode), 0);
-    assert.equal(encounterRoadGrade(false, 9, mode), 9);
-  }
-  assert.equal(encounterRoadGrade(true, 9, 'target'), 9);
-});
-
-test('encounter freezes authored route while accruing real flat-road mileage and time', () => {
-  const start = {
-    routeMeters: 10000, rideMeters: 10000, elevationMeters: 450,
-    speedMps: 7, encounterActive: false
-  };
-  const road = {massKg: 103, crr: .004};
-  const active = beginFlatEncounter(start);
-  const one = advanceFlatEncounter(active, 1, 165, road, advanceRoadSpeed);
-  const two = advanceFlatEncounter(one, 1, 165, road, advanceRoadSpeed);
-  assert.equal(two.routeMeters, 10000);
-  assert.equal(two.elevationMeters, 450);
-  assert(two.rideMeters > 10012 && two.rideMeters < 10020);
-  assert(two.speedMps > 0);
-  const restored = endFlatEncounter(two);
-  assert.equal(restored.routeMeters, start.routeMeters);
-  assert.equal(restored.rideMeters, two.rideMeters);
-  assert.equal(restored.encounterActive, false);
-  assert.equal(advanceFlatEncounter(restored, 1, 165, road, advanceRoadSpeed), restored);
-});
-
-test('coasting is counted using physics, stopped ride and stale frames never invent huge distance', () => {
-  const initial = beginFlatEncounter({routeMeters: 450, rideMeters: 470, elevationMeters: 5, speedMps: 9, encounterActive: false});
-  const road = {massKg: 103, crr: .004};
-  const coast = advanceFlatEncounter(initial, 1, 0, road, advanceRoadSpeed);
-  assert(coast.rideMeters > initial.rideMeters);
-  assert(coast.speedMps < initial.speedMps);
-  assert.equal(advanceFlatEncounter(initial, 0, 150, road, advanceRoadSpeed), initial);
-  const stale = advanceFlatEncounter(initial, 200, 150, road, advanceRoadSpeed);
-  assert(stale.rideMeters - initial.rideMeters < 50);
-  assert.equal(stale.routeMeters, 450);
+test('collector encounter engine never overrides route progression or trainer load', async () => {
+  const source = await readFile(new URL('../src/creature-collector/encounters.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /\\b(?:setGrade|encounterRoadGrade|beginFlatEncounter|endFlatEncounter|advanceFlatEncounter|cycleQuestHold|routeMeters|rideMeters|setVirtualGearResistance)\\b/);
+  assert.match(source, /passive overlays on an uninterrupted ride/);
 });
 
 test('Chaotic appears exactly once or twice in every full 50-mile lifetime band', () => {
