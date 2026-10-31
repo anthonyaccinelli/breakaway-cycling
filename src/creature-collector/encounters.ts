@@ -11,76 +11,16 @@ export const CREATURE_PERSONALITIES: readonly CreaturePersonality[] = Object.fre
   'shy', 'calm', 'energetic', 'playful', 'stubborn', 'unpredictable', 'chaotic'
 ]);
 
-export type TrainerControlMode = 'sim' | 'erg' | 'target';
-
 /**
- * During an encounter, SIM resistance and virtual drivetrain slope targets
- * use flat terrain. Fixed-wattage target ERG retains its prescribed watts.
- * Caller must ramp the physical trainer smoothly and restore the actual
- * route grade when the encounter ends.
+ * Creature encounters are passive overlays on an uninterrupted ride.
+ *
+ * This module deliberately never owns FTMS, resistance, gradient,
+ * route position, speed, odometer, or ride samples. The existing ride engine
+ * continues to advance using the real route while a creature is visible.
+ *
+ * Future personality evaluation may read smoothed power telemetry but must
+ * never command or override trainer behavior.
  */
-export function encounterRoadGrade(
-  encounterActive: boolean,
-  routeGradePercent: number,
-  trainerMode: TrainerControlMode
-): number {
-  return encounterActive && trainerMode !== 'target' ? 0 : routeGradePercent;
-}
-
-export type CreatureRidePosition = {
-  /** Progress on the original GPX/generated route. Does not move during capture. */
-  routeMeters: number;
-  /** All traveled meters, INCLUDING flat encounter meters. Use for TCX export. */
-  rideMeters: number;
-  /** Current elevation on the original route; held constant during encounter. */
-  elevationMeters: number;
-  speedMps: number;
-  encounterActive: boolean;
-};
-
-export type RoadSpeedFn = (
-  speedMps: number,
-  watts: number,
-  dtSeconds: number,
-  road: {massKg: number; gradePercent: number; crr: number}
-) => number;
-
-export function beginFlatEncounter(position: CreatureRidePosition): CreatureRidePosition {
-  return {...position, encounterActive: true};
-}
-
-export function endFlatEncounter(position: CreatureRidePosition): CreatureRidePosition {
-  return {...position, encounterActive: false};
-}
-
-/**
- * Update physical ride distance and flywheel/road speed while holding the
- * authored route coordinates. Uses the SAME physics function as regular rides
- * but overrides grade to 0%. Tick this on real trainer telemetry; do not
- * substitute a fictitious fixed speed or count the distance twice on resume.
- */
-export function advanceFlatEncounter(
-  position: CreatureRidePosition,
-  elapsedSeconds: number,
-  watts: number,
-  road: {massKg: number; crr: number},
-  advanceRoadSpeed: RoadSpeedFn
-): CreatureRidePosition {
-  if (!position.encounterActive || !Number.isFinite(elapsedSeconds) || elapsedSeconds <= 0) return position;
-  const duration = Math.min(3, elapsedSeconds); // same stale-telemetry guard as the ride engine
-  const steps = Math.max(1, Math.ceil(duration / .05));
-  const dt = duration / steps;
-  let speed = Math.max(0, position.speedMps);
-  let ridden = position.rideMeters;
-  for (let i = 0; i < steps; i++) {
-    const oldSpeed = speed;
-    speed = Math.max(0, Math.min(35, advanceRoadSpeed(speed, Math.max(0, watts), dt, {
-      massKg: road.massKg, gradePercent: 0, crr: road.crr
-    })));
-    ridden += (oldSpeed + speed) * .5 * dt;
-  }
-  return {...position, speedMps: speed, rideMeters: ridden};
-}
 
 /** Hash-based, reproducible roll. Do not reroll when a ride restarts. */
 function roll(seed: number, block: number, salt: number): number {
