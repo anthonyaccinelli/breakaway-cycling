@@ -64,3 +64,9 @@ test('Field labels and values explicitly use dark text to defeat global white-la
  assert.match(css,/-webkit-text-fill-color:#112d32!important;/);
  assert.match(css,/color-scheme:light!important;/);
 });
+
+test('Total Elevation stays compact in Pedalkin and restores in other modes',()=>{
+ assert.match(route,/elevationLabelText\.textContent='Total Elevation'/);
+ assert.match(route,/elevationLabelText\.textContent=originalElevationLabel/);
+ assert.match(route,/elevationInput\.title='Total elevation gain \(feet\)'/);
+});
