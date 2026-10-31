@@ -21,17 +21,33 @@ test('ride uses the two exact 1920x1080 Illustrator artboards rather than a redr
  assert.doesNotMatch(encounter,/WILD PEDALKIN ART/);
 });
 
-test('latest Illustrator artboards load the same forest scene shown in the reference screenshot',()=>{
+test('both Illustrator artboards use the shipped working pixel forest rather than broken JPEG',async()=>{
+ const forest=await readFile(new URL('../public/pedalkin/forest-placeholder.svg',import.meta.url),'utf8');
+ assert.match(forest,/<svg[^>]+viewBox="0 0 512 288"/);
+ assert.match(forest,/shape-rendering="crispEdges"/);
+ assert.match(forest,/<title>Pixelated pine forest clearing placeholder for Pedalkin<\/title>/);
  for(const svg of [explore,encounter]){
-  assert.match(svg,/xlink:href="\/pedalkin\/forest\.jpg"/);
-  assert.doesNotMatch(svg,/(explorescreen-1|encounter2-1)\.png/);
+  assert.match(svg,/xlink:href="\/pedalkin\/forest-placeholder\.svg"/);
+  assert.doesNotMatch(svg,/xlink:href="\/pedalkin\/forest\.jpg"/);
  }
 });
-test('encounter has exactly a 460 by 370 crab centered where the white bounding box was',()=>{
+test('encounter retains a 460x370 crab; both artboards replace green buddy circle with crab',()=>{
  assert.match(encounter,/<image id="pk-encounter-crab" x="730" y="355" width="460" height="370"/);
- assert.match(encounter,/xlink:href="data:image\/png;base64,/);
- assert.doesNotMatch(encounter,/<rect class="st4" x="725" y="360" width="470" height="360"/);
+ for(const svg of [explore,encounter]){
+  assert.match(svg,/<image id="pk-buddy-crab" x="1664" y="605" width="120" height="98"/);
+  assert.doesNotMatch(svg,/<circle class="st\d+" cx="1724" cy="655\.8" r="37"/);
+  assert.doesNotMatch(svg,/BUDDY ART/);
+  assert.match(svg,/xlink:href="data:image\/png;base64,/);
+ }
  assert.doesNotMatch(explore,/id="pk-encounter-crab"/);
+});
+test('four menu hotspots remain interactive without legacy blue button rectangles',()=>{
+ assert.match(style,/body\.pk-riding #screenRide \.pk-ride-host button\.pk-hitspot/);
+ assert.match(style,/opacity:0!important;/);
+ assert.match(style,/background:transparent!important;/);
+ assert.match(style,/box-shadow:none!important;/);
+ assert.match(style,/button\.pk-hitspot:focus-visible/);
+ assert.equal((view.match(/class="pk-hitspot /g)||[]).length,4);
 });
 test('both states retain vector typography and panel geometry after inserting crab',()=>{
  assert((explore.match(/<text\b/g)||[]).length>=40);
