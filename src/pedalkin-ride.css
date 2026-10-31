@@ -66,3 +66,30 @@ body.pk-riding #screenRide>.survive-game-hud{display:none!important}
  .pk-ride-host:has(.pk-demo-bar) .pk-ride-stage{width:min(100vw,calc((100dvh - 104px) * 16 / 9))}
  .pk-demo-buttons>button{font-size:11px;padding:6px 8px}
 }
+
+/* Invisible, accessible hit targets for the existing Illustrator menu labels.
+   Breakaway's legacy global button styles were bleeding through as four blue
+   rectangles. Keep the menu art unobscured; buttons remain keyboard clickable. */
+body.pk-riding #screenRide .pk-ride-host button.pk-hitspot,
+body.pk-riding #screenRide .pk-ride-host button.pk-hitspot:hover,
+body.pk-riding #screenRide .pk-ride-host button.pk-hitspot:active {
+ position:absolute!important;
+ appearance:none!important;
+ opacity:0!important;
+ background:transparent!important;
+ background-image:none!important;
+ color:transparent!important;
+ border:0!important;
+ box-shadow:none!important;
+ text-shadow:none!important;
+ outline:0!important;
+ padding:0!important;
+ min-width:0!important;
+ min-height:0!important;
+ transform:none!important;
+}
+body.pk-riding #screenRide .pk-ride-host button.pk-hitspot:focus-visible {
+ opacity:1!important;
+ outline:3px dashed #f8db99!important;
+ outline-offset:1px!important;
+}
