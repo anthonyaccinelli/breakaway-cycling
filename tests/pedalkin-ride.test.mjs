@@ -21,13 +21,17 @@ test('ride uses the two exact 1920x1080 Illustrator artboards rather than a redr
  assert.doesNotMatch(encounter,/WILD PEDALKIN ART/);
 });
 
-test('encounter contains precisely 460 by 370 pixel crab and a smaller buddy in both states',()=>{
- assert.match(encounter,/<image x="720" y="245" width="460" height="370"/);
- assert.match(encounter,/<image x="1677" y="614" width="96" height="83"/);
- assert.match(explore,/<image x="1677" y="614" width="96" height="83"/);
+test('latest Illustrator artboards load the same forest scene shown in the reference screenshot',()=>{
+ for(const svg of [explore,encounter]){
+  assert.match(svg,/xlink:href="\/pedalkin\/forest\.jpg"/);
+  assert.doesNotMatch(svg,/(explorescreen-1|encounter2-1)\.png/);
+ }
+});
+test('encounter has exactly a 460 by 370 crab centered where the white bounding box was',()=>{
+ assert.match(encounter,/<image id="pk-encounter-crab" x="730" y="355" width="460" height="370"/);
  assert.match(encounter,/xlink:href="data:image\/png;base64,/);
- assert.doesNotMatch(encounter,/encounter2-1.png/);
- assert.doesNotMatch(explore,/explorescreen-1.png/);
+ assert.doesNotMatch(encounter,/<rect class="st4" x="725" y="360" width="470" height="360"/);
+ assert.doesNotMatch(explore,/id="pk-encounter-crab"/);
 });
 test('both states retain vector typography and panel geometry after inserting crab',()=>{
  assert((explore.match(/<text\b/g)||[]).length>=40);
