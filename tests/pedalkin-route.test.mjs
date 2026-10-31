@@ -47,7 +47,8 @@ test('Pedalkin has one visible upload action; the native chooser stays attached 
 test('Difficulty is not a visible Pedalkin field; generator still retains the original select',()=>{
  assert.match(route,/const hiddenDifficulty=difficulty\?\.closest<HTMLElement>\('label'\)/);
  assert.match(route,/move\(hiddenDifficulty!,hiddenControls\)/);
- assert.doesNotMatch(route,/\.remove\(\)/);
+ assert.match(route,/home\.replaceWith\(node\)/);
+ assert.doesNotMatch(route,/hidden(?:Upload|Difficulty)\??\.remove\(\)/);
 });
 
 test('Terrain, miles and gain align in three columns, with the seed and lock below',()=>{
