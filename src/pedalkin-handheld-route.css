@@ -152,7 +152,7 @@ body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-route-stats>div{
 body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-route-stats b{
  display:inline-block!important;flex:0 1 auto!important;min-width:0!important;
  max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;
- color:#10191d!important;font:700 inherit!important;
+ color:#10191d!important;font-weight:700!important;font-family:Arial,Helvetica,sans-serif!important;font-size:inherit!important;
  white-space:nowrap!important;
 }
 body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-live-chart{
