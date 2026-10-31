@@ -22,7 +22,7 @@ test('new collector includes Chaotic without altering the existing RPG', () => {
 
 test('collector encounter engine never overrides route progression or trainer load', async () => {
   const source = await readFile(new URL('../src/creature-collector/encounters.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(source, /\\b(?:setGrade|encounterRoadGrade|beginFlatEncounter|endFlatEncounter|advanceFlatEncounter|cycleQuestHold|routeMeters|rideMeters|setVirtualGearResistance)\\b/);
+  assert.doesNotMatch(source, /\b(?:setGrade|encounterRoadGrade|beginFlatEncounter|endFlatEncounter|advanceFlatEncounter|cycleQuestHold|routeMeters|rideMeters|setVirtualGearResistance)\b/);
   assert.match(source, /passive overlays on an uninterrupted ride/);
 });
 
