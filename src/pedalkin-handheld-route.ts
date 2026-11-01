@@ -53,6 +53,7 @@ export function mountPedalkinHandheldRoute():void {
       <div>Distance: <b data-pk-stat="miles">—</b></div>
       <div>Elevation gain: <b data-pk-stat="gain">—</b></div>
       <div>Terrain: <b data-pk-stat="terrain">—</b></div>
+      <div>Biome: <b data-pk-stat="biome">Pine Forest</b></div>
       <div>Est. Time: <b data-pk-stat="time">—</b></div>
       <div>Steepest Grade: <b data-pk-stat="grade">—</b></div>
     </div>
@@ -67,7 +68,7 @@ export function mountPedalkinHandheldRoute():void {
       <button class="pk-v2-hit pk-v2-rolling" type="button">Rolling 45</button>
       <button class="pk-v2-hit pk-v2-climbing" type="button">Climbing 60</button>
     </div>
-    <button class="pk-v2-hit pk-v2-next" type="button" aria-label="Ready for your adventure? Optional trainer connection"></button>
+    <button class="pk-v2-hit pk-v2-next" type="button" aria-label="Ready for your adventure? Begin your ride"></button>
     <button class="pk-v2-hit pk-v2-nav-route" type="button" aria-label="01 Route (current)" aria-current="page"></button>
     <button class="pk-v2-hit pk-v2-nav-devices" type="button" aria-label="02 Devices"></button>
     <button class="pk-v2-hit pk-v2-nav-ride" type="button" aria-label="03 Ride"></button>
@@ -124,7 +125,7 @@ export function mountPedalkinHandheldRoute():void {
  doAction('.pk-v2-generate',original.generate);
  doAction('.pk-v2-surprise',original.surprise);
  doAction('.pk-v2-endless',original.endless);
- doAction('.pk-v2-next',original.next);
+ doAction('.pk-v2-next',get('stepRide'));
  doAction('.pk-v2-nav-route',get('stepRoute'));
  doAction('.pk-v2-nav-devices',get('stepSetup'));
  doAction('.pk-v2-nav-ride',get('stepRide'));
@@ -144,6 +145,7 @@ export function mountPedalkinHandheldRoute():void {
  }
  const labels=['studioPreviewMiles','studioPreviewGain','studioDifficulty','studioEstimatedTime','studioSteepestGrade'];
  const keys=['miles','gain','terrain','time','grade'];
+ const biomeStat=at<HTMLElement>('[data-pk-stat="biome"]');
  const stats=keys.map((key,i)=>({node:at<HTMLElement>('[data-pk-stat="'+key+'"]'),real:get(labels[i])}));
  const chartNode=at<HTMLElement>('.pk-v2-live-chart');
  const scrubNode=at<HTMLElement>('.pk-v2-scrub');
@@ -160,6 +162,7 @@ export function mountPedalkinHandheldRoute():void {
   const terrainStat=at<HTMLElement>('[data-pk-stat="terrain"]');
   terrainStat.textContent=terrainLabel;
   terrainStat.title=terrainLabel;
+  biomeStat.textContent=biomeSelect.selectedOptions[0]?.textContent?.replace(/ — Soon\*$/,'')||'Pine Forest';
   const chart=original.chart!.querySelector('svg');
   if(chart){
    const clone=chart.cloneNode(true) as SVGSVGElement;
