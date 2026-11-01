@@ -219,3 +219,29 @@ test('Full-screen preview cycles through exploration, diverse encounters, captur
  assert.match(view,/if\(playingPreview\)\{demoKm=0;nextEncounterKm=1\.35;\}/);
  assert.match(view,/showPlaytestControls=demo&&!playingPreview/);
 });
+
+test('Encounter and Exploration share precisely aligned chrome after runtime normalization',()=>{
+ // Values from both original Illustrator artboards, not approximate pixels.
+ const leftY=(xml)=>Number(xml.match(/<rect[^>]*x="24" y="(\d+(?:\.\d+)?)" width="304" height="99\.3"/)?.[1]);
+ const rightY=(xml)=>Number(xml.match(/<rect[^>]*x="1552" y="(\d+(?:\.\d+)?)" width="344"/)?.[1]);
+ const bottom=(xml)=>xml.match(/<rect[^>]*x="24" y="(\d+(?:\.\d+)?)" width="1272" height="(\d+(?:\.\d+)?)"/).slice(1).map(Number);
+ const logoY=(xml)=>Number(xml.match(/<rect[^>]*x="746\.3" y="(\d+(?:\.\d+)?)" width="427\.3"/)?.[1]);
+ assert.equal(leftY(explore)-leftY(encounter),2);
+ assert.equal(rightY(explore)-rightY(encounter),3);
+ assert.equal(bottom(explore)[0]-bottom(encounter)[0],4.2);
+ assert.equal(bottom(explore)[1],219.8);
+ assert.equal(bottom(encounter)[1],224);
+ assert.ok(Math.abs(logoY(explore)-logoY(encounter)-3.9)<1e-6);
+ assert.match(view,/function alignEncounterChrome\(svg:SVGSVGElement\)/);
+ assert.match(view,/if\(stageName!=='encounter'\)return/);
+ assert.match(view,/dy=2; \/\/ power/);
+ assert.match(view,/dy=3; \/\/ wildness/);
+ assert.match(view,/dy=3\.9; \/\/ center/);
+ assert.match(view,/dy=4\.2; \/\/ two bottom boxes/);
+ assert.match(view,/if\(el\.tagName\.toLowerCase\(\)==='text'&&left>=45&&left<1290\)dx=-12/);
+ assert.match(view,/panel\.setAttribute\('height','219\.8'\)/);
+ assert.match(view,/if\(svg\)alignEncounterChrome\(svg\)/);
+ // User-authored SVGs stay exactly as supplied rather than mutated.
+ assert.match(encounter,/viewBox="0 0 1920 1080"/);
+ assert.match(explore,/viewBox="0 0 1920 1080"/);
+});
