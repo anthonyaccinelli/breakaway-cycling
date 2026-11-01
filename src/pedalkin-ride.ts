@@ -1,4 +1,7 @@
 import './pedalkin-ride.css';
+import {choosePineForestSpokemon,nextPreviewSpokemon} from './pedalkin-creatures';
+import type {SpokemonSpecies} from './pedalkin-creatures';
+import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
 
 type PedalkinRideFrame={
  distanceMeters:number;
@@ -18,7 +21,7 @@ export function mountPedalkinRide():void {
  const ride=document.getElementById('screenRide');
  if(!ride)return;
  const previewChoice=new URLSearchParams(location.search).get('pedalkinPreview');
- const playingPreview=previewChoice==='playing';
+ const playingPreview=previewChoice==='playing'||previewChoice==='encounters';
  const demo=playingPreview||['route','setup','ride','encounter','explore'].includes(previewChoice||'');
  // The full-screen gameplay view shows no developer controls, but the route
  // marker and illustrative data still animate without a trainer connection.
@@ -62,6 +65,11 @@ export function mountPedalkinRide():void {
  let patience=48;
  let outcome:'captured'|'escaped'|null=null;
  let lastEncounterTick=0;
+ let currentSpecies:SpokemonSpecies=nextPreviewSpokemon(0);
+ let encounterCount=0;
+ let nextEncounterKm=1.35;
+ let resolveAfter=0;
+ let demoOutcomeIsEscape=false;
  const demoTotalKm=25;
  let demoKm=0;
  let demoPlaying=demo;
@@ -96,20 +104,40 @@ export function mountPedalkinRide():void {
  }
  function updateCapture(){
   if(stageName!=='encounter')return;
+  const name=currentSpecies.name;
+  const mood=currentSpecies.personality;
+  const prompts:Record<SpokemonSpecies['personality'],string>={
+   shy:'Keep an easy, steady rhythm so it feels safe.',
+   curious:'Stay relaxed and let it come closer.',
+   stubborn:'Keep a smooth pace and be patient.',
+   gentle:'Ride comfortably and let it settle.',
+   playful:'Stay steady while it plays alongside you.',
+  };
   updateText('48%',Math.max(0,Math.round(wildness))+'%');
   updateText('48 s',Math.max(0,Math.round(patience))+' s');
-  // The exact author artboard stays intact; change only two bar widths.
   const svg=slot.querySelector('svg');
+  // Preserve Illustrator geometry and update only the visible fill length.
   const colored=Array.from(svg?.querySelectorAll<SVGRectElement>('rect')||[]);
-  const red=colored.find(el=>el.getAttribute('fill')==='#cf716e' || el.classList.contains('st7') || el.classList.contains('st8'));
-  if(red){const original=Number(red.dataset.pkFullWidth||red.getAttribute('width')||0);if(!red.dataset.pkFullWidth)red.dataset.pkFullWidth=String(original); if(original>40&&original<260)red.setAttribute('width',String(original*Math.max(0,wildness)/48));}
-  if(outcome==='captured'){
-    updateText('A wild Mossprout appeared!','The crab joined your collection!');
-    updateText('Keep a steady pace to calm it down.','What a wonderful new friend!');
-  }else if(outcome==='escaped'){
-    updateText('A wild Mossprout appeared!','The crab wandered away.');
-    updateText('Keep a steady pace to calm it down.','Keep riding to discover another.');
+  const red=colored.find(el=>el.getAttribute('fill')==='#cf716e'||el.classList.contains('st7')||el.classList.contains('st8'));
+  if(red){
+   const original=Number(red.dataset.pkFullWidth||red.getAttribute('width')||0);
+   if(!red.dataset.pkFullWidth)red.dataset.pkFullWidth=String(original);
+   if(original>40&&original<260)red.setAttribute('width',String(original*Math.max(0,wildness)/48));
   }
+  const oldHeadline='A wild Mossprout appeared!';
+  const oldPrompt='Keep a steady pace to calm it down.';
+  if(outcome==='captured'){
+   updateText(oldHeadline,name+' joined your collection!');
+   updateText(oldPrompt,'What a wonderful new friend!');
+  }else if(outcome==='escaped'){
+   updateText(oldHeadline,name+' wandered away.');
+   updateText(oldPrompt,'Keep riding to discover another.');
+  }else{
+   updateText(oldHeadline,'A wild '+name+' appeared!');
+   updateText(oldPrompt,prompts[mood]);
+  }
+  const rarityText=svg?.querySelector<SVGTextElement>('#pk-creature-rarity');
+  if(rarityText)rarityText.textContent=currentSpecies.rarity.toUpperCase()+' · '+mood.toUpperCase();
  }
  function updateActualReadouts(){
   if(demo||!active())return;
@@ -230,13 +258,35 @@ export function mountPedalkinRide():void {
   if(profileBar)profileBar.hidden=stageName!=='explore';
   if(profileToggle)profileToggle.textContent=demoPlaying?'Pause preview':'Play preview';
  }
+ function beginEncounter(){
+  if(stageName==='encounter')return;
+  currentSpecies=demo?nextPreviewSpokemon(encounterCount):choosePineForestSpokemon();
+  encounterCount++;
+  demoOutcomeIsEscape=demo&&encounterCount%4===0;
+  stageName='encounter';wildness=48;patience=48;outcome=null;
+  resolveAfter=0;lastEncounterTick=0;
+  render();
+ }
+ function closeEncounter(){
+  stageName='explore';
+  nextEncounterKm=demoKm+2.15;
+  resolveAfter=0;
+  lastEncounterTick=0;
+  render();
+ }
  function animateDemo(now:number){
   if(!active()){demoAnimationFrame=0;previousAnimationAt=0;return;}
   if(previousAnimationAt>0&&demoPlaying){
    const delta=Math.min(100,Math.max(0,now-previousAnimationAt));
    // Entire 25 km illustrated profile takes 80 seconds in fast-forward.
    demoKm=Math.min(demoTotalKm,demoKm+demoTotalKm*delta/80000);
-   if(demoKm>=demoTotalKm)demoPlaying=false;
+   if(demoKm>=demoTotalKm){
+    // Loop this no-trainer story preview so all twelve encounter concepts
+    // can eventually appear instead of stopping at a static end screen.
+    if(playingPreview){demoKm=0;nextEncounterKm=1.35;}
+    else demoPlaying=false;
+   }
+   if(playingPreview&&stageName==='explore'&&demoKm>=nextEncounterKm)beginEncounter();
    paintRiderOnProfile();
    updateProfileControls();
   }
@@ -281,6 +331,18 @@ export function mountPedalkinRide():void {
   if(stageName==='explore'){
    if(!demo&&liveFrame)paintRealElevation(liveFrame);
    paintRiderOnProfile();
+  }else if(svg){
+   // Future species will replace this temporary visual with approved art.
+   addWorkingCreatureSilhouette(svg,currentSpecies);
+   const ns='http://www.w3.org/2000/svg';
+   const rarityLabel=document.createElementNS(ns,'text');
+   rarityLabel.setAttribute('id','pk-creature-rarity');
+   rarityLabel.setAttribute('x','960');rarityLabel.setAttribute('y','348');
+   rarityLabel.setAttribute('text-anchor','middle');
+   rarityLabel.setAttribute('font-family','Courier New,monospace');
+   rarityLabel.setAttribute('font-size','19');rarityLabel.setAttribute('font-weight','bold');
+   rarityLabel.setAttribute('fill','#fbe6c6');
+   svg.append(rarityLabel);
   }
   updateProfileControls();
   updateCapture();
@@ -288,7 +350,12 @@ export function mountPedalkinRide():void {
   host.querySelectorAll<HTMLButtonElement>('[data-pk-demo]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pkDemo===stageName)));
  }
  function show(which:'explore'|'encounter'){
-  stageName=which;wildness=48;patience=48;outcome=null;render();
+  if(which==='encounter'){
+   stageName='explore';
+   beginEncounter();
+  }else{
+   stageName='explore';wildness=48;patience=48;outcome=null;render();
+  }
  }
  function pedal(seconds:number){
   if(stageName!=='encounter'||outcome)return;
@@ -330,7 +397,7 @@ export function mountPedalkinRide():void {
    if(action==='explore'||action==='encounter')show(action);
    if(action==='pedal')pedal(15);
    if(action==='escape'){patience=0;outcome='escaped';render();}
-   if(action==='reset'){demoKm=0;demoPlaying=true;previousAnimationAt=0;show(stageName);}
+   if(action==='reset'){demoKm=0;demoPlaying=true;previousAnimationAt=0;encounterCount=0;nextEncounterKm=1.35;show('explore');}
   });
  });
  host.querySelectorAll<HTMLButtonElement>('[data-pk-action]').forEach(button=>button.addEventListener('click',()=>{
@@ -354,10 +421,25 @@ export function mountPedalkinRide():void {
  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-ride-experience','data-breakaway-screen']});
  window.setInterval(()=>{
   if(!active())return;
-  if(stageName==='encounter'&&demo&&!outcome){
-   const now=Date.now();
-   if(lastEncounterTick>0&&now-lastEncounterTick>=1000){patience=Math.max(0,patience-1);if(!patience)outcome='escaped';render();}
-   lastEncounterTick=now;
+  if(stageName==='encounter'&&demo){
+   if(!outcome){
+    // The full-screen showcase simulates calm Zone 2 progress for preview
+    // only. Every fourth encounter demonstrates an escape. Real capture
+    // behavior will be wired to measured power/cadence separately.
+    if(demoOutcomeIsEscape&&playingPreview){
+     patience=Math.max(0,patience-9);
+     wildness=Math.max(1,wildness-1);
+    }else{
+     patience=Math.max(0,patience-3);
+     wildness=Math.max(0,wildness-10);
+    }
+    if(wildness<=0)outcome='captured';
+    else if(patience<=0)outcome='escaped';
+    if(outcome)resolveAfter=Date.now()+2100;
+    render();
+   }else if(playingPreview&&Date.now()>=resolveAfter){
+    closeEncounter();
+   }
   }else{lastEncounterTick=0;updateActualReadouts();}
  },1000);
  sync();
