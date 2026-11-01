@@ -139,13 +139,14 @@ export function mountPedalkinOverlayPreview():void{
    return;
   }
   try{
-   pip=await (window as any).documentPictureInPicture.requestWindow({width:1200,height:170});
-   const style=pip.document.createElement('style');style.textContent=PEDALKIN_OVERLAY_CSS+`
+   const opened=await (window as any).documentPictureInPicture.requestWindow({width:1200,height:170}) as Window;
+   pip=opened;
+   const style=opened.document.createElement('style');style.textContent=PEDALKIN_OVERLAY_CSS+`
     *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%}
     body{overflow:hidden!important}.tile{grid-column:auto;grid-row:auto}
     #overlayContent{height:100%;width:100%}`;
-   pip.document.head.append(style);
-   pip.document.body.classList.add('pedalkin-overlay-theme');
+   opened.document.head.append(style);
+   opened.document.body.classList.add('pedalkin-overlay-theme');
    refresh();
   }catch{alert('The browser could not open the always-on-top preview.');}
  });
