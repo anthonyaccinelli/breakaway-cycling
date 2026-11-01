@@ -34,7 +34,7 @@ test('Native Illustrator metric fill paths and trust bars update without cover r
  assert.match(source,/rect\[x="1588.33"\]\[y="383.9"\]/);
 });
 test('Generated elevation masks exact profile area and leaves forest untouched',()=>{
- assert.match(source,/minX=380\.12,maxX=1540\.12,top=435\.42,bottom=810\.72/);
+ assert.match(source,/minX=385\.12,maxX=1535\.12,top=435\.42,bottom=805\.72/);
  assert.match(source,/const samples=route\?\.samples\|\|Array\.from/);
  assert.match(source,/const endLabel=text\(root,1520,766/);
  assert.match(source,/endLabel\.setAttribute\('text-anchor','end'\)/);
@@ -53,4 +53,20 @@ test('Elevation bands and horizontal scanlines both use the SAME closed silhouet
  assert.doesNotMatch(chart,/rect\(root,x1/);
  assert.doesNotMatch(chart,/line\(root,minX,y,maxX,y/);
  assert.ok(chart.indexOf('root.appendChild(clipped)')<chart.lastIndexOf("root.appendChild(make('path',{d:silhouette"),'cream contour should be drawn on top');
+});
+
+test('Chart stays inside the exact 10-unit cream frame, including border and rider marker',()=>{
+ const start=source.indexOf(' function drawProfile(');
+ const end=source.indexOf(' function paint()',start);
+ const chart=source.slice(start,end);
+ assert.ok(start>=0&&end>start);
+ assert.match(chart,/const minX=385\.12,maxX=1535\.12,top=435\.42,bottom=805\.72,width=maxX-minX/);
+ assert.match(chart,/clipPath',\{id:'pk-spokemon-frame-clip',clipPathUnits:'userSpaceOnUse'\}/);
+ assert.match(chart,/const plot=make\('g',\{'clip-path':'url\(#pk-spokemon-frame-clip\)'\}\)/);
+ assert.match(chart,/rect\(plot,minX,top,width,bottom-top,'#102e35'\)/);
+ assert.match(chart,/plot\.appendChild\(clipped\)/);
+ assert.match(chart,/plot\.appendChild\(make\('path',\{d:silhouette/);
+ assert.match(chart,/line\(plot,x,top\+9,x,bottom-5/);
+ assert.doesNotMatch(chart,/rect\(root,minX/);
+ assert.doesNotMatch(chart,/line\(root,x,top\+9/);
 });
