@@ -588,20 +588,31 @@ export function mountPedalkinRide():void {
    case 'buddy':popupOpen('YOUR BUDDY','Crab · companionship 12. Buddy management will live here.');break;
    case 'stats':popupOpen('RIDE STATS',demo?'Design playtest: these sample numbers are not ride data.':'Your real ride data continues to be recorded by Breakaway.');break;
    case 'save':
+    if(exactArtwork){
+     if(playable?.isSimulating()){popupOpen('TEST RIDE','Test rides are not recorded. Your collected Spokemon are saved on this device. Return through 01 Route when finished.');break;}
+     if(!playable){popupOpen('SAVE & CLOSE','Game is loading.');break;}
+     finishThroughNative();break;
+    }
     if(demo){(document.getElementById('stepRoute') as HTMLButtonElement|null)?.click();break;}
     popupOpen('SAVE & CLOSE','Use the existing Finish Ride control to save your ride; this preview does not auto-finish it.');break;
   }
  }));
+ function finishThroughNative(){
+  const finish=document.getElementById('rideFinishNow') as HTMLButtonElement|null;
+  if(!finish||finish.disabled){popupOpen('SAVE & CLOSE','A recorded ride is not active. To test without a trainer, use Game Controls → Test Ride.');return;}
+  // Expose native Breakaway finish confirmation over the game viewport.
+  host.hidden=true;document.body.classList.remove('pk-riding');finish.click();
+ }
+ document.addEventListener('click',event=>{
+  const clicked=event.target as HTMLElement|null;
+  if(clicked?.closest('#manualKeepRiding'))requestAnimationFrame(()=>{
+   if(active()){host.hidden=false;document.body.classList.add('pk-riding');playable?.paint();}
+  });
+ },true);
  if(exactArtwork)playable=mountSpokemonPlayable({
   host,slot,active,getScene:()=>stageName,
   switchScene:(which,species)=>{stageName=which;if(species)currentSpecies=species;render();},
-  onFinishRide:()=>{
-   // Reveal Breakaway's native finish confirmation and save dialog rather
-   // than forging a session file from the game layer.
-   host.hidden=true;
-   document.body.classList.remove('pk-riding');
-   document.getElementById('rideFinishNow')?.click();
-  }
+  onFinishRide:finishThroughNative
  });
  function sync(){
   const on=active();host.hidden=!on;
