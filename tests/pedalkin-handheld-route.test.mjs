@@ -36,7 +36,8 @@ test('user-supplied full handheld image appears as sole art layer with aligned c
  assert.match(css,/container-type:inline-size/);
  assert.match(css,/\.pk-v2-actions-grid\{/);
  assert.match(css,/\.pk-v2-nav-devices\{/);
- assert.match(css,/\.pk-v2-pad-a\{/);
+ assert.doesNotMatch(code,/pk-v2-pad-[abxy]/);
+ assert.doesNotMatch(css,/\.pk-v2-pad-[abxy]\{/);
  assert.match(css,/#0f292f/);
  assert.match(css,/\.pk-v2-route-stats/);
  assert.match(css,/\.pk-v2-live-chart/);
@@ -98,4 +99,31 @@ test('route buttons share one six-child three-column two-row grid and equal dime
  assert.match(css,/\.pk-v2-actions-grid>button:nth-child\(-n\+3\)/);
  assert.doesNotMatch(css,/\.pk-v2-generate\{left:/);
  assert.doesNotMatch(css,/\.pk-v2-generate:after/);
+});
+
+test('Distance, elevation and route seed inputs fill their underlying Illustrator gray boxes',()=>{
+ for(const [field,geometry] of [
+  ['pk-v2-miles',/left:30\.511%!important;top:30\.054%!important;width:8\.985%!important;height:4\.28%!important/],
+  ['pk-v2-gain',/left:30\.62%!important;top:37\.34%!important;width:18\.79%!important;height:4\.17%!important/],
+  ['pk-v2-seed',/left:30\.57%!important;top:44\.43%!important;width:15\.20%!important;height:4\.12%!important/]
+ ]){
+  assert.match(css, new RegExp('> input\\.'+field+'\\{'));
+  assert.match(css,geometry);
+ }
+ assert.match(css,/input\[type=number\]::-webkit-inner-spin-button/);
+ assert.match(css,/-moz-appearance:textfield!important/);
+ assert.match(css,/pointer-events:auto!important/);
+ assert.match(css,/box-sizing:border-box!important/);
+});
+
+test('A B X Y remain original artwork only; route navigation has no square yellow hover',()=>{
+ for(const face of ['a','b','x','y']){
+  assert.doesNotMatch(code,new RegExp('class="pk-v2-hit pk-v2-pad-'+face+'"'));
+  assert.doesNotMatch(code,new RegExp("doAction\\('\\.pk-v2-pad-"+face+"'"));
+ }
+ assert.match(css,/button\.pk-v2-nav-route:hover/);
+ assert.match(css,/button\.pk-v2-nav-overlay:hover/);
+ assert.match(css,/box-shadow:none!important/);
+ assert.match(css,/border-radius:1\.95cqw!important/);
+ assert.match(code,/doAction\('\.pk-v2-nav-devices'/);
 });
