@@ -127,3 +127,35 @@ test('A B X Y remain original artwork only; route navigation has no square yello
  assert.match(css,/border-radius:1\.95cqw!important/);
  assert.match(code,/doAction\('\.pk-v2-nav-devices'/);
 });
+
+test('Biome dropdown lists the eight proposed environments with Pine Forest as the only playable one',()=>{
+ const expected=[
+  ['pine-forest','Pine Forest',true],
+  ['coastal-shore','Coastal Shore',false],
+  ['wildflower-meadow','Wildflower Meadow',false],
+  ['ancient-rainforest','Ancient Rainforest',false],
+  ['misty-wetlands','Misty Wetlands',false],
+  ['high-desert','High Desert',false],
+  ['volcanic-fields','Volcanic Fields',false],
+  ['alpine-highlands','Alpine Highlands',false],
+ ];
+ const declarations=code.match(/const PEDALKIN_BIOMES=\[([\s\S]*?)\] as const;/)?.[1]||'';
+ assert.equal((declarations.match(/\{id:/g)||[]).length,8);
+ for(const [id,name,available] of expected){
+  assert(declarations.includes(`{id:'${id}',name:'${name}',available:${available}}`),name);
+ }
+ assert.equal((declarations.match(/available:true/g)||[]).length,1);
+ assert.equal((declarations.match(/available:false/g)||[]).length,7);
+ assert.match(code,/option\.disabled=!biome\.available/);
+ assert.match(code,/\`\$\{biome.name\} — Soon\*\`/);
+ assert.match(code,/biomeSelect\.value='pine-forest'/);
+ assert.match(code,/aria-label="Biome"/);
+});
+test('Biome selection stays separate from physical route terrain to preserve seeded routes and presets',()=>{
+ assert.match(code,/route\.dataset\.pedalkinBiome='pine-forest'/);
+ assert.doesNotMatch(code,/real:original\.terrain!/);
+ assert.doesNotMatch(code,/Array\.from\(original\.terrain!\.options\)/);
+ assert.match(code,/original\.terrain!\.selectedOptions\[0\]/);
+ assert.match(code,/real\.dispatchEvent\(new Event\('change'/);
+ assert.match(code,/\.quick-preset-button/);
+});
