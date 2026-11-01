@@ -62,7 +62,7 @@ export function mountPedalkinRide():void {
  let explored:string|null=null;
  let encounterSvg:string|null=null;
  let stageName:'explore'|'encounter'=previewChoice==='encounter'?'encounter':'explore';
- let wildness=48;
+ let trust=0;
  let patience=48;
  let outcome:'captured'|'escaped'|null=null;
  let lastEncounterTick=0;
@@ -114,17 +114,14 @@ export function mountPedalkinRide():void {
    gentle:'Ride comfortably and let it settle.',
    playful:'Stay steady while it plays alongside you.',
   };
-  updateText('48%',Math.max(0,Math.round(wildness))+'%');
+  updateText('48%',Math.max(0,Math.round(trust))+'%');
   updateText('48 s',Math.max(0,Math.round(patience))+' s');
   const svg=slot.querySelector('svg');
   // Preserve Illustrator geometry and update only the visible fill length.
-  const colored=Array.from(svg?.querySelectorAll<SVGRectElement>('rect')||[]);
-  const red=colored.find(el=>el.getAttribute('fill')==='#cf716e'||el.classList.contains('st7')||el.classList.contains('st8'));
-  if(red){
-   const original=Number(red.dataset.pkFullWidth||red.getAttribute('width')||0);
-   if(!red.dataset.pkFullWidth)red.dataset.pkFullWidth=String(original);
-   if(original>40&&original<260)red.setAttribute('width',String(original*Math.max(0,wildness)/48));
-  }
+  // Original Illustrator artwork shows 48%, with a 138.6px fill.
+  // The full 100% track is 138.6/0.48 = 288.75px, within the panel.
+  const bar=svg?.querySelector<SVGRectElement>('rect[x="1592.9"][y="199.3"]');
+  if(bar)bar.setAttribute('width',(288.75*Math.max(0,Math.min(100,trust))/100).toFixed(2));
   const oldHeadline='A wild Mossprout appeared!';
   const oldPrompt='Keep a steady pace to calm it down.';
   if(outcome==='captured'){
@@ -376,7 +373,7 @@ export function mountPedalkinRide():void {
   currentSpecies=demo?nextPreviewSpokemon(encounterCount):choosePineForestSpokemon();
   encounterCount++;
   demoOutcomeIsEscape=demo&&encounterCount%4===0;
-  stageName='encounter';wildness=48;patience=48;outcome=null;
+  stageName='encounter';trust=0;patience=48;outcome=null;
   resolveAfter=0;lastEncounterTick=0;
   render();
  }
@@ -435,43 +432,6 @@ export function mountPedalkinRide():void {
   * Measured reference: Exploration left panels y=95, right y=98.2,
   * bottom y=836.2, logo y=21.5. Encounter: 93, 95.2, 832, 17.6.
   */
- function alignEncounterChrome(svg:SVGSVGElement){
-  if(stageName!=='encounter')return;
-  const bounds=svg.getBoundingClientRect();
-  if(bounds.width<=0||bounds.height<=0)return;
-  const xFactor=1920/bounds.width,yFactor=1080/bounds.height;
-  const artboardElements=svg.querySelectorAll<SVGGraphicsElement>('rect,path,line,circle,ellipse,polygon,polyline,image,text');
-  artboardElements.forEach(el=>{
-   // Bounding client boxes include Illustrator text transforms, whereas
-   // SVG getBBox() does not account for the text translate(...) position.
-   const box=el.getBoundingClientRect();
-   if(!box.width&&!box.height)return;
-   const left=(box.left-bounds.left)*xFactor;
-   const right=(box.right-bounds.left)*xFactor;
-   const top=(box.top-bounds.top)*yFactor;
-   const bottom=(box.bottom-bounds.top)*yFactor;
-   let dx=0,dy=0;
-   if(left>=0&&right<=350&&top>=80&&top<820){
-    dy=2; // power, heart rate, cadence, speed, grade, calories
-   }else if(left>=1540&&right<=1918&&top>=80&&top<820){
-    dy=3; // wildness/distance, patience/time, biome and buddy panels
-   }else if(left>=720&&right<=1210&&top>=12&&bottom<=110){
-    dy=3.9; // center SPOKEMON wordmark and its outlined pill
-   }else if(left>=0&&right<=1910&&top>=819){
-    dy=4.2; // two bottom boxes, all dialogue/menu labels and contents
-    if(el.tagName.toLowerCase()==='text'&&left>=45&&left<1290)dx=-12;
-   }
-   if(!dx&&!dy)return;
-   // Translate leaf objects in place to preserve their layer/z-order and
-   // Illustrator grouping. The existing transform must remain intact.
-   const existing=el.getAttribute('transform')||'';
-   el.setAttribute('transform',`translate(${dx} ${dy}) ${existing}`.trim());
-  });
-  // Encounter's bottom boxes are 224 high; Exploration's are 219.8.
-  // Shift their top edge down 4.2 while retaining an identical bottom edge.
-  svg.querySelectorAll<SVGRectElement>('rect[x="24"][y="832"][width="1272"],rect[x="1312"][y="832"][width="584"]')
-   .forEach(panel=>panel.setAttribute('height','219.8'));
- }
  function render(){
   if(explored===null||encounterSvg===null){slot.textContent='Pedalkin artwork is loading…';return;}
   // Render SVG as live vector DOM so its text can update from trainer data.
@@ -484,7 +444,7 @@ export function mountPedalkinRide():void {
    .forEach(node=>node.parentElement?.remove());
   slot.replaceChildren(document.importNode(root,true));
   const svg=slot.querySelector<SVGSVGElement>('svg');
-  if(svg)alignEncounterChrome(svg);
+  // Use the supplied artboards without shifting any original SVG geometry.
   const tspans=Array.from(svg?.querySelectorAll<SVGTSpanElement>('tspan')||[]);
   distanceText=tspans.find(el=>el.textContent?.trim()==='8.4 / 25.0 km')||null;
   elapsedText=tspans.find(el=>el.textContent?.trim()==='1:23:47')||null;
@@ -506,6 +466,12 @@ export function mountPedalkinRide():void {
   }
   updateProfileControls();
   updateCapture();
+  // The Explore and Encounter artboards both show Trust. Keep it in sync.
+  if(stageName==='explore'){
+   updateText('48%',Math.round(trust)+'%');
+   const bar=svg?.querySelector<SVGRectElement>('rect[x="1592.9"][y="199.3"]');
+   if(bar)bar.setAttribute('width',(288.75*Math.max(0,Math.min(100,trust))/100).toFixed(2));
+  }
   updateActualReadouts();
   host.querySelectorAll<HTMLButtonElement>('[data-pk-demo]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pkDemo===stageName)));
  }
@@ -514,14 +480,14 @@ export function mountPedalkinRide():void {
    stageName='explore';
    beginEncounter();
   }else{
-   stageName='explore';wildness=48;patience=48;outcome=null;render();
+   stageName='explore';trust=0;patience=48;outcome=null;render();
   }
  }
  function pedal(seconds:number){
   if(stageName!=='encounter'||outcome)return;
-  wildness=Math.max(0,wildness-seconds*1.55);
+  trust=Math.min(100,trust+seconds*2.8);
   patience=Math.max(0,patience-seconds);
-  if(wildness===0)outcome='captured';
+  if(trust>=100)outcome='captured';
   else if(patience===0)outcome='escaped';
   render();
  }
@@ -588,12 +554,12 @@ export function mountPedalkinRide():void {
     // behavior will be wired to measured power/cadence separately.
     if(demoOutcomeIsEscape&&playingPreview){
      patience=Math.max(0,patience-9);
-     wildness=Math.max(1,wildness-1);
+     trust=Math.max(0,trust-1);
     }else{
      patience=Math.max(0,patience-3);
-     wildness=Math.max(0,wildness-10);
+     trust=Math.min(100,trust+14);
     }
-    if(wildness<=0)outcome='captured';
+    if(trust>=100)outcome='captured';
     else if(patience<=0)outcome='escaped';
     if(outcome)resolveAfter=Date.now()+2100;
     render();
