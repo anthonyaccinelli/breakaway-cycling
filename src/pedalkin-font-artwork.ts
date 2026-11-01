@@ -6,7 +6,7 @@
 let artworkPromise:Promise<string|null>|null=null;
 function handheldMarkup(){
  if(!artworkPromise){
-  artworkPromise=fetch('/pedalkin/route-v2.svg')
+  artworkPromise=fetch('/pedalkin/route-v3.svg')
    .then(async response=>response.ok?await response.text():null)
    .catch(()=>null);
  }
