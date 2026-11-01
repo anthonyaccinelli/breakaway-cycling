@@ -71,73 +71,93 @@ export function mountSpokemonPlayable(options:{
  const ready=()=>Boolean(lastReal?.connected&&Date.now()-lastSourceTime<7000);
  const labelSource=()=>ready()?'TRAINER':simulator?'TEST RIDE':'READY';
  const frame=():SpokemonRideTelemetry=>{
-  if(ready()&&lastReal) return lastReal;
-  const samples=Array.from({length:97},(_,i)=>85+31*Math.sin(i*.15)+22*Math.sin(i*.39)+65*Math.sin(i*.055));
-  return {distanceMeters:simDistance,totalMeters:lastReal?.totalMeters||24000,samples,elapsedSeconds:simElapsed,gradePercent:Math.sin(simDistance/180)*4,powerWatts:simulator?simPower:0,cadenceRpm:simulator?88:0,heartRateBpm:simulator?124:null,speedMph:simulator?simPower*.083:0,caloriesKcal:simKcal,running:simulationRunning,connected:false};
+  const route=lastReal&&Array.isArray(lastReal.samples)&&lastReal.samples.length>1?lastReal:null;
+  const samples=route?.samples||Array.from({length:97},(_,i)=>85+31*Math.sin(i*.15)+22*Math.sin(i*.39)+65*Math.sin(i*.055));
+  const totalMeters=route?.totalMeters||24000;
+  if(ready()&&lastReal)return lastReal;
+  // Use the rider's actual GPX/generated terrain even before pairing.
+  // Never use stale real power, calories, speed or distance in offline mode.
+  const i=clamp(Math.floor(simDistance/totalMeters*(samples.length-1)),0,samples.length-2);
+  const slope=(samples[i+1]-samples[i])/Math.max(1,totalMeters/(samples.length-1))*100;
+  return {distanceMeters:simulator?simDistance:0,totalMeters,samples,elapsedSeconds:simElapsed,
+   gradePercent:simulator?slope:0,powerWatts:simulator?simPower:0,
+   cadenceRpm:simulator?88:0,heartRateBpm:simulator?124:null,
+   speedMph:simulator?simPower*.083:0,caloriesKcal:simulator?simKcal:0,
+   running:simulator&&simulationRunning,connected:false};
  };
  function drawProfile(root:SVGElement,f:SpokemonRideTelemetry){
-  const minX=390,maxX=1518,top=445,bottom=807,width=maxX-minX;
-  rect(root,minX,435,width,bottom-435,'#102e35');
-  for(let j=0;j<6;j++)line(root,minX,470+j*64,maxX,470+j*64,'#386369',2);
-  if(f.samples.length<2)return;
+  // Exact measured chart inset in the user's 1920x1080 Illustrator SVG.
+  // Repaint ONLY this rectangle, preserving forest, cream frame and other UI.
+  const minX=380.12,maxX=1540.12,top=435.42,bottom=810.72,width=maxX-minX;
+  rect(root,minX,top,width,bottom-top,'#102e35');
   const heights=f.samples.filter(Number.isFinite);
   if(heights.length<2)return;
-  const lowest=Math.min(...heights),highest=Math.max(...heights),range=Math.max(1,highest-lowest);
-  const point=(i:number)=>bottom-14-(heights[i]-lowest)/range*215;
-  const total=Math.max(1,f.totalMeters);
-  const segmentDistance=total/(heights.length-1);
-  const path=['M '+minX+' '+point(0).toFixed(1)];
+  for(let j=0;j<5;j++)line(root,minX+4,480+j*63,maxX-4,480+j*63,'#355d63',1.4);
+  const low=Math.min(...heights),high=Math.max(...heights),span=Math.max(1,high-low);
+  const py=(i:number)=>bottom-21-(heights[i]-low)/span*215;
+  const meters=Math.max(1,f.totalMeters),step=meters/(heights.length-1);
+  const outline=['M '+minX.toFixed(2)+' '+py(0).toFixed(1)];
   for(let i=0;i<heights.length-1;i++){
    const x1=minX+width*i/(heights.length-1),x2=minX+width*(i+1)/(heights.length-1);
-   const p=(heights[i+1]-heights[i])/segmentDistance*100;
-   const clippedTop=Math.max(top,Math.min(bottom,point(i)));
-   rect(root,x1,clippedTop,x2-x1+0.6,bottom-clippedTop,COLORS[bucket(p)]);
-   // Thin horizontal scan lines, clipped to each colored vertical segment.
-   for(let y=Math.ceil(clippedTop/7)*7;y<bottom;y+=7)line(root,x1,y,x2,y,'#17343b',1);
-   path.push('L '+x2.toFixed(1)+' '+point(i+1).toFixed(1));
+   const slope=(heights[i+1]-heights[i])/step*100;
+   const peak=clamp(py(i),top,bottom);
+   rect(root,x1,peak,x2-x1+.5,bottom-peak,COLORS[bucket(slope)]);
+   // Horizontal pixel scanlines clipped to the terrain silhouette.
+   for(let y=Math.ceil(peak/7)*7;y<bottom;y+=7)line(root,x1,y,x2,y,'#16383d',.9);
+   outline.push('L '+x2.toFixed(2)+' '+py(i+1).toFixed(1));
   }
-  root.appendChild(make('path',{d:path.join(' '),fill:'none',stroke:'#fff1d7','stroke-width':'4'}));
-  const progress=clamp(f.distanceMeters/total,0,1),x=minX+progress*width;
-  const idx=clamp(Math.floor(progress*(heights.length-1)),0,heights.length-1);
-  line(root,x,435,x,bottom,'#f6d58c',3);
-  root.appendChild(make('circle',{cx:String(x),cy:String(point(idx)),r:'11',fill:'#f6d58c',stroke:'#143940','stroke-width':'4'}));
-  text(root,407,785,(f.distanceMeters/1000).toFixed(1)+' km',21,'#17343b');
-  text(root,1357,785,(total/1000).toFixed(1)+' km',21,'#17343b');
+  root.appendChild(make('path',{d:outline.join(' '),fill:'none',stroke:'#fff1d7','stroke-width':'4'}));
+  const position=clamp(f.distanceMeters/meters,0,1),x=minX+position*width;
+  const index=clamp(Math.floor(position*(heights.length-1)),0,heights.length-1);
+  line(root,x,top+9,x,bottom-5,'#f6d58c',2);
+  root.appendChild(make('circle',{cx:String(x),cy:String(py(index)),r:'10',fill:'#f6d58c',stroke:'#17343b','stroke-width':'3'}));
+  text(root,411,766,(f.distanceMeters/1000).toFixed(1)+' km',28,'#17343b');
+  text(root,1435,766,(meters/1000).toFixed(1)+' km',28,'#17343b');
  }
  function paint(){
   if(!active())return;
-  if(view.parentNode!==slot)slot.append(view);
-  view.replaceChildren();
+  const object=slot.querySelector<HTMLObjectElement>('object.pk-exact-artboard');
+  const doc=object?.contentDocument;
+  const svg=doc?.documentElement as unknown as SVGSVGElement|null;
+  // Keep the original SVG isolated; it is not rebuilt on every telemetry tick.
+  if(!svg||svg.localName!=='svg')return;
   const f=frame();
-  const metrics=[
-   [138,(f.powerWatts||0).toFixed(0)+'W'],
-   [261,f.heartRateBpm==null?'— BPM':f.heartRateBpm.toFixed(0)+' BPM'],
-   [384,(f.cadenceRpm||0).toFixed(0)+' RPM'],
-   [507,(f.speedMph||0).toFixed(1)+' MPH'],
-   [630,f.gradePercent.toFixed(1)+' %'],
-   [755,(f.caloriesKcal||0).toFixed(0)+' KCAL']
+  const set=(transform:string,value:string)=>{
+   const t=svg.querySelector<SVGTextElement>('text[transform="'+transform+'"]');
+   const span=t?.querySelector<SVGTSpanElement>('tspan');
+   if(span&&span.textContent!==value)span.textContent=value;
+  };
+  const numbers=[
+   ['translate(48 161.5)',Math.round(f.powerWatts||0)+'W'],
+   ['translate(177 161.5)',''], // Don't show the stale example W/kg.
+   ['translate(48 284.3)',f.heartRateBpm==null?'— BPM':Math.round(f.heartRateBpm)+' BPM'],
+   ['translate(48 407.1)',Math.round(f.cadenceRpm||0)+' RPM'],
+   ['translate(48 529.9)',(f.speedMph||0).toFixed(1)+' MPH'],
+   ['translate(48 652.8)',f.gradePercent.toFixed(1)+' %'],
+   ['translate(48 778.5)',Math.round(f.caloriesKcal||0)+' KCAL'],
+   ['translate(1590.5015 183.81)',Math.round(trust)+'%'],
+   ['translate(1586.3262 368.0016)',getScene()==='encounter'?Math.ceil(patience)+' s':'—']
   ] as const;
-  // Keep all authored borders and headings; repaint only the numeric areas.
-  for(const [y,value] of metrics){
-   rect(view,48,y,286,47,'#f1e6c7');
-   text(view,49,y+38,value,value.length>11?30:37);
-  }
-  rect(view,1590,144,290,52,'#f1e6c7');
-  text(view,1590,188,getScene()==='encounter'?Math.round(trust)+'%':'—',48);
-  rect(view,1592,199,290,43,'#f1e6c7',4);
-  rect(view,1593,200,289*clamp(trust/100,0,1),38,'#ce7276',5);
-  rect(view,1588,331,295,45,'#f1e6c7');
-  text(view,1588,370,getScene()==='encounter'?Math.ceil(patience)+' S':'—',43);
-  rect(view,1587,384,290,42,'#f1e6c7');
-  rect(view,1588,385,288*clamp(patience/65,0,1),39,'#f6d58c',6);
-  // The sample forest/companion remain exact; update only the live profile area.
-  if(getScene()==='explore')drawProfile(view,f);
-  // The prompt overlays the baked-in sample dialogue, not the SVG asset.
-  rect(view,50,906,1197,122,'#f1e6c7');
-  text(view,55,954,message.length>65?message.slice(0,62)+'…':message,26);
-  text(view,55,996,ready()?(f.running?'REAL RIDE · '+(f.distanceMeters/1000).toFixed(2)+' km':'TRAINER READY · PRESS START'):
+  for(const [selector,value] of numbers)set(selector,value);
+  // Update the exact original Illustrator fill rectangles, not new cover art.
+  const trustBar=svg.querySelector<SVGRectElement>('rect[x="1592.9"][y="199.3"]');
+  if(trustBar)trustBar.setAttribute('width',(288.75*clamp(trust/100,0,1)).toFixed(2));
+  const patienceBar=svg.querySelector<SVGRectElement>('rect[x="1588.33"][y="383.9"]');
+  if(patienceBar)patienceBar.setAttribute('width',(233.7*clamp(patience/65,0,1)).toFixed(2));
+  const lines=(message.length>52?message.slice(0,49).trimEnd()+'…':message);
+  set('translate(56 946)',lines);
+  const line2=ready()?(f.running?'REAL RIDE · '+(f.distanceMeters/1000).toFixed(2)+' km':'TRAINER READY · PRESS START'):
    simulator?(simulationRunning?'TEST RIDE · '+(simDistance/1000).toFixed(2)+' km':'TEST PAUSED'):
-   'CONNECT TRAINER OR START TEST RIDE',22);
+   'CONNECT TRAINER OR START TEST RIDE';
+  set('translate(56 1001.0032)',line2);
+  // The original elevation artwork is replaced only within its exact bounds.
+  if(getScene()==='explore'){
+   if(view.parentNode!==slot)slot.append(view);
+   view.replaceChildren();
+   drawProfile(view,f);
+  }else{
+   view.remove();
+  }
   status.textContent=labelSource();
   note.textContent=ready()?'Trainer detected. Real cycling data is driving the game.':'No trainer detected. Start a simulated test ride to explore.';
   simButton.textContent=simulator?(simulationRunning?'PAUSE TEST RIDE':'RESUME TEST RIDE'):'START TEST RIDE';
