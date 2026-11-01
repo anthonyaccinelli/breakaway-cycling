@@ -1,4 +1,6 @@
 import './pedalkin-ride.css';
+import {mountSpokemonPlayable} from './spokemon-playable';
+import type {SpokemonRideTelemetry} from './spokemon-playable';
 import {PINE_FOREST_SPOKEMON,choosePineForestSpokemon,nextPreviewSpokemon} from './pedalkin-creatures';
 import type {SpokemonSpecies} from './pedalkin-creatures';
 import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
@@ -95,6 +97,7 @@ export function mountPedalkinRide():void {
  const profileBar=host.querySelector<HTMLElement>('.pk-profile-bar');
  const navButtons=host.querySelectorAll<HTMLButtonElement>('[data-pk-nav]');
  const active=()=>document.body.dataset.rideExperience==='pedalkin'&&document.body.dataset.breakawayScreen==='ride';
+ let playable:ReturnType<typeof mountSpokemonPlayable>|null=null;
  const svgUrl=(s:string)=>'/pedalkin/'+s+'.svg';
  function loadArt(){
   if(explored!==null&&encounterSvg!==null)return Promise.resolve();
@@ -427,6 +430,7 @@ export function mountPedalkinRide():void {
  });
  window.addEventListener('pedalkin:ride-frame',(event:Event)=>{
   const frame=(event as CustomEvent<PedalkinRideFrame>).detail;
+  if(exactArtwork){if(frame&&Array.isArray(frame.samples))playable?.setFrame(frame as SpokemonRideTelemetry);return;}
   if(demo||!frame||!Number.isFinite(frame.totalMeters)||frame.totalMeters<=0||!Array.isArray(frame.samples))return;
   liveFrame=frame;
   if(!active()||stageName!=='explore')return;
@@ -449,7 +453,7 @@ export function mountPedalkinRide():void {
    // paths, and injected creatures. An image of the supplied SVG changes NONE
    // of its authored content. It scales as one 1920x1080 artboard only.
    const image=slot.querySelector<HTMLImageElement>('img.pk-exact-artboard');
-   if(image?.dataset.artboard===stageName)return;
+   if(image?.dataset.artboard===stageName){playable?.paint();return;}
    const untouched=document.createElement('img');
    untouched.className='pk-exact-artboard';
    untouched.dataset.artboard=stageName;
@@ -474,6 +478,7 @@ export function mountPedalkinRide():void {
     sprite.querySelector('#pk-working-creature > text')?.remove();
     slot.appendChild(sprite);
    }
+   playable?.paint();
    return;
   }
   if(explored===null||encounterSvg===null){slot.textContent='Pedalkin artwork is loading…';return;}
@@ -579,14 +584,37 @@ export function mountPedalkinRide():void {
  });
  host.querySelectorAll<HTMLButtonElement>('[data-pk-action]').forEach(button=>button.addEventListener('click',()=>{
   switch(button.dataset.pkAction){
-   case 'journal':popupOpen('PINE FOREST JOURNAL',PINE_FOREST_SPOKEMON.map((species,i)=>String(i+1).padStart(2,'0')+'  '+species.name+'  ·  '+species.rarity).join('\n')+'\n\nWorking names and temporary encounter art.');break;
-   case 'buddy':popupOpen('YOUR BUDDY','Crab · companionship 12. Buddy management will live here.');break;
-   case 'stats':popupOpen('RIDE STATS',demo?'Design playtest: these sample numbers are not ride data.':'Your real ride data continues to be recorded by Breakaway.');break;
+   case 'journal':popupOpen('SPOKEMON JOURNAL',exactArtwork?(playable?.getCollection().map(c=>c.name+' ×'+c.count).join('\n')||'No Spokemon collected yet.'):PINE_FOREST_SPOKEMON.map((c,i)=>(i+1)+'. '+c.name).join('\n'));break;
+   case 'buddy':popupOpen('YOUR BUDDY',exactArtwork?(playable?.getCollection()[0]?.name||'Befriend your first Spokemon to choose a companion.'):'Companionship 12.');break;
+   case 'stats':popupOpen('RIDE STATS',exactArtwork?'Distance: '+(document.getElementById('distance')?.textContent||'0')+' miles\nPower: '+(document.getElementById('power')?.textContent||'—')+' W\nCollected: '+(playable?.getCollection().length||0):'Legacy preview state');break;
    case 'save':
+    if(exactArtwork){
+     if(playable?.isSimulating()){popupOpen('TEST RIDE','Test rides are not recorded. Your collected Spokemon are saved on this device. Return through 01 Route when finished.');break;}
+     if(!playable){popupOpen('SAVE & CLOSE','Game is loading.');break;}
+     finishThroughNative();break;
+    }
     if(demo){(document.getElementById('stepRoute') as HTMLButtonElement|null)?.click();break;}
     popupOpen('SAVE & CLOSE','Use the existing Finish Ride control to save your ride; this preview does not auto-finish it.');break;
   }
  }));
+ function finishThroughNative(){
+  const finish=document.getElementById('rideFinishNow') as HTMLButtonElement|null;
+  if(!finish||finish.disabled){popupOpen('SAVE & CLOSE','A recorded ride is not active. To test without a trainer, use Game Controls → Test Ride.');return;}
+  // Expose native Breakaway finish confirmation over the game viewport.
+  host.hidden=true;document.body.classList.remove('pk-riding');finish.click();
+ }
+ document.addEventListener('click',event=>{
+  const clicked=event.target as HTMLElement|null;
+  if(clicked?.closest('#manualKeepRiding'))requestAnimationFrame(()=>{
+   if(active()){host.hidden=false;document.body.classList.add('pk-riding');playable?.paint();}
+  });
+ },true);
+ if(exactArtwork)playable=mountSpokemonPlayable({
+  host,slot,active,getScene:()=>stageName,
+  switchScene:(which,species)=>{stageName=which;if(species)currentSpecies=species;render();},
+  onFinishRide:finishThroughNative,
+  onCollection:(items)=>popupOpen('YOUR COLLECTION',items.length?items.map(c=>c.name+' ×'+c.count).join('\n')+'\n\n'+items.length+' of '+PINE_FOREST_SPOKEMON.length+' species discovered.':'No Spokemon collected yet. Keep riding to find a friend.')
+ });
  function sync(){
   const on=active();host.hidden=!on;
   document.body.classList.toggle('pk-riding',on);
@@ -598,7 +626,7 @@ export function mountPedalkinRide():void {
  }
  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-ride-experience','data-breakaway-screen']});
  window.setInterval(()=>{
-  if(!active())return;
+  if(!active()||exactArtwork)return;
   if(stageName==='encounter'&&demo){
    if(!outcome){
     // The full-screen showcase simulates calm Zone 2 progress for preview
