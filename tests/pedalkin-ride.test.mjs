@@ -118,7 +118,7 @@ test('Design playtest auto-runs and lets riders pause, scrub or reset without a 
 test('following gradient badge matches reference and tracks the same rider marker',()=>{
  assert.match(view,/id','pk-rider-gradient'/);
  assert.match(view,/const gradient=demo\?/);
- assert.match(view,/right\.y-left\.y/);
+ assert.match(view,/smoothYAt\(afterX\)-smoothYAt\(beforeX\)/);
  assert.match(view,/liveFrame\.gradePercent/);
  assert.match(view,/const percentage=gradient===null\?'—%'/);
  assert.match(view,/border\.setAttribute\('stroke','#ffc197'\)/);
@@ -135,7 +135,7 @@ test('real live gradient is the route grade, not visual slope or synthetic train
  assert.match(main,/gradePercent:displayGrade\(\)/);
  assert.match(main,/function publishPedalkinRideFrame\(\)/);
  assert.match(view,/gradePercent:number;/);
- assert.match(view,/const gradient=demo\?Math\.max/);
+ assert.match(view,/const gradient=demo\?smoothGradient\(\)/);
  assert.match(view,/\(liveFrame&&Number\.isFinite\(liveFrame\.gradePercent\)\?liveFrame\.gradePercent:null\)/);
  assert.doesNotMatch(view,/(?:setGrade|sendFtms|requestDevice|cycleQuestHold|setVirtualGearResistance)\(/);
 });
@@ -258,4 +258,17 @@ test('Pixel-stepped 03 Ride profile retains rider geometry and never changes rea
  assert.match(view,/path\.dataset\.pkBaseD/);
  assert.match(view,/paintRiderOnProfile\(\)/);
  assert.doesNotMatch(helper,/(?:sendFtms|setGrade|requestDevice|trainerWrite|setResistance)\(/);
+});
+
+test('trainer-free demo gradient follows unpixelated source independently of stepped visual',()=>{
+ assert.match(view,/getOrMake\('pk-smooth-profile-source'\)/);
+ assert.match(view,/smoothSource\.setAttribute\('d',baseD\)/);
+ assert.match(view,/smoothSource\.setAttribute\('opacity','0'\)/);
+ assert.match(view,/const source=svg\.querySelector<SVGPathElement>\('#pk-smooth-profile-source'\)/);
+ assert.match(view,/source\.getPointAtLength\(mid\)\.x<x/);
+ assert.match(view,/targetX-40/);
+ assert.match(view,/targetX\+40/);
+ assert.match(view,/const gradient=demo\?smoothGradient\(\)/);
+ assert.match(view,/liveFrame&&Number\.isFinite\(liveFrame\.gradePercent\)\?liveFrame\.gradePercent:null/);
+ assert.match(view,/path\.setAttribute\('d',pixels\.line\)/);
 });
