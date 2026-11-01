@@ -40,3 +40,8 @@ test('changes and removals sync only for the active account; sign out clears rid
  assert.equal(f.writes.length,1);assert.equal(f.writes[0].user_id,'alice');assert.equal(f.writes[0].setting_value,'300');assert.equal(f.deletes[0].user,'alice');assert.deepEqual([...f.deletes[0].keys],['cycle-quest-character-v1']);
  f.api.eraseLocalAccountSettings();assert.equal(f.localStorage.getItem('breakaway-ftp'),null);assert.equal(f.localStorage.getItem('breakaway.account.owner.v1'),'alice');assert.equal(f.api.getAccountUserId(),'');
 });
+
+test('login-free history reuses the existing local rider namespace or legacy guest database',()=>{
+ const guest=fixture();assert.equal(guest.api.localHistoryDatabase('rides'),'rides');
+ const previous=fixture({'breakaway.account.owner.v1':'alice'});assert.equal(previous.api.localHistoryDatabase('rides'),'rides-alice');
+});

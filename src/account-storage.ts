@@ -16,6 +16,12 @@ let writing:Promise<void>|null=null;
 let isReady=false;
 let statusCallback:((message:string,error?:boolean)=>void)|null=null;
 
+// Keep existing account-scoped history accessible after removing the login gate.
+export function localHistoryDatabase(base:string):string{
+ let owner=accountId;
+ try{owner ||= localStorage.getItem(OWNER_KEY)||'';}catch{}
+ return owner?base+'-'+owner:base;
+}
 export function getAccountUserId():string{return accountId;}
 export function setSyncStatusListener(callback:(message:string,error?:boolean)=>void):void{
  statusCallback=callback;
