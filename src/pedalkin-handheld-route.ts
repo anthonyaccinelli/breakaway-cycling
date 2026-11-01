@@ -85,7 +85,7 @@ export function mountPedalkinHandheldRoute():void {
  for(const biome of PEDALKIN_BIOMES){
   const option=document.createElement('option');
   option.value=biome.id;
-  option.textContent=biome.available?biome.name:`${biome.name} — Soon`;
+  option.textContent=biome.available?biome.name:`${biome.name} — Soon*`;
   option.disabled=!biome.available;
   biomeSelect.add(option);
  }
