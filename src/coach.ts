@@ -16,6 +16,7 @@ import {dayKey,escapeHtml,readJson,writeJson} from './coach-dom';
 import {calendarDays} from './coach-calendar';
 import type {CoachCalendarDay} from './coach-calendar';
 import './coach-calendar.css';
+import {mountWorkoutImporter} from './coach-workout-import-ui';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
@@ -83,6 +84,7 @@ export function mountCoach(bridge:CoachBridge){
   <button type="button" id="coachTabPlan" role="tab" aria-controls="coachViewPlan" aria-selected="false" tabindex="-1" data-coach-tab="plan">▦ <span>My Week</span></button>
   <button type="button" id="coachTabHistory" role="tab" aria-controls="coachViewHistory" aria-selected="false" tabindex="-1" data-coach-tab="history">▥ <span>Progress</span></button>
   <button type="button" id="coachTabSettings" role="tab" aria-controls="coachViewSettings" aria-selected="false" tabindex="-1" data-coach-tab="settings">⚙ <span>My Setup</span></button>
+  <button type="button" id="coachTabImport" role="tab" aria-controls="coachViewImport" aria-selected="false" tabindex="-1" data-coach-tab="import">✎ <span>Create Workout</span></button>
 </nav>
 <div class="coach-main" role="main">
   <section class="coach-view" id="coachViewToday" role="tabpanel" aria-labelledby="coachTabToday" data-coach-view="today">
@@ -142,6 +144,9 @@ export function mountCoach(bridge:CoachBridge){
         </section>
       </aside>
     </div>
+  </section>
+  <section class="coach-view" id="coachViewImport" role="tabpanel" aria-labelledby="coachTabImport" data-coach-view="import" hidden>
+    <div id="coachImportRoot"></div>
   </section>
   <section class="coach-view" id="coachViewPlan" role="tabpanel" aria-labelledby="coachTabPlan" data-coach-view="plan" hidden>
     <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training week.</h2><p>Your rides, strength sessions, and rest days in one place.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit my plan →</button></div>
@@ -223,8 +228,8 @@ export function mountCoach(bridge:CoachBridge){
   const $=(id:string)=>byId(screen,id);
   const h=(id:string)=>byId(hud,id);
   const styleSelect=$('coachControl') as HTMLSelectElement;
-  type CoachTab='today'|'plan'|'history'|'settings';
-  const tabs:Array<CoachTab>=['today','plan','history','settings'];
+  type CoachTab='today'|'plan'|'history'|'settings'|'import';
+  const tabs:Array<CoachTab>=['today','plan','history','settings','import'];
   let activeTab:CoachTab='today';
   function navigate(tab:CoachTab,focus=false){
     activeTab=tab;
@@ -777,6 +782,7 @@ export function mountCoach(bridge:CoachBridge){
   }
   window.addEventListener('breakaway:history-updated',()=>{void refreshPlatformHistory();});
   strength=mountCoachStrength($('coachStrengthSettings'),{finished:()=>{render();navigate('history');}});
+  mountWorkoutImporter($('coachImportRoot'));
   syncSettingsForm();
   render();
   mountCoachHistory($('coachHistoryImport'),{applySuggestion:(suggestion)=>{
