@@ -80,6 +80,18 @@ export function mountAccountControls():void{
 export {getAccountUserId};
 
 export async function bootAccount():Promise<void>{
+ // Public design playtests use only simulated Spokemon values; they must not
+ // require a rider account and never load or write private account data.
+ // Restrict the guest exception to this Vercel preview project's own host.
+ const guestPreview=location.hostname.endsWith('.vercel.app')
+  &&location.hostname.startsWith('breakaway-cycling-web-v409-ride-recovery-autosave-')
+  &&['route','setup','ride','explore','encounter','playing','encounters']
+    .includes(new URLSearchParams(location.search).get('pedalkinPreview')||'');
+ if(guestPreview){
+  document.documentElement.dataset.accountGate='ready';
+  document.documentElement.dataset.spokemonPreview='guest';
+  return;
+ }
  document.documentElement.dataset.accountGate='locked';
  const cover=document.createElement('div');
  cover.className='account-gate';

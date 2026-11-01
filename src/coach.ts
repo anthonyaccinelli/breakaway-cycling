@@ -23,7 +23,7 @@ export interface CoachBridge {
   setMode:(mode:'target'|'sim')=>void;
   setTarget:(watts:number)=>void;
   isRiding:()=>boolean;
-  getPlatformRides:()=>Promise<{start:number;elapsed:number;avgPower:number|null;mode:'classic'|'survival'|'cyclequest'|null;name:string}[]>;
+  getPlatformRides:()=>Promise<{start:number;elapsed:number;avgPower:number|null;mode:'classic'|'survival'|'cyclequest'|'pedalkin'|null;name:string}[]>;
 }
 type Session = {
   workout:CoachWorkout; mode:CoachMode; control:CoachControl; ftp:number;
