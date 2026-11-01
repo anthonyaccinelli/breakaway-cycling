@@ -36,7 +36,7 @@ test('Native Illustrator metric fill paths and trust bars update without cover r
 test('Generated elevation masks exact profile area and leaves forest untouched',()=>{
  assert.match(source,/minX=385\.12,maxX=1535\.12,top=435\.42,bottom=805\.72/);
  assert.match(source,/const samples=route\?\.samples\|\|Array\.from/);
- assert.match(source,/const endLabel=text\(root,1520,766/);
+ assert.match(source,/const endLabel=text\(plot,1520,766/);
  assert.match(source,/endLabel\.setAttribute\('text-anchor','end'\)/);
 });
 
@@ -52,7 +52,7 @@ test('Elevation bands and horizontal scanlines both use the SAME closed silhouet
  assert.match(chart,/line\(clipped,minX,y,maxX,y,'#16383d',0\.9\)/);
  assert.doesNotMatch(chart,/rect\(root,x1/);
  assert.doesNotMatch(chart,/line\(root,minX,y,maxX,y/);
- assert.ok(chart.indexOf('root.appendChild(clipped)')<chart.lastIndexOf("root.appendChild(make('path',{d:silhouette"),'cream contour should be drawn on top');
+ assert.ok(chart.indexOf('plot.appendChild(clipped)')<chart.lastIndexOf("plot.appendChild(make('path',{d:silhouette"),'cream contour should be drawn on top');
 });
 
 test('Chart stays inside the exact 10-unit cream frame, including border and rider marker',()=>{
@@ -69,4 +69,24 @@ test('Chart stays inside the exact 10-unit cream frame, including border and rid
  assert.match(chart,/line\(plot,x,top\+9,x,bottom-5/);
  assert.doesNotMatch(chart,/rect\(root,minX/);
  assert.doesNotMatch(chart,/line\(root,x,top\+9/);
+});
+
+test('Full encounter prompts are font-fitted rather than truncated',()=>{
+ const paint=source.slice(source.indexOf(' function paint(){'),source.indexOf(' function saveCreature(){'));
+ assert.match(paint,/set\('translate\(56 946\)',message,1212\)/);
+ assert.match(paint,/set\('translate\(56 1001\.0032\)',line2,1212\)/);
+ assert.match(paint,/getComputedTextLength\(\)/);
+ assert.match(paint,/t\.dataset\.pkOriginalFontSize/);
+ assert.match(paint,/t\.style\.fontSize=\(baseSize\*ratio\)\.toFixed\(2\)\+'px'/);
+ assert.doesNotMatch(paint,/message\.length>52/);
+ assert.doesNotMatch(paint,/message\.slice\(0,49\)/);
+});
+test('Yellow rider follows continuous interpolated cream profile line',()=>{
+ const chart=source.slice(source.indexOf(' function drawProfile('),source.indexOf(' function paint(){'));
+ assert.match(chart,/const samplePosition=position\*\(heights\.length-1\)/);
+ assert.match(chart,/const leftIndex=Math\.min\(heights\.length-2,Math\.floor\(samplePosition\)\)/);
+ assert.match(chart,/const fraction=samplePosition-leftIndex/);
+ assert.match(chart,/const riderY=py\(leftIndex\)\+\(py\(leftIndex\+1\)-py\(leftIndex\)\)\*fraction/);
+ assert.match(chart,/cy:String\(riderY\)/);
+ assert.doesNotMatch(chart,/cy:String\(py\(index\)\)/);
 });
