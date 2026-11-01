@@ -24,6 +24,7 @@ export function mountPedalkinOverlayPreview():void{
  .pk-overlay-playback input{width:min(38vw,270px);accent-color:#21484e}
  .pk-overlay-preview-note{font-size:12px;color:#516467}
  .pk-overlay-frame .tile{cursor:default}
+ #pkOverlayPreviewRoot #overlayMode{display:none!important}
  @media(max-width:740px){.pk-overlay-frame{width:100%!important;}
   #pkOverlayPreviewRoot{padding:10px;gap:10px}
   #pkOverlayPreviewRoot>h1{font-size:18px}
@@ -125,11 +126,8 @@ export function mountPedalkinOverlayPreview():void{
   zoomButtons.forEach(x=>{const on=x===button;x.classList.toggle('active',on);x.setAttribute('aria-pressed',String(on));});
   refresh();
  }));
- root.querySelector<HTMLButtonElement>('#overlayMode')!.addEventListener('click',()=>{
-  // The approved compact view always remains at 170px.
-  active=!active;
-  root.querySelector<HTMLButtonElement>('#pkPlaybackToggle')!.textContent=active?'Pause demo':'Resume demo';
- });
+ // In the design preview the optional native Expand button is hidden;
+ // the approved compact overlay remains exactly 170px high.
  root.querySelector<HTMLButtonElement>('#overlaySettingsToggle')!.addEventListener('click',()=>{
   frame.style.opacity=frame.style.opacity==='0.7'?'1':'0.7';
  });
