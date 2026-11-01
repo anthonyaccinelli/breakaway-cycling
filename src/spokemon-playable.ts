@@ -296,8 +296,19 @@ export function mountSpokemonPlayable(options:{
   }
  },250);
  encounterCooldown=350; // First natural appearance after roughly 350 m.
+ function stopTestRide(){
+  // This stops ONLY the trainer-free simulator. Captured creatures stay in
+  // localStorage, while native FTMS activity and recording remain untouched.
+  simulator=false;simulationRunning=false;
+  simDistance=0;simElapsed=0;simKcal=0;
+  progressDistance=0;
+  trust=0;patience=65;outcome=null;resolveAt=0;
+  encounterCooldown=350;
+  message='Cruising through Pinepath Trail. Stay steady to attract nearby Spokemon.';
+  if(active())paint();
+ }
  function sync(){if(active()){lastTick=performance.now();paint();}else{tool.querySelector('details')?.removeAttribute('open');}}
  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-ride-experience','data-breakaway-screen']});
  sync();
- return {setFrame,paint,getCollection:()=>collection.slice(),getCurrentSpecies:()=>species,isSimulating:()=>simulator,destroy:()=>{window.clearInterval(timer);view.remove();tool.remove();}};
+ return {setFrame,paint,stopTestRide,getCollection:()=>collection.slice(),getCurrentSpecies:()=>species,isSimulating:()=>simulator,destroy:()=>{window.clearInterval(timer);view.remove();tool.remove();}};
 }
