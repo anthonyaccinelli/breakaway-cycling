@@ -19,7 +19,7 @@ export async function enableSpokemonHandheldFont(host:HTMLElement):Promise<void>
  if(!source||!existing.isConnected)return; // image fallback on network failures
  const root=new DOMParser().parseFromString(source,'image/svg+xml').documentElement;
  if(root.localName!=='svg'||root.querySelector('parsererror'))return;
- const svg=document.importNode(root,true) as SVGSVGElement;
+ const svg=document.importNode(root,true) as unknown as SVGSVGElement;
  svg.classList.add(...Array.from(existing.classList));
  svg.setAttribute('role','img');
  svg.setAttribute('aria-label',existing.alt);
