@@ -160,3 +160,24 @@ test('Pedalkin Ride navigation reuses real Breakaway steps and actual overlay co
  assert.match(view,/ALWAYS-ON-TOP OVERLAY/);
  assert.doesNotMatch(view,/(?:setGrade|sendFtms|requestDevice|cycleQuestHold|setVirtualGearResistance)\(/);
 });
+
+test('Illustrator off-artboard duplicate metrics are removed at runtime and the viewport is clipped',()=>{
+ assert.match(explore,/<text class="st16" transform="translate\(2013 126\.9\)">/);
+ assert.match(view,/root\.querySelectorAll<SVGTextElement>\('text\[transform\^="translate\(2013 "\]'\)/);
+ assert.match(view,/node\.parentElement\?\.remove\(\)/);
+ assert.match(style,/\.pk-svg-slot\{overflow:hidden;contain:paint\}/);
+ assert.match(style,/\.pk-svg-slot>svg\{overflow:hidden!important;clip-path:inset\(0\)!important\}/);
+ assert.match(explore,/<text class="st16" transform="translate\(52 127\.5\)">/);
+});
+
+test('Playing preview shows true game UI without developer bars while preserving moving player and controls',()=>{
+ assert.match(view,/const playingPreview=previewChoice==='playing'/);
+ assert.match(view,/const showPlaytestControls=demo&&!playingPreview/);
+ assert.match(view,/showPlaytestControls\?'<div class="pk-demo-bar">/);
+ assert.match(view,/showPlaytestControls\?'<div class="pk-profile-bar">/);
+ assert.match(view,/const demo=playingPreview\|\|/);
+ assert.match(main,/\['ride','explore','encounter','playing'\]/);
+ assert.match(main,/\['route','setup','ride','encounter','explore','playing'\]/);
+ assert.match(style,/\.pk-ride-host:not\(:has\(\.pk-demo-bar\)\) \.pk-ride-stage/);
+ assert.match(view,/requestAnimationFrame\(animateDemo\)/);
+});
