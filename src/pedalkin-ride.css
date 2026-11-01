@@ -93,3 +93,43 @@ body.pk-riding #screenRide .pk-ride-host button.pk-hitspot:focus-visible {
  outline:3px dashed #f8db99!important;
  outline-offset:1px!important;
 }
+
+/* Motion preview controls are separate from the authored artboard.
+   The original 03 Ride 1920x1080 vector layout remains untouched. */
+.pk-profile-bar[hidden]{display:none!important}
+.pk-profile-bar{
+ flex:0 0 44px;min-height:44px;box-sizing:border-box;
+ display:flex;align-items:center;justify-content:center;gap:14px;
+ width:100%;padding:4px 20px;
+ background:#173a40;border-bottom:1px solid #fbc5ab;
+ color:#ffe9c9;font:700 13px/1.3 "Courier New",monospace;
+}
+.pk-profile-bar button{
+ flex:none;min-width:125px;padding:6px 10px;
+ background:#fbc5ab;color:#0f292f;border:2px solid #f5e6c5;
+ border-radius:4px;cursor:pointer;
+ font:700 13px/1.3 "Courier New",monospace;
+}
+.pk-profile-bar input[type=range]{
+ flex:1 1 340px;min-width:100px;max-width:470px;
+ accent-color:#fbc5ab;cursor:pointer;
+}
+.pk-profile-status{min-width:280px;text-align:left;white-space:nowrap}
+.pk-ride-host:has(.pk-demo-bar) .pk-ride-stage{
+ width:min(100vw,calc((100dvh - 98px) * 16 / 9));
+}
+.pk-ride-host:has(.pk-profile-bar[hidden]) .pk-ride-stage{
+ width:min(100vw,calc((100dvh - 54px) * 16 / 9));
+}
+@media(max-width:850px){
+ .pk-profile-bar{flex-wrap:wrap;min-height:54px;flex-basis:auto;padding:5px 10px;gap:6px;}
+ .pk-profile-bar button{min-width:100px;font-size:11px;}
+ .pk-profile-status{min-width:0;font-size:10px;}
+ .pk-profile-bar input[type=range]{min-width:80px;}
+ .pk-ride-host:has(.pk-demo-bar) .pk-ride-stage{
+  width:min(100vw,calc((100dvh - 170px) * 16 / 9));
+ }
+ .pk-ride-host:has(.pk-profile-bar[hidden]) .pk-ride-stage{
+  width:min(100vw,calc((100dvh - 104px) * 16 / 9));
+ }
+}
