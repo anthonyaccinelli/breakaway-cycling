@@ -50,7 +50,7 @@ export function mountPedalkinHandheldDevices():void{
       <small class="pk-dev-device-status" data-pk-status="click">Not connected</small>
      </div>
      <label class="pk-dev-auto"><input data-pk-auto type="checkbox" checked/> Auto-reconnect remembered devices</label>
-     <small class="pk-dev-optional">HR and Click are optional.</small>
+     <small class="pk-dev-optional">All devices optional. Ride without hardware or pair a trainer.</small>
     </section>
     <section class="pk-dev-column">
      <h2>02 / RIDE SETTINGS</h2>
@@ -68,12 +68,12 @@ export function mountPedalkinHandheldDevices():void{
        <div class="pk-dev-gear-controls"><button data-pk-action="down" aria-label="Shift down">−</button><output data-pk-gear-value>06 / 24</output><button data-pk-action="up" aria-label="Shift up">+</button></div>
       </div>
       <p class="pk-dev-control-note">SIM follows the route gradient.<br/> ERG target appears when selected.</p>
-      <p class="pk-dev-ready" data-pk-ready>● WAITING FOR TRAINER</p>
+      <p class="pk-dev-ready" data-pk-ready>● TRAINER OPTIONAL</p>
      </div>
     </section>
    </div>
-   <p class="pk-dev-banner" data-pk-banner role="status">● PAIR YOUR TRAINER TO ENABLE THE NEXT STEP.</p>
-   <button class="pk-dev-continue" data-pk-action="continue" disabled>CONNECT TRAINER TO CONTINUE <span aria-hidden="true">→</span></button>
+   <p class="pk-dev-banner" data-pk-banner role="status">● TRAINER OPTIONAL. SKIP TO RIDE ANYTIME.</p>
+   <button class="pk-dev-continue" data-pk-action="continue">SKIP TO 03 RIDE <span aria-hidden="true">→</span></button>
   </div>
  </div>`;
  document.body.append(shell);
@@ -125,7 +125,7 @@ export function mountPedalkinHandheldDevices():void{
   const state=tile?.dataset.connectionState||'';
   const status=tile?.querySelector<HTMLElement>('.setup-connection-indicator')?.textContent?.trim()||'';
   const fallback=which==='hr'?el('hrStatus')?.textContent?.trim():which==='click'?el('clickStatus')?.textContent?.trim():'';
-  const connected=state==='connected'||(which==='trainer'&&!buttons.continue.disabled);
+  const connected=state==='connected';
   const pending=state==='connecting'||state==='initializing';
   return {connected,pending,text:status||(connected?'Connected':pending?'Connecting…':fallback||'Not connected')};
  }
@@ -148,13 +148,13 @@ export function mountPedalkinHandheldDevices():void{
    button.textContent=state.connected?'CONNECTED ✓':state.pending?'CONNECTING…':kind==='trainer'?'CONNECT TRAINER':kind==='hr'?'CONNECT HEART RATE':'CONNECT CLICK';
    button.disabled=state.pending;
   }
-  const ready=!buttons.continue.disabled;
+  const trainerConnected=deviceStatus('trainer').connected;
   const next=q<HTMLButtonElement>('[data-pk-action="continue"]');
-  next.disabled=!ready;
-  next.innerHTML=ready?'READY TO RIDE! <span aria-hidden="true">→</span>':'CONNECT TRAINER TO CONTINUE <span aria-hidden="true">→</span>';
-  q<HTMLElement>('[data-pk-ready]').textContent=ready?'● TRAINER READY':'● WAITING FOR TRAINER';
-  q<HTMLElement>('[data-pk-ready]').dataset.ready=String(ready);
-  q<HTMLElement>('[data-pk-banner]').textContent=ready?'✓ TRAINER CONNECTED. READY FOR THE NEXT STEP.':'● PAIR YOUR TRAINER TO ENABLE THE NEXT STEP.';
+  next.disabled=false;
+  next.innerHTML=trainerConnected?'READY TO RIDE! <span aria-hidden="true">→</span>':'SKIP DEVICES — 03 RIDE <span aria-hidden="true">→</span>';
+  q<HTMLElement>('[data-pk-ready]').textContent=trainerConnected?'● TRAINER READY':'● TRAINER OPTIONAL';
+  q<HTMLElement>('[data-pk-ready]').dataset.ready=String(trainerConnected);
+  q<HTMLElement>('[data-pk-banner]').textContent=trainerConnected?'✓ TRAINER CONNECTED. READY FOR THE NEXT STEP.':'● NO TRAINER REQUIRED — YOU CAN ENTER 03 RIDE NOW.';
   q<HTMLElement>('[data-pk-distance]').textContent=(el<HTMLInputElement>('generatedMiles')?.value||'—')+' MI';
  }
  function sync(){
