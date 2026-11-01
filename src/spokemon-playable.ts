@@ -88,11 +88,24 @@ export function mountSpokemonPlayable(options:{
  function drawProfile(root:SVGElement,f:SpokemonRideTelemetry){
   // Exact measured chart inset in the user's 1920x1080 Illustrator SVG.
   // Repaint ONLY this rectangle, preserving forest, cream frame and other UI.
-  const minX=380.12,maxX=1540.12,top=435.42,bottom=810.72,width=maxX-minX;
-  rect(root,minX,top,width,bottom-top,'#102e35');
+  // In the Illustrator master, the cream frame is rect x=380..1540
+  // with a 10-unit stroke CENTERED on its edge. The live chart used to
+  // paint over half that stroke, leaving a dark line outside the frame.
+  // Keep all dynamic pixels 5 units INSIDE each vertical/bottom border.
+  const minX=385.12,maxX=1535.12,top=435.42,bottom=805.72,width=maxX-minX;
+  const clipDefs=make('defs',{});
+  const innerClip=make('clipPath',{id:'pk-spokemon-frame-clip',clipPathUnits:'userSpaceOnUse'});
+  innerClip.appendChild(make('rect',{
+   x:String(minX),y:String(top),width:String(width),height:String(bottom-top)
+  }));
+  clipDefs.appendChild(innerClip);
+  root.appendChild(clipDefs);
+  const plot=make('g',{'clip-path':'url(#pk-spokemon-frame-clip)'});
+  root.appendChild(plot);
+  rect(plot,minX,top,width,bottom-top,'#102e35');
   const heights=f.samples.filter(Number.isFinite);
   if(heights.length<2)return;
-  for(let j=0;j<5;j++)line(root,minX+4,480+j*63,maxX-4,480+j*63,'#355d63',1.4);
+  for(let j=0;j<5;j++)line(plot,minX+4,480+j*63,maxX-4,480+j*63,'#355d63',1.4);
   const low=Math.min(...heights),high=Math.max(...heights),span=Math.max(1,high-low);
   const py=(i:number)=>bottom-21-(heights[i]-low)/span*215;
   const meters=Math.max(1,f.totalMeters),step=meters/(heights.length-1);
@@ -109,7 +122,7 @@ export function mountSpokemonPlayable(options:{
   const clip=make('clipPath',{id:'pk-spokemon-grade-clip',clipPathUnits:'userSpaceOnUse'});
   clip.appendChild(make('path',{d:silhouette+' L '+maxX+' '+bottom+' L '+minX+' '+bottom+' Z'}));
   defs.appendChild(clip);
-  root.appendChild(defs);
+  plot.appendChild(defs);
   // BOTH the colored grade columns and the horizontal scanlines share one
   // closed silhouette mask. Neither can extend above the white profile line.
   const clipped=make('g',{'clip-path':'url(#pk-spokemon-grade-clip)'});
@@ -123,15 +136,15 @@ export function mountSpokemonPlayable(options:{
   for(let y=Math.ceil(top/7)*7;y<bottom;y+=7){
    line(clipped,minX,y,maxX,y,'#16383d',0.9);
   }
-  root.appendChild(clipped);
+  plot.appendChild(clipped);
   // Cream silhouette is drawn last so antialiasing never exposes a grade tip.
-  root.appendChild(make('path',{d:silhouette,fill:'none',stroke:'#fff1d7','stroke-width':'4','stroke-linejoin':'round'}));
+  plot.appendChild(make('path',{d:silhouette,fill:'none',stroke:'#fff1d7','stroke-width':'4','stroke-linejoin':'round'}));
   const position=clamp(f.distanceMeters/meters,0,1),x=minX+position*width;
   const index=clamp(Math.floor(position*(heights.length-1)),0,heights.length-1);
-  line(root,x,top+9,x,bottom-5,'#f6d58c',2);
-  root.appendChild(make('circle',{cx:String(x),cy:String(py(index)),r:'10',fill:'#f6d58c',stroke:'#17343b','stroke-width':'3'}));
-  text(root,415,766,(f.distanceMeters/1000).toFixed(1)+' km',24,'#17343b');
-  const endLabel=text(root,1520,766,(meters/1000).toFixed(1)+' km',24,'#17343b');
+  line(plot,x,top+9,x,bottom-5,'#f6d58c',2);
+  plot.appendChild(make('circle',{cx:String(x),cy:String(py(index)),r:'10',fill:'#f6d58c',stroke:'#17343b','stroke-width':'3'}));
+  text(plot,415,766,(f.distanceMeters/1000).toFixed(1)+' km',24,'#17343b');
+  const endLabel=text(plot,1520,766,(meters/1000).toFixed(1)+' km',24,'#17343b');
   endLabel.setAttribute('text-anchor','end');
  }
  function paint(){
