@@ -584,9 +584,9 @@ export function mountPedalkinRide():void {
  });
  host.querySelectorAll<HTMLButtonElement>('[data-pk-action]').forEach(button=>button.addEventListener('click',()=>{
   switch(button.dataset.pkAction){
-   case 'journal':popupOpen('PINE FOREST JOURNAL',PINE_FOREST_SPOKEMON.map((species,i)=>String(i+1).padStart(2,'0')+'  '+species.name+'  ·  '+species.rarity).join('\n')+'\n\nWorking names and temporary encounter art.');break;
-   case 'buddy':popupOpen('YOUR BUDDY','Crab · companionship 12. Buddy management will live here.');break;
-   case 'stats':popupOpen('RIDE STATS',demo?'Design playtest: these sample numbers are not ride data.':'Your real ride data continues to be recorded by Breakaway.');break;
+   case 'journal':popupOpen('SPOKEMON JOURNAL',exactArtwork?(playable?.getCollection().map(c=>c.name+' ×'+c.count).join('\n')||'No Spokemon collected yet.'):PINE_FOREST_SPOKEMON.map((c,i)=>(i+1)+'. '+c.name).join('\n'));break;
+   case 'buddy':popupOpen('YOUR BUDDY',exactArtwork?(playable?.getCollection()[0]?.name||'Befriend your first Spokemon to choose a companion.'):'Companionship 12.');break;
+   case 'stats':popupOpen('RIDE STATS',exactArtwork?'Distance: '+(document.getElementById('distance')?.textContent||'0')+' miles\nPower: '+(document.getElementById('power')?.textContent||'—')+' W\nCollected: '+(playable?.getCollection().length||0):'Legacy preview state');break;
    case 'save':
     if(exactArtwork){
      if(playable?.isSimulating()){popupOpen('TEST RIDE','Test rides are not recorded. Your collected Spokemon are saved on this device. Return through 01 Route when finished.');break;}
@@ -612,7 +612,8 @@ export function mountPedalkinRide():void {
  if(exactArtwork)playable=mountSpokemonPlayable({
   host,slot,active,getScene:()=>stageName,
   switchScene:(which,species)=>{stageName=which;if(species)currentSpecies=species;render();},
-  onFinishRide:finishThroughNative
+  onFinishRide:finishThroughNative,
+  onCollection:(items)=>popupOpen('YOUR COLLECTION',items.length?items.map(c=>c.name+' ×'+c.count).join('\n')+'\n\n'+items.length+' of '+PINE_FOREST_SPOKEMON.length+' species discovered.':'No Spokemon collected yet. Keep riding to find a friend.')
  });
  function sync(){
   const on=active();host.hidden=!on;
