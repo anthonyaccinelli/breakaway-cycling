@@ -24,6 +24,16 @@ export function mountPedalkinRide():void {
  host.hidden=true;
  host.setAttribute('aria-label','Pedalkin ride');
  host.innerHTML=`
+   <header class="pk-ride-nav" aria-label="Pedalkin ride navigation">
+     <span class="pk-ride-nav-name">SPOKEMON <small> / 03 RIDE</small></span>
+     <nav class="pk-ride-tabs" aria-label="Ride navigation">
+       <button type="button" data-pk-nav="route">01 ROUTE</button>
+       <button type="button" data-pk-nav="devices">02 DEVICES</button>
+       <button type="button" data-pk-nav="ride" aria-current="page">03 RIDE</button>
+       <button type="button" data-pk-nav="overlay" aria-label="Open always-on-top overlay">OVERLAY ↗</button>
+     </nav>
+     <span class="pk-ride-nav-state">PINE FOREST</span>
+   </header>
    ${demo?'<div class="pk-demo-bar"><strong>DESIGN PLAYTEST · NO TRAINER / NO RECORDED RIDE</strong><div class="pk-demo-buttons"><button type="button" data-pk-demo="explore">Exploration</button><button type="button" data-pk-demo="encounter">Encounter</button><button type="button" data-pk-demo="pedal">Pedal 15 seconds</button><button type="button" data-pk-demo="escape">Let escape</button><button type="button" data-pk-demo="reset">Reset</button></div></div>':''}
    ${demo?'<div class="pk-profile-bar"><button type="button" data-pk-profile="toggle">Pause preview</button><input type="range" data-pk-profile="seek" min="0" max="1000" value="0" aria-label="Preview rider position along elevation profile"/><span class="pk-profile-status">0.0 / 25.0 km · Fast-forward playtest</span></div>':''}
    <div class="pk-ride-stage"><div class="pk-svg-slot" role="region" aria-label="Pedalkin 03 Ride screen"></div>
@@ -60,6 +70,7 @@ export function mountPedalkinRide():void {
  const profileSeek=host.querySelector<HTMLInputElement>('[data-pk-profile="seek"]');
  const profileStatus=host.querySelector<HTMLElement>('.pk-profile-status');
  const profileBar=host.querySelector<HTMLElement>('.pk-profile-bar');
+ const navButtons=host.querySelectorAll<HTMLButtonElement>('[data-pk-nav]');
  const active=()=>document.body.dataset.rideExperience==='pedalkin'&&document.body.dataset.breakawayScreen==='ride';
  const svgUrl=(s:string)=>'/pedalkin/'+s+'.svg';
  function loadArt(){
@@ -284,6 +295,24 @@ export function mountPedalkinRide():void {
   popup.hidden=false;
   dismiss.focus();
  }
+ function triggerNavigation(target:'route'|'devices'|'ride'|'overlay'){
+  if(target==='overlay'){
+   // The same native always-on-top command used by Classic and Survival.
+   // Mobile browsers may not support Document Picture-in-Picture.
+   if(!window.breakawayDesktop&&!('documentPictureInPicture' in window)){
+    popupOpen('ALWAYS-ON-TOP OVERLAY','The separate overlay requires desktop Chrome, Edge, or the Breakaway desktop app. This browser cannot open an always-on-top window.');
+    return;
+   }
+   (document.getElementById('nativeProfile') as HTMLButtonElement|null)?.click();
+   return;
+  }
+  const id=target==='route'?'stepRoute':target==='devices'?'stepSetup':'stepRide';
+  (document.getElementById(id) as HTMLButtonElement|null)?.click();
+ }
+ navButtons.forEach(button=>button.addEventListener('click',()=>{
+  const target=button.dataset.pkNav as 'route'|'devices'|'ride'|'overlay'|undefined;
+  if(target)triggerNavigation(target);
+ }));
  dismiss.onclick=()=>{popup.hidden=true};
  popup.addEventListener('click',e=>{if(e.target===popup)popup.hidden=true});
  host.querySelectorAll<HTMLButtonElement>('[data-pk-demo]').forEach(button=>{
