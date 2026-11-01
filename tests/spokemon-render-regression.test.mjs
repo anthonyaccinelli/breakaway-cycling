@@ -39,3 +39,18 @@ test('Generated elevation masks exact profile area and leaves forest untouched',
  assert.match(source,/const endLabel=text\(root,1520,766/);
  assert.match(source,/endLabel\.setAttribute\('text-anchor','end'\)/);
 });
+
+test('Elevation bands and horizontal scanlines both use the SAME closed silhouette clip',()=>{
+ const chartStart=source.indexOf(' function drawProfile(');
+ const chartEnd=source.indexOf(' function paint()',chartStart);
+ const chart=source.slice(chartStart,chartEnd);
+ assert.ok(chartStart>=0&&chartEnd>chartStart);
+ assert.match(chart,/const silhouette=outline\.join\(' '\)/);
+ assert.match(chart,/clip\.appendChild\(make\('path',\{d:silhouette\+' L '\+maxX\+' '\+bottom\+' L '\+minX\+' '\+bottom\+' Z'\}\)\)/);
+ assert.match(chart,/const clipped=make\('g',\{'clip-path':'url\(#pk-spokemon-grade-clip\)'\}\)/);
+ assert.match(chart,/rect\(clipped,x1,top,x2-x1\+0\.5,bottom-top,COLORS\[bucket\(slope\)\]\)/);
+ assert.match(chart,/line\(clipped,minX,y,maxX,y,'#16383d',0\.9\)/);
+ assert.doesNotMatch(chart,/rect\(root,x1/);
+ assert.doesNotMatch(chart,/line\(root,minX,y,maxX,y/);
+ assert.ok(chart.indexOf('root.appendChild(clipped)')<chart.lastIndexOf("root.appendChild(make('path',{d:silhouette"),'cream contour should be drawn on top');
+});
