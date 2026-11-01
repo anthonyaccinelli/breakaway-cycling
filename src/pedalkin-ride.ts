@@ -576,6 +576,13 @@ export function mountPedalkinRide():void {
   dismiss.focus();
  }
  function triggerNavigation(target:'route'|'devices'|'ride'|'overlay'){
+  // Preserve the in-progress native ride: don't discard recording when changing
+  // modes or entering devices mid-session.
+  const finish=document.getElementById('rideFinishNow') as HTMLButtonElement|null;
+  if(target!=='ride'&&finish&&!finish.hidden){
+   popupOpen('RIDE IN PROGRESS','Finish and save your recorded ride before navigating away. Use SAVE & CLOSE.');
+   return;
+  }
   if(target==='overlay'){
    // The same native always-on-top command used by Classic and Survival.
    // Mobile browsers may not support Document Picture-in-Picture.
@@ -614,9 +621,33 @@ export function mountPedalkinRide():void {
  });
  host.querySelectorAll<HTMLButtonElement>('[data-pk-action]').forEach(button=>button.addEventListener('click',()=>{
   switch(button.dataset.pkAction){
-   case 'journal':popupOpen('SPOKEMON JOURNAL',exactArtwork?(playable?.getCollection().map(c=>c.name+' ×'+c.count).join('\n')||'No Spokemon collected yet.'):PINE_FOREST_SPOKEMON.map((c,i)=>(i+1)+'. '+c.name).join('\n'));break;
-   case 'buddy':popupOpen('YOUR BUDDY',exactArtwork?(playable?.getCollection()[0]?.name||'Befriend your first Spokemon to choose a companion.'):'Companionship 12.');break;
-   case 'stats':popupOpen('RIDE STATS',exactArtwork?'Distance: '+(document.getElementById('distance')?.textContent||'0')+' miles\nPower: '+(document.getElementById('power')?.textContent||'—')+' W\nCollected: '+(playable?.getCollection().length||0):'Legacy preview state');break;
+   case 'journal':popupOpen('SPOKEMON JOURNAL',exactArtwork?(playable?.getCollection().map(c=>c.name+' ×'+c.count+' · '+(c.temperament||'Unknown')+' · Lv '+(1+Math.floor((c.xp||0)/600))).join('\n')||'No Spokemon collected yet.'):PINE_FOREST_SPOKEMON.map((c,i)=>(i+1)+'. '+c.name).join('\n'));break;
+   case 'buddy':{
+    if(!exactArtwork||!playable){popupOpen('YOUR BUDDY','Connect with a Spokemon during a ride.');break;}
+    const caught=playable.getCollection(),selected=playable.getBuddy();
+    popupOpen('YOUR BUDDY',caught.length
+     ?'Active: '+(selected?.name||'None')+'. Choose a companion below.\nXP comes from actual pedaling (or accelerated Test Ride).'
+     :'Befriend your first Spokemon to choose a companion.');
+    const body=popup.querySelector<HTMLElement>('.pk-popup-body')!;
+    caught.forEach(c=>{
+     const choice=document.createElement('button');
+     choice.type='button';choice.className='pk-buddy-choice';
+     choice.textContent=(selected?.id===c.id?'★ ':'')+c.name+' · Lv '+(1+Math.floor((c.xp||0)/600))+' · '+Math.floor(c.xp||0)+' XP';
+     choice.onclick=()=>{playable?.setBuddy(c.id);popupOpen('YOUR BUDDY',c.name+' is now your companion. Keep riding to earn XP.');};
+     body.append(choice);
+    });
+    break;
+   }
+   case 'stats':{
+    const f=playable?.getLiveStats();
+    popupOpen('RIDE STATS',exactArtwork&&f
+     ?(playable?.isSimulating()?'TEST RIDE (NOT RECORDED)':'REAL RIDE')+
+       '\nDistance: '+(f.distanceMeters/1609.344).toFixed(2)+' miles'+
+       '\nPower: '+Math.round(f.powerWatts||0)+' W'+
+       '\nElevation grade: '+f.gradePercent.toFixed(1)+'%'+
+       '\nCollected: '+(playable?.getCollection().length||0)
+     :'No ride telemetry available.');break;
+   }
    case 'save':
     if(exactArtwork){
      if(!playable){popupOpen('SAVE & CLOSE','Game is loading.');break;}
