@@ -96,7 +96,8 @@ test('Current live route data replaces ONLY the illustrative elevation trace',()
  assert.match(main,/overviewAt\(totalMeters\*i\/96\)\.elevation/);
  assert.match(view,/window\.addEventListener\('pedalkin:ride-frame'/);
  assert.match(view,/paintRealElevation\(frame\)/);
- assert.match(view,/path\.setAttribute\('d',d\)/);
+ assert.match(view,/path\.setAttribute\('d',pixels\.line\)/);
+ assert.match(view,/pixelateElevation\(heights,profileMinX,profileMaxX,500,718,112,6\)/);
  assert.match(view,/liveFrame\.distanceMeters\/liveFrame\.totalMeters/);
  assert.match(view,/if\(demo\|\|!frame/);
 });
@@ -244,4 +245,17 @@ test('Encounter and Exploration share precisely aligned chrome after runtime nor
  // User-authored SVGs stay exactly as supplied rather than mutated.
  assert.match(encounter,/viewBox="0 0 1920 1080"/);
  assert.match(explore,/viewBox="0 0 1920 1080"/);
+});
+
+test('Pixel-stepped 03 Ride profile retains rider geometry and never changes real trainer data',async()=>{
+ const helper=await readFile(new URL('../src/pedalkin-pixel-elevation.ts',import.meta.url),'utf8');
+ assert.match(helper,/export function pixelateElevation/);
+ assert.match(helper,/\.map\(p=>' H '\+fixed\(p\.x\)\+' V '\+fixed\(p\.y\)\)/);
+ assert.match(helper,/const fill=line\+' L '/);
+ assert.match(view,/fill\.setAttribute\('fill','#a7d49c'\)/);
+ assert.match(view,/outline\.setAttribute\('stroke','#10282c'\)/);
+ assert.match(view,/path\.setAttribute\('d',pixels\.line\)/);
+ assert.match(view,/path\.dataset\.pkBaseD/);
+ assert.match(view,/paintRiderOnProfile\(\)/);
+ assert.doesNotMatch(helper,/(?:sendFtms|setGrade|requestDevice|trainerWrite|setResistance)\(/);
 });
