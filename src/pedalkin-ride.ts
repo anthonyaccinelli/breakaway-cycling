@@ -197,6 +197,14 @@ export function mountPedalkinRide():void {
    }
    return node;
   };
+  // Preserve the original smooth route solely for the trainer-free
+  // gradient readout. The user sees only the quantized pixel path.
+  const smoothSource=getOrMake('pk-smooth-profile-source');
+  smoothSource.setAttribute('d',baseD);
+  smoothSource.setAttribute('fill','none');
+  smoothSource.setAttribute('stroke','none');
+  smoothSource.setAttribute('pointer-events','none');
+  smoothSource.setAttribute('opacity','0');
   const fill=getOrMake('pk-pixel-profile-fill');
   fill.setAttribute('d',pixels.fill);
   fill.setAttribute('fill','#a7d49c');
@@ -242,13 +250,29 @@ export function mountPedalkinRide():void {
   if(rider){rider.setAttribute('cx',String(point.x));rider.setAttribute('cy',String(point.y));}
   if(baseline)baseline.setAttribute('cx',String(392+(1485-392)*fraction));
   if(you)you.setAttribute('transform','translate('+Math.max(382,Math.min(1475,point.x-17.1)).toFixed(1)+' 519)');
-  // In a real ride use Breakaway's actual instantaneous route grade.
-  // The playtest instead estimates a *visual* gradient from the supplied
-  // sample illustration; it is not presented as recorded ride data.
-  const left=atProfileX(Math.max(profileMinX,targetX-14));
-  const right=atProfileX(Math.min(profileMaxX,targetX+14));
-  const visualGrade=-(right.y-left.y)/Math.max(1,right.x-left.x)*6.5;
-  const gradient=demo?Math.max(-15,Math.min(15,visualGrade)):
+  // Actual rides use the original route grade (never the rendered pixels).
+  // In the no-trainer demo, sample the ORIGINAL unquantized Illustrator
+  // curve over a continuous 80px span. The moving-average slope stays
+  // smooth even as the display steps up and down in six-pixel increments.
+  const smoothGradient=()=>{
+   const source=svg.querySelector<SVGPathElement>('#pk-smooth-profile-source');
+   if(!source)return null;
+   const length=source.getTotalLength();
+   if(length<=0)return null;
+   const smoothYAt=(x:number)=>{
+    let lo=0,hi=length;
+    for(let i=0;i<22;i++){
+     const mid=(lo+hi)/2;
+     if(source.getPointAtLength(mid).x<x)lo=mid;else hi=mid;
+    }
+    return source.getPointAtLength((lo+hi)/2).y;
+   };
+   const beforeX=Math.max(profileMinX,targetX-40);
+   const afterX=Math.min(profileMaxX,targetX+40);
+   const slope=-(smoothYAt(afterX)-smoothYAt(beforeX))/Math.max(1,afterX-beforeX)*6.5;
+   return Math.max(-15,Math.min(15,slope));
+  };
+  const gradient=demo?smoothGradient():
    (liveFrame&&Number.isFinite(liveFrame.gradePercent)?liveFrame.gradePercent:null);
   let badge=svg.querySelector<SVGGElement>('#pk-rider-gradient');
   if(!badge){
