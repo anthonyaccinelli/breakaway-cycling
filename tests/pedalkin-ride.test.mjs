@@ -59,7 +59,7 @@ test('both states retain vector typography and panel geometry after inserting cr
 test('new 03 Ride screens are on Pedalkin only; preview works without trainer and never invents ride data',()=>{
  assert.match(main,/mountPedalkinRide\(\)/);
  assert.match(main,/pedalkinPreviewScreen/);
- assert.match(main,/showBreakawayScreen\(\['ride','explore','encounter'\]/);
+ assert.match(main,/showBreakawayScreen\(\['ride','explore','encounter','playing'\]/);
  assert.match(view,/rideExperience==='pedalkin'/);
  assert.match(view,/NO TRAINER \/ NO RECORDED RIDE/);
  assert.match(view,/no synthetic wattage, no trainer control/);
@@ -74,7 +74,7 @@ test('preview navigation and capture demos are interactive; route remains unalte
  assert.match(view,/data-pk-action="journal"/);
  assert.match(view,/data-pk-action="save"/);
  assert.match(view,/wildness=Math\.max\(0,wildness-seconds\*1\.55\)/);
- assert.match(main,/rideExperience==='pedalkin'&&\['route','setup','ride','explore','encounter'\]/);
+ assert.match(main,/rideExperience==='pedalkin'&&\['route','setup','ride','explore','encounter','playing'\]/);
 });
 
 test('Exploration player follows the authored profile at uniform horizontal distance',()=>{
