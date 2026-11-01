@@ -83,7 +83,7 @@ test('Exploration player follows the authored profile at uniform horizontal dist
  assert.match(explore,/<line class="st25" x1="798"/);
  assert.match(view,/const profileMinX=383,profileMaxX=1498/);
  assert.match(view,/path\.getTotalLength\(\)/);
- assert.match(view,/path\.getPointAtLength\(mid\)\.x<targetX/);
+ assert.match(view,/path\.getPointAtLength\(mid\)\.x<x/);
  assert.match(view,/rider\.setAttribute\('cy',String\(point\.y\)\)/);
  assert.match(view,/guide\.setAttribute\('x1',String\(point\.x\)\)/);
  assert.match(view,/baseline\.setAttribute\('cx'/);
@@ -112,4 +112,29 @@ test('Design playtest auto-runs and lets riders pause, scrub or reset without a 
  assert.match(view,/if\(action==='reset'\)\{demoKm=0/);
  assert.match(style,/\.pk-profile-bar/);
  assert.match(style,/\.pk-profile-status/);
+});
+
+test('following gradient badge matches reference and tracks the same rider marker',()=>{
+ assert.match(view,/id','pk-rider-gradient'/);
+ assert.match(view,/const gradient=demo\?/);
+ assert.match(view,/right\.y-left\.y/);
+ assert.match(view,/liveFrame\.gradePercent/);
+ assert.match(view,/const percentage=gradient===null\?'—%'/);
+ assert.match(view,/border\.setAttribute\('stroke','#ffc197'\)/);
+ assert.match(view,/border\.setAttribute\('fill','#102f36'\)/);
+ assert.match(view,/label\.setAttribute\('fill','#fff0d4'\)/);
+ assert.match(view,/Math\.min\(1370,point\.x-155\)/);
+ assert.match(view,/Math\.min\(662,point\.y\+40\)/);
+ assert.match(view,/badge\.setAttribute\('transform'/);
+ assert.match(view,/badge\.setAttribute\('aria-label','Current gradient '/);
+ assert.match(view,/paintRiderOnProfile\(\)/);
+});
+
+test('real live gradient is the route grade, not visual slope or synthetic trainer data',()=>{
+ assert.match(main,/gradePercent:displayGrade\(\)/);
+ assert.match(main,/function publishPedalkinRideFrame\(\)/);
+ assert.match(view,/gradePercent:number;/);
+ assert.match(view,/const gradient=demo\?Math\.max/);
+ assert.match(view,/\(liveFrame&&Number\.isFinite\(liveFrame\.gradePercent\)\?liveFrame\.gradePercent:null\)/);
+ assert.doesNotMatch(view,/(?:setGrade|sendFtms|requestDevice|cycleQuestHold|setVirtualGearResistance)\(/);
 });
