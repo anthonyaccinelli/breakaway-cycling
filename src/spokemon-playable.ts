@@ -22,6 +22,7 @@ export function mountSpokemonPlayable(options:{
  host:HTMLElement;slot:HTMLElement;active:()=>boolean;getScene:()=>Scene;
  switchScene:(to:Scene,species?:SpokemonSpecies)=>void;
  onFinishRide:()=>void;
+ onCollection?:(items:SavedCreature[])=>void;
 }){
  const {host,slot,active,getScene,switchScene,onFinishRide}=options;
  let collection=loadCollection();
@@ -175,7 +176,8 @@ export function mountSpokemonPlayable(options:{
  }
  const journal=()=>{
   const lines=collection.length?collection.map(c=>c.name+' ×'+c.count).join('\n'):'No Spokemon collected yet.';
-  window.alert('SPOKEMON COLLECTION\n\n'+lines+'\n\n'+collection.length+' / '+PINE_FOREST_SPOKEMON.length+' species');
+  if(options.onCollection)options.onCollection(collection.slice());
+  else window.alert('SPOKEMON COLLECTION\n\n'+lines+'\n\n'+collection.length+' / '+PINE_FOREST_SPOKEMON.length+' species');
  };
  tool.querySelectorAll<HTMLButtonElement>('button[data-pk-control]').forEach(button=>button.addEventListener('click',()=>{
   const action=button.dataset.pkControl;
