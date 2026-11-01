@@ -5,6 +5,7 @@ type PedalkinRideFrame={
  totalMeters:number;
  samples:number[];
  elapsedSeconds:number;
+ gradePercent:number;
 };
 
 /**
@@ -136,15 +137,18 @@ export function mountPedalkinRide():void {
   const fraction=demo?clamp01(demoKm/demoTotalKm):
    (liveFrame?clamp01(liveFrame.distanceMeters/liveFrame.totalMeters):0);
   const targetX=profileMinX+(profileMaxX-profileMinX)*fraction;
-  // Find a point at a fixed X instead of a fixed path-length percentage,
-  // so distance advances uniformly even on steep slopes.
+  // Invert the authored profile's path length to find X at a real
+  // distance fraction. Elevation changes never accelerate the marker.
   const pathLength=path.getTotalLength();
-  let lo=0,hi=pathLength;
-  for(let i=0;i<22;i++){
-   const mid=(lo+hi)/2;
-   if(path.getPointAtLength(mid).x<targetX)lo=mid;else hi=mid;
-  }
-  const point=path.getPointAtLength((lo+hi)/2);
+  const atProfileX=(x:number)=>{
+   let lo=0,hi=pathLength;
+   for(let i=0;i<22;i++){
+    const mid=(lo+hi)/2;
+    if(path.getPointAtLength(mid).x<x)lo=mid;else hi=mid;
+   }
+   return path.getPointAtLength((lo+hi)/2);
+  };
+  const point=atProfileX(targetX);
   const guide=svg.querySelector<SVGLineElement>('line.st25');
   const rider=svg.querySelector<SVGCircleElement>('circle.st45');
   const baseline=svg.querySelector<SVGCircleElement>('circle.st38');
@@ -154,6 +158,52 @@ export function mountPedalkinRide():void {
   if(rider){rider.setAttribute('cx',String(point.x));rider.setAttribute('cy',String(point.y));}
   if(baseline)baseline.setAttribute('cx',String(392+(1485-392)*fraction));
   if(you)you.setAttribute('transform','translate('+Math.max(382,Math.min(1475,point.x-17.1)).toFixed(1)+' 519)');
+  // In a real ride use Breakaway's actual instantaneous route grade.
+  // The playtest instead estimates a *visual* gradient from the supplied
+  // sample illustration; it is not presented as recorded ride data.
+  const left=atProfileX(Math.max(profileMinX,targetX-14));
+  const right=atProfileX(Math.min(profileMaxX,targetX+14));
+  const visualGrade=-(right.y-left.y)/Math.max(1,right.x-left.x)*6.5;
+  const gradient=demo?Math.max(-15,Math.min(15,visualGrade)):
+   (liveFrame&&Number.isFinite(liveFrame.gradePercent)?liveFrame.gradePercent:null);
+  let badge=svg.querySelector<SVGGElement>('#pk-rider-gradient');
+  if(!badge){
+   const ns='http://www.w3.org/2000/svg';
+   badge=document.createElementNS(ns,'g');
+   badge.setAttribute('id','pk-rider-gradient');
+   badge.setAttribute('role','img');
+   badge.setAttribute('pointer-events','none');
+   const border=document.createElementNS(ns,'rect');
+   border.setAttribute('width','140');
+   border.setAttribute('height','49');
+   border.setAttribute('rx','11');
+   border.setAttribute('fill','#102f36');
+   border.setAttribute('stroke','#ffc197');
+   border.setAttribute('stroke-width','3');
+   const label=document.createElementNS(ns,'text');
+   label.setAttribute('x','70');
+   label.setAttribute('y','35');
+   label.setAttribute('text-anchor','middle');
+   label.setAttribute('font-family','Courier New, monospace');
+   label.setAttribute('font-size','32');
+   label.setAttribute('font-weight','800');
+   label.setAttribute('letter-spacing','1');
+   label.setAttribute('fill','#fff0d4');
+   badge.append(border,label);
+   svg.appendChild(badge);
+  }
+  const percentage=gradient===null?'—%':(Math.abs(gradient)<0.05?0:gradient).toFixed(1)+'%';
+  const label=badge.querySelector<SVGTextElement>('text');
+  if(label){
+   label.textContent=percentage;
+   label.setAttribute('font-size',percentage.length>5?'27':'32');
+  }
+  badge.setAttribute('aria-label','Current gradient '+percentage);
+  // Reference placement: below and just left of YOU. Clamp to the SVG
+  // graph so neither steep climbs nor the last kilometers clip the badge.
+  const pillX=Math.max(376,Math.min(1370,point.x-155));
+  const pillY=Math.max(527,Math.min(662,point.y+40));
+  badge.setAttribute('transform','translate('+pillX.toFixed(1)+' '+pillY.toFixed(1)+')');
   const totalKm=demo?demoTotalKm:(liveFrame?.totalMeters||25000)/1000;
   const distanceKm=demo?demoKm:(liveFrame?.distanceMeters||0)/1000;
   if(distanceText)distanceText.textContent=distanceKm.toFixed(1)+' / '+totalKm.toFixed(1)+' km';
