@@ -2,6 +2,7 @@ import './pedalkin-ride.css';
 import {PINE_FOREST_SPOKEMON,choosePineForestSpokemon,nextPreviewSpokemon} from './pedalkin-creatures';
 import type {SpokemonSpecies} from './pedalkin-creatures';
 import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
+import {pixelateElevation} from './pedalkin-pixel-elevation';
 
 type PedalkinRideFrame={
  distanceMeters:number;
@@ -159,18 +160,58 @@ export function mountPedalkinRide():void {
  // route elevations. No modification is made to the source artwork or trainer.
  const profileMinX=383,profileMaxX=1498;
  const clamp01=(n:number)=>Math.max(0,Math.min(1,Number.isFinite(n)?n:0));
- function paintRealElevation(frame:PedalkinRideFrame){
+ function paintRealElevation(frame:PedalkinRideFrame|null){
   if(stageName!=='explore')return;
-  const path=slot.querySelector<SVGPathElement>('svg path.st32');
-  const valid=frame.samples.filter(Number.isFinite);
-  if(!path||valid.length<2)return;
-  const low=Math.min(...valid),high=Math.max(...valid),range=Math.max(0.5,high-low);
-  const d=valid.map((e,i)=>{
-   const x=profileMinX+(profileMaxX-profileMinX)*i/(valid.length-1);
-   const y=683-(e-low)/range*167;
-   return (i===0?'M':'L')+x.toFixed(2)+','+y.toFixed(2);
-  }).join(' ');
-  path.setAttribute('d',d);
+  const svg=slot.querySelector<SVGSVGElement>('svg');
+  const path=svg?.querySelector<SVGPathElement>('path.st32');
+  if(!svg||!path)return;
+  // Read actual elevations, or sample the original author's illustrative
+  // route for no-trainer previews. Only the DISPLAY is quantized.
+  const baseD=path.dataset.pkBaseD||path.getAttribute('d')||'';
+  if(!path.dataset.pkBaseD)path.dataset.pkBaseD=baseD;
+  let heights:number[];
+  const valid=frame?.samples.filter(Number.isFinite)||[];
+  if(valid.length>1){
+   const low=Math.min(...valid),high=Math.max(...valid),range=Math.max(0.5,high-low);
+   heights=valid.map(e=>681-(e-low)/range*165);
+  }else{
+   path.setAttribute('d',baseD);
+   const pathLength=path.getTotalLength();
+   heights=Array.from({length:113},(_,i)=>{
+    const targetX=profileMinX+(profileMaxX-profileMinX)*i/112;
+    let lo=0,hi=pathLength;
+    for(let j=0;j<20;j++){
+     const mid=(lo+hi)/2;
+     if(path.getPointAtLength(mid).x<targetX)lo=mid;else hi=mid;
+    }
+    return path.getPointAtLength((lo+hi)/2).y;
+   });
+  }
+  const pixels=pixelateElevation(heights,profileMinX,profileMaxX,500,718,112,6);
+  const ns='http://www.w3.org/2000/svg';
+  const getOrMake=(id:string)=>{
+   let node=svg.querySelector<SVGPathElement>('#'+id);
+   if(!node){
+    node=document.createElementNS(ns,'path');node.setAttribute('id',id);
+    path.parentNode!.insertBefore(node,path);
+   }
+   return node;
+  };
+  const fill=getOrMake('pk-pixel-profile-fill');
+  fill.setAttribute('d',pixels.fill);
+  fill.setAttribute('fill','#a7d49c');
+  fill.setAttribute('opacity','0.94');
+  fill.setAttribute('stroke','none');
+  fill.setAttribute('shape-rendering','crispEdges');
+  const outline=getOrMake('pk-pixel-profile-outline');
+  outline.setAttribute('d',pixels.line);
+  outline.setAttribute('fill','none');
+  outline.setAttribute('stroke','#10282c');
+  outline.setAttribute('stroke-width','8');
+  outline.setAttribute('stroke-linejoin','miter');
+  outline.setAttribute('shape-rendering','crispEdges');
+  path.setAttribute('d',pixels.line);
+  path.setAttribute('style','fill:none;stroke:#fff1d4;stroke-width:3;stroke-linecap:square;stroke-linejoin:miter;shape-rendering:crispEdges');
  }
  function paintRiderOnProfile(){
   if(stageName!=='explore')return;
@@ -376,7 +417,7 @@ export function mountPedalkinRide():void {
   distanceText=tspans.find(el=>el.textContent?.trim()==='8.4 / 25.0 km')||null;
   elapsedText=tspans.find(el=>el.textContent?.trim()==='1:23:47')||null;
   if(stageName==='explore'){
-   if(!demo&&liveFrame)paintRealElevation(liveFrame);
+   paintRealElevation(!demo?liveFrame:null);
    paintRiderOnProfile();
   }else if(svg){
    // Future species will replace this temporary visual with approved art.
