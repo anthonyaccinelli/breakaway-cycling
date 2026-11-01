@@ -228,7 +228,7 @@ test('Encounter and Exploration share precisely aligned chrome after runtime nor
  const logoY=(xml)=>Number(xml.match(/<rect[^>]*x="746\.3" y="(\d+(?:\.\d+)?)" width="427\.3"/)?.[1]);
  assert.equal(leftY(explore)-leftY(encounter),2);
  assert.equal(rightY(explore)-rightY(encounter),3);
- assert.equal(bottom(explore)[0]-bottom(encounter)[0],4.2);
+ assert.ok(Math.abs(bottom(explore)[0]-bottom(encounter)[0]-4.2)<1e-6);
  assert.equal(bottom(explore)[1],219.8);
  assert.equal(bottom(encounter)[1],224);
  assert.ok(Math.abs(logoY(explore)-logoY(encounter)-3.9)<1e-6);
