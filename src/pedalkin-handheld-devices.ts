@@ -13,7 +13,7 @@ export function mountPedalkinHandheldDevices():void{
  shell.setAttribute('aria-label','Spokemon 02 Devices');
  shell.innerHTML=`
  <div class="pk-dev-stage">
-  <img class="pk-dev-art" src="/pedalkin/route-v2.svg" alt="Spokemon handheld console" draggable="false"/>
+  <img class="pk-dev-art" src="/pedalkin/route-v3.svg" alt="Spokemon handheld console" draggable="false"/>
   <nav class="pk-dev-frame-nav" aria-label="Game navigation">
    <button data-pk-nav="stepRoute" aria-label="01 Route"></button>
    <button data-pk-nav="stepSetup" aria-current="page" aria-label="02 Devices"></button>
@@ -30,8 +30,8 @@ export function mountPedalkinHandheldDevices():void{
      <h2>01 / PAIR DEVICES</h2>
      <div class="pk-dev-device" data-pk-device="trainer">
       <div class="pk-dev-device-heading"><span class="pk-dev-bluetooth">ᛒ</span>
-       <div class="pk-dev-device-name"><strong>Smart Trainer</strong><small>FTMS / controllable resistance</small></div>
-       <span class="pk-dev-tag required">REQUIRED</span></div>
+       <div class="pk-dev-device-name"><strong>Smart Trainer</strong><small>FTMS / optional smart-trainer pairing</small></div>
+       <span class="pk-dev-tag">OPTIONAL</span></div>
       <button data-pk-action="trainer">CONNECT TRAINER</button>
       <small class="pk-dev-device-status" data-pk-status="trainer">Not connected</small>
      </div>
