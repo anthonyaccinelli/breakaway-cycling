@@ -222,3 +222,35 @@ body.pk-dev-active{background:#21484e!important;overflow:hidden!important}
  .pk-dev-device{padding:.28cqw!important}
  .pk-dev-tag{font-size:.45cqw!important;padding:.13cqw .25cqw!important}
 }
+
+
+/* Same original Illustrator shell and exactly the new 580..1341 x 218..863
+   inner LCD, measured on its 1920x1080 canvas. No extra device page chrome. */
+body.pk-dev-active .pk-dev-screen{
+ left:30.2083%!important;top:20.1852%!important;
+ width:39.6875%!important;height:59.8148%!important;
+ padding:.70cqw .86cqw .74cqw!important;
+ grid-template-rows:2.7cqw minmax(0,1fr) 1.72cqw 2.63cqw!important;
+ gap:.37cqw!important;
+ background:#fff!important;
+}
+body.pk-dev-active .pk-dev-frame-nav button{
+ top:5.40%!important;width:10.85%!important;height:7.38%!important;
+}
+body.pk-dev-active .pk-dev-frame-nav button:nth-child(1){left:27.80%!important}
+body.pk-dev-active .pk-dev-frame-nav button:nth-child(2){left:38.93%!important}
+body.pk-dev-active .pk-dev-frame-nav button:nth-child(3){left:50.20%!important}
+body.pk-dev-active .pk-dev-frame-nav button:nth-child(4){left:61.35%!important}
+body.pk-dev-active .pk-dev-column{gap:.31cqw!important;padding:.44cqw .55cqw!important}
+body.pk-dev-active .pk-dev-device{flex-basis:4.85cqw!important;padding:.24cqw .42cqw!important;gap:.10cqw!important}
+body.pk-dev-active .pk-dev-device-heading{height:2.08cqw!important}
+body.pk-dev-active .pk-dev-device>button{height:1.43cqw!important;flex-basis:1.43cqw!important}
+body.pk-dev-active .pk-dev-device-status{font-size:.48cqw!important}
+body.pk-dev-active .pk-dev-settings{padding:.54cqw .67cqw!important;gap:.29cqw!important}
+body.pk-dev-active .pk-dev-settings select{height:1.82cqw!important;margin:0!important}
+body.pk-dev-active .pk-dev-gear{padding-top:.36cqw!important;gap:.35cqw!important}
+body.pk-dev-active .pk-dev-device .pk-dev-tag{color:#4e735a!important;background:#e9f4e8!important;border-color:#b1d8b2!important}
+body.pk-dev-active .pk-dev-screen,
+body.pk-dev-active .pk-dev-screen :is(input,select,button,div,label,span,small,h1,h2,p,strong,output){
+ font-family:"Spokemon Minecraft",monospace!important;font-weight:700!important;
+}
