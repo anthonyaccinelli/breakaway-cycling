@@ -65,3 +65,15 @@
  #breakawayCoachScreen.coach-v2 .ci-source button{font-size:12px}#breakawayCoachScreen.coach-v2 .ci-card{padding:17px}
  #breakawayCoachScreen.coach-v2 .ci-stats strong{font-size:18px}#breakawayCoachScreen.coach-v2 .ci-stats small{font-size:9px}
 }
+
+
+/* Five equal, thumb-sized Coach destinations on wide screens. */
+#breakawayCoachScreen.coach-v2 .coach-nav{grid-template-columns:repeat(5,minmax(0,1fr))}
+#breakawayCoachScreen.coach-v2 .coach-nav button{white-space:normal}
+@media(max-width:900px){
+ #breakawayCoachScreen.coach-v2 .coach-nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:570px){
+ #breakawayCoachScreen.coach-v2 .coach-nav{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #breakawayCoachScreen.coach-v2 #coachTabImport{grid-column:1/-1}
+}
