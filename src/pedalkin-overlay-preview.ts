@@ -1,4 +1,5 @@
 import {PEDALKIN_OVERLAY_CSS} from './pedalkin-overlay-theme';
+import {pixelateElevation} from './pedalkin-pixel-elevation';
 
 /** Read-only no-trainer preview of the same compact overlay DOM/CSS.
  * The preview data is explicitly illustrative and never sent to the ride engine.
@@ -78,27 +79,27 @@ export function mountPedalkinOverlayPreview():void{
  };
  const forest=(viewStart:number,viewEnd:number)=>{
   const w=900,h=190,pad=10;
-  const curve=Array.from({length:90},(_,i)=>{
-   const f=viewStart+(viewEnd-viewStart)*i/89;
-   return [pad+(w-2*pad)*i/89, h-pad-heightAt(f)*130];
+  const heights=Array.from({length:113},(_,i)=>{
+   const f=viewStart+(viewEnd-viewStart)*i/112;
+   return h-pad-heightAt(f)*130;
   });
-  const poly=curve.map(([x,y])=>x.toFixed(1)+','+y.toFixed(1)).join(' ');
-  const outline=curve.map(([x,y],i)=>(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)).join(' ');
+  const pixels=pixelateElevation(heights,pad,w-pad,12,h-pad,112,5);
   const forestTrees=Array.from({length:32},(_,i)=>{
    const x=8+i*(w-16)/31,tall=17+(i*13%22);
    return '<path d="M'+x+' '+(h-tall)+' l-9 15 h5 l-7 12 h22 l-7 -12 h5 Z" fill="'+(i%2?'#0d4040':'#123438')+'"/>';
   }).join('');
   const px=Math.min(.92,Math.max(.05,(progress-viewStart)/(viewEnd-viewStart)));
-  const riderX=pad+px*(w-pad*2),riderY=h-pad-heightAt(progress)*130;
+  const marker=pixels.at(px);
   const ahead=Math.min(1,progress+.006),behind=Math.max(0,progress-.006);
   const grade=-(heightAt(ahead)-heightAt(behind))*10/(ahead-behind)*.035;
   return '<div class="overlay-profile-graphic" style="height:100%;position:relative;overflow:hidden">'
-   +'<svg viewBox="0 0 900 190" preserveAspectRatio="none" width="100%" height="100%">'
-   +'<defs><linearGradient id="pk-preview-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#619f85"/><stop offset="100%" stop-color="#28594c"/></linearGradient></defs>'
-   +'<path d="'+outline+' L890 190 L10 190 Z" fill="url(#pk-preview-fill)"/>'
-   +forestTrees+'<polyline points="'+poly+'" fill="none" stroke="#f9ebcb" stroke-width="4"/>'
-   +'<line x1="'+riderX+'" y1="20" x2="'+riderX+'" y2="181" stroke="#ffd17d" stroke-dasharray="8 7" stroke-width="2"/>'
-   +'<circle cx="'+riderX+'" cy="'+riderY+'" r="7" fill="#ffd17d" stroke="#0f292f" stroke-width="2"/></svg>'
+   +'<svg viewBox="0 0 900 190" preserveAspectRatio="none" shape-rendering="crispEdges" width="100%" height="100%">'
+   +'<path d="'+pixels.fill+'" fill="#a7d49c" opacity="0.94"/>'
+   +forestTrees
+   +'<path d="'+pixels.line+'" fill="none" stroke="#10282c" stroke-width="8" stroke-linejoin="miter"/>'
+   +'<path d="'+pixels.line+'" fill="none" stroke="#fff1d4" stroke-width="3" stroke-linejoin="miter"/>'
+   +'<line x1="'+marker.x+'" y1="20" x2="'+marker.x+'" y2="181" stroke="#ffd17d" stroke-dasharray="8 7" stroke-width="2"/>'
+   +'<circle cx="'+marker.x+'" cy="'+marker.y+'" r="7" fill="#ffd17d" stroke="#0f292f" stroke-width="2"/></svg>'
    +'<div class="overlay-profile-grade" style="left:calc('+(px*100)+'% - 37px)">'+grade.toFixed(1)+'%</div></div>';
  };
  const refresh=()=>{
