@@ -35,3 +35,14 @@ The uploads `gamescreens_Explore Screen(4).svg` and `gamescreens_Encounter Scree
 
 ## Context-transfer rule
 At the first sign this conversation is getting lengthy, provide the user a concise copyable handoff containing this document path, current branch, commit SHA, Vercel URL, what has been approved, and what remains unapproved. Do this BEFORE the chat length cap.
+
+
+## 2026-11-01 — browser fit and creature placement (new review branch)
+- **Current review branch**: `feature/spokemon-fit-encounter-sprite-2026-11-01`.
+- **Preview-ready code commit**: `4752361670b9df4a3b2fb29d60a92e4f9ffb0d08`.
+- **Vercel deployment**: `dpl_LcSHTbsiY3ZyVYsHo4MuM29wjtEf` (READY).
+- **URL**: https://breakaway-cycling-web-v409-ride-recovery-autosave-qbw54n1yq.vercel.app/?pedalkinPreview=encounter
+- Exact artwork mode is mounted directly under `document.body` to eliminate legacy Ride page offsets / clipping. The entire 16:9 image is contained within 100vw × 100dvh; it is neither cropped nor distorted.
+- Encounter now draws a **temporary Mossprout** sprite in a separate transparent overlay anchored to Illustrator art slot x=730, y=355, width=460, height=370. Source SVG files remain unchanged. Other screens do not show creature overlay.
+- No trainer needed for these playtest URLs.
+- User approval is still pending. No commit merged to main.
