@@ -1,4 +1,5 @@
 import './pedalkin-handheld-route.css';
+import {enableSpokemonHandheldFont} from './pedalkin-font-artwork';
 
 const PEDALKIN_BIOMES=[
  {id:'pine-forest',name:'Pine Forest',available:true},
@@ -74,6 +75,7 @@ export function mountPedalkinHandheldRoute():void {
    </div>
   </div>`;
  route.append(shell);
+ void enableSpokemonHandheldFont(shell);
  const at=<T extends Element=HTMLElement>(selector:string)=>shell.querySelector<T>(selector)!;
  const fields=[
   {proxy:at<HTMLInputElement>('.pk-v2-miles'),real:original.miles!},
