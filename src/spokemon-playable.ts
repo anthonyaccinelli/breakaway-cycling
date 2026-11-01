@@ -140,9 +140,15 @@ export function mountSpokemonPlayable(options:{
   // Cream silhouette is drawn last so antialiasing never exposes a grade tip.
   plot.appendChild(make('path',{d:silhouette,fill:'none',stroke:'#fff1d7','stroke-width':'4','stroke-linejoin':'round'}));
   const position=clamp(f.distanceMeters/meters,0,1),x=minX+position*width;
-  const index=clamp(Math.floor(position*(heights.length-1)),0,heights.length-1);
+  // Rider height must be evaluated at its exact fractional position.
+  // Flooring the sample index made the dot teleport between jagged steps,
+  // even though the cream route contour connects those samples smoothly.
+  const samplePosition=position*(heights.length-1);
+  const leftIndex=Math.min(heights.length-2,Math.floor(samplePosition));
+  const fraction=samplePosition-leftIndex;
+  const riderY=py(leftIndex)+(py(leftIndex+1)-py(leftIndex))*fraction;
   line(plot,x,top+9,x,bottom-5,'#f6d58c',2);
-  plot.appendChild(make('circle',{cx:String(x),cy:String(py(index)),r:'10',fill:'#f6d58c',stroke:'#17343b','stroke-width':'3'}));
+  plot.appendChild(make('circle',{cx:String(x),cy:String(riderY),r:'10',fill:'#f6d58c',stroke:'#17343b','stroke-width':'3'}));
   text(plot,415,766,(f.distanceMeters/1000).toFixed(1)+' km',24,'#17343b');
   const endLabel=text(plot,1520,766,(meters/1000).toFixed(1)+' km',24,'#17343b');
   endLabel.setAttribute('text-anchor','end');
@@ -155,10 +161,27 @@ export function mountSpokemonPlayable(options:{
   // Keep the original SVG isolated; it is not rebuilt on every telemetry tick.
   if(!svg||svg.localName!=='svg')return;
   const f=frame();
-  const set=(transform:string,value:string)=>{
+  const set=(transform:string,value:string,maxWidth?:number)=>{
    const t=svg.querySelector<SVGTextElement>('text[transform="'+transform+'"]');
    const span=t?.querySelector<SVGTSpanElement>('tspan');
-   if(span&&span.textContent!==value)span.textContent=value;
+   if(!t||!span)return;
+   if(span.textContent!==value)span.textContent=value;
+   if(maxWidth===undefined)return;
+   // The Illustrator text uses the supplied Minecraft font. Preserve its
+   // baseline and original size whenever it fits; only reduce its font size
+   // if the ENTIRE dynamic message would exceed the cream dialogue panel.
+   const fontView=svg.ownerDocument.defaultView;
+   const computed=fontView?.getComputedStyle(t).fontSize;
+   const initialSize=parseFloat(computed||'');
+   const baseSize=Number(t.dataset.pkOriginalFontSize)||
+    (Number.isFinite(initialSize)&&initialSize>0?initialSize:44);
+   if(!t.dataset.pkOriginalFontSize)t.dataset.pkOriginalFontSize=String(baseSize);
+   t.style.fontSize=baseSize+'px';
+   const measured=t.getComputedTextLength();
+   if(Number.isFinite(measured)&&measured>maxWidth){
+    const ratio=Math.min(1,(maxWidth-8)/measured);
+    t.style.fontSize=(baseSize*ratio).toFixed(2)+'px';
+   }
   };
   const numbers=[
    ['translate(48 161.5)',Math.round(f.powerWatts||0)+'W'],
@@ -197,12 +220,13 @@ export function mountSpokemonPlayable(options:{
   if(trustBar)trustBar.setAttribute('width',(288.75*clamp(trust/100,0,1)).toFixed(2));
   const patienceBar=svg.querySelector<SVGRectElement>('rect[x="1588.33"][y="383.9"]');
   if(patienceBar)patienceBar.setAttribute('width',(233.7*clamp(patience/65,0,1)).toFixed(2));
-  const lines=(message.length>52?message.slice(0,49).trimEnd()+'…':message);
-  set('translate(56 946)',lines);
+  // Do not truncate the message: size it to the available content width.
+  // Dialogue panel spans x=24..1296; text starts x=56 and keeps a 28px inset.
+  set('translate(56 946)',message,1212);
   const line2=ready()?(f.running?'REAL RIDE · '+(f.distanceMeters/1000).toFixed(2)+' km':'TRAINER READY · PRESS START'):
    simulator?(simulationRunning?'TEST RIDE · '+(simDistance/1000).toFixed(2)+' km':'TEST PAUSED'):
    'CONNECT TRAINER OR START TEST RIDE';
-  set('translate(56 1001.0032)',line2);
+  set('translate(56 1001.0032)',line2,1212);
   // The original elevation artwork is replaced only within its exact bounds.
   if(getScene()==='explore'){
    if(view.parentNode!==slot)slot.append(view);
