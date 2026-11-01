@@ -22,6 +22,11 @@ export function mountPedalkinRide():void {
  const ride=document.getElementById('screenRide');
  if(!ride)return;
  const previewChoice=new URLSearchParams(location.search).get('pedalkinPreview');
+ // Approval baseline: display the exact supplied SVG as an immutable image.
+ // No imported stylesheet or JavaScript may restyle/move/replace its paths,
+ // pixel artwork, typography, metrics, overlays, or companion illustration.
+ // Dynamic rendering remains available for subsequent, separately approved work.
+ const exactArtwork=new URLSearchParams(location.search).get('spokemonDynamic')!=='1';
  const playingPreview=previewChoice==='playing'||previewChoice==='encounters';
  const demo=playingPreview||['route','setup','ride','encounter','explore'].includes(previewChoice||'');
  // The full-screen gameplay view shows no developer controls, but the route
@@ -30,6 +35,7 @@ export function mountPedalkinRide():void {
  const host=document.createElement('section');
  host.className='pk-ride-host';
  host.hidden=true;
+ if(exactArtwork)host.classList.add('pk-exact-artwork-mode');
  host.setAttribute('aria-label','Pedalkin ride');
  host.innerHTML=`
    <header class="pk-ride-nav" aria-label="Pedalkin ride navigation">
@@ -433,6 +439,23 @@ export function mountPedalkinRide():void {
   * bottom y=836.2, logo y=21.5. Encounter: 93, 95.2, 832, 17.6.
   */
  function render(){
+  if(exactArtwork){
+   // A real <img> is deliberate: inline SVG inherited Minecraft/global CSS,
+   // and the old render logic shifted elements, rewrote text, modified elevation
+   // paths, and injected creatures. An image of the supplied SVG changes NONE
+   // of its authored content. It scales as one 1920x1080 artboard only.
+   const image=slot.querySelector<HTMLImageElement>('img.pk-exact-artboard');
+   if(image?.dataset.artboard===stageName)return;
+   const untouched=document.createElement('img');
+   untouched.className='pk-exact-artboard';
+   untouched.dataset.artboard=stageName;
+   untouched.src=svgUrl(stageName);
+   untouched.alt='Original Spokemon '+(stageName==='explore'?'Explore':'Encounter')+' Illustrator screen';
+   untouched.draggable=false;
+   untouched.decoding='async';
+   slot.replaceChildren(untouched);
+   return;
+  }
   if(explored===null||encounterSvg===null){slot.textContent='Pedalkin artwork is loading…';return;}
   // Render SVG as live vector DOM so its text can update from trainer data.
   const parser=new DOMParser();
@@ -515,6 +538,14 @@ export function mountPedalkinRide():void {
   const target=button.dataset.pkNav as 'route'|'devices'|'ride'|'overlay'|undefined;
   if(target)triggerNavigation(target);
  }));
+ // Screen switching remains available without placing new UI over artboards.
+ if(exactArtwork)window.addEventListener('keydown',event=>{
+  if(!active()||event.ctrlKey||event.altKey||event.metaKey||['INPUT','TEXTAREA','SELECT'].includes((event.target as HTMLElement|null)?.tagName||''))return;
+  if(event.key==='1')triggerNavigation('route');
+  else if(event.key==='2')triggerNavigation('devices');
+  else if(event.key==='e'||event.key==='E')show('encounter');
+  else if(event.key==='x'||event.key==='X')show('explore');
+ });
  dismiss.onclick=()=>{popup.hidden=true};
  popup.addEventListener('click',e=>{if(e.target===popup)popup.hidden=true});
  host.querySelectorAll<HTMLButtonElement>('[data-pk-demo]').forEach(button=>{
@@ -540,7 +571,8 @@ export function mountPedalkinRide():void {
   const on=active();host.hidden=!on;
   document.body.classList.toggle('pk-riding',on);
   if(on){
-   void loadArt().then(render).catch(error=>{slot.textContent='Unable to load Pedalkin artboards';console.error(error);});
+   if(exactArtwork)render();
+   else void loadArt().then(render).catch(error=>{slot.textContent='Unable to load Pedalkin artboards';console.error(error);});
    if(demo&&!demoAnimationFrame)demoAnimationFrame=requestAnimationFrame(animateDemo);
   }
  }
