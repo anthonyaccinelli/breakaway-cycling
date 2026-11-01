@@ -46,7 +46,12 @@ test('Forest profile uses live terrain sampling and maintains the moving rider a
  assert.match(main,/const trees=Array\.from\(\{length:36\}/);
  assert.match(main,/fillPath/);
  assert.match(main,/hud\.label/);
- assert.match(main,/overviewAt\(Math\.max\(start,Math\.min\(stop,markerDistance\)\)\)\.elevation/);
+ assert.match(main,/overviewAt\(atDistance\)\.elevation/);
+ assert.match(main,/pixelateElevation\(sampledY,pad,w-pad,9,h-pad,112,5\)/);
+ assert.match(main,/pixels\.at\(riderFraction\)/);
+ assert.match(main,/stroke="#10282c"/);
+ assert.match(main,/stroke="#fff1d4"/);
+ assert.match(preview,/pixelateElevation\(heights,pad,w-pad,12,h-pad,112,5\)/);
  assert.match(main,/overlayZoomFactor=Number\(button\.dataset\.zoom\)\|\|1/);
  assert.match(preview,/data-zoom="10"/);
  assert.match(preview,/pkPlaybackSeek/);
