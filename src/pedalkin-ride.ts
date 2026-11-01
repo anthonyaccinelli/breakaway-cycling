@@ -452,15 +452,18 @@ export function mountPedalkinRide():void {
    // and the old render logic shifted elements, rewrote text, modified elevation
    // paths, and injected creatures. An image of the supplied SVG changes NONE
    // of its authored content. It scales as one 1920x1080 artboard only.
-   const image=slot.querySelector<HTMLImageElement>('img.pk-exact-artboard');
-   if(image?.dataset.artboard===stageName){playable?.paint();return;}
-   const untouched=document.createElement('img');
+   const artwork=slot.querySelector<HTMLObjectElement>('object.pk-exact-artboard');
+   if(artwork?.dataset.artboard===stageName){playable?.paint();return;}
+   // Keep the original uploaded SVG as an isolated same-origin document.
+   // Updating its native text elements retains the exact Illustrator fonts
+   // and positioning, and avoids duplicate numbers painted over old values.
+   const untouched=document.createElement('object');
    untouched.className='pk-exact-artboard';
    untouched.dataset.artboard=stageName;
-   untouched.src=svgUrl(stageName);
-   untouched.alt='Original Spokemon '+(stageName==='explore'?'Explore':'Encounter')+' Illustrator screen';
-   untouched.draggable=false;
-   untouched.decoding='async';
+   untouched.type='image/svg+xml';
+   untouched.data=svgUrl(stageName);
+   untouched.setAttribute('aria-label','Original Spokemon '+(stageName==='explore'?'Explore':'Encounter')+' Illustrator screen');
+   untouched.addEventListener('load',()=>playable?.paint());
    slot.replaceChildren(untouched);
    if(stageName==='encounter'){
     // Show one existing, original Pine Forest Spokemon without changing a
