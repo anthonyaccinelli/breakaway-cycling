@@ -1,5 +1,16 @@
 import './pedalkin-handheld-route.css';
 
+const PEDALKIN_BIOMES=[
+ {id:'pine-forest',name:'Pine Forest',available:true},
+ {id:'coastal-shore',name:'Coastal Shore',available:false},
+ {id:'wildflower-meadow',name:'Wildflower Meadow',available:false},
+ {id:'ancient-rainforest',name:'Ancient Rainforest',available:false},
+ {id:'misty-wetlands',name:'Misty Wetlands',available:false},
+ {id:'high-desert',name:'High Desert',available:false},
+ {id:'volcanic-fields',name:'Volcanic Fields',available:false},
+ {id:'alpine-highlands',name:'Alpine Highlands',available:false},
+] as const;
+
 /**
  * Version 2: the user's unredrawn 1920x1080 full handheld SVG is the visual
  * background. The real route engine remains the single source of truth:
@@ -33,7 +44,7 @@ export function mountPedalkinHandheldRoute():void {
    <!-- The handheld face buttons are decorative artwork only, not controls. -->
    <div class="pk-v2-live">
     <input class="pk-v2-miles" type="number" step="any" min="0.01" aria-label="Distance (miles)"/>
-    <select class="pk-v2-biome" aria-label="Biome / terrain"></select>
+    <select class="pk-v2-biome" aria-label="Biome"></select>
     <input class="pk-v2-gain" type="number" step="1" min="0" placeholder="Natural terrain" aria-label="Total elevation gain (feet)"/>
     <input class="pk-v2-seed" type="number" step="1" min="1" max="1000000000" placeholder="Auto" aria-label="Route seed"/>
     <label class="pk-v2-lock-control"><input class="pk-v2-lock" type="checkbox"/><span>Lock</span></label>
@@ -66,17 +77,23 @@ export function mountPedalkinHandheldRoute():void {
  const at=<T extends Element=HTMLElement>(selector:string)=>shell.querySelector<T>(selector)!;
  const fields=[
   {proxy:at<HTMLInputElement>('.pk-v2-miles'),real:original.miles!},
-  {proxy:at<HTMLSelectElement>('.pk-v2-biome'),real:original.terrain!},
   {proxy:at<HTMLInputElement>('.pk-v2-gain'),real:original.gain!},
   {proxy:at<HTMLInputElement>('.pk-v2-seed'),real:original.seed!},
   {proxy:at<HTMLInputElement>('.pk-v2-lock'),real:original.lock!}
  ];
- const select=fields[1].proxy as HTMLSelectElement;
- for(const option of Array.from(original.terrain!.options)){
-  const clone=document.createElement('option');
-  clone.value=option.value;clone.textContent=option.textContent;
-  select.add(clone);
+ const biomeSelect=at<HTMLSelectElement>('.pk-v2-biome');
+ for(const biome of PEDALKIN_BIOMES){
+  const option=document.createElement('option');
+  option.value=biome.id;
+  option.textContent=biome.available?biome.name:`${biome.name} — Soon`;
+  option.disabled=!biome.available;
+  biomeSelect.add(option);
  }
+ // Biomes represent ecosystems and creature pools, not route gradients.
+ // Keep generatedTerrain untouched so seed reproducibility, climbing,
+ // existing route generation and quick-start presets remain functional.
+ biomeSelect.value='pine-forest';
+ route.dataset.pedalkinBiome='pine-forest';
  function syncFields(){
   for(const {proxy,real} of fields){
    if(proxy===document.activeElement)continue;
