@@ -463,7 +463,34 @@ export function mountPedalkinRide():void {
    untouched.type='image/svg+xml';
    untouched.data=svgUrl(stageName);
    untouched.setAttribute('aria-label','Original Spokemon '+(stageName==='explore'?'Explore':'Encounter')+' Illustrator screen');
-   untouched.addEventListener('load',()=>playable?.paint());
+   untouched.addEventListener('load',()=>{
+    // Illustrator uses font-family: Minecraft, but does not embed its TTF.
+    // An external SVG document cannot inherit @font-face from the page.
+    const child=untouched.contentDocument;
+    const svg=child?.documentElement;
+    if(svg?.localName==='svg'&&!svg.querySelector('#pk-minecraft-font')){
+     let source='';
+     for(const sheet of Array.from(document.styleSheets)){
+      try{
+       for(const rule of Array.from(sheet.cssRules)){
+        if(rule.type!==CSSRule.FONT_FACE_RULE)continue;
+        const face=rule as CSSFontFaceRule;
+        if(!face.style.fontFamily.includes('Spokemon Minecraft'))continue;
+        source=face.style.getPropertyValue('src');
+        if(source)break;
+       }
+      }catch{/* external stylesheets may be restricted */}
+      if(source)break;
+     }
+     if(source){
+      const style=child!.createElementNS('http://www.w3.org/2000/svg','style');
+      style.id='pk-minecraft-font';
+      style.textContent='@font-face{font-family:Minecraft;src:'+source+';font-display:swap;}';
+      svg.querySelector('defs')?.appendChild(style) || svg.insertBefore(style,svg.firstChild);
+     }
+    }
+    playable?.paint();
+   });
    slot.replaceChildren(untouched);
    if(stageName==='encounter'){
     // Show one existing, original Pine Forest Spokemon without changing a
