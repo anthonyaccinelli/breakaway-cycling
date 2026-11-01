@@ -163,68 +163,116 @@ export function mountPedalkinRide():void {
  function paintRealElevation(frame:PedalkinRideFrame|null){
   if(stageName!=='explore')return;
   const svg=slot.querySelector<SVGSVGElement>('svg');
-  const path=svg?.querySelector<SVGPathElement>('path.st32');
+  // The latest Illustrator master uses path.st8 (a CLOSED fill); the earlier
+  // source used path.st32 (an open elevation trace). Support both exactly.
+  const path=svg?.querySelector<SVGPathElement>('path.st8[d^="M380.12"],path.st32');
   if(!svg||!path)return;
-  // Read actual elevations, or sample the original author's illustrative
-  // route for no-trainer previews. Only the DISPLAY is quantized.
+  const ns='http://www.w3.org/2000/svg';
   const baseD=path.dataset.pkBaseD||path.getAttribute('d')||'';
   if(!path.dataset.pkBaseD)path.dataset.pkBaseD=baseD;
-  let heights:number[];
-  const valid=frame?.samples.filter(Number.isFinite)||[];
-  if(valid.length>1){
-   const low=Math.min(...valid),high=Math.max(...valid),range=Math.max(0.5,high-low);
-   heights=valid.map(e=>681-(e-low)/range*165);
-  }else{
-   path.setAttribute('d',baseD);
-   const pathLength=path.getTotalLength();
-   heights=Array.from({length:113},(_,i)=>{
-    const targetX=profileMinX+(profileMaxX-profileMinX)*i/112;
-    let lo=0,hi=pathLength;
-    for(let j=0;j<20;j++){
-     const mid=(lo+hi)/2;
-     if(path.getPointAtLength(mid).x<targetX)lo=mid;else hi=mid;
-    }
-    return path.getPointAtLength((lo+hi)/2).y;
-   });
-  }
-  const pixels=pixelateElevation(heights,profileMinX,profileMaxX,500,718,112,6);
-  const ns='http://www.w3.org/2000/svg';
-  const getOrMake=(id:string)=>{
-   let node=svg.querySelector<SVGPathElement>('#'+id);
-   if(!node){
-    node=document.createElementNS(ns,'path');node.setAttribute('id',id);
-    path.parentNode!.insertBefore(node,path);
-   }
-   return node;
-  };
-  // Preserve the original smooth route solely for the trainer-free
-  // gradient readout. The user sees only the quantized pixel path.
-  const smoothSource=getOrMake('pk-smooth-profile-source');
-  smoothSource.setAttribute('d',baseD);
+  // Trim the closing valley/floor of the user's filled SVG shape. All grade
+  // sampling must use the unmodified smooth upper contour, not the closure.
+  const topD=path.classList.contains('st8')
+   ?baseD.replace(/v[+-]?\d[\s\S]*$/i,'')
+   :baseD;
+  const smoothSource=svg.querySelector<SVGPathElement>('#pk-smooth-profile-source')
+   ||document.createElementNS(ns,'path');
+  smoothSource.id='pk-smooth-profile-source';
+  smoothSource.setAttribute('d',topD);
   smoothSource.setAttribute('fill','none');
   smoothSource.setAttribute('stroke','none');
   smoothSource.setAttribute('pointer-events','none');
   smoothSource.setAttribute('opacity','0');
-  const fill=getOrMake('pk-pixel-profile-fill');
-  fill.setAttribute('d',pixels.fill);
-  fill.setAttribute('fill','#a7d49c');
-  fill.setAttribute('opacity','0.94');
-  fill.setAttribute('stroke','none');
-  fill.setAttribute('shape-rendering','crispEdges');
-  const outline=getOrMake('pk-pixel-profile-outline');
-  outline.setAttribute('d',pixels.line);
-  outline.setAttribute('fill','none');
-  outline.setAttribute('stroke','#10282c');
-  outline.setAttribute('stroke-width','8');
-  outline.setAttribute('stroke-linejoin','miter');
-  outline.setAttribute('shape-rendering','crispEdges');
+  if(!smoothSource.parentNode)path.parentNode!.insertBefore(smoothSource,path);
+  const valid=frame?.samples.filter(Number.isFinite)||[];
+  let heights:number[];
+  if(valid.length>1){
+   const low=Math.min(...valid),high=Math.max(...valid),range=Math.max(0.5,high-low);
+   heights=valid.map(e=>700-(e-low)/range*195);
+  }else{
+   const len=smoothSource.getTotalLength();
+   if(len<=0)return;
+   heights=Array.from({length:113},(_,i)=>{
+    const wanted=profileMinX+(profileMaxX-profileMinX)*i/112;
+    let lo=0,hi=len;
+    for(let j=0;j<22;j++){
+     const mid=(lo+hi)/2;
+     if(smoothSource.getPointAtLength(mid).x<wanted)lo=mid;else hi=mid;
+    }
+    return smoothSource.getPointAtLength((lo+hi)/2).y;
+   });
+  }
+  // Quantization is purely visual. It NEVER changes route grades, trainer
+  // commands, TCX elevations, or the recorded rider data.
+  const pixels=pixelateElevation(heights,profileMinX,profileMaxX,445,809,112,6);
+  const oldLayer=svg.querySelector('#pk-grade-stripes');
+  oldLayer?.remove();
+  svg.querySelector('#pk-grade-clip')?.remove();
+  const defs=svg.querySelector('defs')||svg.insertBefore(document.createElementNS(ns,'defs'),svg.firstChild);
+  const clip=document.createElementNS(ns,'clipPath');
+  clip.id='pk-grade-clip';
+  clip.setAttribute('clipPathUnits','userSpaceOnUse');
+  const clipShape=document.createElementNS(ns,'path');
+  clipShape.setAttribute('d',pixels.fill);
+  clip.appendChild(clipShape);
+  defs.appendChild(clip);
+  const stripes=document.createElementNS(ns,'g');
+  stripes.id='pk-grade-stripes';
+  stripes.setAttribute('clip-path','url(#pk-grade-clip)');
+  stripes.setAttribute('aria-label','Grade-colored horizontal lines clipped inside the elevation profile');
+  const colors=['#f6d58c','#9eca96','#6aad38','#989141','#c6744a','#f45853'];
+  const bucket=(grade:number)=>grade<0?0:grade<1?1:grade<4?2:grade<8?3:grade<12?4:5;
+  const xStep=(profileMaxX-profileMinX)/112;
+  const yAt=(fraction:number)=>{
+   const t=Math.max(0,Math.min(heights.length-1,fraction*(heights.length-1)));
+   const i=Math.min(heights.length-2,Math.floor(t));
+   return heights[i]+(heights[i+1]-heights[i])*(t-i);
+  };
+  for(let i=0;i<112;i++){
+   const left=profileMinX+i*xStep;
+   const f=(i+0.5)/112;
+   let grade:number;
+   if(valid.length>1&&frame&&frame.totalMeters>0){
+    const leftIndex=Math.min(valid.length-2,Math.max(0,Math.floor(f*(valid.length-1))));
+    grade=(valid[leftIndex+1]-valid[leftIndex])/
+      (frame.totalMeters/Math.max(1,valid.length-1))*100;
+   }else{
+    const before=yAt(Math.max(0,f-.016));
+    const after=yAt(Math.min(1,f+.016));
+    grade=-(after-before)/(Math.max(.001,Math.min(1,f+.016)-Math.max(0,f-.016))*(profileMaxX-profileMinX))*14;
+   }
+   const segment=document.createElementNS(ns,'rect');
+   segment.setAttribute('x',(left-.15).toFixed(2));
+   segment.setAttribute('y','435');
+   segment.setAttribute('width',(xStep+.35).toFixed(2));
+   segment.setAttribute('height','376');
+   segment.setAttribute('fill',colors[bucket(grade)]);
+   stripes.appendChild(segment);
+  }
+  // Horizontal grade scanlines run across the chart, but stop precisely at
+  // the pixelated elevation silhouette. One continuous line per scan row.
+  for(let y=438;y<811;y+=6){
+   const line=document.createElementNS(ns,'line');
+   line.setAttribute('x1',String(profileMinX));
+   line.setAttribute('x2',String(profileMaxX));
+   line.setAttribute('y1',String(y));
+   line.setAttribute('y2',String(y));
+   line.setAttribute('stroke','#17343b');
+   line.setAttribute('stroke-opacity','0.20');
+   line.setAttribute('stroke-width','1.5');
+   line.setAttribute('shape-rendering','crispEdges');
+   stripes.appendChild(line);
+  }
+  path.parentNode!.insertBefore(stripes,path);
+  // The original green fill must not obscure the new palette, while the
+  // cream contour stays visible above the colored, clipped horizontal lines.
   path.setAttribute('d',pixels.line);
-  path.setAttribute('style','fill:none;stroke:#fff1d4;stroke-width:3;stroke-linecap:square;stroke-linejoin:miter;shape-rendering:crispEdges');
+  path.setAttribute('style','fill:none;stroke:#fcf0d6;stroke-width:4;stroke-linecap:square;stroke-linejoin:miter;shape-rendering:crispEdges');
  }
  function paintRiderOnProfile(){
   if(stageName!=='explore')return;
   const svg=slot.querySelector('svg');
-  const path=svg?.querySelector<SVGPathElement>('path.st32');
+  const path=svg?.querySelector<SVGPathElement>('#pk-smooth-profile-source');
   if(!svg||!path)return;
   const fraction=demo?clamp01(demoKm/demoTotalKm):
    (liveFrame?clamp01(liveFrame.distanceMeters/liveFrame.totalMeters):0);
@@ -241,8 +289,8 @@ export function mountPedalkinRide():void {
    return path.getPointAtLength((lo+hi)/2);
   };
   const point=atProfileX(targetX);
-  const guide=svg.querySelector<SVGLineElement>('line.st25');
-  const rider=svg.querySelector<SVGCircleElement>('circle.st45');
+  const guide=svg.querySelector<SVGLineElement>('line.st1,line.st25');
+  const rider=svg.querySelector<SVGCircleElement>('circle.st30,circle.st45');
   const baseline=svg.querySelector<SVGCircleElement>('circle.st38');
   const you=Array.from(svg.querySelectorAll<SVGTextElement>('text'))
    .find(el=>el.textContent?.trim()==='YOU');
@@ -269,7 +317,7 @@ export function mountPedalkinRide():void {
    };
    const beforeX=Math.max(profileMinX,targetX-40);
    const afterX=Math.min(profileMaxX,targetX+40);
-   const slope=-(smoothYAt(afterX)-smoothYAt(beforeX))/Math.max(1,afterX-beforeX)*6.5;
+   const slope=-(smoothYAt(afterX)-smoothYAt(beforeX))/Math.max(1,afterX-beforeX)*14;
    return Math.max(-15,Math.min(15,slope));
   };
   const gradient=demo?smoothGradient():
