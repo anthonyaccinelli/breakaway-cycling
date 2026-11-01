@@ -96,25 +96,36 @@ export function mountSpokemonPlayable(options:{
   const low=Math.min(...heights),high=Math.max(...heights),span=Math.max(1,high-low);
   const py=(i:number)=>bottom-21-(heights[i]-low)/span*215;
   const meters=Math.max(1,f.totalMeters),step=meters/(heights.length-1);
+  // Trace the exact same interpolated profile used by the cream contour.
+  // Sampled rectangular grade columns otherwise poke above the line on
+  // descents, even when horizontal scanlines themselves are correctly clipped.
   const outline=['M '+minX.toFixed(2)+' '+py(0).toFixed(1)];
-  for(let i=0;i<heights.length-1;i++){
-   const x1=minX+width*i/(heights.length-1),x2=minX+width*(i+1)/(heights.length-1);
-   const slope=(heights[i+1]-heights[i])/step*100;
-   const peak=clamp(py(i),top,bottom);
-   rect(root,x1,peak,x2-x1+.5,bottom-peak,COLORS[bucket(slope)]);
-   outline.push('L '+x2.toFixed(2)+' '+py(i+1).toFixed(1));
+  for(let i=1;i<heights.length;i++){
+   const x=minX+width*i/(heights.length-1);
+   outline.push('L '+x.toFixed(2)+' '+py(i).toFixed(1));
   }
-  // Render ~54 scanlines ONE time behind a silhouette clip, not thousands
-  // of per-segment SVG lines on every 600ms telemetry refresh.
+  const silhouette=outline.join(' ');
   const defs=make('defs',{});
   const clip=make('clipPath',{id:'pk-spokemon-grade-clip',clipPathUnits:'userSpaceOnUse'});
-  clip.appendChild(make('path',{d:outline.join(' ')+' L '+maxX+' '+bottom+' L '+minX+' '+bottom+' Z'}));
+  clip.appendChild(make('path',{d:silhouette+' L '+maxX+' '+bottom+' L '+minX+' '+bottom+' Z'}));
   defs.appendChild(clip);
   root.appendChild(defs);
+  // BOTH the colored grade columns and the horizontal scanlines share one
+  // closed silhouette mask. Neither can extend above the white profile line.
   const clipped=make('g',{'clip-path':'url(#pk-spokemon-grade-clip)'});
-  for(let y=Math.ceil(top/7)*7;y<bottom;y+=7)line(clipped,minX,y,maxX,y,'#16383d',.9);
+  for(let i=0;i<heights.length-1;i++){
+   const x1=minX+width*i/(heights.length-1);
+   const x2=minX+width*(i+1)/(heights.length-1);
+   const slope=(heights[i+1]-heights[i])/step*100;
+   rect(clipped,x1,top,x2-x1+0.5,bottom-top,COLORS[bucket(slope)]);
+  }
+  // One clipped scanline layer, not thousands of separate profile fragments.
+  for(let y=Math.ceil(top/7)*7;y<bottom;y+=7){
+   line(clipped,minX,y,maxX,y,'#16383d',0.9);
+  }
   root.appendChild(clipped);
-  root.appendChild(make('path',{d:outline.join(' '),fill:'none',stroke:'#fff1d7','stroke-width':'4'}));
+  // Cream silhouette is drawn last so antialiasing never exposes a grade tip.
+  root.appendChild(make('path',{d:silhouette,fill:'none',stroke:'#fff1d7','stroke-width':'4','stroke-linejoin':'round'}));
   const position=clamp(f.distanceMeters/meters,0,1),x=minX+position*width;
   const index=clamp(Math.floor(position*(heights.length-1)),0,heights.length-1);
   line(root,x,top+9,x,bottom-5,'#f6d58c',2);
