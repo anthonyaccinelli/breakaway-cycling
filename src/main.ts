@@ -2834,7 +2834,7 @@ document.getElementById('goToRide')!.addEventListener('click',enterRideScreen);
 // Navigation is free between planning and devices; entering the active ride requires a trainer.
 document.getElementById('stepRoute')!.addEventListener('click',()=>{stopRideCountdown();if(running){status('Pause or finish your ride before changing screens');return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();questSend({type:'navigate',page:'route'});return;}showBreakawayScreen('route');});
 document.getElementById('stepSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');checkAutomaticRideCountdown();});
-document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();questSend({type:'navigate',page:'ride'});return;}if(rideExperience==='pedalkin'&&['route','setup','ride','explore','encounter'].includes(new URLSearchParams(location.search).get('pedalkinPreview')||'')){showBreakawayScreen('ride');return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else if(document.body.dataset.rideExperience==='classic'&&['setup','ride'].includes(new URLSearchParams(location.search).get('classicPreview')||'')){showBreakawayScreen('ride');}else if(document.body.dataset.rideExperience==='survival'&&['setup','ride'].includes(new URLSearchParams(location.search).get('survivalPreview')||'')){showBreakawayScreen('ride');}else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
+document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();questSend({type:'navigate',page:'ride'});return;}if(rideExperience==='pedalkin'&&['route','setup','ride','explore','encounter','playing'].includes(new URLSearchParams(location.search).get('pedalkinPreview')||'')){showBreakawayScreen('ride');return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else if(document.body.dataset.rideExperience==='classic'&&['setup','ride'].includes(new URLSearchParams(location.search).get('classicPreview')||'')){showBreakawayScreen('ride');}else if(document.body.dataset.rideExperience==='survival'&&['setup','ride'].includes(new URLSearchParams(location.search).get('survivalPreview')||'')){showBreakawayScreen('ride');}else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
 document.getElementById('backToRoute')!.addEventListener('click',()=>{stopRideCountdown();showBreakawayScreen('route');});
 document.getElementById('backToSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');});
 document.getElementById('backToStudio')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
@@ -3207,7 +3207,7 @@ coachRuntime=mountCoach({
 
 // Pedalkin preview: opens the actual shared route generator and navigation.
 const pedalkinPreviewScreen=new URLSearchParams(location.search).get('pedalkinPreview');
-if(['route','setup','ride','encounter','explore'].includes(pedalkinPreviewScreen||'')){
+if(['route','setup','ride','encounter','explore','playing'].includes(pedalkinPreviewScreen||'')){
  chooseRideExperience('pedalkin',false);
  if(!points.length){
   ($('generatedDifficulty') as HTMLSelectElement).value='0.55';
@@ -3217,7 +3217,7 @@ if(['route','setup','ride','encounter','explore'].includes(pedalkinPreviewScreen
   ($('generateRoute') as HTMLButtonElement).click();
  }
  // Route and devices are safe to preview; actual ride requires FTMS trainer.
- showBreakawayScreen(['ride','explore','encounter'].includes(pedalkinPreviewScreen||'')?'ride':pedalkinPreviewScreen as BreakawayScreen);
+ showBreakawayScreen(['ride','explore','encounter','playing'].includes(pedalkinPreviewScreen||'')?'ride':pedalkinPreviewScreen as BreakawayScreen);
  if(pedalkinPreviewScreen==='route')requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
 }
 
