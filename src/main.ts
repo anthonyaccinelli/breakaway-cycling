@@ -15,9 +15,18 @@ import './live-ride-themes.css';
 import { CLASSIC_DESIGN_OVERLAY_CSS } from './classic-overlay-preview';
 import { fitClassicOverlayNumbers, fitSurvivalOverlayNumbers } from './classic-overlay-readout-fit';
 import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
+import {PEDALKIN_OVERLAY_CSS} from './pedalkin-overlay-theme';
+import SPOKEMON_FONT_CSS from './pedalkin-universal-font.css?inline';
+import './pedalkin-universal-font.css';
+import {pixelateElevation} from './pedalkin-pixel-elevation';
+import {mountPedalkinOverlayPreview} from './pedalkin-overlay-preview';
 import {mountSurvivalCockpit} from './survival-cockpit';
 import {mountClassicCockpit} from './classic-cockpit';
 import {mountClassicRouteReference} from './classic-route-reference';
+import './pedalkin-classic-route.css';
+import {mountPedalkinRide} from './pedalkin-ride';
+import {mountPedalkinHandheldRoute} from './pedalkin-handheld-route';
+import {mountPedalkinHandheldDevices} from './pedalkin-handheld-devices';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
@@ -277,7 +286,7 @@ type RideCheckpoint={mode?:RideExperience;questStoryChapter?:number;rideSessionS
 let recoveryWriteFailed=false;
 let pendingQuestRideRecovery:RideCheckpoint|null=null;
 function recoveryMode(c:RideCheckpoint):RideExperience{
- if(c.mode==='classic'||c.mode==='survival'||c.mode==='cyclequest')return c.mode;
+ if(c.mode==='classic'||c.mode==='survival'||c.mode==='cyclequest'||c.mode==='pedalkin')return c.mode;
  // Older checkpoints omitted mode. Only infer Quest from a matching saved route.
  try{const character=JSON.parse(localStorage.getItem('cycle-quest-character-v1')||'null');if(character?.route?.name===c.routeName)return 'cyclequest';}catch{}
  return 'classic';
@@ -344,7 +353,7 @@ function buildRideTcx(){
  return `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Activities><Activity Sport="Biking"><Id>${start}</Id><Lap StartTime="${start}"><TotalTimeSeconds>${(activeRideMs/1000).toFixed(1)}</TotalTimeSeconds><DistanceMeters>${sessionDistanceMeters().toFixed(2)}</DistanceMeters><Calories>${Math.round(energyKcal)}</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${entries}</Track></Lap><Notes>${tcxEscape(routeName)}\nElevation gain: ${Math.round(sessionGainFeet())} ft (${Math.round(sessionGainFeet()/FEET_PER_METER)} m)</Notes></Activity></Activities></TrainingCenterDatabase>`;
 }
 
-type SavedRide={id:string;start:string;end:string;name:string;mode?:'classic'|'survival'|'cyclequest';meters:number;elapsed:number;kcal:number;gain:number;avgPower:number|null;tcx:string};
+type SavedRide={id:string;start:string;end:string;name:string;mode?:'classic'|'survival'|'cyclequest'|'pedalkin';meters:number;elapsed:number;kcal:number;gain:number;avgPower:number|null;tcx:string};
 const RIDE_DB=localHistoryDatabase('breakaway-local-rides-v1'),RIDE_STORE='rides';
 function rideDb():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{
  const request=indexedDB.open(RIDE_DB,1);
@@ -531,7 +540,7 @@ const routeSeedInput=$('generatedSeed') as HTMLInputElement;
 routeSeedInput.addEventListener('paste',()=>{userEnteredRouteSeed=true;seedLock.checked=true;});
 routeSeedInput.addEventListener('input',()=>{userEnteredRouteSeed=true;seedLock.checked=routeSeedInput.value.trim()!=='';});
 $('generatedGain').addEventListener('input',()=>{generatedGainIsAutoFilled=false;});
-$('generateRoute').addEventListener('click',()=>{if(document.body.dataset.rideExperience==='classic')void generateClassicRoute();else prepareProcedural(false);});
+$('generateRoute').addEventListener('click',()=>{if(['classic','pedalkin'].includes(document.body.dataset.rideExperience||''))void generateClassicRoute();else prepareProcedural(false);});
 $('endlessRoute').addEventListener('click',()=>prepareProcedural(true));
 $('surpriseRoute').addEventListener('click',()=>{
  const terrainInput=$('generatedTerrain') as HTMLSelectElement;
@@ -552,7 +561,7 @@ $('surpriseRoute').addEventListener('click',()=>{
  seedLock.checked=false;
  userEnteredRouteSeed=false;
  generatedGainIsAutoFilled=false;
- if(document.body.dataset.rideExperience==='classic')void generateClassicRoute();else prepareProcedural(false);
+ if(['classic','pedalkin'].includes(document.body.dataset.rideExperience||''))void generateClassicRoute();else prepareProcedural(false);
 });
 
 const num=(id:string)=>Number(($(id) as HTMLInputElement).value);
@@ -960,6 +969,22 @@ function svg(){
  $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><div class="profile-telemetry"><span class="profile-gear-readout"></span><span class="profile-hr-readout">— bpm</span></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><line id="marker" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3.5" vector-effect="non-scaling-stroke" pointer-events="none"/><line id="surviveProfileThreat" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ff304b" stroke-width="3.5" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/></svg>`;
  zoomDisplay();syncProfileCharts();refreshHeartRateProfile();refreshInspection();
 }
+// Read-only bridge: Pedalkin uses the same real, generated elevation profile
+// as Breakaway's trainer, without changing speed, SIM resistance or recording.
+let lastPedalkinRideFrameAt=0;
+function publishPedalkinRideFrame(){
+ if(document.body.dataset.rideExperience!=='pedalkin'||document.body.dataset.breakawayScreen!=='ride')return;
+ const totalMeters=routeEndForProfile();
+ if(!Number.isFinite(totalMeters)||totalMeters<=1)return;
+ const now=performance.now();
+ if(now-lastPedalkinRideFrameAt<800)return;
+ lastPedalkinRideFrameAt=now;
+ const samples=Array.from({length:97},(_,i)=>overviewAt(totalMeters*i/96).elevation);
+ window.dispatchEvent(new CustomEvent('pedalkin:ride-frame',{detail:{
+  distanceMeters:Math.max(0,distance),totalMeters,samples,elapsedSeconds:activeRideMs/1000,
+  gradePercent:displayGrade()
+ }}));
+}
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
  zoomDisplay();
  const liveGrade=$('profileLiveGrade');const hud=gradeHud(displayGrade());const barGrade=document.getElementById('profileBarGrade');if(barGrade){barGrade.textContent=hud.label;barGrade.style.color=hud.color;}
@@ -970,6 +995,7 @@ function update(){const currentClimb=refreshClimbState();const p=at(distance),ma
  updateFloatingProfile();
  refreshHeartRateProfile();
  publishDesktopOverlay();
+ publishPedalkinRideFrame();
 }
 // Serialize FTMS control point operations and wait for the indicated result.
 // A successful GATT write is NOT proof that the trainer accepted a command.
@@ -1580,7 +1606,7 @@ $('nativeProfile').addEventListener('click',async()=>{
   // Classic and Survival use Cycle Quest's compact floating dimensions:
   // 170px high, 80% of available screen width, clamped to 600–1600px.
   // Keep Cycle Quest and other modes' existing window behavior unchanged.
-  const questSizedOverlay=document.body.dataset.rideExperience==='classic'||document.body.dataset.rideExperience==='survival';
+  const questSizedOverlay=['classic','survival','pedalkin'].includes(document.body.dataset.rideExperience||'');
   const questWidth=Math.max(600,Math.min(1600,Math.round(window.screen.availWidth*.8)));
   const pip=await (window as any).documentPictureInPicture.requestWindow(questSizedOverlay
    ?{width:questWidth,height:170,preferInitialWindowPlacement:true}
@@ -1674,9 +1700,13 @@ $('nativeProfile').addEventListener('click',async()=>{
   const classicTheme=pip.document.createElement('style');
   classicTheme.textContent=CLASSIC_DESIGN_OVERLAY_CSS;
   pip.document.head.append(classicTheme);
+  const pedalkinTheme=pip.document.createElement('style');
+  pedalkinTheme.textContent=PEDALKIN_OVERLAY_CSS+'\n'+SPOKEMON_FONT_CSS;
+  pip.document.head.append(pedalkinTheme);
   pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><div id="overlayZoomControls" role="group" aria-label="Elevation zoom"><button type="button" data-zoom="1">1×</button><button type="button" data-zoom="2">2×</button><button type="button" data-zoom="5">5×</button><button type="button" data-zoom="10">10×</button></div><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
   pip.document.body.classList.toggle('survival-overlay-theme',document.body.dataset.rideExperience==='survival');
   pip.document.body.classList.toggle('classic-design-overlay',document.body.dataset.rideExperience==='classic');
+  pip.document.body.classList.toggle('pedalkin-overlay-theme',document.body.dataset.rideExperience==='pedalkin');
   const modeButton=pip.document.getElementById('overlayMode') as HTMLButtonElement;
   const settingsButton=pip.document.getElementById('overlaySettingsToggle') as HTMLButtonElement;
   const settingsPanel=pip.document.getElementById('overlaySettings') as HTMLElement;
@@ -1830,6 +1860,30 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  // Opaque label matches the overlay profile background, even on tall peaks.
  // A solid yellow outline replaces all text shadow. Classic uses dark text
  // against its light background; Survival keeps the current thematic color.
+ if(document.body.dataset.rideExperience==='pedalkin'){
+  // GBC-inspired step pixels from the SAME sampled route as the SIM trainer.
+  // Only presentation changes. Zoom, actual grade and rider distance stay live.
+  const sampledY=Array.from({length:113},(_,i)=>{
+   const atDistance=start+(stop-start)*i/112;
+   return y(overviewAt(atDistance).elevation);
+  });
+  const pixels=pixelateElevation(sampledY,pad,w-pad,9,h-pad,112,5);
+  const riderFraction=(Math.max(start,Math.min(stop,markerDistance))-start)/Math.max(1,stop-start);
+  const markerPixel=pixels.at(riderFraction);
+  const markerPercent=Math.max(5,Math.min(92,markerPixel.x/w*100));
+  const trees=Array.from({length:36},(_,i)=>{
+   const tx=i*w/35,th=18+(i*17%24),base=h;
+   return '<path d="M '+tx.toFixed(1)+' '+(base-th).toFixed(1)+' l -11 14 h 6 l -8 13 h 26 l -8 -13 h 6 Z" fill="'+(i%3===0?'#0a3539':'#0b4441')+'"/>';
+  }).join('');
+  return '<div class="overlay-profile-graphic pk-forest-graphic" style="position:relative;width:100%;height:100%;overflow:hidden">'
+   +'<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" shape-rendering="crispEdges" style="display:block;width:100%;height:100%">'
+   +'<path d="'+pixels.fill+'" fill="#a7d49c" opacity="0.94"/>'+trees
+   +'<path d="'+pixels.line+'" fill="none" stroke="#10282c" stroke-width="8" stroke-linejoin="miter"/>'
+   +'<path d="'+pixels.line+'" fill="none" stroke="#fff1d4" stroke-width="3" stroke-linejoin="miter"/>'
+   +'<line x1="'+markerPixel.x+'" x2="'+markerPixel.x+'" y1="24" y2="'+(h-pad)+'" stroke="#fbcf7a" stroke-width="2" stroke-dasharray="8 7"/>'
+   +'<circle cx="'+markerPixel.x+'" cy="'+markerPixel.y+'" r="7" stroke="#0f292f" stroke-width="2" fill="#fbcf7a"/></svg>'
+   +'<div class="overlay-profile-grade" aria-label="Current gradient" style="left:calc('+markerPercent+'% - 35px);">'+hud.label+'</div></div>';
+ }
  const classicOverlay=['classic','survival'].includes(document.body.dataset.rideExperience||'');
  const gradeBackdrop=classicOverlay?'#e5ebf5':'#141019';
  const labelColor=classicOverlay?'#142449':hud.color;
@@ -1998,11 +2052,12 @@ function publishDesktopOverlay(){
   // A reused PiP window follows the active game mode; Classic-only styles
   // must not leak into Survival if the rider changes modes.
   doc.body.classList.toggle('classic-design-overlay',snapshot.rideExperience==='classic');
+  doc.body.classList.toggle('pedalkin-overlay-theme',snapshot.rideExperience==='pedalkin');
   const overlayBrand=doc.querySelector('#overlayTop>strong');
-  if(overlayBrand)overlayBrand.textContent=survivalOverlay?'SURVIVAL / UNDEAD':'BREAKAWAY';
+  if(overlayBrand)overlayBrand.textContent=survivalOverlay?'SURVIVAL / UNDEAD':snapshot.rideExperience==='pedalkin'?'SPOKEMON / PEDALKIN':'BREAKAWAY';
   const chase=surviveData(),root=doc.getElementById('overlayContent');if(root){root.classList.toggle('survive-overlay',chase.active||chase.caught);root.classList.toggle('survive-phase-chase',chase.active&&!chase.warming&&chase.phase==='CHASE');root.classList.toggle('survive-phase-recover',chase.active&&!chase.warming&&chase.phase==='RECOVER');root.classList.toggle('survive-phase-prepare',chase.active&&chase.warming);root.classList.toggle('survive-danger',chase.active&&!chase.warming&&chase.gap<65);root.classList.toggle('survive-critical',chase.active&&!chase.warming&&chase.gap<25);let hud=doc.getElementById('surviveHud');if(chase.active||chase.caught){if(!hud){hud=doc.createElement('div');hud.id='surviveHud';root.append(hud);}hud.innerHTML='<div class="survive-hud-head"><strong>☣ UNDEAD PURSUIT · '+(chase.warming?'THREAT STARTS SOON':chase.phase==='RECOVER'?'RECOVERY MODE':'THREAT PURSUING')+'</strong><span>'+chase.theme+' · WAVE '+chase.wave+'</span></div><div class="survive-hud-grid"><div class="survive-hud-metric"><small>YOU MPH</small><b>'+chase.you.toFixed(1)+'</b></div><div class="survive-hud-profile">'+snapshot.detailChart+'<div class="survive-hud-timer"><div><small>'+(chase.warming?'THREAT STARTS':'CHASE ELAPSED')+'</small><strong>'+surviveFormatTime(chase.warming?chase.remaining:surviveElapsed)+'</strong></div><div><small>GAP</small><strong class="survive-hud-gap">'+chase.gap+' m</strong></div><div><small>'+(surviveMode==='finish'?'EST. TIME LEFT':'WAVE')+'</small><strong>'+(surviveMode==='finish'?surviveFormatTime(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):String(chase.wave))+'</strong></div></div></div><div class="survive-hud-metric"><small>WATTS</small><b>'+(snapshot.power??'—')+'</b></div><div class="survive-hud-metric"><small>THREAT MPH</small><b>'+chase.enemy.toFixed(1)+'</b></div><div class="survive-hud-spacer"></div><div class="survive-hud-metric"><small>WAVE #</small><b>'+chase.wave+'</b></div></div>';}else hud?.remove();}
   const chart=doc.getElementById('overlayChart');if(chart)chart.innerHTML=snapshot.climbComplete?'<div style="height:210px;display:grid;place-items:center;font:900 45px system-ui;color:#6cf5c9;text-align:center;text-shadow:0 3px 18px #000">⛰ CLIMB COMPLETE!</div>':snapshot.detailChart;
-  const label=doc.getElementById('overlayLabel');if(label)label.textContent=snapshot.coach
+  const label=doc.getElementById('overlayLabel');if(label)label.textContent=snapshot.rideExperience==='pedalkin'?'♠ PINE FOREST ♠':snapshot.coach
     ?'COACH · '+snapshot.coach.name+' · '+snapshot.coach.remaining+' · TARGET '+snapshot.coach.target+'W'
     :(survivalOverlay?'ESCAPE / ':'')+(running?'● RIDING · ':rideStart&&!rideEnd?'Ⅱ PAUSED · ':'')+snapshot.detailLabel;
   const metrics=doc.getElementById('overlayMetrics');if(metrics){
@@ -2012,11 +2067,11 @@ function publishDesktopOverlay(){
    Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).forEach(tile=>{if(!selectedOverlayMetrics.includes(tile.dataset.metricKey as OverlayMetricKey)&&!['power','heartRate','elapsedTime','distance'].includes(tile.dataset.metricKey||''))tile.remove();});
    // Compact: four tiles left, three right, and an uninterrupted central profile.
    // Elapsed time spans both right columns so its digits never clip.
-   const compactKeys=['gear','speed','power','cadence','heartRate','totalGain','elapsedTime'];
+   const compactKeys=snapshot.rideExperience==='pedalkin'?['gear','speed','elapsedTime','cadence','distance','heartRate']:['gear','speed','power','cadence','heartRate','totalGain','elapsedTime'];
    const compactSlots:[string,string][]=[['1','2'],['2','2'],['1','3'],['2','3'],['4','2'],['5','2'],['4 / span 2','3']];
-   const storedSlots=(()=>{try{const v=JSON.parse(localStorage.getItem('breakaway-overlay-compact-slots-v1')||'null');return Array.isArray(v)&&v.length===7&&new Set(v).size===7&&compactKeys.every(k=>v.includes(k))?v as string[]:compactKeys.slice();}catch{return compactKeys.slice();}})();
+   const storedSlots=(()=>{if(snapshot.rideExperience==='pedalkin')return compactKeys.slice();try{const v=JSON.parse(localStorage.getItem('breakaway-overlay-compact-slots-v1')||'null');return Array.isArray(v)&&v.length===7&&new Set(v).size===7&&compactKeys.every(k=>v.includes(k))?v as string[]:compactKeys.slice();}catch{return compactKeys.slice();}})();
    const compactPositions:Record<string,[string,string]>={};
-   storedSlots.forEach((key,i)=>{compactPositions[key]=compactSlots[i];});
+   storedSlots.forEach((key,i)=>{compactPositions[key]=snapshot.rideExperience==='pedalkin'?([['1','2'],['2','2'],['1','3'],['2','3'],['4 / span 2','2'],['4 / span 2','3']][i] as [string,string]):compactSlots[i];});
    const expanded=doc.body.classList.contains('expanded');
    for(const key of compactKeys){
     if(metrics.querySelector('[data-metric-key="'+key+'"]'))continue;
@@ -2756,10 +2811,10 @@ function updateSetupReadiness(){
  const ready=trainerReadyForRide();
  const fromHome=document.body.dataset.deviceShortcut==='true';
  const button=document.getElementById('goToRide') as HTMLButtonElement;
- button.disabled=fromHome?false:!ready;
- button.textContent=fromHome?'Choose a mode →':ready?'Start Riding →':'Connect Trainer to Continue';
+ button.disabled=fromHome||rideExperience==='pedalkin'?false:!ready;
+ button.textContent=fromHome?'Choose a mode →':rideExperience==='pedalkin'?'03 Ride → (trainer optional)':ready?'Start Riding →':'Connect Trainer to Continue';
  const label=document.getElementById('setupReadiness')!;
- label.textContent=fromHome?(ready?'✓ Trainer ready · choose a mode when you’re ready.':'Connect devices now, or choose a mode and connect later.'):ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.';
+ label.textContent=rideExperience==='pedalkin'?(ready?'Trainer connected · ready to ride.':'Trainer optional · use 03 Ride without connecting anything.'):fromHome?(ready?'✓ Trainer ready · choose a mode when you’re ready.':'Connect devices now, or choose a mode and connect later.'):ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.';
  refreshSetupDeviceCards();
 }
 function showBreakawayScreen(screen:BreakawayScreen){
@@ -2794,6 +2849,13 @@ function showBreakawayScreen(screen:BreakawayScreen){
 function enterRideScreen(){
  if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}
  stopRideCountdown();
+ // SPOKEMON always permits entering the ride screen without hardware.
+ // Do not start the real ride engine or record synthetic workouts until an actual trainer is ready.
+ if(rideExperience==='pedalkin'&&!trainerReadyForRide()){
+  showBreakawayScreen('ride');
+  status('Spokemon playtest: trainer connection is optional.');
+  return;
+ }
  if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
  // Start the ride from the Connect Trainer action itself. FTMS power and
  // cadence notifications will advance the ride when the rider pedals.
@@ -2810,10 +2872,10 @@ function checkAutomaticRideCountdown(){updateSetupReadiness();}
  checkAutomaticRideCountdown();
 });
 document.getElementById('goToRide')!.addEventListener('click',enterRideScreen);
-// Navigation is free between planning and devices; entering the active ride requires a trainer.
+// Navigation is free between all Spokemon screens; only hardware-controlled recording requires a trainer.
 document.getElementById('stepRoute')!.addEventListener('click',()=>{stopRideCountdown();if(running){status('Pause or finish your ride before changing screens');return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();questSend({type:'navigate',page:'route'});return;}showBreakawayScreen('route');});
 document.getElementById('stepSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');checkAutomaticRideCountdown();});
-document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();questSend({type:'navigate',page:'ride'});return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else if(document.body.dataset.rideExperience==='classic'&&['setup','ride'].includes(new URLSearchParams(location.search).get('classicPreview')||'')){showBreakawayScreen('ride');}else if(document.body.dataset.rideExperience==='survival'&&['setup','ride'].includes(new URLSearchParams(location.search).get('survivalPreview')||'')){showBreakawayScreen('ride');}else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
+document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();questSend({type:'navigate',page:'ride'});return;}if(rideExperience==='pedalkin'){enterRideScreen();return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else if(document.body.dataset.rideExperience==='classic'&&['setup','ride'].includes(new URLSearchParams(location.search).get('classicPreview')||'')){showBreakawayScreen('ride');}else if(document.body.dataset.rideExperience==='survival'&&['setup','ride'].includes(new URLSearchParams(location.search).get('survivalPreview')||'')){showBreakawayScreen('ride');}else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
 document.getElementById('backToRoute')!.addEventListener('click',()=>{stopRideCountdown();showBreakawayScreen('route');});
 document.getElementById('backToSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');});
 document.getElementById('backToStudio')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
@@ -2821,7 +2883,7 @@ window.setInterval(checkAutomaticRideCountdown,500);
 showBreakawayScreen('route');
 
 // Two distinct entry experiences, sharing the real route editor and trainer workflow.
-type RideExperience='classic'|'survival'|'cyclequest';
+type RideExperience='classic'|'survival'|'cyclequest'|'pedalkin';
 let rideExperience:RideExperience='classic';
 const modeLanding=document.createElement('section');
 modeLanding.id='modeLanding';
@@ -2927,6 +2989,13 @@ modeLanding.querySelector('#modeDevices')!.addEventListener('click',()=>{
 });
 modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
 modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
+const pedalkinCard=document.createElement('button');
+pedalkinCard.type='button';pedalkinCard.id='choosePedalkin';
+pedalkinCard.className='mode-card mode-card-pedalkin';
+pedalkinCard.setAttribute('aria-label','Explore Pedalkin — cozy creature collecting cycling game, route studio first draft');
+pedalkinCard.innerHTML='<span class="pk-mode-top">✳ A NEW LITTLE ADVENTURE</span><strong>PEDALKIN</strong><span class="pk-mode-scene" aria-hidden="true">♣　♠　✿　♣</span><span class="pk-mode-bottom">EXPLORE · RIDE · BEFRIEND</span>';
+modeLanding.querySelector('.mode-landing-cards')!.append(pedalkinCard);
+pedalkinCard.addEventListener('click',()=>chooseRideExperience('pedalkin'));
 modeHomeButton.addEventListener('click',()=>{if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');});
 const questIntroAudio=new Audio('/audio/cycle-quest/largo.mp3');questIntroAudio.hidden=true;questIntroAudio.dataset.questMusic='largo.mp3';document.body.append(questIntroAudio);
 const questIntroMusic=createQuestIntroMusic(questIntroAudio);
@@ -2939,7 +3008,7 @@ window.addEventListener('popstate',event=>{
  if(state?.breakawayPage==='mode'){
   if(surviveOn){status('End your current Survival session before changing modes.');return;}
   if(state.breakawayMode==='cyclequest'){if(questAuthenticated)launchCycleQuest(false);else enterCycleQuest();}
-  else if(state.breakawayMode==='classic'||state.breakawayMode==='survival')chooseRideExperience(state.breakawayMode,false);
+  else if(state.breakawayMode==='classic'||state.breakawayMode==='survival'||state.breakawayMode==='pedalkin')chooseRideExperience(state.breakawayMode,false);
  }else if(!openModeLanding())history.pushState({...(state||{}),breakawayPage:'mode',breakawayMode:rideExperience},'');
 });
 
@@ -3146,6 +3215,10 @@ window.setInterval(()=>{
 mountSurvivalCockpit();
 mountClassicCockpit();
 mountClassicRouteReference();
+// Pedalkin shares the mounted Classic route reference; no duplicate route shell.
+mountPedalkinHandheldRoute();
+mountPedalkinHandheldDevices();
+mountPedalkinRide();
 
 // Coach preview reuses the existing FTMS writer. It does not open another BLE connection.
 coachRuntime=mountCoach({
@@ -3172,6 +3245,25 @@ coachRuntime=mountCoach({
  getPlatformRides:async()=> (await savedRides()).map(r=>({start:Date.parse(r.start),elapsed:r.elapsed,avgPower:r.avgPower,mode:r.mode||null,name:r.name}))
 });
 
+
+// Pedalkin preview: opens the actual shared route generator and navigation.
+const pedalkinPreviewScreen=new URLSearchParams(location.search).get('pedalkinPreview');
+if(['route','setup','ride','encounter','explore','playing','encounters'].includes(pedalkinPreviewScreen||'')){
+ chooseRideExperience('pedalkin',false);
+ if(!points.length){
+  ($('generatedDifficulty') as HTMLSelectElement).value='0.55';
+  ($('generatedTerrain') as HTMLSelectElement).value='rolling';
+  ($('generatedMiles') as HTMLInputElement).value='15';
+  ($('generatedGain') as HTMLInputElement).value='';
+  ($('generateRoute') as HTMLButtonElement).click();
+ }
+ // Route and devices are safe to preview; actual ride requires FTMS trainer.
+ showBreakawayScreen(['ride','explore','encounter','playing','encounters'].includes(pedalkinPreviewScreen||'')?'ride':pedalkinPreviewScreen as BreakawayScreen);
+ if(pedalkinPreviewScreen==='route')requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
+}
+
+// Pedalkin's approved compact overlay can be reviewed without BLE or PiP.
+mountPedalkinOverlayPreview();
 
 // Preview-branch entry points are design-only and never start a trainer,
 // spoof BLE sensor data or bypass the live ride's safety checks.
