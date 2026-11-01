@@ -111,8 +111,9 @@ export function mountSpokemonPlayable(options:{
   const index=clamp(Math.floor(position*(heights.length-1)),0,heights.length-1);
   line(root,x,top+9,x,bottom-5,'#f6d58c',2);
   root.appendChild(make('circle',{cx:String(x),cy:String(py(index)),r:'10',fill:'#f6d58c',stroke:'#17343b','stroke-width':'3'}));
-  text(root,411,766,(f.distanceMeters/1000).toFixed(1)+' km',28,'#17343b');
-  text(root,1435,766,(meters/1000).toFixed(1)+' km',28,'#17343b');
+  text(root,415,766,(f.distanceMeters/1000).toFixed(1)+' km',24,'#17343b');
+  const endLabel=text(root,1520,766,(meters/1000).toFixed(1)+' km',24,'#17343b');
+  endLabel.setAttribute('text-anchor','end');
  }
  function paint(){
   if(!active())return;
@@ -139,6 +140,26 @@ export function mountSpokemonPlayable(options:{
    ['translate(1586.3262 368.0016)',getScene()==='encounter'?Math.ceil(patience)+' s':'—']
   ] as const;
   for(const [selector,value] of numbers)set(selector,value);
+  // The Illustrator master includes six colored sample bars. Resize those
+  // ORIGINAL paths from their left edge instead of drawing bars over them.
+  const barData=[
+   ['M54,171',f.powerWatts||0,450],
+   ['M52.39,293.8',f.heartRateBpm||0,190],
+   ['M52.88,416.6',f.cadenceRpm||0,145],
+   ['M54,539.4',f.speedMph||0,40],
+   ['M54,662.3',Math.max(0,f.gradePercent),15],
+   ['M54,788',f.caloriesKcal||0,1000]
+  ] as const;
+  for(const [prefix,reading,limit] of barData){
+   const item=Array.from(svg.querySelectorAll<SVGPathElement>('path[d]'))
+    .find(p=>p.getAttribute('d')?.startsWith(prefix));
+   if(!item)continue;
+   const ratio=clamp(reading/limit,0,1);
+   item.setAttribute('transform','translate(50 0) scale('+ratio.toFixed(4)+' 1) translate(-50 0)');
+   const low=[106,173,56],high=[244,88,83];
+   const rgb=low.map((a,i)=>Math.round(a+(high[i]-a)*ratio));
+   item.style.fill='rgb('+rgb.join(',')+')';
+  }
   // Update the exact original Illustrator fill rectangles, not new cover art.
   const trustBar=svg.querySelector<SVGRectElement>('rect[x="1592.9"][y="199.3"]');
   if(trustBar)trustBar.setAttribute('width',(288.75*clamp(trust/100,0,1)).toFixed(2));
