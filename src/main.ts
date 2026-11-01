@@ -474,7 +474,7 @@ function showRideSummary(){
  const garminHelp=document.createElement('p');garminHelp.className='note';garminHelp.textContent='Downloads your .tcx ride file and opens Garmin Connect in a new tab. In Garmin Connect, use the cloud upload icon → Import Data → choose the downloaded file.';
  garminActions.append(garminDownload);garminBox.append(garminTitle,garminInfo,garminActions,garminHelp);root.append(garminBox);
  const note=document.createElement('p');note.className='note';note.textContent='Ride history and TCX files are stored in this browser, not the Breakaway cloud. Export TCX backups regularly.';root.append(note);
- const done=document.createElement('button');done.type='button';done.textContent='Done — new ride';done.addEventListener('click',()=>{root.hidden=true;root.style.removeProperty('display');root.classList.remove('ride-summary-fullscreen');setRideFocus(false);distance=0;speed=0;rideStart=null;rideEnd=null;resetRideMetrics();resetSimController();$('start').textContent='Let’s Ride!';syncManualFinishButton();update();});root.append(done);
+ const done=document.createElement('button');done.type='button';done.textContent='Done — new ride';done.addEventListener('click',()=>{root.hidden=true;root.style.removeProperty('display');root.classList.remove('ride-summary-fullscreen');setRideFocus(false);distance=0;speed=0;rideStart=null;rideEnd=null;resetRideMetrics();resetSimController();$('start').textContent='Let’s Ride!';syncManualFinishButton();update();if(rideExperience==='pedalkin')showBreakawayScreen('route');});root.append(done);
  document.body.append(root);root.hidden=false;root.classList.add('ride-summary-fullscreen');root.style.display='block';root.scrollTop=0;
 }
 function setRideFocus(active:boolean){
@@ -518,7 +518,7 @@ function finishRide(){
   const root=$('rideSummary');document.body.append(root);root.replaceChildren();
   const heading=document.createElement('h2');heading.textContent='Ride complete';root.append(heading);
   const note=document.createElement('p');note.textContent='Your ride ended, but some summary statistics could not be displayed.';root.append(note);
-  const reset=document.createElement('button');reset.textContent='Done — New Ride';reset.onclick=()=>{root.hidden=true;root.style.removeProperty('display');root.classList.remove('ride-summary-fullscreen');rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();resetSimController();syncManualFinishButton();update();};root.append(reset);
+  const reset=document.createElement('button');reset.textContent='Done — New Ride';reset.onclick=()=>{root.hidden=true;root.style.removeProperty('display');root.classList.remove('ride-summary-fullscreen');rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();resetSimController();syncManualFinishButton();update();if(rideExperience==='pedalkin')showBreakawayScreen('route');};root.append(reset);
   root.hidden=false;root.classList.add('ride-summary-fullscreen');root.style.display='block';
  }
  const coachReview=typeof coachRuntime==='undefined'?null:coachRuntime?.finish();

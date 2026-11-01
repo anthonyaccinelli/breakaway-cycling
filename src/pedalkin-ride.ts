@@ -46,7 +46,7 @@ export function mountPedalkinRide():void {
        <button type="button" data-pk-nav="route">01 ROUTE</button>
        <button type="button" data-pk-nav="devices">02 DEVICES</button>
        <button type="button" data-pk-nav="ride" aria-current="page">03 RIDE</button>
-       <button type="button" data-pk-nav="overlay" aria-label="Open always-on-top overlay">OVERLAY ↗</button>
+       <button type="button" data-pk-nav="overlay" aria-label="Open always-on-top overlay">04 OVERLAY</button>
      </nav>
      <span class="pk-ride-nav-state">PINE FOREST</span>
    </header>
@@ -452,15 +452,45 @@ export function mountPedalkinRide():void {
    // and the old render logic shifted elements, rewrote text, modified elevation
    // paths, and injected creatures. An image of the supplied SVG changes NONE
    // of its authored content. It scales as one 1920x1080 artboard only.
-   const image=slot.querySelector<HTMLImageElement>('img.pk-exact-artboard');
-   if(image?.dataset.artboard===stageName){playable?.paint();return;}
-   const untouched=document.createElement('img');
+   const artwork=slot.querySelector<HTMLObjectElement>('object.pk-exact-artboard');
+   if(artwork?.dataset.artboard===stageName){playable?.paint();return;}
+   // Keep the original uploaded SVG as an isolated same-origin document.
+   // Updating its native text elements retains the exact Illustrator fonts
+   // and positioning, and avoids duplicate numbers painted over old values.
+   const untouched=document.createElement('object');
    untouched.className='pk-exact-artboard';
    untouched.dataset.artboard=stageName;
-   untouched.src=svgUrl(stageName);
-   untouched.alt='Original Spokemon '+(stageName==='explore'?'Explore':'Encounter')+' Illustrator screen';
-   untouched.draggable=false;
-   untouched.decoding='async';
+   untouched.type='image/svg+xml';
+   untouched.data=svgUrl(stageName);
+   untouched.setAttribute('aria-label','Original Spokemon '+(stageName==='explore'?'Explore':'Encounter')+' Illustrator screen');
+   untouched.addEventListener('load',()=>{
+    // Illustrator uses font-family: Minecraft, but does not embed its TTF.
+    // An external SVG document cannot inherit @font-face from the page.
+    const child=untouched.contentDocument;
+    const svg=child?.documentElement;
+    if(svg?.localName==='svg'&&!svg.querySelector('#pk-minecraft-font')){
+     let source='';
+     for(const sheet of Array.from(document.styleSheets)){
+      try{
+       for(const rule of Array.from(sheet.cssRules)){
+        if(rule.type!==CSSRule.FONT_FACE_RULE)continue;
+        const face=rule as CSSFontFaceRule;
+        if(!face.style.fontFamily.includes('Spokemon Minecraft'))continue;
+        source=face.style.getPropertyValue('src');
+        if(source)break;
+       }
+      }catch{/* external stylesheets may be restricted */}
+      if(source)break;
+     }
+     if(source){
+      const style=child!.createElementNS('http://www.w3.org/2000/svg','style');
+      style.id='pk-minecraft-font';
+      style.textContent='@font-face{font-family:Minecraft;src:'+source+';font-display:swap;}';
+      svg.querySelector('defs')?.appendChild(style) || svg.insertBefore(style,svg.firstChild);
+     }
+    }
+    playable?.paint();
+   });
    slot.replaceChildren(untouched);
    if(stageName==='encounter'){
     // Show one existing, original Pine Forest Spokemon without changing a
@@ -589,7 +619,6 @@ export function mountPedalkinRide():void {
    case 'stats':popupOpen('RIDE STATS',exactArtwork?'Distance: '+(document.getElementById('distance')?.textContent||'0')+' miles\nPower: '+(document.getElementById('power')?.textContent||'—')+' W\nCollected: '+(playable?.getCollection().length||0):'Legacy preview state');break;
    case 'save':
     if(exactArtwork){
-     if(playable?.isSimulating()){popupOpen('TEST RIDE','Test rides are not recorded. Your collected Spokemon are saved on this device. Return through 01 Route when finished.');break;}
      if(!playable){popupOpen('SAVE & CLOSE','Game is loading.');break;}
      finishThroughNative();break;
     }
@@ -599,16 +628,22 @@ export function mountPedalkinRide():void {
  }));
  function finishThroughNative(){
   const finish=document.getElementById('rideFinishNow') as HTMLButtonElement|null;
-  if(!finish||finish.disabled){popupOpen('SAVE & CLOSE','A recorded ride is not active. To test without a trainer, use Game Controls → Test Ride.');return;}
-  // Expose native Breakaway finish confirmation over the game viewport.
-  host.hidden=true;document.body.classList.remove('pk-riding');finish.click();
+  // Only real recorded rides have an available native Finish button.
+  // The old handler hid the Spokemon viewport even if no ride existed,
+  // exposing the legacy Survival-themed #screenRide underneath.
+  if(finish&&!finish.hidden&&!finish.disabled){
+   // Keep Spokemon visible; the native dialog and summary are now stacked
+   // above the artboard, and Keep Riding simply closes the native dialog.
+   finish.click();
+   return;
+  }
+  // No native activity exists: creature catches already persist locally.
+  // End a trainer-free test and return to Spokemon's OWN 01 Route screen.
+  playable?.stopTestRide();
+  stageName='explore';
+  popup.hidden=true;
+  triggerNavigation('route');
  }
- document.addEventListener('click',event=>{
-  const clicked=event.target as HTMLElement|null;
-  if(clicked?.closest('#manualKeepRiding'))requestAnimationFrame(()=>{
-   if(active()){host.hidden=false;document.body.classList.add('pk-riding');playable?.paint();}
-  });
- },true);
  if(exactArtwork)playable=mountSpokemonPlayable({
   host,slot,active,getScene:()=>stageName,
   switchScene:(which,species)=>{stageName=which;if(species)currentSpecies=species;render();},
