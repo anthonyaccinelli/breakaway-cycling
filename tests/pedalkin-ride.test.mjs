@@ -138,3 +138,25 @@ test('real live gradient is the route grade, not visual slope or synthetic train
  assert.match(view,/\(liveFrame&&Number\.isFinite\(liveFrame\.gradePercent\)\?liveFrame\.gradePercent:null\)/);
  assert.doesNotMatch(view,/(?:setGrade|sendFtms|requestDevice|cycleQuestHold|setVirtualGearResistance)\(/);
 });
+
+test('Ride displays one branded four-button navigation instead of the hidden legacy tabs',()=>{
+ assert.match(view,/<header class="pk-ride-nav"/);
+ assert.match(view,/<nav class="pk-ride-tabs" aria-label="Ride navigation">/);
+ for(const name of ['route','devices','ride','overlay'])assert.match(view,new RegExp('data-pk-nav="'+name+'"'));
+ assert.equal((view.match(/data-pk-nav="/g)||[]).length,4);
+ assert.match(view,/data-pk-nav="ride" aria-current="page"/);
+ assert.match(style,/body\.pk-riding main>\.screen-progress/);
+ assert.match(style,/body\.pk-riding #screenRide>\.sc-masthead/);
+ assert.match(style,/body\.pk-riding #screenRide>\.ride-screen-content/);
+ assert.match(style,/body\.pk-riding #screenRide \.pk-ride-tabs>button\[aria-current="page"\]/);
+ assert.match(style,/border:2px solid #fbc5ab!important/);
+});
+test('Pedalkin Ride navigation reuses real Breakaway steps and actual overlay command',()=>{
+ assert.match(view,/function triggerNavigation\(target:'route'\|'devices'\|'ride'\|'overlay'\)/);
+ for(const id of ['stepRoute','stepSetup','stepRide','nativeProfile'])assert(view.includes("'"+id+"'"));
+ assert.match(view,/document\.getElementById\(id\) as HTMLButtonElement\|null\)\?\.click\(\)/);
+ assert.match(view,/document\.getElementById\('nativeProfile'\)/);
+ assert.match(view,/documentPictureInPicture/);
+ assert.match(view,/ALWAYS-ON-TOP OVERLAY/);
+ assert.doesNotMatch(view,/(?:setGrade|sendFtms|requestDevice|cycleQuestHold|setVirtualGearResistance)\(/);
+});
