@@ -964,6 +964,21 @@ function svg(){
  $('chart').innerHTML=`<div id="profileLiveGrade" class="profile-live-grade" aria-label="Current gradient">0.0%</div><div class="profile-telemetry"><span class="profile-gear-readout"></span><span class="profile-hr-readout">— bpm</span></div><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><clipPath id="breakaway-main-grade-clip"><path d="${terrainPath}"/></clipPath></defs><g clip-path="url(#breakaway-main-grade-clip)">${colored}</g><polyline points="${line}" fill="none" stroke="#e9f0f2" stroke-width="1.6"/><line id="marker" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ffc85c" stroke-width="3.5" vector-effect="non-scaling-stroke" pointer-events="none"/><line id="surviveProfileThreat" x1="${pad}" x2="${pad}" y1="0" y2="${h}" stroke="#ff304b" stroke-width="3.5" vector-effect="non-scaling-stroke" pointer-events="none" style="display:none"/></svg>`;
  zoomDisplay();syncProfileCharts();refreshHeartRateProfile();refreshInspection();
 }
+// Read-only bridge: Pedalkin uses the same real, generated elevation profile
+// as Breakaway's trainer, without changing speed, SIM resistance or recording.
+let lastPedalkinRideFrameAt=0;
+function publishPedalkinRideFrame(){
+ if(document.body.dataset.rideExperience!=='pedalkin'||document.body.dataset.breakawayScreen!=='ride')return;
+ const totalMeters=routeEndForProfile();
+ if(!Number.isFinite(totalMeters)||totalMeters<=1)return;
+ const now=performance.now();
+ if(now-lastPedalkinRideFrameAt<800)return;
+ lastPedalkinRideFrameAt=now;
+ const samples=Array.from({length:97},(_,i)=>overviewAt(totalMeters*i/96).elevation);
+ window.dispatchEvent(new CustomEvent('pedalkin:ride-frame',{detail:{
+  distanceMeters:Math.max(0,distance),totalMeters,samples,elapsedSeconds:activeRideMs/1000
+ }}));
+}
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
  zoomDisplay();
  const liveGrade=$('profileLiveGrade');const hud=gradeHud(displayGrade());const barGrade=document.getElementById('profileBarGrade');if(barGrade){barGrade.textContent=hud.label;barGrade.style.color=hud.color;}
@@ -974,6 +989,7 @@ function update(){const currentClimb=refreshClimbState();const p=at(distance),ma
  updateFloatingProfile();
  refreshHeartRateProfile();
  publishDesktopOverlay();
+ publishPedalkinRideFrame();
 }
 // Serialize FTMS control point operations and wait for the indicated result.
 // A successful GATT write is NOT proof that the trainer accepted a command.
