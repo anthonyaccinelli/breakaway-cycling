@@ -235,3 +235,48 @@ body.pk-riding #screenRide .pk-ride-host:not(:has(.pk-demo-bar)) .pk-ride-stage{
   width:min(100vw,calc((100dvh - 54px)*16/9));
  }
 }
+
+
+/* Exact-artboard approval mode. The provided SVG files are the sole visible
+   1920x1080 screen layers. Only the OUTER image box is scaled uniformly.
+   Hide pre-existing player chrome, debug bars, and gradients outside the SVG. */
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode{
+ display:flex!important;
+ position:fixed!important;inset:0!important;
+ align-items:center!important;justify-content:center!important;
+ background:#21484e!important;
+ overflow:hidden!important;
+}
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode :is(.pk-ride-nav,.pk-demo-bar,.pk-profile-bar){
+ display:none!important;
+}
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-ride-stage,
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode:has(.pk-demo-bar) .pk-ride-stage,
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode:has(.pk-profile-bar[hidden]) .pk-ride-stage{
+ flex:none!important;
+ display:block!important;
+ position:relative!important;
+ aspect-ratio:16 / 9!important;
+ width:min(100vw, calc(100dvh * 16 / 9))!important;
+ height:auto!important;
+ max-width:100vw!important;
+ max-height:100dvh!important;
+ margin:0!important;padding:0!important;
+ overflow:hidden!important;
+}
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-svg-slot{
+ display:block!important;width:100%!important;height:100%!important;
+ padding:0!important;margin:0!important;
+ border:0!important;overflow:hidden!important;
+}
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-svg-slot>img.pk-exact-artboard{
+ display:block!important;
+ width:100%!important;height:100%!important;
+ max-width:none!important;max-height:none!important;
+ object-fit:contain!important;object-position:center center!important;
+ padding:0!important;margin:0!important;
+ border:0!important;outline:0!important;
+ box-shadow:none!important;
+ user-select:none!important;
+ pointer-events:none!important;
+}
