@@ -60,7 +60,7 @@ body.pk-riding #screenRide>.survive-game-hud{display:none!important}
  font:700 19px/1.6 "Courier New",monospace;box-shadow:10px 10px 0 #071a20;
 }
 .pk-popup-title{font-size:27px;margin-bottom:12px}
-.pk-popup-body{font-size:16px;font-weight:400;margin-bottom:24px}
+.pk-popup-body{font-size:16px;font-weight:400;margin-bottom:24px;white-space:pre-line;max-height:55dvh;overflow-y:auto}
 .pk-popup-dismiss{font:700 17px "Courier New",monospace;padding:9px 20px;border:3px solid #ffc197;background:#fff0d4;color:#112f36;cursor:pointer}
 @media(max-width:850px){
  .pk-demo-bar{height:auto;min-height:54px;flex-wrap:wrap;justify-content:center;overflow-x:auto;white-space:normal;padding:6px}
