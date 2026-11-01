@@ -16,7 +16,7 @@ export function addWorkingCreatureSilhouette(svg:SVGSVGElement,species:SpokemonS
  group.setAttribute('role','img');
  group.setAttribute('shape-rendering','crispEdges');
  const art=document.createElementNS(SVG_NS,'g');
- art.setAttribute('transform','translate(793 379) scale(8)');
+ art.setAttribute('transform','translate(782 394) scale(6.8)');
  const palette:Record<Tone,string>={
   outline:'#153339',main:species.accent,shade:species.dark,leaf:'#65986c',
   cream:'#f4e5bd',eye:'#14292e',cheek:'#efa99b',glow:'#f9d88d',
