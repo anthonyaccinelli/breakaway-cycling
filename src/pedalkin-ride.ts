@@ -60,7 +60,11 @@ export function mountPedalkinRide():void {
      <div class="pk-popup-content"><div class="pk-popup-title"></div><div class="pk-popup-body"></div><button type="button" class="pk-popup-dismiss">CLOSE ×</button></div>
    </div>
  `;
- ride.append(host);
+ // Move the exact-artboard view to document.body. The legacy #screenRide
+ // container has layout offsets / stacking contexts that clipped its top
+ // and bottom on common 16:9 desktop browser viewports.
+ if(exactArtwork)document.body.append(host);
+ else ride.append(host);
  const slot=host.querySelector<HTMLElement>('.pk-svg-slot')!;
  const stage=host.querySelector<HTMLElement>('.pk-ride-stage')!;
  const popup=host.querySelector<HTMLElement>('.pk-popup')!;
@@ -454,6 +458,22 @@ export function mountPedalkinRide():void {
    untouched.draggable=false;
    untouched.decoding='async';
    slot.replaceChildren(untouched);
+   if(stageName==='encounter'){
+    // Show one existing, original Pine Forest Spokemon without changing a
+    // single pixel in the user's encounter.svg file. Render the temporary
+    // Mossprout artwork as a separate transparent 460x370 layer positioned
+    // at the exact creature slot (x=730, y=355) from the Illustrator canvas.
+    const sprite=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    sprite.classList.add('pk-encounter-preview-creature');
+    sprite.setAttribute('viewBox','730 355 460 370');
+    sprite.setAttribute('preserveAspectRatio','xMidYMid meet');
+    sprite.setAttribute('role','img');
+    sprite.setAttribute('aria-label',currentSpecies.name+' — example Spokemon placement');
+    sprite.setAttribute('shape-rendering','crispEdges');
+    addWorkingCreatureSilhouette(sprite,currentSpecies);
+    sprite.querySelector('#pk-working-creature > text')?.remove();
+    slot.appendChild(sprite);
+   }
    return;
   }
   if(explored===null||encounterSvg===null){slot.textContent='Pedalkin artwork is loading…';return;}
