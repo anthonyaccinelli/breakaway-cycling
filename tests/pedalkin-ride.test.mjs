@@ -76,3 +76,40 @@ test('preview navigation and capture demos are interactive; route remains unalte
  assert.match(view,/wildness=Math\.max\(0,wildness-seconds\*1\.55\)/);
  assert.match(main,/rideExperience==='pedalkin'&&\['route','setup','ride','explore','encounter'\]/);
 });
+
+test('Exploration player follows the authored profile at uniform horizontal distance',()=>{
+ assert.match(explore,/<path class="st32" d="M383,658/);
+ assert.match(explore,/<circle class="st45" cx="798" cy="647"/);
+ assert.match(explore,/<line class="st25" x1="798"/);
+ assert.match(view,/const profileMinX=383,profileMaxX=1498/);
+ assert.match(view,/path\.getTotalLength\(\)/);
+ assert.match(view,/path\.getPointAtLength\(mid\)\.x<targetX/);
+ assert.match(view,/rider\.setAttribute\('cy',String\(point\.y\)\)/);
+ assert.match(view,/guide\.setAttribute\('x1',String\(point\.x\)\)/);
+ assert.match(view,/baseline\.setAttribute\('cx'/);
+ assert.match(view,/you\.setAttribute\('transform'/);
+});
+
+test('Current live route data replaces ONLY the illustrative elevation trace',()=>{
+ assert.match(main,/function publishPedalkinRideFrame\(\)/);
+ assert.match(main,/window\.dispatchEvent\(new CustomEvent\('pedalkin:ride-frame'/);
+ assert.match(main,/overviewAt\(totalMeters\*i\/96\)\.elevation/);
+ assert.match(view,/window\.addEventListener\('pedalkin:ride-frame'/);
+ assert.match(view,/paintRealElevation\(frame\)/);
+ assert.match(view,/path\.setAttribute\('d',d\)/);
+ assert.match(view,/frame\.distanceMeters\/frame\.totalMeters/);
+ assert.match(view,/if\(demo\|\|!frame/);
+});
+
+test('Design playtest auto-runs and lets riders pause, scrub or reset without a trainer',()=>{
+ assert.match(view,/data-pk-profile="toggle"/);
+ assert.match(view,/data-pk-profile="seek"/);
+ assert.match(view,/demoTotalKm=25/);
+ assert.match(view,/requestAnimationFrame\(animateDemo\)/);
+ assert.match(view,/demoKm\+demoTotalKm\*delta\/80000/);
+ assert.match(view,/demoPlaying=false/);
+ assert.match(view,/profileSeek\.addEventListener\('input'/);
+ assert.match(view,/if\(action==='reset'\)\{demoKm=0/);
+ assert.match(style,/\.pk-profile-bar/);
+ assert.match(style,/\.pk-profile-status/);
+});
