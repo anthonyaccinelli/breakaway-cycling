@@ -334,3 +334,17 @@ body.pk-riding .pk-ride-host.pk-exact-artwork-mode button.pk-hitspot{
  color:transparent!important;border:0!important;box-shadow:none!important;
  min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;
 }
+
+
+/* A same-origin SVG object is used for Spokemon gameplay. Its contents are
+   isolated from global page CSS; existing Illustrator text baselines and
+   bitmap artwork remain pixel accurate. */
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-svg-slot>object.pk-exact-artboard{
+ position:absolute!important;inset:0!important;
+ display:block!important;width:100%!important;height:100%!important;
+ max-width:none!important;max-height:none!important;
+ border:0!important;padding:0!important;margin:0!important;
+ outline:0!important;box-shadow:none!important;
+ pointer-events:none!important;z-index:1!important;
+ overflow:hidden!important;
+}
