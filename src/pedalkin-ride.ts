@@ -1,5 +1,5 @@
 import './pedalkin-ride.css';
-import {choosePineForestSpokemon,nextPreviewSpokemon} from './pedalkin-creatures';
+import {PINE_FOREST_SPOKEMON,choosePineForestSpokemon,nextPreviewSpokemon} from './pedalkin-creatures';
 import type {SpokemonSpecies} from './pedalkin-creatures';
 import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
 
@@ -402,7 +402,7 @@ export function mountPedalkinRide():void {
  });
  host.querySelectorAll<HTMLButtonElement>('[data-pk-action]').forEach(button=>button.addEventListener('click',()=>{
   switch(button.dataset.pkAction){
-   case 'journal':popupOpen('CREATURE JOURNAL','A cozy home for your discovered Pedalkin. This first preview demonstrates the artwork and navigation.');break;
+   case 'journal':popupOpen('PINE FOREST JOURNAL',PINE_FOREST_SPOKEMON.map((species,i)=>String(i+1).padStart(2,'0')+'  '+species.name+'  ·  '+species.rarity).join('\n')+'\n\nWorking names and temporary encounter art.');break;
    case 'buddy':popupOpen('YOUR BUDDY','Crab · companionship 12. Buddy management will live here.');break;
    case 'stats':popupOpen('RIDE STATS',demo?'Design playtest: these sample numbers are not ride data.':'Your real ride data continues to be recorded by Breakaway.');break;
    case 'save':
