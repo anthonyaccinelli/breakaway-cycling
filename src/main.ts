@@ -16,6 +16,7 @@ import { CLASSIC_DESIGN_OVERLAY_CSS } from './classic-overlay-preview';
 import { fitClassicOverlayNumbers, fitSurvivalOverlayNumbers } from './classic-overlay-readout-fit';
 import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
 import {PEDALKIN_OVERLAY_CSS} from './pedalkin-overlay-theme';
+import {pixelateElevation} from './pedalkin-pixel-elevation';
 import {mountPedalkinOverlayPreview} from './pedalkin-overlay-preview';
 import {mountSurvivalCockpit} from './survival-cockpit';
 import {mountClassicCockpit} from './classic-cockpit';
@@ -1859,20 +1860,27 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  // A solid yellow outline replaces all text shadow. Classic uses dark text
  // against its light background; Survival keeps the current thematic color.
  if(document.body.dataset.rideExperience==='pedalkin'){
-  // The same route samples/grade and zoom settings used in Classic;
-  // Spokemon gets only its approved forest artwork and marker treatment.
-  const markerPercent=Math.max(5,Math.min(92,markerX/w*100));
+  // GBC-inspired step pixels from the SAME sampled route as the SIM trainer.
+  // Only presentation changes. Zoom, actual grade and rider distance stay live.
+  const sampledY=Array.from({length:113},(_,i)=>{
+   const atDistance=start+(stop-start)*i/112;
+   return y(overviewAt(atDistance).elevation);
+  });
+  const pixels=pixelateElevation(sampledY,pad,w-pad,9,h-pad,112,5);
+  const riderFraction=(Math.max(start,Math.min(stop,markerDistance))-start)/Math.max(1,stop-start);
+  const markerPixel=pixels.at(riderFraction);
+  const markerPercent=Math.max(5,Math.min(92,markerPixel.x/w*100));
   const trees=Array.from({length:36},(_,i)=>{
    const tx=i*w/35,th=18+(i*17%24),base=h;
    return '<path d="M '+tx.toFixed(1)+' '+(base-th).toFixed(1)+' l -11 14 h 6 l -8 13 h 26 l -8 -13 h 6 Z" fill="'+(i%3===0?'#0a3539':'#0b4441')+'"/>';
   }).join('');
   return '<div class="overlay-profile-graphic pk-forest-graphic" style="position:relative;width:100%;height:100%;overflow:hidden">'
-   +'<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="display:block;width:100%;height:100%">'
-   +'<defs><linearGradient id="pk-elevation-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#629d85"/><stop offset="100%" stop-color="#235a52"/></linearGradient></defs>'
-   +'<path d="'+fillPath+'" fill="url(#pk-elevation-fill)"/>'+trees
-   +'<polyline points="'+terrain+'" fill="none" stroke="#f9ebcb" stroke-width="4" stroke-linejoin="round"/>'
-   +'<line x1="'+markerX+'" x2="'+markerX+'" y1="24" y2="'+(h-pad)+'" stroke="#fbcf7a" stroke-width="2" stroke-dasharray="8 7"/>'
-   +'<circle cx="'+markerX+'" cy="'+y(overviewAt(Math.max(start,Math.min(stop,markerDistance))).elevation)+'" r="7" stroke="#0f292f" stroke-width="2" fill="#fbcf7a"/></svg>'
+   +'<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" shape-rendering="crispEdges" style="display:block;width:100%;height:100%">'
+   +'<path d="'+pixels.fill+'" fill="#a7d49c" opacity="0.94"/>'+trees
+   +'<path d="'+pixels.line+'" fill="none" stroke="#10282c" stroke-width="8" stroke-linejoin="miter"/>'
+   +'<path d="'+pixels.line+'" fill="none" stroke="#fff1d4" stroke-width="3" stroke-linejoin="miter"/>'
+   +'<line x1="'+markerPixel.x+'" x2="'+markerPixel.x+'" y1="24" y2="'+(h-pad)+'" stroke="#fbcf7a" stroke-width="2" stroke-dasharray="8 7"/>'
+   +'<circle cx="'+markerPixel.x+'" cy="'+markerPixel.y+'" r="7" stroke="#0f292f" stroke-width="2" fill="#fbcf7a"/></svg>'
    +'<div class="overlay-profile-grade" aria-label="Current gradient" style="left:calc('+markerPercent+'% - 35px);">'+hud.label+'</div></div>';
  }
  const classicOverlay=['classic','survival'].includes(document.body.dataset.rideExperience||'');
