@@ -1,4 +1,5 @@
 import {PEDALKIN_OVERLAY_CSS} from './pedalkin-overlay-theme';
+import SPOKEMON_FONT_CSS from './pedalkin-universal-font.css?inline';
 import {pixelateElevation} from './pedalkin-pixel-elevation';
 
 /** Read-only no-trainer preview of the same compact overlay DOM/CSS.
@@ -8,7 +9,7 @@ export function mountPedalkinOverlayPreview():void{
  if(new URLSearchParams(location.search).get('pedalkinOverlayPreview')!=='1')return;
  document.body.classList.add('pedalkin-overlay-theme','pk-overlay-preview-mode');
  const skin=document.createElement('style');
- skin.textContent=PEDALKIN_OVERLAY_CSS+`
+ skin.textContent=PEDALKIN_OVERLAY_CSS+'\n'+SPOKEMON_FONT_CSS+`
  body.pk-overlay-preview-mode{overflow:hidden!important;background:#e9eee9!important}
  #pkOverlayPreviewRoot{position:fixed;inset:0;z-index:999999;background:#e9eee9;
   font:14px system-ui,sans-serif;color:#17383c;display:flex;align-items:center;
@@ -140,7 +141,7 @@ export function mountPedalkinOverlayPreview():void{
   try{
    const opened=await (window as any).documentPictureInPicture.requestWindow({width:1200,height:170}) as Window;
    pip=opened;
-   const style=opened.document.createElement('style');style.textContent=PEDALKIN_OVERLAY_CSS+`
+   const style=opened.document.createElement('style');style.textContent=PEDALKIN_OVERLAY_CSS+'\n'+SPOKEMON_FONT_CSS+`
     *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%}
     body{overflow:hidden!important}.tile{grid-column:auto;grid-row:auto}
     #overlayContent{height:100%;width:100%}`;
