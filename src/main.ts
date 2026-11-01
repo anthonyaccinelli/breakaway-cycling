@@ -3,7 +3,7 @@ import {createQuestIntroMusic} from './quest-intro-music';
 import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
 import {findClassicRoute,registerClassicRoute,randomClassicSeed,isClassicSeed,validatedClassicRecipe,deriveUnregisteredClassicRoute} from './classic-route-registry';
 import {mountBetaSupport} from './beta-support';
-import {bootAccount,mountAccountControls,getAccountUserId} from './account';
+import {localHistoryDatabase} from './account-storage';
 import {mountCoach} from './coach';
 import './style.css';
 import './route-seed.css';
@@ -31,10 +31,9 @@ import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
 
-// Mount the existing app only after sign-in has restored account-scoped preferences.
+// Riding opens immediately; settings and progress remain saved on this device.
 void (async function startBreakawayApplication(){
-// Require a verified account and restore its cloud preferences before any mode or Coach settings initialize.
-await bootAccount();
+
 startRiderPresence(createClient, document.getElementById('liveRidersCount'), document.getElementById('liveRiders'));
 let coachRuntime:ReturnType<typeof mountCoach>|null=null;
 type Point = {distance:number; elevation:number; grade:number};
@@ -351,11 +350,11 @@ function buildRideTcx(){
   const t=new Date(startMs+s.seconds*1000).toISOString();
   return `<Trackpoint><Time>${t}</Time><AltitudeMeters>${s.elevation.toFixed(2)}</AltitudeMeters><DistanceMeters>${sessionDistanceMeters(s.distance).toFixed(2)}</DistanceMeters>${s.heartRate!==null?`<HeartRateBpm><Value>${s.heartRate}</Value></HeartRateBpm>`:''}<Cadence>${s.cadence}</Cadence><Extensions><TPX xmlns="http://www.garmin.com/xmlschemas/ActivityExtension/v2"><Watts>${s.power}</Watts><Speed>${sampleSpeed.toFixed(2)}</Speed></TPX></Extensions></Trackpoint>`;
  }).join('');
- return `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Activities><Activity Sport="Biking"><Id>${start}</Id><Lap StartTime="${start}"><TotalTimeSeconds>${(activeRideMs/1000).toFixed(1)}</TotalTimeSeconds><DistanceMeters>${sessionDistanceMeters().toFixed(2)}</DistanceMeters><Calories>${Math.round(energyKcal)}</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${entries}</Track></Lap><Notes>${tcxEscape(routeName)}</Notes></Activity></Activities></TrainingCenterDatabase>`;
+ return `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Activities><Activity Sport="Biking"><Id>${start}</Id><Lap StartTime="${start}"><TotalTimeSeconds>${(activeRideMs/1000).toFixed(1)}</TotalTimeSeconds><DistanceMeters>${sessionDistanceMeters().toFixed(2)}</DistanceMeters><Calories>${Math.round(energyKcal)}</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${entries}</Track></Lap><Notes>${tcxEscape(routeName)}\nElevation gain: ${Math.round(sessionGainFeet())} ft (${Math.round(sessionGainFeet()/FEET_PER_METER)} m)</Notes></Activity></Activities></TrainingCenterDatabase>`;
 }
 
 type SavedRide={id:string;start:string;end:string;name:string;mode?:'classic'|'survival'|'cyclequest'|'pedalkin';meters:number;elapsed:number;kcal:number;gain:number;avgPower:number|null;tcx:string};
-const RIDE_DB='breakaway-local-rides-v1-'+getAccountUserId(),RIDE_STORE='rides';
+const RIDE_DB=localHistoryDatabase('breakaway-local-rides-v1'),RIDE_STORE='rides';
 function rideDb():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{
  const request=indexedDB.open(RIDE_DB,1);
  request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(RIDE_STORE))request.result.createObjectStore(RIDE_STORE,{keyPath:'id'});};
@@ -2889,7 +2888,7 @@ let rideExperience:RideExperience='classic';
 const modeLanding=document.createElement('section');
 modeLanding.id='modeLanding';
 modeLanding.className='mode-landing';
-modeLanding.innerHTML='<div class="mode-landing-brand"><span>RIDE BREAKAWAY</span><div class="mode-landing-meta"><small>CREATE. CONNECT. RIDE.</small></div></div><div class="mode-landing-intro"><span>YOUR RIDE. YOUR RULES.</span><h1>CHOOSE YOUR RIDE.</h1><p>Classic: ride freely or train with Breakaway Coach. Survival: escape the undead. Cycle Quest: adventure and level up.</p></div><div class="mode-landing-cards"><button type="button" id="chooseClassic" class="mode-card mode-card-classic mode-card-art" aria-label="Start Classic — free rides, routes, and training plans with Breakaway Coach"><img src="/branding/home-classic.png" alt="" width="1500" height="1500" decoding="async" draggable="false"></button><button type="button" id="chooseSurvival" class="mode-card mode-card-survival mode-card-art" aria-label="Start Survival — choose game mode, difficulty, and threat"><img src="/branding/home-survival.png" alt="" width="1500" height="1500" decoding="async" draggable="false"></button><button type="button" id="chooseCycleQuest" class="mode-card mode-card-quest mode-card-art" aria-label="Start your quest — Cycle Quest private beta"><img src="/branding/home-cycle-quest.png" alt="" width="1500" height="1500" decoding="async" draggable="false"></button></div><p class="mode-landing-footer">SMART TRAINER REQUIRED · YOUR RIDES AND TRAINING SETTINGS SYNC TO YOUR ACCOUNT</p><div class="mode-device-shortcut"><button type="button" id="modeDevices">CONNECT DEVICES</button><span>Optional — connect now or after choosing a mode.</span></div>';
+modeLanding.innerHTML='<div class="mode-landing-brand"><span>RIDE BREAKAWAY</span><div class="mode-landing-meta"><small>CREATE. CONNECT. RIDE.</small></div></div><div class="mode-landing-intro"><span>YOUR RIDE. YOUR RULES.</span><h1>CHOOSE YOUR RIDE.</h1><p>Classic: ride freely or train with Breakaway Coach. Survival: escape the undead. Cycle Quest: adventure and level up.</p></div><div class="mode-landing-cards"><button type="button" id="chooseClassic" class="mode-card mode-card-classic mode-card-art" aria-label="Start Classic — free rides, routes, and training plans with Breakaway Coach"><img src="/branding/home-classic.png" alt="" width="1500" height="1500" decoding="async" draggable="false"></button><button type="button" id="chooseSurvival" class="mode-card mode-card-survival mode-card-art" aria-label="Start Survival — choose game mode, difficulty, and threat"><img src="/branding/home-survival.png" alt="" width="1500" height="1500" decoding="async" draggable="false"></button><button type="button" id="chooseCycleQuest" class="mode-card mode-card-quest mode-card-art" aria-label="Start your quest — Cycle Quest private beta"><img src="/branding/home-cycle-quest.png" alt="" width="1500" height="1500" decoding="async" draggable="false"></button></div><p class="mode-landing-footer">SMART TRAINER REQUIRED · YOUR PROGRESS AND SETTINGS SAVE ON THIS DEVICE</p><div class="mode-device-shortcut"><button type="button" id="modeDevices">CONNECT DEVICES</button><span>Optional — connect now or after choosing a mode.</span></div>';
 // Reuse the live badge already connected by startRiderPresence. Moving the
 // same node preserves updates without creating another presence connection.
 const homePresenceBadge=document.getElementById('liveRiders');
@@ -3222,7 +3221,6 @@ mountPedalkinHandheldDevices();
 mountPedalkinRide();
 
 // Coach preview reuses the existing FTMS writer. It does not open another BLE connection.
-mountAccountControls();
 coachRuntime=mountCoach({
  launchMode:(_mode)=>{showBreakawayScreen('setup');},
  makeRoute:(seconds,structured)=>{
