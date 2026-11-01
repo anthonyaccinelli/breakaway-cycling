@@ -97,7 +97,7 @@ test('Current live route data replaces ONLY the illustrative elevation trace',()
  assert.match(view,/window\.addEventListener\('pedalkin:ride-frame'/);
  assert.match(view,/paintRealElevation\(frame\)/);
  assert.match(view,/path\.setAttribute\('d',d\)/);
- assert.match(view,/frame\.distanceMeters\/frame\.totalMeters/);
+ assert.match(view,/liveFrame\.distanceMeters\/liveFrame\.totalMeters/);
  assert.match(view,/if\(demo\|\|!frame/);
 });
 
