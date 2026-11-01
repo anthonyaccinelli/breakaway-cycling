@@ -209,6 +209,7 @@ function prepareProcedural(isEndless:boolean):boolean{
   generatedGainIsAutoFilled=true;
  }
  status(`${isEndless?'Endless ride ready':`Generated ${mi} mi route ready`} — connect trainer and pedal to begin.`);
+ requestAnimationFrame(()=>{syncStudioRoutePreview();window.dispatchEvent(new CustomEvent('spokemon:route-state',{detail:{mode:isEndless?'endless':'generated'}}));});
  return true;
 }
 // Classic seed-only recall: the saved recipe is the source of truth.
@@ -1155,7 +1156,7 @@ function tick(now:number){
  surviveFailTick(now);
  requestAnimationFrame(tick);
 }
-$('gpx').addEventListener('change',async e=>{try{const file=(e.target as HTMLInputElement).files?.[0];if(!file)return;if(rideStart&&!rideEnd)finishRide();procedural=false;endless=false;zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;routeLimit=0;plannedGainFeet=null;gainScale=1;resetClimbingTotals();clearElevationEditor();points=parseGPX(await file.text());routeName=file.name;rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();svg();update();requestAnimationFrame(()=>syncStudioRoutePreview());status(`Loaded ${file.name}: ${(points.at(-1)!.distance/METERS_PER_MILE).toFixed(1)} mi`);}catch(err){status(String(err));}});
+$('gpx').addEventListener('change',async e=>{try{const file=(e.target as HTMLInputElement).files?.[0];if(!file)return;if(rideStart&&!rideEnd)finishRide();procedural=false;endless=false;zoomMeters=null;selectedClimbIndex=-1;inspectDistance=null;routeLimit=0;plannedGainFeet=null;gainScale=1;resetClimbingTotals();clearElevationEditor();points=parseGPX(await file.text());routeName=file.name;rideStart=null;rideEnd=null;clearRideRecovery();distance=0;speed=0;resetRideMetrics();svg();update();requestAnimationFrame(()=>syncStudioRoutePreview());status(`Loaded ${file.name}: ${(points.at(-1)!.distance/METERS_PER_MILE).toFixed(1)} mi`);requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('spokemon:route-state',{detail:{mode:'gpx',name:file.name}})));}catch(err){status(String(err));}});
 // Wahoo SNAP compatibility phase 1: read-only Cycling Power Service discovery.
 // Never issue undocumented Wahoo resistance commands.
 function parseCyclingPowerMeasurement(v:DataView){
