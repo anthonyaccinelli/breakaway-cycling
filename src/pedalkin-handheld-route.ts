@@ -30,6 +30,7 @@ export function mountPedalkinHandheldRoute():void {
  shell.innerHTML=`
   <div class="pk-v2-stage">
    <img class="pk-v2-art" src="/pedalkin/route-v2.svg" alt="Pedalkin handheld console artwork, based exactly on the uploaded Illustrator file" draggable="false"/>
+   <!-- The handheld face buttons are decorative artwork only, not controls. -->
    <div class="pk-v2-live">
     <input class="pk-v2-miles" type="number" step="any" min="0.01" aria-label="Distance (miles)"/>
     <select class="pk-v2-biome" aria-label="Biome / terrain"></select>
@@ -59,10 +60,6 @@ export function mountPedalkinHandheldRoute():void {
     <button class="pk-v2-hit pk-v2-nav-devices" type="button" aria-label="02 Devices"></button>
     <button class="pk-v2-hit pk-v2-nav-ride" type="button" aria-label="03 Ride"></button>
     <button class="pk-v2-hit pk-v2-nav-overlay" type="button" aria-label="Open the always-on-top overlay"></button>
-    <button class="pk-v2-hit pk-v2-pad-a" type="button" aria-label="Handheld A: Generate route"></button>
-    <button class="pk-v2-hit pk-v2-pad-b" type="button" aria-label="Handheld B: Surprise Me"></button>
-    <button class="pk-v2-hit pk-v2-pad-x" type="button" aria-label="Handheld X: Endless Route"></button>
-    <button class="pk-v2-hit pk-v2-pad-y" type="button" aria-label="Handheld Y: Connect devices"></button>
    </div>
   </div>`;
  route.append(shell);
@@ -109,10 +106,6 @@ export function mountPedalkinHandheldRoute():void {
  doAction('.pk-v2-surprise',original.surprise);
  doAction('.pk-v2-endless',original.endless);
  doAction('.pk-v2-next',original.next);
- doAction('.pk-v2-pad-a',original.generate);
- doAction('.pk-v2-pad-b',original.surprise);
- doAction('.pk-v2-pad-x',original.endless);
- doAction('.pk-v2-pad-y',get('stepSetup'));
  doAction('.pk-v2-nav-route',get('stepRoute'));
  doAction('.pk-v2-nav-devices',get('stepSetup'));
  doAction('.pk-v2-nav-ride',get('stepRide'));
