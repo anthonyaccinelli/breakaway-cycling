@@ -360,3 +360,72 @@ body.pk-v2-route-active #screenRoute .pk-v2-live :is(input,select){
  font-family:"Spokemon Minecraft",monospace!important;font-weight:700!important;
  background:#f3f4f6!important;
 }
+
+
+/* 2026-11-01 precision pass: the previous appended selectors were less
+   specific than the older .pk-v2-stage rules, so the browser kept the
+   oversized / left-shifted inputs. These target exactly those selectors.
+   Dimensions are read from the user's Illustrator rectangles, in 1920x1080. */
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-miles{
+ left:31.3854%!important;top:29.6574%!important;width:8.5833%!important;height:4.0833%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > select.pk-v2-biome{
+ left:40.6354%!important;top:29.6574%!important;width:8.5833%!important;height:4.0833%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-gain{
+ left:31.3854%!important;top:36.6944%!important;width:18.5%!important;height:4.0833%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-seed{
+ left:31.3854%!important;top:43.5185%!important;width:12.12%!important;height:4.0833%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > :is(input.pk-v2-miles,select.pk-v2-biome,input.pk-v2-gain,input.pk-v2-seed){
+ padding:0 .42cqw!important;margin:0!important;border:0!important;
+ border-radius:.28cqw!important;
+ background:#f3f4f6!important;
+ font:700 .90cqw/1 "Spokemon Minecraft",monospace!important;
+ text-align:left!important;
+ box-shadow:none!important;
+ outline-offset:-.10cqw!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-lock-control{
+ left:44.71%!important;top:43.52%!important;width:5.18%!important;height:4.08%!important;
+ background:#fff!important;z-index:9!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-route-stats{
+ position:absolute!important;
+ left:52.03%!important;top:33.20%!important;width:16.45%!important;height:12.32%!important;
+ padding:0!important;margin:0!important;border:0!important;
+ background:#fff!important;box-shadow:none!important;
+ color:#10292f!important;overflow:hidden!important;
+ font:700 .84cqw/1.12 "Spokemon Minecraft",monospace!important;
+ display:flex!important;flex-direction:column!important;z-index:4!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-route-stats>div{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ flex:0 0 1.12cqw!important;height:1.12cqw!important;min-height:0!important;
+ margin:0!important;padding:0!important;gap:.2cqw!important;
+ font:inherit!important;line-height:1.12!important;
+ width:100%!important;overflow:hidden!important;
+ white-space:nowrap!important;background:#fff!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-route-stats b{
+ font:inherit!important;font-weight:800!important;flex:0 1 auto!important;
+ min-width:0!important;max-width:100%!important;overflow:hidden!important;
+ text-overflow:ellipsis!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-live-chart{
+ left:31.6276%!important;top:58.9426%!important;width:36.8229%!important;height:7.3611%!important;
+ max-width:36.8229%!important;max-height:7.3611%!important;
+ padding:0!important;margin:0!important;border:0!important;overflow:hidden!important;
+ background:#f3f4f6!important;z-index:4!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-live-chart svg{
+ display:block!important;width:100%!important;height:100%!important;
+ max-width:100%!important;max-height:100%!important;
+ preserveAspectRatio:none; /* preserveAspectRatio is already set on the cloned SVG */
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-scrub{
+ left:31.85%!important;top:67.40%!important;width:25.4%!important;height:2.65%!important;
+ padding-left:0!important;background:#f3f4f6!important;
+ font:700 .65cqw/1 "Spokemon Minecraft",monospace!important;
+}
