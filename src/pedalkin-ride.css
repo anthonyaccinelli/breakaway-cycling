@@ -21,7 +21,8 @@ body.pk-riding #screenRide>.survive-game-hud{display:none!important}
  width:min(100vw,calc((100dvh - 54px) * 16 / 9));
 }
 .pk-svg-slot,.pk-svg-slot>svg{display:block;width:100%;height:100%;min-width:0;min-height:0}
-.pk-svg-slot>svg{overflow:visible}
+.pk-svg-slot{overflow:hidden;contain:paint}
+.pk-svg-slot>svg{overflow:hidden!important;clip-path:inset(0)!important}
 .pk-hitspot{
  appearance:none;position:absolute;display:block;border:none;background:transparent;
  box-shadow:none;border-radius:2px;cursor:pointer;color:transparent;z-index:2;
@@ -221,5 +222,16 @@ body.pk-riding #screenRide .pk-ride-host:has(.pk-profile-bar[hidden]) .pk-ride-s
  }
  body.pk-riding #screenRide .pk-ride-host:has(.pk-profile-bar[hidden]) .pk-ride-stage{
   width:min(100vw,calc((100dvh - 158px)*16/9));
+ }
+}
+
+/* A real gameplay preview has only the four navigation tabs and the full
+   original 03 Ride artboard. No design-playtest toolbar or slider. */
+body.pk-riding #screenRide .pk-ride-host:not(:has(.pk-demo-bar)) .pk-ride-stage{
+ width:min(100vw,calc((100dvh - 56px)*16/9));
+}
+@media(max-width:850px){
+ body.pk-riding #screenRide .pk-ride-host:not(:has(.pk-demo-bar)) .pk-ride-stage{
+  width:min(100vw,calc((100dvh - 54px)*16/9));
  }
 }
