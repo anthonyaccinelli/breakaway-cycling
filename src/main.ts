@@ -16,6 +16,8 @@ import { CLASSIC_DESIGN_OVERLAY_CSS } from './classic-overlay-preview';
 import { fitClassicOverlayNumbers, fitSurvivalOverlayNumbers } from './classic-overlay-readout-fit';
 import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
 import {PEDALKIN_OVERLAY_CSS} from './pedalkin-overlay-theme';
+import SPOKEMON_FONT_CSS from './pedalkin-universal-font.css?inline';
+import './pedalkin-universal-font.css';
 import {pixelateElevation} from './pedalkin-pixel-elevation';
 import {mountPedalkinOverlayPreview} from './pedalkin-overlay-preview';
 import {mountSurvivalCockpit} from './survival-cockpit';
@@ -1700,7 +1702,7 @@ $('nativeProfile').addEventListener('click',async()=>{
   classicTheme.textContent=CLASSIC_DESIGN_OVERLAY_CSS;
   pip.document.head.append(classicTheme);
   const pedalkinTheme=pip.document.createElement('style');
-  pedalkinTheme.textContent=PEDALKIN_OVERLAY_CSS;
+  pedalkinTheme.textContent=PEDALKIN_OVERLAY_CSS+'\n'+SPOKEMON_FONT_CSS;
   pip.document.head.append(pedalkinTheme);
   pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><div id="overlayZoomControls" role="group" aria-label="Elevation zoom"><button type="button" data-zoom="1">1×</button><button type="button" data-zoom="2">2×</button><button type="button" data-zoom="5">5×</button><button type="button" data-zoom="10">10×</button></div><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
   pip.document.body.classList.toggle('survival-overlay-theme',document.body.dataset.rideExperience==='survival');
