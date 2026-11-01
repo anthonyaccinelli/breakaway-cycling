@@ -17,7 +17,7 @@ test('resumed Story ride exports only session miles, never the chapter starting 
  assert.deepEqual(distances,[22487.25,0,5,22486.42]);assert.equal((distances[0]/1609.344).toFixed(2),'13.97');
  assert.deepEqual(elements(xml,'Speed').map(x=>Number(x.textContent)),[0,5,6]);
  assert.deepEqual(elements(xml,'Watts').map(x=>Number(x.textContent)),[162,200,180]);
- assert.equal(elements(xml,'TotalTimeSeconds')[0].textContent,'3749.3');assert.equal(elements(xml,'Notes')[0].textContent,'Story & route');
+ assert.equal(elements(xml,'TotalTimeSeconds')[0].textContent,'3749.3');assert.equal(elements(xml,'Notes')[0].textContent,'Story & route\nElevation gain: 738 ft (225 m)');
  assert.equal(c.distance,91378.04); // Chapter position stays intact.
 });
 test('zero-origin rides and short sampling gaps retain real incremental speed',()=>{
