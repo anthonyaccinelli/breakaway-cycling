@@ -26,14 +26,14 @@ export function mountSpokemonPlayable(options:{
  const {host,slot,active,getScene,switchScene,onFinishRide}=options;
  let collection=loadCollection();
  let species:SpokemonSpecies= PINE_FOREST_SPOKEMON.find(x=>x.id==='mossprout')||PINE_FOREST_SPOKEMON[0];
- let trust=0,patience=65,encounterCooldown=0,encounterStart=0,resolveAt=0;
+ let trust=0,patience=65,encounterCooldown=0,resolveAt=0;
  let outcome:'captured'|'escaped'|null=null;
  let message='Cruising through Pinepath Trail. Stay steady to attract nearby Spokemon.';
  let lastReal:SpokemonRideTelemetry|null=null;
  let lastSourceTime=0,lastTick=performance.now();
  let simulator=false,simulationRunning=false,simDistance=0,simPower=165,simElapsed=0,simKcal=0;
  let progressDistance=0;
- let encounterCount=0,lastMeter=0,playTime=0;
+ let encounterCount=0;
  let savedAt=0;
  const view=document.createElementNS(NS,'svg');
  view.setAttribute('viewBox','0 0 1920 1080');
@@ -68,12 +68,11 @@ export function mountSpokemonPlayable(options:{
  const text=(parent:SVGElement,x:number,y:number,label:string,size=38,color='#17343b')=>parent.appendChild(make('text',{x:String(x),y:String(y),'font-size':String(size),'font-family':'Spokemon Minecraft, monospace','font-weight':'700',fill:color},label));
  const line=(parent:SVGElement,x1:number,y1:number,x2:number,y2:number,color:string,width=3)=>parent.appendChild(make('line',{x1:String(x1),y1:String(y1),x2:String(x2),y2:String(y2),stroke:color,'stroke-width':String(width)}));
  const ready=()=>Boolean(lastReal?.connected&&Date.now()-lastSourceTime<7000);
- const realRunning=()=>ready()&&lastReal?.running===true;
  const labelSource=()=>ready()?'TRAINER':simulator?'TEST RIDE':'READY';
  const frame=():SpokemonRideTelemetry=>{
   if(ready()&&lastReal) return lastReal;
   const samples=Array.from({length:97},(_,i)=>85+31*Math.sin(i*.15)+22*Math.sin(i*.39)+65*Math.sin(i*.055));
-  return {distanceMeters:simDistance,totalMeters:lastReal?.totalMeters||24000,samples,elapsedSeconds:simElapsed,gradePercent:Math.sin(simDistance/180)*4,powerWatts:simPower,cadenceRpm:simulator?88:0,heartRateBpm:simulator?124:null,speedMph:simulator?simPower*.083:0,caloriesKcal:simKcal,running:simulationRunning,connected:false};
+  return {distanceMeters:simDistance,totalMeters:lastReal?.totalMeters||24000,samples,elapsedSeconds:simElapsed,gradePercent:Math.sin(simDistance/180)*4,powerWatts:simulator?simPower:0,cadenceRpm:simulator?88:0,heartRateBpm:simulator?124:null,speedMph:simulator?simPower*.083:0,caloriesKcal:simKcal,running:simulationRunning,connected:false};
  };
  function drawProfile(root:SVGElement,f:SpokemonRideTelemetry){
   const minX=390,maxX=1518,top=445,bottom=807,width=maxX-minX;
@@ -154,7 +153,6 @@ export function mountSpokemonPlayable(options:{
   if(getScene()==='encounter'||!active())return;
   species=choosePineForestSpokemon();
   trust=0;patience=65;outcome=null;resolveAt=0;
-  encounterStart=performance.now();
   encounterCount++;
   message='A wild '+species.name+' appeared! Keep pedaling steadily to earn Trust.';
   switchScene('encounter',species);
@@ -197,7 +195,6 @@ export function mountSpokemonPlayable(options:{
    paint();
   }
  }
- let previousDistance=0;
  let previousActive=false;
  const timer=window.setInterval(()=>{
   if(!active()){previousActive=false;lastTick=performance.now();return;}
