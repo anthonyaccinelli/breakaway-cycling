@@ -982,7 +982,11 @@ function publishPedalkinRideFrame(){
  const samples=Array.from({length:97},(_,i)=>overviewAt(totalMeters*i/96).elevation);
  window.dispatchEvent(new CustomEvent('pedalkin:ride-frame',{detail:{
   distanceMeters:Math.max(0,distance),totalMeters,samples,elapsedSeconds:activeRideMs/1000,
-  gradePercent:displayGrade()
+  gradePercent:displayGrade(),
+  powerWatts:Math.max(0,threeSecondWatts()??power),cadenceRpm:realTelemetry?cadence:0,
+  heartRateBpm:Number(($('heartRate').textContent||'').trim())||null,
+  speedMph:speed*MPH_PER_MPS,caloriesKcal:energyKcal,
+  running,connected:trainerReadyForRide()
  }}));
 }
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
@@ -2853,7 +2857,7 @@ function enterRideScreen(){
  // Do not start the real ride engine or record synthetic workouts until an actual trainer is ready.
  if(rideExperience==='pedalkin'&&!trainerReadyForRide()){
   showBreakawayScreen('ride');
-  status('Spokemon playtest: trainer connection is optional.');
+  status('Spokemon ready: connect a trainer for real riding or start a test session from Game Controls.');
   return;
  }
  if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
