@@ -16,6 +16,7 @@ import { CLASSIC_DESIGN_OVERLAY_CSS } from './classic-overlay-preview';
 import { fitClassicOverlayNumbers, fitSurvivalOverlayNumbers } from './classic-overlay-readout-fit';
 import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
 import {PEDALKIN_OVERLAY_CSS} from './pedalkin-overlay-theme';
+import {mountPedalkinOverlayPreview} from './pedalkin-overlay-preview';
 import {mountSurvivalCockpit} from './survival-cockpit';
 import {mountClassicCockpit} from './classic-cockpit';
 import {mountClassicRouteReference} from './classic-route-reference';
@@ -3243,6 +3244,9 @@ if(['route','setup','ride','encounter','explore','playing','encounters'].include
  showBreakawayScreen(['ride','explore','encounter','playing','encounters'].includes(pedalkinPreviewScreen||'')?'ride':pedalkinPreviewScreen as BreakawayScreen);
  if(pedalkinPreviewScreen==='route')requestAnimationFrame(()=>{svg();syncStudioRoutePreview();});
 }
+
+// Pedalkin's approved compact overlay can be reviewed without BLE or PiP.
+mountPedalkinOverlayPreview();
 
 // Preview-branch entry points are design-only and never start a trainer,
 // spoof BLE sensor data or bypass the live ride's safety checks.
