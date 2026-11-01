@@ -2812,10 +2812,10 @@ function updateSetupReadiness(){
  const ready=trainerReadyForRide();
  const fromHome=document.body.dataset.deviceShortcut==='true';
  const button=document.getElementById('goToRide') as HTMLButtonElement;
- button.disabled=fromHome?false:!ready;
- button.textContent=fromHome?'Choose a mode →':ready?'Start Riding →':'Connect Trainer to Continue';
+ button.disabled=fromHome||rideExperience==='pedalkin'?false:!ready;
+ button.textContent=fromHome?'Choose a mode →':rideExperience==='pedalkin'?'03 Ride → (trainer optional)':ready?'Start Riding →':'Connect Trainer to Continue';
  const label=document.getElementById('setupReadiness')!;
- label.textContent=fromHome?(ready?'✓ Trainer ready · choose a mode when you’re ready.':'Connect devices now, or choose a mode and connect later.'):ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.';
+ label.textContent=rideExperience==='pedalkin'?(ready?'Trainer connected · ready to ride.':'Trainer optional · use 03 Ride without connecting anything.'):fromHome?(ready?'✓ Trainer ready · choose a mode when you’re ready.':'Connect devices now, or choose a mode and connect later.'):ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.';
  refreshSetupDeviceCards();
 }
 function showBreakawayScreen(screen:BreakawayScreen){
@@ -2850,6 +2850,13 @@ function showBreakawayScreen(screen:BreakawayScreen){
 function enterRideScreen(){
  if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}
  stopRideCountdown();
+ // SPOKEMON always permits entering the ride screen without hardware.
+ // Do not start the real ride engine or record synthetic workouts until an actual trainer is ready.
+ if(rideExperience==='pedalkin'&&!trainerReadyForRide()){
+  showBreakawayScreen('ride');
+  status('Spokemon playtest: trainer connection is optional.');
+  return;
+ }
  if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
  // Start the ride from the Connect Trainer action itself. FTMS power and
  // cadence notifications will advance the ride when the rider pedals.
@@ -2866,10 +2873,10 @@ function checkAutomaticRideCountdown(){updateSetupReadiness();}
  checkAutomaticRideCountdown();
 });
 document.getElementById('goToRide')!.addEventListener('click',enterRideScreen);
-// Navigation is free between planning and devices; entering the active ride requires a trainer.
+// Navigation is free between all Spokemon screens; only hardware-controlled recording requires a trainer.
 document.getElementById('stepRoute')!.addEventListener('click',()=>{stopRideCountdown();if(running){status('Pause or finish your ride before changing screens');return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();questSend({type:'navigate',page:'route'});return;}showBreakawayScreen('route');});
 document.getElementById('stepSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');checkAutomaticRideCountdown();});
-document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();questSend({type:'navigate',page:'ride'});return;}if(rideExperience==='pedalkin'&&['route','setup','ride','explore','encounter','playing','encounters'].includes(new URLSearchParams(location.search).get('pedalkinPreview')||'')){showBreakawayScreen('ride');return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else if(document.body.dataset.rideExperience==='classic'&&['setup','ride'].includes(new URLSearchParams(location.search).get('classicPreview')||'')){showBreakawayScreen('ride');}else if(document.body.dataset.rideExperience==='survival'&&['setup','ride'].includes(new URLSearchParams(location.search).get('survivalPreview')||'')){showBreakawayScreen('ride');}else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
+document.getElementById('stepRide')!.addEventListener('click',()=>{if(document.body.dataset.deviceShortcut==='true'){openModeLanding();return;}if(document.body.dataset.rideExperience==='cyclequest'){showCycleQuest();questSend({type:'navigate',page:'ride'});return;}if(rideExperience==='pedalkin'){enterRideScreen();return;}if(running){showBreakawayScreen('ride');return;}if(trainerReadyForRide())enterRideScreen();else if(document.body.dataset.rideExperience==='classic'&&['setup','ride'].includes(new URLSearchParams(location.search).get('classicPreview')||'')){showBreakawayScreen('ride');}else if(document.body.dataset.rideExperience==='survival'&&['setup','ride'].includes(new URLSearchParams(location.search).get('survivalPreview')||'')){showBreakawayScreen('ride');}else{showBreakawayScreen('setup');updateSetupReadiness();status('Connect and initialize your trainer to access the ride screen.');}});
 document.getElementById('backToRoute')!.addEventListener('click',()=>{stopRideCountdown();showBreakawayScreen('route');});
 document.getElementById('backToSetup')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('setup');});
 document.getElementById('backToStudio')!.addEventListener('click',()=>{if(running){status('Pause or finish your ride before changing screens');return;}showBreakawayScreen('route');});
