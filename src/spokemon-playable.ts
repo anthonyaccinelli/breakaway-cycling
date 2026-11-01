@@ -1,6 +1,8 @@
 import {PINE_FOREST_SPOKEMON,choosePineForestSpokemon} from './pedalkin-creatures';
 import type {SpokemonSpecies} from './pedalkin-creatures';
 import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
+import {chooseTemperament,descriptions,preferredEffort,trustRate,chanceAtFullTrust} from './spokemon-temperaments';
+import type {Temperament} from './spokemon-temperaments';
 import './spokemon-playable.css';
 
 export type SpokemonRideTelemetry={
@@ -9,9 +11,11 @@ export type SpokemonRideTelemetry={
  speedMph?:number;caloriesKcal?:number;running?:boolean;connected?:boolean;
 };
 type Scene='explore'|'encounter';
-type SavedCreature={id:string;name:string;capturedAt:string;count:number};
+export type SavedCreature={id:string;name:string;capturedAt:string;count:number;
+ temperament?:Temperament;xp?:number;captures?:{temperament:Temperament;capturedAt:string}[];};
 const NS='http://www.w3.org/2000/svg';
 const STORAGE='spokemon-caught-v1';
+const BUDDY_STORAGE='spokemon-buddy-v1';
 const COLORS=['#f6d58c','#9eca96','#6aad38','#989141','#c6744a','#f45853'];
 const clamp=(v:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,v));
 const bucket=(p:number)=>p<0?0:p<1?1:p<4?2:p<8?3:p<12?4:5;
@@ -28,6 +32,10 @@ export function mountSpokemonPlayable(options:{
  let collection=loadCollection();
  let species:SpokemonSpecies= PINE_FOREST_SPOKEMON.find(x=>x.id==='mossprout')||PINE_FOREST_SPOKEMON[0];
  let trust=0,patience=65,encounterCooldown=0,resolveAt=0;
+ let temperament:Temperament='calm',encounterAge=0,chaosHold=0,coastGrace=6;
+ let buddyId='';try{buddyId=localStorage.getItem(BUDDY_STORAGE)||'';}catch{}
+ if(!collection.some(c=>c.id===buddyId))buddyId=collection[0]?.id||'';
+ let lastBuddySave=0;
  let outcome:'captured'|'escaped'|null=null;
  let message='Cruising through Pinepath Trail. Stay steady to attract nearby Spokemon.';
  let lastReal:SpokemonRideTelemetry|null=null;
@@ -70,6 +78,15 @@ export function mountSpokemonPlayable(options:{
  const line=(parent:SVGElement,x1:number,y1:number,x2:number,y2:number,color:string,width=3)=>parent.appendChild(make('line',{x1:String(x1),y1:String(y1),x2:String(x2),y2:String(y2),stroke:color,'stroke-width':String(width)}));
  const ready=()=>Boolean(lastReal?.connected&&Date.now()-lastSourceTime<7000);
  const labelSource=()=>ready()?'TRAINER':simulator?'TEST RIDE':'READY';
+ const riding=()=>ready()?lastReal?.running===true:simulator&&simulationRunning;
+ const ftp=()=>Math.max(50,Number((document.getElementById('ftp') as HTMLInputElement|null)?.value)||250);
+ const saveCollection=()=>{try{localStorage.setItem(STORAGE,JSON.stringify(collection));}catch{}};
+ const buddy=()=>collection.find(c=>c.id===buddyId);
+ const setBuddy=(id:string)=>{
+  if(!collection.some(c=>c.id===id))return false;
+  buddyId=id;try{localStorage.setItem(BUDDY_STORAGE,id);}catch{}
+  paint();return true;
+ };
  const frame=():SpokemonRideTelemetry=>{
   const route=lastReal&&Array.isArray(lastReal.samples)&&lastReal.samples.length>1?lastReal:null;
   const samples=route?.samples||Array.from({length:97},(_,i)=>85+31*Math.sin(i*.15)+22*Math.sin(i*.39)+65*Math.sin(i*.055));
@@ -236,23 +253,35 @@ export function mountSpokemonPlayable(options:{
    view.remove();
   }
   status.textContent=labelSource();
-  note.textContent=ready()?'Trainer detected. Real cycling data is driving the game.':'No trainer detected. Start a simulated test ride to explore.';
+  note.textContent=getScene()==='encounter'
+   ?'Encounter: '+temperament.toUpperCase()+'. '+preferredEffort(temperament,encounterAge)
+   :ready()?'Trainer detected. Real cycling data is driving the game.'
+   :'No trainer detected. Start a simulated test ride to explore.';
+  const encounterButton=tool.querySelector<HTMLButtonElement>('[data-pk-control="encounter"]')!;
+  encounterButton.disabled=!riding()||getScene()==='encounter';
   simButton.textContent=simulator?(simulationRunning?'PAUSE TEST RIDE':'RESUME TEST RIDE'):'START TEST RIDE';
   tool.querySelector<HTMLButtonElement>('[data-pk-control="session"]')!.disabled=!ready();
   tool.querySelector<HTMLButtonElement>('[data-pk-control="finish"]')!.disabled=!ready();
  }
  function saveCreature(){
   const old=collection.find(x=>x.id===species.id);
-  if(old)old.count+=1;
-  else collection.push({id:species.id,name:species.name,capturedAt:new Date().toISOString(),count:1});
-  try{localStorage.setItem(STORAGE,JSON.stringify(collection));}catch{}
+  const capturedAt=new Date().toISOString();
+  if(old){
+   old.count+=1;
+   (old.captures??=[]).push({temperament,capturedAt});
+  }else collection.push({id:species.id,name:species.name,capturedAt,count:1,
+   temperament,xp:0,captures:[{temperament,capturedAt}]});
+  if(!buddyId)setBuddy(species.id);
+  saveCollection();
  }
  function encounter(){
-  if(getScene()==='encounter'||!active())return;
+  if(getScene()==='encounter'||!active()||!riding())return;
   species=choosePineForestSpokemon();
-  trust=0;patience=65;outcome=null;resolveAt=0;
+  temperament=chooseTemperament();
+  trust=0;patience=temperament==='chaotic'?40:65;
+  outcome=null;resolveAt=0;encounterAge=0;chaosHold=0;coastGrace=6;
   encounterCount++;
-  message='A wild '+species.name+' appeared! Keep pedaling steadily to earn Trust.';
+  message=species.name+' appeared! '+temperament.toUpperCase()+': '+descriptions[temperament];
   switchScene('encounter',species);
   paint();
  }
@@ -266,13 +295,13 @@ export function mountSpokemonPlayable(options:{
  function resolve(success:boolean){
   if(outcome)return;
   outcome=success?'captured':'escaped';
-  if(success){saveCreature();message=species.name+' joined your collection! '+collection.length+' species discovered.';}
-  else message=species.name+' wandered away. Another chance awaits on the trail.';
-  resolveAt=performance.now()+3600;
+  if(success){saveCreature();message='★ '+species.name+' joined your collection! '+temperament.toUpperCase()+' temperament.';}
+  else message=species.name+' escaped! '+(trust>=100?'Trust reached 100%, but capture is not guaranteed.':'Try a gentler, steadier effort next time.');
+  resolveAt=performance.now()+6500;
   paint();
  }
  const journal=()=>{
-  const lines=collection.length?collection.map(c=>c.name+' ×'+c.count).join('\n'):'No Spokemon collected yet.';
+  const lines=collection.length?collection.map(c=>c.name+' ×'+c.count+' · '+(c.temperament||'Unknown')+' · Lv '+(1+Math.floor((c.xp||0)/600))).join('\n'):'No Spokemon collected yet.';
   if(options.onCollection)options.onCollection(collection.slice());
   else window.alert('SPOKEMON COLLECTION\n\n'+lines+'\n\n'+collection.length+' / '+PINE_FOREST_SPOKEMON.length+' species');
  };
@@ -313,20 +342,34 @@ export function mountSpokemonPlayable(options:{
   if(getScene()==='explore'&&moving&&progressDistance>=encounterCooldown){
    encounter();
   }
+  // Companion XP advances only when power and cadence indicate genuine
+  // pedaling (or when deliberately running an unrecorded Test Ride).
+  const activeBuddy=buddy();
+  if(moving&&activeBuddy){
+   activeBuddy.xp=(activeBuddy.xp||0)+dt*(simulator?5:1);
+   if(now-lastBuddySave>12000){saveCollection();lastBuddySave=now;}
+  }
   if(getScene()==='encounter'){
    if(outcome){
     if(now>=resolveAt)returnExplore();
-   }else{
-    patience=Math.max(0,patience-dt);
+   }else if(f.running){
+    encounterAge+=dt;
     if(moving){
-     const effort=clamp((f.powerWatts||160)/180,0.5,1.6);
-     trust=clamp(trust+dt*3.5*effort,0,100);
+     coastGrace=6;
+     if(temperament==='chaotic'){
+      const meets=(f.powerWatts||0)>=ftp()*.9&&(f.cadenceRpm||0)>=55;
+      chaosHold=meets?chaosHold+dt:0;
+      trust=clamp(chaosHold/10*100,0,100);
+     }else trust=clamp(trust+dt*trustRate(temperament,f.powerWatts||0,ftp(),encounterAge),0,100);
+    }else{
+     // Gear changes, short coasts and brief sensor dropouts are not punished.
+     coastGrace=Math.max(0,coastGrace-dt);
     }
-    if(trust>=100){
-     // Captures are not guaranteed. Approx. 85% success at full trust.
-     resolve(Math.random()<.85);
-    }else if(patience<=0)resolve(false);
+    if(moving||coastGrace<=0)patience=Math.max(0,patience-dt);
+    if(trust>=100)resolve(Math.random()<chanceAtFullTrust(temperament));
+    else if(patience<=0)resolve(false);
    }
+   // Pausing a real or test session freezes Patience and Trust completely.
   }
   if(!savedAt||now-savedAt>600){
    paint();savedAt=now;
@@ -340,6 +383,7 @@ export function mountSpokemonPlayable(options:{
   simDistance=0;simElapsed=0;simKcal=0;
   progressDistance=0;
   trust=0;patience=65;outcome=null;resolveAt=0;
+  encounterAge=0;chaosHold=0;coastGrace=6;
   encounterCooldown=350;
   message='Cruising through Pinepath Trail. Stay steady to attract nearby Spokemon.';
   if(active())paint();
@@ -347,5 +391,6 @@ export function mountSpokemonPlayable(options:{
  function sync(){if(active()){lastTick=performance.now();paint();}else{tool.querySelector('details')?.removeAttribute('open');}}
  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-ride-experience','data-breakaway-screen']});
  sync();
- return {setFrame,paint,stopTestRide,getCollection:()=>collection.slice(),getCurrentSpecies:()=>species,isSimulating:()=>simulator,destroy:()=>{window.clearInterval(timer);view.remove();tool.remove();}};
+ return {setFrame,paint,stopTestRide,setBuddy,getBuddy:()=>buddy(),getTemperament:()=>temperament,
+  getCollection:()=>collection.slice(),getCurrentSpecies:()=>species,isSimulating:()=>simulator,destroy:()=>{window.clearInterval(timer);view.remove();tool.remove();}};
 }
