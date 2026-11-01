@@ -15,6 +15,7 @@ import './live-ride-themes.css';
 import { CLASSIC_DESIGN_OVERLAY_CSS } from './classic-overlay-preview';
 import { fitClassicOverlayNumbers, fitSurvivalOverlayNumbers } from './classic-overlay-readout-fit';
 import {SURVIVAL_OVERLAY_CSS} from './survival-overlay-theme';
+import {PEDALKIN_OVERLAY_CSS} from './pedalkin-overlay-theme';
 import {mountSurvivalCockpit} from './survival-cockpit';
 import {mountClassicCockpit} from './classic-cockpit';
 import {mountClassicRouteReference} from './classic-route-reference';
@@ -1601,7 +1602,7 @@ $('nativeProfile').addEventListener('click',async()=>{
   // Classic and Survival use Cycle Quest's compact floating dimensions:
   // 170px high, 80% of available screen width, clamped to 600–1600px.
   // Keep Cycle Quest and other modes' existing window behavior unchanged.
-  const questSizedOverlay=document.body.dataset.rideExperience==='classic'||document.body.dataset.rideExperience==='survival';
+  const questSizedOverlay=['classic','survival','pedalkin'].includes(document.body.dataset.rideExperience||'');
   const questWidth=Math.max(600,Math.min(1600,Math.round(window.screen.availWidth*.8)));
   const pip=await (window as any).documentPictureInPicture.requestWindow(questSizedOverlay
    ?{width:questWidth,height:170,preferInitialWindowPlacement:true}
@@ -1695,9 +1696,13 @@ $('nativeProfile').addEventListener('click',async()=>{
   const classicTheme=pip.document.createElement('style');
   classicTheme.textContent=CLASSIC_DESIGN_OVERLAY_CSS;
   pip.document.head.append(classicTheme);
+  const pedalkinTheme=pip.document.createElement('style');
+  pedalkinTheme.textContent=PEDALKIN_OVERLAY_CSS;
+  pip.document.head.append(pedalkinTheme);
   pip.document.body.innerHTML='<div id="overlayContent"><div id="overlayTop"><strong>BREAKAWAY</strong><div id="overlayLabel"></div><div id="overlayActions"><button id="overlayMode" type="button" aria-label="Switch overlay layout">Expand</button><div id="overlayZoomControls" role="group" aria-label="Elevation zoom"><button type="button" data-zoom="1">1×</button><button type="button" data-zoom="2">2×</button><button type="button" data-zoom="5">5×</button><button type="button" data-zoom="10">10×</button></div><button id="overlaySettingsToggle" type="button" aria-label="Overlay settings">⚙</button></div></div><div id="overlayMetrics"></div><div id="overlayChart"></div></div><div id="overlaySettings"><label for="overlayOpacity">Opacity</label><input id="overlayOpacity" type="range" min="20" max="100" step="5" value="100"><output id="overlayOpacityValue">100%</output></div>';
   pip.document.body.classList.toggle('survival-overlay-theme',document.body.dataset.rideExperience==='survival');
   pip.document.body.classList.toggle('classic-design-overlay',document.body.dataset.rideExperience==='classic');
+  pip.document.body.classList.toggle('pedalkin-overlay-theme',document.body.dataset.rideExperience==='pedalkin');
   const modeButton=pip.document.getElementById('overlayMode') as HTMLButtonElement;
   const settingsButton=pip.document.getElementById('overlaySettingsToggle') as HTMLButtonElement;
   const settingsPanel=pip.document.getElementById('overlaySettings') as HTMLElement;
@@ -1851,6 +1856,23 @@ function overlayChart(start:number,stop:number,markerDistance:number){
  // Opaque label matches the overlay profile background, even on tall peaks.
  // A solid yellow outline replaces all text shadow. Classic uses dark text
  // against its light background; Survival keeps the current thematic color.
+ if(document.body.dataset.rideExperience==='pedalkin'){
+  // The same route samples/grade and zoom settings used in Classic;
+  // Spokemon gets only its approved forest artwork and marker treatment.
+  const markerPercent=Math.max(5,Math.min(92,markerX/w*100));
+  const trees=Array.from({length:36},(_,i)=>{
+   const tx=i*w/35,th=18+(i*17%24),base=h;
+   return '<path d="M '+tx.toFixed(1)+' '+(base-th).toFixed(1)+' l -11 14 h 6 l -8 13 h 26 l -8 -13 h 6 Z" fill="'+(i%3===0?'#0a3539':'#0b4441')+'"/>';
+  }).join('');
+  return '<div class="overlay-profile-graphic pk-forest-graphic" style="position:relative;width:100%;height:100%;overflow:hidden">'
+   +'<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="display:block;width:100%;height:100%">'
+   +'<defs><linearGradient id="pk-elevation-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#629d85"/><stop offset="100%" stop-color="#235a52"/></linearGradient></defs>'
+   +'<path d="'+fillPath+'" fill="url(#pk-elevation-fill)"/>'+trees
+   +'<polyline points="'+terrain+'" fill="none" stroke="#f9ebcb" stroke-width="4" stroke-linejoin="round"/>'
+   +'<line x1="'+markerX+'" x2="'+markerX+'" y1="24" y2="'+(h-pad)+'" stroke="#fbcf7a" stroke-width="2" stroke-dasharray="8 7"/>'
+   +'<circle cx="'+markerX+'" cy="'+y(overviewAt(Math.max(start,Math.min(stop,markerDistance))).elevation)+'" r="7" stroke="#0f292f" stroke-width="2" fill="#fbcf7a"/></svg>'
+   +'<div class="overlay-profile-grade" aria-label="Current gradient" style="left:calc('+markerPercent+'% - 35px);">'+hud.label+'</div></div>';
+ }
  const classicOverlay=['classic','survival'].includes(document.body.dataset.rideExperience||'');
  const gradeBackdrop=classicOverlay?'#e5ebf5':'#141019';
  const labelColor=classicOverlay?'#142449':hud.color;
@@ -2019,11 +2041,12 @@ function publishDesktopOverlay(){
   // A reused PiP window follows the active game mode; Classic-only styles
   // must not leak into Survival if the rider changes modes.
   doc.body.classList.toggle('classic-design-overlay',snapshot.rideExperience==='classic');
+  doc.body.classList.toggle('pedalkin-overlay-theme',snapshot.rideExperience==='pedalkin');
   const overlayBrand=doc.querySelector('#overlayTop>strong');
-  if(overlayBrand)overlayBrand.textContent=survivalOverlay?'SURVIVAL / UNDEAD':'BREAKAWAY';
+  if(overlayBrand)overlayBrand.textContent=survivalOverlay?'SURVIVAL / UNDEAD':snapshot.rideExperience==='pedalkin'?'SPOKEMON / PEDALKIN':'BREAKAWAY';
   const chase=surviveData(),root=doc.getElementById('overlayContent');if(root){root.classList.toggle('survive-overlay',chase.active||chase.caught);root.classList.toggle('survive-phase-chase',chase.active&&!chase.warming&&chase.phase==='CHASE');root.classList.toggle('survive-phase-recover',chase.active&&!chase.warming&&chase.phase==='RECOVER');root.classList.toggle('survive-phase-prepare',chase.active&&chase.warming);root.classList.toggle('survive-danger',chase.active&&!chase.warming&&chase.gap<65);root.classList.toggle('survive-critical',chase.active&&!chase.warming&&chase.gap<25);let hud=doc.getElementById('surviveHud');if(chase.active||chase.caught){if(!hud){hud=doc.createElement('div');hud.id='surviveHud';root.append(hud);}hud.innerHTML='<div class="survive-hud-head"><strong>☣ UNDEAD PURSUIT · '+(chase.warming?'THREAT STARTS SOON':chase.phase==='RECOVER'?'RECOVERY MODE':'THREAT PURSUING')+'</strong><span>'+chase.theme+' · WAVE '+chase.wave+'</span></div><div class="survive-hud-grid"><div class="survive-hud-metric"><small>YOU MPH</small><b>'+chase.you.toFixed(1)+'</b></div><div class="survive-hud-profile">'+snapshot.detailChart+'<div class="survive-hud-timer"><div><small>'+(chase.warming?'THREAT STARTS':'CHASE ELAPSED')+'</small><strong>'+surviveFormatTime(chase.warming?chase.remaining:surviveElapsed)+'</strong></div><div><small>GAP</small><strong class="survive-hud-gap">'+chase.gap+' m</strong></div><div><small>'+(surviveMode==='finish'?'EST. TIME LEFT':'WAVE')+'</small><strong>'+(surviveMode==='finish'?surviveFormatTime(Math.max(0,surviveFinishDistance-distance)/Math.max(1,speed)):String(chase.wave))+'</strong></div></div></div><div class="survive-hud-metric"><small>WATTS</small><b>'+(snapshot.power??'—')+'</b></div><div class="survive-hud-metric"><small>THREAT MPH</small><b>'+chase.enemy.toFixed(1)+'</b></div><div class="survive-hud-spacer"></div><div class="survive-hud-metric"><small>WAVE #</small><b>'+chase.wave+'</b></div></div>';}else hud?.remove();}
   const chart=doc.getElementById('overlayChart');if(chart)chart.innerHTML=snapshot.climbComplete?'<div style="height:210px;display:grid;place-items:center;font:900 45px system-ui;color:#6cf5c9;text-align:center;text-shadow:0 3px 18px #000">⛰ CLIMB COMPLETE!</div>':snapshot.detailChart;
-  const label=doc.getElementById('overlayLabel');if(label)label.textContent=snapshot.coach
+  const label=doc.getElementById('overlayLabel');if(label)label.textContent=snapshot.rideExperience==='pedalkin'?'♠ PINE FOREST ♠':snapshot.coach
     ?'COACH · '+snapshot.coach.name+' · '+snapshot.coach.remaining+' · TARGET '+snapshot.coach.target+'W'
     :(survivalOverlay?'ESCAPE / ':'')+(running?'● RIDING · ':rideStart&&!rideEnd?'Ⅱ PAUSED · ':'')+snapshot.detailLabel;
   const metrics=doc.getElementById('overlayMetrics');if(metrics){
@@ -2033,11 +2056,11 @@ function publishDesktopOverlay(){
    Array.from(metrics.querySelectorAll<HTMLElement>('.tile')).forEach(tile=>{if(!selectedOverlayMetrics.includes(tile.dataset.metricKey as OverlayMetricKey)&&!['power','heartRate','elapsedTime','distance'].includes(tile.dataset.metricKey||''))tile.remove();});
    // Compact: four tiles left, three right, and an uninterrupted central profile.
    // Elapsed time spans both right columns so its digits never clip.
-   const compactKeys=['gear','speed','power','cadence','heartRate','totalGain','elapsedTime'];
+   const compactKeys=snapshot.rideExperience==='pedalkin'?['gear','speed','elapsedTime','cadence','distance','heartRate']:['gear','speed','power','cadence','heartRate','totalGain','elapsedTime'];
    const compactSlots:[string,string][]=[['1','2'],['2','2'],['1','3'],['2','3'],['4','2'],['5','2'],['4 / span 2','3']];
-   const storedSlots=(()=>{try{const v=JSON.parse(localStorage.getItem('breakaway-overlay-compact-slots-v1')||'null');return Array.isArray(v)&&v.length===7&&new Set(v).size===7&&compactKeys.every(k=>v.includes(k))?v as string[]:compactKeys.slice();}catch{return compactKeys.slice();}})();
+   const storedSlots=(()=>{if(snapshot.rideExperience==='pedalkin')return compactKeys.slice();try{const v=JSON.parse(localStorage.getItem('breakaway-overlay-compact-slots-v1')||'null');return Array.isArray(v)&&v.length===7&&new Set(v).size===7&&compactKeys.every(k=>v.includes(k))?v as string[]:compactKeys.slice();}catch{return compactKeys.slice();}})();
    const compactPositions:Record<string,[string,string]>={};
-   storedSlots.forEach((key,i)=>{compactPositions[key]=compactSlots[i];});
+   storedSlots.forEach((key,i)=>{compactPositions[key]=snapshot.rideExperience==='pedalkin'?([['1','2'],['2','2'],['1','3'],['2','3'],['4 / span 2','2'],['4 / span 2','3']][i] as [string,string]):compactSlots[i];});
    const expanded=doc.body.classList.contains('expanded');
    for(const key of compactKeys){
     if(metrics.querySelector('[data-metric-key="'+key+'"]'))continue;
