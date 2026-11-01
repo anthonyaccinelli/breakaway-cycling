@@ -1,4 +1,5 @@
 import './pedalkin-handheld-devices.css';
+import {enableSpokemonHandheldFont} from './pedalkin-font-artwork';
 
 /** 02 Devices — the exact 01 Route console frame, with controls bridged
  * to Breakaway's original BLE and shifting handlers. */
@@ -76,6 +77,7 @@ export function mountPedalkinHandheldDevices():void{
   </div>
  </div>`;
  document.body.append(shell);
+ void enableSpokemonHandheldFont(shell);
  const q=<T extends Element=HTMLElement>(selector:string)=>shell.querySelector<T>(selector)!;
  const buttons={
   trainer:el<HTMLButtonElement>('connect')!,hr:el<HTMLButtonElement>('connectHr')!,
