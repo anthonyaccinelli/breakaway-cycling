@@ -313,6 +313,52 @@ export function mountPedalkinRide():void {
   paintRealElevation(frame);
   paintRiderOnProfile();
  });
+ /**
+  * Encounter and Exploration were exported from independent Illustrator
+  * artboards. Their shared chrome is offset by 2–4.2 Illustrator units.
+  * Reconcile only the shared chrome at runtime; never rescale either screen,
+  * touch creature placement / forest art, or rewrite the user's SVG files.
+  *
+  * Measured reference: Exploration left panels y=95, right y=98.2,
+  * bottom y=836.2, logo y=21.5. Encounter: 93, 95.2, 832, 17.6.
+  */
+ function alignEncounterChrome(svg:SVGSVGElement){
+  if(stageName!=='encounter')return;
+  const bounds=svg.getBoundingClientRect();
+  if(bounds.width<=0||bounds.height<=0)return;
+  const xFactor=1920/bounds.width,yFactor=1080/bounds.height;
+  const artboardElements=svg.querySelectorAll<SVGGraphicsElement>('rect,path,line,circle,ellipse,polygon,polyline,image,text');
+  artboardElements.forEach(el=>{
+   // Bounding client boxes include Illustrator text transforms, whereas
+   // SVG getBBox() does not account for the text translate(...) position.
+   const box=el.getBoundingClientRect();
+   if(!box.width&&!box.height)return;
+   const left=(box.left-bounds.left)*xFactor;
+   const right=(box.right-bounds.left)*xFactor;
+   const top=(box.top-bounds.top)*yFactor;
+   const bottom=(box.bottom-bounds.top)*yFactor;
+   let dx=0,dy=0;
+   if(left>=0&&right<=350&&top>=80&&top<820){
+    dy=2; // power, heart rate, cadence, speed, grade, calories
+   }else if(left>=1540&&right<=1918&&top>=80&&top<820){
+    dy=3; // wildness/distance, patience/time, biome and buddy panels
+   }else if(left>=720&&right<=1210&&top>=12&&bottom<=110){
+    dy=3.9; // center SPOKEMON wordmark and its outlined pill
+   }else if(left>=0&&right<=1910&&top>=819){
+    dy=4.2; // two bottom boxes, all dialogue/menu labels and contents
+    if(el.tagName.toLowerCase()==='text'&&left>=45&&left<1290)dx=-12;
+   }
+   if(!dx&&!dy)return;
+   // Translate leaf objects in place to preserve their layer/z-order and
+   // Illustrator grouping. The existing transform must remain intact.
+   const existing=el.getAttribute('transform')||'';
+   el.setAttribute('transform',`translate(${dx} ${dy}) ${existing}`.trim());
+  });
+  // Encounter's bottom boxes are 224 high; Exploration's are 219.8.
+  // Shift their top edge down 4.2 while retaining an identical bottom edge.
+  svg.querySelectorAll<SVGRectElement>('rect[x="24"][y="832"][width="1272"],rect[x="1312"][y="832"][width="584"]')
+   .forEach(panel=>panel.setAttribute('height','219.8'));
+ }
  function render(){
   if(explored===null||encounterSvg===null){slot.textContent='Pedalkin artwork is loading…';return;}
   // Render SVG as live vector DOM so its text can update from trainer data.
@@ -324,7 +370,8 @@ export function mountPedalkinRide():void {
   root.querySelectorAll<SVGTextElement>('text[transform^="translate(2013 "]')
    .forEach(node=>node.parentElement?.remove());
   slot.replaceChildren(document.importNode(root,true));
-  const svg=slot.querySelector('svg');
+  const svg=slot.querySelector<SVGSVGElement>('svg');
+  if(svg)alignEncounterChrome(svg);
   const tspans=Array.from(svg?.querySelectorAll<SVGTSpanElement>('tspan')||[]);
   distanceText=tspans.find(el=>el.textContent?.trim()==='8.4 / 25.0 km')||null;
   elapsedText=tspans.find(el=>el.textContent?.trim()==='1:23:47')||null;
