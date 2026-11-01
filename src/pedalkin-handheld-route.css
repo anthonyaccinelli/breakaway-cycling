@@ -149,10 +149,6 @@ body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid>button:focu
 .pk-v2-nav-devices{left:38.63%;top:5.22%;width:10.96%;height:7%}
 .pk-v2-nav-ride{left:50.4%;top:5.22%;width:10.96%;height:7%}
 .pk-v2-nav-overlay{left:62.08%;top:5.22%;width:10.96%;height:7%}
-.pk-v2-pad-a{left:80.65%;top:48.1%;width:5.05%;height:9.4%;border-radius:50%!important}
-.pk-v2-pad-b{left:80.65%;top:59.6%;width:5.05%;height:9.4%;border-radius:50%!important}
-.pk-v2-pad-x{left:86.3%;top:40.2%;width:5.05%;height:9.4%;border-radius:50%!important}
-.pk-v2-pad-y{left:86.3%;top:52.0%;width:5.05%;height:9.4%;border-radius:50%!important}
 
 /* Pixel-positioned live overlays: enforce the exact inner LCD boundaries.
    The screenshot showed old global layout styles making stats extend outside
@@ -212,4 +208,83 @@ body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-scrub{
 body.pk-v2-route-active #screenRoute .pk-v2-live :is(.pk-v2-miles,.pk-v2-biome,.pk-v2-gain,.pk-v2-seed){
  overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
  padding-inline:0.35cqw!important;
+}
+
+/* Input overlays occupy every pixel of their existing gray SVG fields.
+   Pixel coordinates measured from the actual user Illustrator artboard
+   (1920 × 1080); no separate inset input or spinner sub-controls. */
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > :is(input.pk-v2-miles,select.pk-v2-biome,input.pk-v2-gain,input.pk-v2-seed){
+ position:absolute!important;
+ display:block!important;
+ box-sizing:border-box!important;
+ margin:0!important;
+ padding:0 0.55cqw!important;
+ border:0!important;
+ border-radius:0.30cqw!important;
+ background:#f3f4f6!important;
+ color:#0f292f!important;
+ -webkit-text-fill-color:#0f292f!important;
+ font:500 1.06cqw/1.15 Arial,Helvetica,sans-serif!important;
+ text-align:left!important;
+ box-shadow:none!important;
+ outline-offset:-0.12cqw!important;
+ overflow:hidden!important;
+ pointer-events:auto!important;
+ cursor:text!important;
+ opacity:1!important;
+ z-index:6!important;
+ min-width:0!important;min-height:0!important;
+ max-width:none!important;max-height:none!important;
+ -webkit-appearance:none!important;
+ appearance:none!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-miles{
+ left:30.511%!important;top:30.054%!important;width:8.985%!important;height:4.28%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > select.pk-v2-biome{
+ left:40.195%!important;top:30.054%!important;width:8.985%!important;height:4.28%!important;
+ cursor:pointer!important;
+ appearance:auto!important;-webkit-appearance:menulist!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-gain{
+ left:30.62%!important;top:37.34%!important;width:18.79%!important;height:4.17%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-seed{
+ left:30.57%!important;top:44.43%!important;width:15.20%!important;height:4.12%!important;
+}
+/* No browser-generated numeric stepper can obscure the usable field. */
+body.pk-v2-route-active #screenRoute .pk-v2-live input[type=number]{
+ -moz-appearance:textfield!important;
+ appearance:textfield!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live input[type=number]::-webkit-inner-spin-button,
+body.pk-v2-route-active #screenRoute .pk-v2-live input[type=number]::-webkit-outer-spin-button{
+ -webkit-appearance:none!important;appearance:none!important;
+ display:none!important;margin:0!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-lock-control{
+ left:46.0%!important;top:44.4%!important;width:4.08%!important;height:4.12%!important;
+ padding:0 0.12cqw!important;
+}
+/* The navigation is traced directly to the existing rounded buttons.
+   No extra yellow or square highlight on mouse hover. */
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-route:hover,
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-devices:hover,
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-ride:hover,
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-overlay:hover{
+ box-shadow:none!important;
+ background:transparent!important;
+ filter:none!important;
+ border:0!important;
+ outline:none!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live :is(
+ button.pk-v2-nav-route,
+ button.pk-v2-nav-devices,
+ button.pk-v2-nav-ride,
+ button.pk-v2-nav-overlay
+):focus-visible{
+ border-radius:1.95cqw!important;
+ outline:0.14cqw solid #0f292f!important;
+ outline-offset:-0.20cqw!important;
 }
