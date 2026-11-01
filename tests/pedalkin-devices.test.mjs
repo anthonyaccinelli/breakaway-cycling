@@ -20,7 +20,7 @@ test('Connect buttons reuse actual BLE handlers without a second connection impl
  for(const [proxy,id] of [
   ['trainer','connect'],['hr','connectHr'],['click','connectClick'],
   ['down','down'],['up','up'],['continue','goToRide']]){
-  assert.match(devices,new RegExp("data-pk-action=\\""+proxy+"\\""));
+  assert.match(devices,new RegExp('data-pk-action="'+proxy+'"'));
   assert.match(devices,new RegExp("el<HTMLButtonElement>\\('"+id+"'\\)"));
  }
  assert.match(devices,/buttons\[name\]\?\.click\(\)/);
