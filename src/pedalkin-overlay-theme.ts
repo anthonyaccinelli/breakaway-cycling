@@ -73,6 +73,21 @@ body.pedalkin-overlay-theme #overlayContent .tile{
  padding:2px 7px!important;overflow:hidden!important;cursor:default!important;
  box-shadow:none!important;
 }
+body.pedalkin-overlay-theme #overlayContent .tile::after{
+ content:"";display:block!important;height:5px!important;min-height:5px!important;
+ width:100%!important;border-radius:6px!important;flex:0 0 auto!important;
+ background:linear-gradient(90deg,#83bea2 0 68%,#f7ebcc 68% 100%)!important;
+ order:-1!important;
+}
+body.pedalkin-overlay-theme #overlayContent .tile[data-metric-key="elapsedTime"]::after{
+ background:linear-gradient(90deg,#ec827d 0 57%,#8fbb9d 57% 100%)!important;
+}
+body.pedalkin-overlay-theme #overlayContent .tile[data-metric-key="distance"]::after{
+ background:linear-gradient(90deg,#fbd37c 0 14%,#82ba9d 14% 100%)!important;
+}
+body.pedalkin-overlay-theme #overlayContent .tile[data-metric-key="heartRate"]::after{
+ background:linear-gradient(90deg,#ed7776 0 66%,#8cbea4 66% 100%)!important;
+}
 body.pedalkin-overlay-theme #overlayContent .tile small{
  color:var(--pk-cream)!important;font:800 clamp(8px,.75vw,11px)/1 Georgia,serif!important;
  text-transform:uppercase!important;letter-spacing:.1px!important;
