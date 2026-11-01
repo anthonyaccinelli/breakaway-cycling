@@ -102,10 +102,18 @@ export function mountSpokemonPlayable(options:{
    const slope=(heights[i+1]-heights[i])/step*100;
    const peak=clamp(py(i),top,bottom);
    rect(root,x1,peak,x2-x1+.5,bottom-peak,COLORS[bucket(slope)]);
-   // Horizontal pixel scanlines clipped to the terrain silhouette.
-   for(let y=Math.ceil(peak/7)*7;y<bottom;y+=7)line(root,x1,y,x2,y,'#16383d',.9);
    outline.push('L '+x2.toFixed(2)+' '+py(i+1).toFixed(1));
   }
+  // Render ~54 scanlines ONE time behind a silhouette clip, not thousands
+  // of per-segment SVG lines on every 600ms telemetry refresh.
+  const defs=make('defs',{});
+  const clip=make('clipPath',{id:'pk-spokemon-grade-clip',clipPathUnits:'userSpaceOnUse'});
+  clip.appendChild(make('path',{d:outline.join(' ')+' L '+maxX+' '+bottom+' L '+minX+' '+bottom+' Z'}));
+  defs.appendChild(clip);
+  root.appendChild(defs);
+  const clipped=make('g',{'clip-path':'url(#pk-spokemon-grade-clip)'});
+  for(let y=Math.ceil(top/7)*7;y<bottom;y+=7)line(clipped,minX,y,maxX,y,'#16383d',.9);
+  root.appendChild(clipped);
   root.appendChild(make('path',{d:outline.join(' '),fill:'none',stroke:'#fff1d7','stroke-width':'4'}));
   const position=clamp(f.distanceMeters/meters,0,1),x=minX+position*width;
   const index=clamp(Math.floor(position*(heights.length-1)),0,heights.length-1);
