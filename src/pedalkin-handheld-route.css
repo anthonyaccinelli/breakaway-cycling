@@ -429,3 +429,11 @@ body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-scrub{
  padding-left:0!important;background:#f3f4f6!important;
  font:700 .65cqw/1 "Spokemon Minecraft",monospace!important;
 }
+
+/* Compact desktop-only validation / source-of-truth status. */
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-feedback:not([hidden]){
+ position:absolute!important;left:31.4%!important;top:71.65%!important;width:37.5%!important;
+ z-index:14!important;padding:.35cqw .55cqw!important;border:2px solid #203e43!important;
+ background:#fff0ce!important;color:#15383c!important;font:700 .81cqw/1.25 "Spokemon Minecraft",monospace!important;
+ box-shadow:0 2px 0 #17343b!important;pointer-events:none!important;
+}
