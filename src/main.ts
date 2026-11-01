@@ -976,7 +976,8 @@ function publishPedalkinRideFrame(){
  lastPedalkinRideFrameAt=now;
  const samples=Array.from({length:97},(_,i)=>overviewAt(totalMeters*i/96).elevation);
  window.dispatchEvent(new CustomEvent('pedalkin:ride-frame',{detail:{
-  distanceMeters:Math.max(0,distance),totalMeters,samples,elapsedSeconds:activeRideMs/1000
+  distanceMeters:Math.max(0,distance),totalMeters,samples,elapsedSeconds:activeRideMs/1000,
+  gradePercent:displayGrade()
  }}));
 }
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
