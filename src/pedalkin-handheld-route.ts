@@ -68,7 +68,7 @@ export function mountPedalkinHandheldRoute():void {
       <button class="pk-v2-hit pk-v2-rolling" type="button">Rolling 45</button>
       <button class="pk-v2-hit pk-v2-climbing" type="button">Climbing 60</button>
     </div>
-    <button class="pk-v2-hit pk-v2-next" type="button" aria-label="Ready for your adventure? Begin your ride"></button>
+    <button class="pk-v2-hit pk-v2-next" type="button" aria-label="Ready for your adventure? Continue to 02 Devices"></button>
     <button class="pk-v2-hit pk-v2-nav-route" type="button" aria-label="01 Route (current)" aria-current="page"></button>
     <button class="pk-v2-hit pk-v2-nav-devices" type="button" aria-label="02 Devices"></button>
     <button class="pk-v2-hit pk-v2-nav-ride" type="button" aria-label="03 Ride"></button>
@@ -125,7 +125,7 @@ export function mountPedalkinHandheldRoute():void {
  doAction('.pk-v2-generate',original.generate);
  doAction('.pk-v2-surprise',original.surprise);
  doAction('.pk-v2-endless',original.endless);
- doAction('.pk-v2-next',get('stepRide'));
+ doAction('.pk-v2-next',get('stepSetup'));
  doAction('.pk-v2-nav-route',get('stepRoute'));
  doAction('.pk-v2-nav-devices',get('stepSetup'));
  doAction('.pk-v2-nav-ride',get('stepRide'));
