@@ -59,7 +59,7 @@ test('both states retain vector typography and panel geometry after inserting cr
 test('new 03 Ride screens are on Pedalkin only; preview works without trainer and never invents ride data',()=>{
  assert.match(main,/mountPedalkinRide\(\)/);
  assert.match(main,/pedalkinPreviewScreen/);
- assert.match(main,/showBreakawayScreen\(\['ride','explore','encounter','playing'\]/);
+ assert.match(main,/showBreakawayScreen\(\['ride','explore','encounter','playing','encounters'\]/);
  assert.match(view,/rideExperience==='pedalkin'/);
  assert.match(view,/NO TRAINER \/ NO RECORDED RIDE/);
  assert.match(view,/no synthetic wattage, no trainer control/);
@@ -74,7 +74,7 @@ test('preview navigation and capture demos are interactive; route remains unalte
  assert.match(view,/data-pk-action="journal"/);
  assert.match(view,/data-pk-action="save"/);
  assert.match(view,/wildness=Math\.max\(0,wildness-seconds\*1\.55\)/);
- assert.match(main,/rideExperience==='pedalkin'&&\['route','setup','ride','explore','encounter','playing'\]/);
+ assert.match(main,/rideExperience==='pedalkin'&&\['route','setup','ride','explore','encounter','playing','encounters'\]/);
 });
 
 test('Exploration player follows the authored profile at uniform horizontal distance',()=>{
@@ -171,13 +171,51 @@ test('Illustrator off-artboard duplicate metrics are removed at runtime and the 
 });
 
 test('Playing preview shows true game UI without developer bars while preserving moving player and controls',()=>{
- assert.match(view,/const playingPreview=previewChoice==='playing'/);
+ assert.match(view,/const playingPreview=previewChoice==='playing'\|\|previewChoice==='encounters'/);
  assert.match(view,/const showPlaytestControls=demo&&!playingPreview/);
  assert.match(view,/showPlaytestControls\?'<div class="pk-demo-bar">/);
  assert.match(view,/showPlaytestControls\?'<div class="pk-profile-bar">/);
  assert.match(view,/const demo=playingPreview\|\|/);
- assert.match(main,/\['ride','explore','encounter','playing'\]/);
- assert.match(main,/\['route','setup','ride','encounter','explore','playing'\]/);
+ assert.match(main,/\['ride','explore','encounter','playing','encounters'\]/);
+ assert.match(main,/\['route','setup','ride','encounter','explore','playing','encounters'\]/);
  assert.match(style,/\.pk-ride-host:not\(:has\(\.pk-demo-bar\)\) \.pk-ride-stage/);
  assert.match(view,/requestAnimationFrame\(animateDemo\)/);
+});
+
+test('Biome 01 encounter pool contains all 12 catalogued Spokemon and preserves rarity tiers',async()=>{
+ const source=await readFile(new URL('../src/pedalkin-creatures.ts',import.meta.url),'utf8');
+ const species=['Pipcone','Mossprout','Scampernut','Fernbit','Toadstoolie','Hootwig',
+  'Bumblebark','Glimmoth','Pebblit','Foxfire','Shroomble','Elderoot'];
+ for(const name of species)assert.match(source,new RegExp("name:'"+name+"'"));
+ assert.equal((source.match(/name:'(?:Pipcone|Mossprout|Scampernut|Fernbit|Toadstoolie|Hootwig|Bumblebark|Glimmoth|Pebblit|Foxfire|Shroomble|Elderoot)'/g)||[]).length,12);
+ assert.equal((source.match(/rarity:'common'/g)||[]).length,5);
+ assert.equal((source.match(/rarity:'uncommon'/g)||[]).length,4);
+ assert.equal((source.match(/rarity:'rare'/g)||[]).length,2);
+ assert.equal((source.match(/rarity:'extremely rare'/g)||[]).length,1);
+ assert.match(source,/function choosePineForestSpokemon/);
+ assert.match(source,/function nextPreviewSpokemon/);
+});
+test('Encounters show correct species and temporary distinct illustrations, never the unrelated crab',async()=>{
+ const artwork=await readFile(new URL('../src/pedalkin-creature-art.ts',import.meta.url),'utf8');
+ assert.match(view,/addWorkingCreatureSilhouette\(svg,currentSpecies\)/);
+ assert.match(artwork,/svg\.querySelector\('#pk-encounter-crab'\)\?\.remove\(\)/);
+ assert.match(artwork,/id','pk-working-creature'/);
+ assert.match(artwork,/WORKING CREATURE ART/);
+ assert.match(artwork,/species\.kind/);
+ assert.match(view,/updateText\(oldHeadline,'A wild '\+name\+' appeared!'\)/);
+ assert.match(view,/updateText\(oldHeadline,name\+' joined your collection!'\)/);
+ assert.match(view,/updateText\(oldHeadline,name\+' wandered away.'\)/);
+ assert.match(view,/prompts\[mood\]/);
+});
+test('Full-screen preview cycles through exploration, diverse encounters, captures and escapes',()=>{
+ assert.match(view,/const playingPreview=previewChoice==='playing'\|\|previewChoice==='encounters'/);
+ assert.match(view,/nextPreviewSpokemon\(encounterCount\)/);
+ assert.match(view,/demoOutcomeIsEscape=demo&&encounterCount%4===0/);
+ assert.match(view,/playingPreview&&stageName==='explore'&&demoKm>=nextEncounterKm/);
+ assert.match(view,/if\(wildness<=0\)outcome='captured'/);
+ assert.match(view,/else if\(patience<=0\)outcome='escaped'/);
+ assert.match(view,/closeEncounter\(\)/);
+ assert.match(view,/nextEncounterKm=demoKm\+2\.15/);
+ assert.match(view,/if\(playingPreview\)\{demoKm=0;nextEncounterKm=1\.35;\}/);
+ assert.match(view,/showPlaytestControls=demo&&!playingPreview/);
 });
