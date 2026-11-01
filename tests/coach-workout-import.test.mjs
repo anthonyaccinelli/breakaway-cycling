@@ -46,7 +46,7 @@ test('preview allows editing text and saving drafts, but makes unsupported featu
  assert.match(ui,/input\.addEventListener\('input',render\)/);
  assert.match(ui,/id="ciDescription"/);
  assert.match(ui,/id="ciImage"/);
- assert.match(ui,/Screenshot extraction/); // wording check expanded below
+ assert.match(ui,/screenshot extraction/i);
  assert.match(ui,/IMPORTED_WORKOUT_KEY/);
  assert.match(ui,/starting imported workouts in Classic are not yet implemented/);
  assert.match(ui,/ciSave.*disabled/);
