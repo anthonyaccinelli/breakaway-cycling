@@ -46,7 +46,7 @@ export function mountPedalkinRide():void {
        <button type="button" data-pk-nav="route">01 ROUTE</button>
        <button type="button" data-pk-nav="devices">02 DEVICES</button>
        <button type="button" data-pk-nav="ride" aria-current="page">03 RIDE</button>
-       <button type="button" data-pk-nav="overlay" aria-label="Open always-on-top overlay">OVERLAY ↗</button>
+       <button type="button" data-pk-nav="overlay" aria-label="Open always-on-top overlay">04 OVERLAY</button>
      </nav>
      <span class="pk-ride-nav-state">PINE FOREST</span>
    </header>
@@ -619,7 +619,6 @@ export function mountPedalkinRide():void {
    case 'stats':popupOpen('RIDE STATS',exactArtwork?'Distance: '+(document.getElementById('distance')?.textContent||'0')+' miles\nPower: '+(document.getElementById('power')?.textContent||'—')+' W\nCollected: '+(playable?.getCollection().length||0):'Legacy preview state');break;
    case 'save':
     if(exactArtwork){
-     if(playable?.isSimulating()){popupOpen('TEST RIDE','Test rides are not recorded. Your collected Spokemon are saved on this device. Return through 01 Route when finished.');break;}
      if(!playable){popupOpen('SAVE & CLOSE','Game is loading.');break;}
      finishThroughNative();break;
     }
@@ -629,16 +628,22 @@ export function mountPedalkinRide():void {
  }));
  function finishThroughNative(){
   const finish=document.getElementById('rideFinishNow') as HTMLButtonElement|null;
-  if(!finish||finish.disabled){popupOpen('SAVE & CLOSE','A recorded ride is not active. To test without a trainer, use Game Controls → Test Ride.');return;}
-  // Expose native Breakaway finish confirmation over the game viewport.
-  host.hidden=true;document.body.classList.remove('pk-riding');finish.click();
+  // Only real recorded rides have an available native Finish button.
+  // The old handler hid the Spokemon viewport even if no ride existed,
+  // exposing the legacy Survival-themed #screenRide underneath.
+  if(finish&&!finish.hidden&&!finish.disabled){
+   // Keep Spokemon visible; the native dialog and summary are now stacked
+   // above the artboard, and Keep Riding simply closes the native dialog.
+   finish.click();
+   return;
+  }
+  // No native activity exists: creature catches already persist locally.
+  // End a trainer-free test and return to Spokemon's OWN 01 Route screen.
+  playable?.stopTestRide();
+  stageName='explore';
+  popup.hidden=true;
+  triggerNavigation('route');
  }
- document.addEventListener('click',event=>{
-  const clicked=event.target as HTMLElement|null;
-  if(clicked?.closest('#manualKeepRiding'))requestAnimationFrame(()=>{
-   if(active()){host.hidden=false;document.body.classList.add('pk-riding');playable?.paint();}
-  });
- },true);
  if(exactArtwork)playable=mountSpokemonPlayable({
   host,slot,active,getScene:()=>stageName,
   switchScene:(which,species)=>{stageName=which;if(species)currentSpecies=species;render();},
