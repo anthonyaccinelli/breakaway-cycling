@@ -18,7 +18,11 @@ export function mountPedalkinRide():void {
  const ride=document.getElementById('screenRide');
  if(!ride)return;
  const previewChoice=new URLSearchParams(location.search).get('pedalkinPreview');
- const demo=['route','setup','ride','encounter','explore'].includes(previewChoice||'');
+ const playingPreview=previewChoice==='playing';
+ const demo=playingPreview||['route','setup','ride','encounter','explore'].includes(previewChoice||'');
+ // The full-screen gameplay view shows no developer controls, but the route
+ // marker and illustrative data still animate without a trainer connection.
+ const showPlaytestControls=demo&&!playingPreview;
  const host=document.createElement('section');
  host.className='pk-ride-host';
  host.hidden=true;
@@ -34,8 +38,8 @@ export function mountPedalkinRide():void {
      </nav>
      <span class="pk-ride-nav-state">PINE FOREST</span>
    </header>
-   ${demo?'<div class="pk-demo-bar"><strong>DESIGN PLAYTEST · NO TRAINER / NO RECORDED RIDE</strong><div class="pk-demo-buttons"><button type="button" data-pk-demo="explore">Exploration</button><button type="button" data-pk-demo="encounter">Encounter</button><button type="button" data-pk-demo="pedal">Pedal 15 seconds</button><button type="button" data-pk-demo="escape">Let escape</button><button type="button" data-pk-demo="reset">Reset</button></div></div>':''}
-   ${demo?'<div class="pk-profile-bar"><button type="button" data-pk-profile="toggle">Pause preview</button><input type="range" data-pk-profile="seek" min="0" max="1000" value="0" aria-label="Preview rider position along elevation profile"/><span class="pk-profile-status">0.0 / 25.0 km · Fast-forward playtest</span></div>':''}
+   ${showPlaytestControls?'<div class="pk-demo-bar"><strong>DESIGN PLAYTEST · NO TRAINER / NO RECORDED RIDE</strong><div class="pk-demo-buttons"><button type="button" data-pk-demo="explore">Exploration</button><button type="button" data-pk-demo="encounter">Encounter</button><button type="button" data-pk-demo="pedal">Pedal 15 seconds</button><button type="button" data-pk-demo="escape">Let escape</button><button type="button" data-pk-demo="reset">Reset</button></div></div>':''}
+   ${showPlaytestControls?'<div class="pk-profile-bar"><button type="button" data-pk-profile="toggle">Pause preview</button><input type="range" data-pk-profile="seek" min="0" max="1000" value="0" aria-label="Preview rider position along elevation profile"/><span class="pk-profile-status">0.0 / 25.0 km · Fast-forward playtest</span></div>':''}
    <div class="pk-ride-stage"><div class="pk-svg-slot" role="region" aria-label="Pedalkin 03 Ride screen"></div>
      <button type="button" class="pk-hitspot pk-journal" aria-label="Open creature journal" data-pk-action="journal"></button>
      <button type="button" class="pk-hitspot pk-buddy" aria-label="Open buddy" data-pk-action="buddy"></button>
@@ -264,6 +268,11 @@ export function mountPedalkinRide():void {
   // Render SVG as live vector DOM so its text can update from trainer data.
   const parser=new DOMParser();
   const root=parser.parseFromString(stageName==='explore'?explored:encounterSvg,'image/svg+xml').documentElement;
+  // Illustrator exported a second set of POWER / CADENCE / SPEED / GRADE
+  // labels at x=2013, outside the 1920px artboard. Remove those only,
+  // preserving the four legitimate metric panels at x=52.
+  root.querySelectorAll<SVGTextElement>('text[transform^="translate(2013 "]')
+   .forEach(node=>node.parentElement?.remove());
   slot.replaceChildren(document.importNode(root,true));
   const svg=slot.querySelector('svg');
   const tspans=Array.from(svg?.querySelectorAll<SVGTSpanElement>('tspan')||[]);
