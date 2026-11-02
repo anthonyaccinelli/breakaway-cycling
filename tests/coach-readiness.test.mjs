@@ -38,3 +38,9 @@ test('Coach exposes and preserves beginner FTP state and daily check-in',()=>{
  assert.match(ui,/if\(!ftpKnown&&controlChoice==='structured'\)/);
  assert.match(ui,/COACH_FTP_KNOWN_KEY/);
 });
+
+test('no daily recovery input is unknown rather than a green clearance',()=>{
+ const status=m.trainingDayGuidance(null,{demandingRide:false,veryHardFeedback:false});
+ assert.equal(status.color,'neutral');
+ assert.match(status.detail,/no check-in|baseline/);
+});
