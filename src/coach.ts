@@ -14,9 +14,12 @@ import {mountCoachStrength} from './coach-strength-ui';
 import './coach-ux-polish.css';
 import {dayKey,escapeHtml,readJson,writeJson} from './coach-dom';
 import {calendarDays} from './coach-calendar';
+import {adaptWeeklySchedule} from './coach-adaptive-week';
 import type {CoachCalendarDay} from './coach-calendar';
 import './coach-calendar.css';
 import {mountWorkoutImporter} from './coach-workout-import-ui';
+import {COACH_CHECKIN_KEY,COACH_FTP_KNOWN_KEY,validCheckIn,recoveryGuidance,applyRecoveryGuidance,trainingDayGuidance} from './coach-readiness';
+import './coach-readiness.css';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
@@ -51,7 +54,11 @@ export function mountCoach(bridge:CoachBridge){
   let importedRides:HistoricalRide[]=[];
   let expandedCalendarKey:string|null=null;
   let currentCalendarDays:CoachCalendarDay[]=[];
+  let activeRecommendedMinutes:number|null=null;
   let controlChoice:CoachControl='structured';
+  const skippedKey='breakaway.coach.skipped-days.v1';
+  function skippedDays():string[]{const d=readJson(skippedKey);return Array.isArray(d)?d.filter(x=>typeof x==='string').slice(-90):[];}
+  let ftpKnown=readJson(COACH_FTP_KNOWN_KEY)===true || (readJson(COACH_FTP_KNOWN_KEY)===null&&!!readJson(COACH_PROFILE_KEY));
   let platformRides:Awaited<ReturnType<CoachBridge['getPlatformRides']>>=[];
   let strength:ReturnType<typeof mountCoachStrength>|null=null;
   let session:Session|null=null;
@@ -90,9 +97,25 @@ export function mountCoach(bridge:CoachBridge){
   <section class="coach-view" id="coachViewToday" role="tabpanel" aria-labelledby="coachTabToday" data-coach-view="today">
     <div class="coach-page-lead"><div><span class="coach-tag">YOUR NEXT SESSION</span><h2>Today's training.</h2><p id="coachSuggestion">Coach selects your session from your weekly plan and recent riding.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="plan">View my week →</button></div>
     <div id="coachFirstRun" class="coach-first-run" hidden>
-      <div><strong>New to Breakaway Coach?</strong><p>Start here: set your goal, available training time, and equipment so Coach can make a plan for you.</p></div>
-      <button type="button" data-navigate-coach="settings">SET UP MY PLAN →</button>
+      <div><strong>New to indoor cycling? Start here.</strong><p>Tell Coach your goal, how many days you can ride, and what equipment you have. No power-meter knowledge is required to begin. You can try an eight-minute trainer-free demonstration in My Setup.</p></div>
+      <div class="coach-first-run-actions"><button type="button" data-navigate-coach="settings">SET UP MY PLAN →</button><button type="button" id="coachFirstRunDemo" class="coach-demo-secondary">TRY WITHOUT A TRAINER</button></div>
     </div>
+    <section class="coach-panel coach-morning" aria-label="Optional morning check-in">
+      <div class="coach-section-top"><span class="coach-tag">DAILY CHECK-IN · OPTIONAL</span><span id="coachReadinessLabel">Not checked in</span></div>
+      <p id="coachReadinessExplanation" class="coach-small">How you feel matters. Garmin metrics are optional and do not use fixed cutoffs.</p>
+      <details id="coachCheckinDetails"><summary>How are you feeling today? <span>Update recovery inputs</span></summary>
+        <div class="coach-checkin-fields">
+          <label>How do you feel?<select id="coachFeeling"><option value="okay">Okay</option><option value="tired">Tired</option><option value="great">Great</option></select></label>
+          <label>Morning Body Battery (0–100)<input id="coachBattery" type="number" min="0" max="100" placeholder="Optional"></label>
+          <label>Garmin Sleep Score (0–100)<input id="coachSleep" type="number" min="0" max="100" placeholder="Optional"></label>
+          <label>HRV (ms)<input id="coachHrv" type="number" min="1" max="300" placeholder="Optional"></label>
+        </div>
+        <p class="coach-small">Enter morning readings only. HRV needs a personal baseline; Body Battery and sleep can overlap with it. Never use these numbers as a medical diagnosis.</p>
+        <button type="button" class="coach-classic-start" id="coachSaveCheckin">SAVE TODAY'S CHECK-IN</button>
+        <p id="coachCheckinFeedback" role="status" aria-live="polite"></p>
+      </details>
+    </section>
+    <div id="coachAdaptiveToday" class="coach-adaptive-summary" role="status" aria-live="polite" hidden></div>
     <div class="coach-calendar" aria-label="Next seven days of training">
       <div class="coach-calendar-heading"><span class="coach-tag">YOUR NEXT 7 DAYS</span><span class="coach-calendar-hint">Select a day for details</span></div>
       <div class="coach-calendar-strip" id="coachCalendarStrip" role="group" aria-label="Next seven calendar days"></div>
@@ -103,6 +126,7 @@ export function mountCoach(bridge:CoachBridge){
         <div class="coach-section-top"><span class="coach-tag">COACH RECOMMENDS</span><span id="coachRecommendationLabel" class="coach-feature-pill">YOUR PLAN</span></div>
         <h3 id="coachRecommendedName" class="coach-recommended-name">Aerobic Builder</h3>
         <div id="coachWhy" class="coach-why"></div>
+        <div id="coachChangeDetail" class="coach-change-detail" role="status" aria-live="polite" hidden></div>
         <div id="coachRestState" class="coach-rest-state" hidden><p id="coachRestReason"></p><button type="button" id="coachBrowseOptional">CHOOSE AN OPTIONAL RIDE →</button></div>
         <div id="coachWorkoutControls">
         <div id="coachWorkoutInfo" class="coach-workout-info"></div>
@@ -114,11 +138,11 @@ export function mountCoach(bridge:CoachBridge){
               <option value="structured">Automatic power — ERG</option>
               <option value="guided">Ride by feel — SIM</option>
             </select>
-            <p>Automatic power holds the target watts. Ride by feel gives you power guidance while you control the effort.</p>
+            <p><strong>Automatic power (ERG)</strong> adjusts trainer resistance to help you meet a power target. <strong>Ride by feel (SIM)</strong> lets you change your effort yourself. If you are unsure, keep the recommended automatic option.</p>
           </div>
         </details>
-        <button type="button" id="coachStartClassic" class="coach-classic-start">CONNECT MY TRAINER <span aria-hidden="true">→</span></button>
-        <p class="coach-start-note">Next: connect your trainer, then pedal to start.</p>
+        <button type="button" id="coachStartClassic" class="coach-classic-start"><span id="coachStartLabel">CONNECT MY TRAINER</span> <span aria-hidden="true">→</span></button>
+        <p class="coach-start-note">Next: connect your trainer and confirm the connection and optional heart-rate monitor. Pedaling starts the workout. New rider? Try the eight-minute trainer-free demo in My Setup first.</p>
         <div class="coach-quick"><button type="button" data-coach-question="tired">Feeling tired?</button><button type="button" data-coach-question="short">Short on time?</button><button type="button" data-coach-question="why">Why this ride?</button></div>
         <p id="coachAnswer" class="coach-feedback" aria-live="polite">Your workout is based on your saved FTP and experience.</p>
         <p id="coachStatus" class="coach-status" role="status"></p>
@@ -126,6 +150,7 @@ export function mountCoach(bridge:CoachBridge){
         <div class="coach-swap-actions">
           <button type="button" id="coachSwapToggle" class="coach-subtle-link" aria-expanded="false" aria-controls="coachSwapPanel">Swap workout →</button>
           <button type="button" id="coachUseRecommendation" class="coach-subtle-link" hidden>Use Coach's recommendation ↺</button>
+          <button type="button" id="coachSkipToday" class="coach-subtle-link">Skip today's session</button>
         </div>
         <div id="coachSwapPanel" class="coach-swap-panel" hidden>
           <p>Prefer something else? Choosing a different workout is optional and won't rewrite your weekly plan.</p>
@@ -150,6 +175,7 @@ export function mountCoach(bridge:CoachBridge){
   </section>
   <section class="coach-view" id="coachViewPlan" role="tabpanel" aria-labelledby="coachTabPlan" data-coach-view="plan" hidden>
     <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training week.</h2><p>Your rides, strength sessions, and rest days in one place.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit my plan →</button></div>
+    <div id="coachAdaptiveWeek" class="coach-adaptive-summary" aria-label="Adaptive schedule changes" hidden></div>
     <div class="coach-plan-grid">
       <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS WEEK · CYCLING + STRENGTH</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
       <section class="coach-panel coach-plan-explain"><div class="coach-section-top"><span class="coach-tag">HOW TO USE YOUR WEEK</span></div>
@@ -186,19 +212,20 @@ export function mountCoach(bridge:CoachBridge){
       <section class="coach-panel">
         <div class="coach-section-top"><span class="coach-tag">YOUR RIDER PROFILE</span><span class="coach-tag">LOCAL ONLY</span></div>
         <div class="coach-fields">
-          <label>FTP (W)<input id="coachFtp" type="number" min="75" max="550" step="1"></label>
+          <label>Do you know your measured or estimated FTP?<select id="coachFtpKnown"><option value="no">No — I'm new to power training</option><option value="yes">Yes — I'll enter it below</option></select></label>
+          <label>FTP (W)<input id="coachFtp" type="number" min="75" max="550" step="1" aria-describedby="coachFtpHelp"></label>
           <label>TOTAL TRAINING HOURS / WEEK<input id="coachHours" type="number" min="1" max="20" step=".5"></label>
           <label>DAYS / WEEK<input id="coachDays" type="number" min="2" max="6" step="1"></label>
           <label>REST DAY<select id="coachRestDay"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
           <label>LEVEL<select id="coachExperience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
           <label>GOAL<select id="coachGoal"><option value="fitness">Ride consistently</option><option value="ftp">Increase FTP</option><option value="endurance">Build endurance</option><option value="race">Prepare to race</option></select></label>
         </div>
-        <p class="coach-small">Your weekly training hours include both cycling and strength. You can change them any time.</p>
-        <p class="coach-small">This preview saves your training information on this device. There is no account sync.</p>
+        <p id="coachFtpHelp" class="coach-small"><strong>New to FTP?</strong> Functional Threshold Power is an estimate of your sustainable cycling power. The starting 200 W is a placeholder, <strong>not a measurement of your fitness</strong>. Set a known FTP if you have one; otherwise start with the trainer-free demo and use easy efforts until you establish a suitable training baseline. Avoid treating placeholder watt targets as personalized prescriptions.</p><p class="coach-small">Your weekly training hours include both cycling and strength. You can change them any time.</p>
+        <p class="coach-small"><strong>Saved on this browser only:</strong> clearing site data, using private browsing, or switching computers can remove your plan. Account sync is not currently available.</p>
       </section>
       <section class="coach-panel coach-howto">
         <span class="coach-tag">HOW COACH WORKS</span><h3>Start in three steps</h3>
-        <div class="coach-howto-step"><strong>1. Set your schedule</strong><p>Your FTP, days, and goals determine your starting workouts.</p></div>
+        <div class="coach-howto-step"><strong>1. Set your schedule</strong><p>Choose your goal, available days, and time. FTP means an estimate of sustainable power; the initial 200 W is only a placeholder.</p></div>
         <div class="coach-howto-step"><strong>2. Review today's recommendation</strong><p>Coach selects your scheduled session. You can shorten, ease, or swap it when needed.</p></div>
         <div class="coach-howto-step"><strong>3. Start your workout</strong><p>Connect your trainer for a ride. Strength workouts need no trainer.</p></div>
         <button type="button" class="coach-subtle-link" data-navigate-coach="today">Go to Today →</button>
@@ -262,11 +289,22 @@ export function mountCoach(bridge:CoachBridge){
     if(tabs.includes(tab))navigate(tab,true);
   }));
   function open(){
+    ftpKnown=readJson(COACH_FTP_KNOWN_KEY)===true || (readJson(COACH_FTP_KNOWN_KEY)===null&&!!readJson(COACH_PROFILE_KEY));
     if(session){hud.hidden=false;return;}
     screen.hidden=false;
     document.body.classList.add('coach-planning');
     navigate('today');
     syncSettingsForm();
+    ($('coachFtpKnown') as HTMLSelectElement).dispatchEvent(new Event('change'));
+    if(!ftpKnown){controlChoice='guided';styleSelect.value='guided';}
+    const todayCheck=validCheckIn(readJson(COACH_CHECKIN_KEY),dayKey(new Date()));
+    if(todayCheck){
+      ($('coachFeeling') as HTMLSelectElement).value=todayCheck.feeling;
+      for(const [id,value] of [['coachBattery',todayCheck.bodyBattery],['coachSleep',todayCheck.sleepScore],['coachHrv',todayCheck.hrvMs]] as const)(($(id) as HTMLInputElement).value=value===null?'':String(value));
+    }else{
+      ($('coachFeeling') as HTMLSelectElement).value='okay';
+      for(const id of ['coachBattery','coachSleep','coachHrv'])($(id) as HTMLInputElement).value='';
+    }
     render();
     void refreshPlatformHistory();
     window.scrollTo(0,0);
@@ -283,19 +321,28 @@ export function mountCoach(bridge:CoachBridge){
       id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
   }
   function recentRides():CoachRecentRide[]{
-    return platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower}))
-      .concat(importedRides.filter(r=>!platformRides.some(p=>Math.abs(p.start-r.start)<120000))
-        .map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower})));
+    const fromPlatform:CoachRecentRide[]=platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower}));
+    const fromImports:CoachRecentRide[]=importedRides.filter(r=>!fromPlatform.some(p=>Math.abs(p.start-r.start)<120000))
+      .map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower,source:'import'}));
+    // A completed coached session may appear in local history before the normal
+    // ride archive refreshes. Count it once, never double-count an imported ride.
+    const combined=fromPlatform.concat(fromImports);
+    const coachOnly:CoachRecentRide[]=historyRecords().filter(r=>r.mode==='classic'&&r.elapsedSeconds>0)
+      .map(r=>({start:Date.parse(r.date)-r.elapsedSeconds*1000,elapsed:r.elapsedSeconds,
+        avgPower:r.averageWatts,source:'classic' as const}))
+      .filter(r=>Number.isFinite(r.start)&&!combined.some(p=>Math.abs(p.start-r.start)<120000));
+    return combined.concat(coachOnly);
   }
   function recentFeedback():CoachRecentFeedback[]{
     return historyRecords().map(r=>({date:Date.parse(r.date),rpe:r.rpe}));
   }
   function strengthShouldBeLight():boolean{
     const feedback=recentFeedback().concat((strength?.history||[]).map(r=>({date:Date.parse(r.date),rpe:r.rpe})));
-    return fatigueSignals(rider,Date.now(),recentRides(),feedback).fatigued;
+    return fatigueSignals(rider,Date.now(),ftpKnown?recentRides():recentRides().map(r=>({...r,avgPower:null})),feedback).fatigued;
   }
   function syncSettingsForm(){
     ($('coachFtp') as HTMLInputElement).value=String(rider.ftp);
+    ($('coachFtpKnown') as HTMLSelectElement).value=ftpKnown?'yes':'no';
     ($('coachHours') as HTMLInputElement).value=String(rider.hours);
     ($('coachDays') as HTMLInputElement).value=String(rider.days);
     ($('coachRestDay') as HTMLSelectElement).value=String(rider.restDay);
@@ -305,11 +352,11 @@ export function mountCoach(bridge:CoachBridge){
   function getWorkout(){
     if(customWorkout)return customWorkout;
     const base=library.find(w=>w.id===selected)||library[0];
-    if(!strength?.settings.enabled||riderSelected)return base;
+    if(riderSelected)return base;
     const today=weekPlan().days[new Date().getDay()];
-    if(today.cyclingId===base.id&&today.cyclingMinutes>0&&today.cyclingMinutes*60<workoutDuration(base))
-      return shortenWorkout(base,today.cyclingMinutes);
-    return base;
+    const strengthLimit=strength?.settings.enabled&&today.cyclingId===base.id&&today.cyclingMinutes>0?today.cyclingMinutes:Infinity;
+    const limit=Math.min(activeRecommendedMinutes??Infinity,strengthLimit);
+    return Number.isFinite(limit)&&limit>=15&&limit*60<workoutDuration(base)?shortenWorkout(base,limit):base;
   }
   function showIntervalRequirements(index:number){
     const workout=getWorkout(), segment=workout.segments[index];
@@ -359,8 +406,8 @@ export function mountCoach(bridge:CoachBridge){
     const ride=day.rideId?library.find(w=>w.id===day.rideId):null;
     const rideCard=ride?
       '<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>'+escapeHtml(ride.name)+'</strong>'+
-      '<p>'+day.rideMinutes+' min · '+escapeHtml(ride.description)+'</p></div>'+
-      '<button type="button" data-calendar-action="ride" data-calendar-index="'+expandedIndex+'">VIEW RIDE →</button></div>':
+      '<p>'+day.rideMinutes+' min · '+escapeHtml(ride.description)+'</p><p>'+escapeHtml(day.reason)+'</p></div>'+
+      '<button type="button" data-calendar-action="ride" data-calendar-index="'+expandedIndex+'">'+(day.isToday?'VIEW TODAY’S RIDE':'USE THIS RIDE TODAY (OPTIONAL)')+' →</button></div>':
       day.completedRide?'<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>Ride completed today</strong><p>Coach will account for your recorded ride.</p></div></div>':'';
     const strengthDone=day.isToday&&strength?.completedToday()===true;
     const strengthCard=day.strength?
@@ -416,10 +463,59 @@ export function mountCoach(bridge:CoachBridge){
     if(todayKey!==currentDay){currentDay=todayKey;riderSelected=false;customWorkout=null;expandedCalendarKey=null;}
     const inputs=recentRides();
     const feedback=recentFeedback();
-    const recommendation=recommendToday(rider,nowDate,inputs,feedback);
+    // Without a known FTP, watts alone cannot identify a demanding session.
+    const ridesForFatigue=ftpKnown?inputs:inputs.map(r=>({...r,avgPower:null}));
+    const check=validCheckIn(readJson(COACH_CHECKIN_KEY),todayKey);
+    const recovery=recoveryGuidance(check);
+    const trainingSignal=trainingDayGuidance(check,fatigueSignals(rider,nowDate.getTime(),ridesForFatigue,feedback),inputs.some(ride=>ride.start>=new Date(nowDate.getFullYear(),nowDate.getMonth(),nowDate.getDate()).getTime()&&ride.elapsed>=900));
+    $('coachReadinessLabel').textContent=trainingSignal.label;
+    $('coachReadinessLabel').setAttribute('data-day-color',trainingSignal.color);
+    $('coachReadinessExplanation').textContent=trainingSignal.detail+' '+recovery.detail;
+    const baseRecommendation=applyRecoveryGuidance(recommendToday(rider,nowDate,ridesForFatigue,feedback),check);
     const schedule=weekPlan();
-    currentCalendarDays=calendarDays(nowDate,schedule.days,library,recommendation);
+    const adaptive=adaptWeeklySchedule({
+      now:nowDate,week:schedule.days,rides:inputs,feedback,skipped:skippedDays(),
+      ftp:rider.ftp,ftpKnown,budgetMinutes:schedule.budgetMinutes,
+      today:baseRecommendation,recoveryMinutes:Math.round(workoutDuration(library.find(w=>w.id==='recovery')!)/60)
+    });
+    const todayAdaptive=adaptive.days.find(d=>d.key===todayKey)!;
+    activeRecommendedMinutes=todayAdaptive.minutes;
+    const recommendation={
+      workoutId:todayAdaptive.workoutId,
+      status:(todayAdaptive.status==='completed'?'completed':todayAdaptive.status==='recovery'?'recovery':
+        todayAdaptive.status==='rest'||todayAdaptive.status==='skipped'?'rest':'planned') as 'completed'|'recovery'|'rest'|'planned',
+      reason:todayAdaptive.reason
+    };
+    const skipped=skippedDays().includes(todayKey);
+    $('coachSkipToday').textContent=skipped?"Undo skipped session":"Skip today's session";
+    currentCalendarDays=calendarDays(nowDate,schedule.days,library,recommendation).map(day=>{
+      const update=adaptive.days.find(d=>d.key===day.key);
+      if(!update)return day;
+      const workout=library.find(w=>w.id===update.workoutId);
+      return {...day,rideId:workout?.id||null,rideName:workout?.name||null,
+        rideDescription:workout?.description||null,rideMinutes:update.minutes,
+        completedRide:update.status==='completed',reason:update.reason};
+    });
     renderCalendar();
+    const changeMarkup=(c:typeof adaptive.changes[number])=>{
+      const before=library.find(w=>w.id===c.originalId)?.name||(c.originalId?'Planned ride':'Rest day');
+      const after=library.find(w=>w.id===c.workoutId)?.name||
+        (c.kind==='completed'?'Ride recorded':c.kind==='skipped'?'Skipped':'No ride scheduled');
+      return '<li><strong>'+escapeHtml(c.key)+'</strong> · '+
+        escapeHtml(before)+' ('+c.beforeMinutes+' min) → '+escapeHtml(after)+
+        ' ('+c.afterMinutes+' min)<p>'+escapeHtml(c.reason)+'</p></li>';
+    };
+    const futureChanges=adaptive.changes.filter(c=>c.key>=todayKey);
+    const todaySummary=$('coachAdaptiveToday');
+    todaySummary.hidden=futureChanges.length===0;
+    todaySummary.innerHTML=futureChanges.length?'<strong>YOUR UPDATED TRAINING WEEK · '+futureChanges.length+' CHANGE'+(futureChanges.length===1?'':'S')+'</strong>'+
+      '<p>Coach accounts for extra rides and recovery without adding make-up sessions.</p><ul>'+futureChanges.map(changeMarkup).join('')+'</ul>':'';
+    const thisWeekChanges=adaptive.changes.filter(c=>c.key<=adaptive.days[6].key);
+    const weekSummary=$('coachAdaptiveWeek');
+    weekSummary.hidden=thisWeekChanges.length===0;
+    weekSummary.innerHTML=thisWeekChanges.length?'<strong>WHAT CHANGED IN YOUR WEEK</strong>'+
+      '<p>Workout adjustments are date-specific. Your strength sessions and chosen rest day stay protected.</p><ul>'+
+      thisWeekChanges.map(changeMarkup).join('')+'</ul>':'';
     const todaySchedule=schedule.days[nowDate.getDay()];
     const strengthOnToday=!!todaySchedule?.strength;
     const strengthDoneToday=strength?.completedToday()||false;
@@ -437,10 +533,22 @@ export function mountCoach(bridge:CoachBridge){
       strengthOnly?'STRENGTH DAY':recommendation.status==='recovery'?'RECOVERY ADJUSTMENT':
       recommendation.status==='rest'||recommendation.status==='completed'?'REST RECOMMENDED':'FROM YOUR PLAN';
     $('coachWhy').textContent=strengthOnly&&!riderSelected?'Your plan includes strength today. No cycling workout is scheduled.':resting?'Coach recommends rest today.':riderSelected?'You chose an optional alternative for today. Coach originally recommended: '+recommendation.reason:'Why Coach chose this: '+recommendation.reason;
+    const originalId=recommendWeek(rider,false)[nowDate.getDay()].workoutId;
+    const changed=!riderSelected&&recommendation.status==='recovery'&&originalId&&originalId!==recommendation.workoutId;
+    $('coachChangeDetail').hidden=!changed;
+    if(changed){
+      const original=library.find(w=>w.id===originalId);
+      const updated=library.find(w=>w.id===recommendation.workoutId);
+      const originalMinutes=original?Math.round(workoutDuration(original)/60):null;
+      const updatedMinutes=updated?Math.round(workoutDuration(updated)/60):null;
+      $('coachChangeDetail').innerHTML='<strong>WHY TODAY CHANGED</strong>'+
+        '<div class="coach-change-pair"><span>ORIGINAL: '+escapeHtml(original?.name||originalId)+(originalMinutes===null?'':' · '+originalMinutes+' min')+'</span><span>RECOMMENDED: '+escapeHtml(updated?.name||'Recovery spin')+(updatedMinutes===null?'':' · '+updatedMinutes+' min')+'</span></div>'+
+        '<p>'+escapeHtml(recommendation.reason)+'</p><p>See the updated training week for any changes to upcoming sessions. To ride the original workout today, select it under Swap workout.</p>';
+    }
     $('coachRestReason').textContent=strengthOnly?'Your strength session is ready above. No trainer needed. You can still pick an optional cycling workout.':recommendation.reason;
     $('coachUseRecommendation').hidden=!riderSelected;
     const w=getWorkout(), duration=workoutDuration(w);
-    $('coachWorkoutInfo').innerHTML='<div><strong>'+escapeHtml(w.category.toUpperCase())+'</strong><span>'+Math.round(duration/60)+' MINUTES · '+w.segments.length+' SEGMENTS</span></div><p>'+escapeHtml(w.description)+'</p>';
+    $('coachWorkoutInfo').innerHTML='<div><strong>'+escapeHtml(w.category.toUpperCase())+'</strong><span>'+Math.round(duration/60)+' MINUTES · '+w.segments.length+' SEGMENTS</span></div><p>'+escapeHtml(w.description)+'</p>'+(ftpKnown?'':'<p><strong>FTP not yet established:</strong> displayed watt values are examples, not individualized targets. Keep the first ride conversational and use guided SIM mode, not ERG.</p>');
     $('coachSegments').innerHTML=w.segments.map((segment,i)=>{
       const color=segment.low<.6?'#86b5da':segment.low<.8?'#63d8bd':segment.low<1?'#f9be70':'#fb7489';
       const height=Math.max(24,Math.min(100,Math.round(segment.high*80)));
@@ -454,35 +562,41 @@ export function mountCoach(bridge:CoachBridge){
     const history=historyRecords();
     const now=nowDate.getDay();
     const weekdays=['SUN','MON','TUE','WED','THU','FRI','SAT'];
-    $('coachHeaderFtp').textContent='FTP '+rider.ftp+' W';
+    $('coachHeaderFtp').textContent=ftpKnown?'FTP '+rider.ftp+' W':'FTP NOT SET';
     const hasSetup=!!readJson(COACH_PROFILE_KEY);
     $('coachFirstRun').hidden=hasSetup;
-    const connectText=$('coachStartClassic').querySelector('span');
-    if(connectText)connectText.textContent=hasSetup?'CONNECT MY TRAINER':'SET UP MY PLAN TO START';
+    $('coachStartLabel').textContent=hasSetup?'CONNECT MY TRAINER':'SET UP MY PLAN TO START';
     $('coachProfileSummary').innerHTML=
-      '<div><strong>'+rider.ftp+' W</strong><span>FTP</span></div>'+
+      '<div><strong>'+(ftpKnown?rider.ftp+' W':'Not set')+'</strong><span>FTP</span></div>'+
       '<div><strong>'+rider.hours+' h</strong><span>Per week</span></div>'+
       '<div><strong>'+rider.days+' days</strong><span>Training days</span></div>';
-    const upcoming=schedule.days.flatMap(day=>{
-      const entries:{day:number;name:string;type:'ride'|'strength';id:string;minutes:number}[]=[];
-      if(day.cyclingId&&day.cyclingMinutes>0)entries.push({day:day.day,name:library.find(w=>w.id===day.cyclingId)?.name||'Cycling ride',type:'ride',id:day.cyclingId,minutes:day.cyclingMinutes});
-      if(day.strength&&day.strengthMinutes>0)entries.push({day:day.day,name:'Full Body Strength '+day.strength,type:'strength',id:day.strength,minutes:day.strengthMinutes});
+    const upcoming=currentCalendarDays.slice(1).flatMap(day=>{
+      const entries:{key:string;name:string;type:'ride'|'strength';id:string;minutes:number;weekday:number}[]=[];
+      if(day.rideId&&day.rideMinutes>0)entries.push({key:day.key,weekday:day.date.getDay(),name:day.rideName||'Cycling ride',type:'ride',id:day.rideId,minutes:day.rideMinutes});
+      if(day.strength&&day.strengthMinutes>0)entries.push({key:day.key,weekday:day.date.getDay(),name:'Full Body Strength '+day.strength,type:'strength',id:day.strength,minutes:day.strengthMinutes});
       return entries;
-    }).filter(item=>item.day>now).slice(0,3);
+    }).slice(0,3);
     $('coachNextUp').innerHTML=upcoming.length?upcoming.map(item=>
-      '<button type="button" class="coach-upcoming-item" data-upcoming-type="'+item.type+'" data-upcoming-workout="'+escapeHtml(item.id)+'"><strong>'+weekdays[item.day]+'</strong><span>'+escapeHtml(item.name)+'<small>'+item.minutes+' min · '+(item.type==='ride'?'Ride':'Strength')+'</small></span><span aria-hidden="true">→</span></button>'
-    ).join(''):'<p class="coach-small">Your remaining days this week are for recovery.</p>';
+      '<button type="button" class="coach-upcoming-item" data-upcoming-key="'+item.key+'" data-upcoming-type="'+item.type+'" data-upcoming-workout="'+escapeHtml(item.id)+'"><strong>'+weekdays[item.weekday]+'</strong><span>'+escapeHtml(item.name)+'<small>'+item.minutes+' min · '+(item.type==='ride'?'Ride':'Strength')+' · '+item.key+'</small></span><span aria-hidden="true">→</span></button>'
+    ).join(''):'<p class="coach-small">No more workouts in your next seven days. Rest or review your plan.</p>';
     $('coachPlanLibrary').innerHTML=library.map(w=>{
       const mins=Math.round(workoutDuration(w)/60);
       return '<button type="button" class="coach-library-item" data-library-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+mins+' min</small></span><span aria-hidden="true">→</span></button>';
     }).join('');
-    $('coachPlanBudget').textContent='Scheduled: '+(schedule.plannedMinutes/60).toFixed(1)+' / '+(schedule.budgetMinutes/60).toFixed(1)+' available hours · '+schedule.note;
-    $('coachWeek').innerHTML=schedule.days.map(day=>{
-      const assigned=library.find(w=>w.id===day.cyclingId);
-      const cycling=assigned&&day.cyclingMinutes>0
-        ?'<button type="button" data-day-workout="'+escapeHtml(assigned.id)+'"><span><strong>🚴 '+escapeHtml(assigned.name)+'</strong><small>'+day.cyclingMinutes+' min · Classic cycling</small></span><span aria-hidden="true">→</span></button>':'';
-      const lifting=day.strength?'<button type="button" class="coach-day-strength" data-strength-day="'+day.day+'" data-strength-variation="'+day.strength+'"><span><strong>▥ Full Body Strength '+day.strength+'</strong><small>'+day.strengthMinutes+' min · '+escapeHtml((strength?.settings.equipment||[]).filter(x=>x!=='bodyweight').join(', ')||'Bodyweight')+'</small></span><span aria-hidden="true">→</span></button>':'';
-      return '<div class="coach-day-row '+(day.day===now?'coach-week-today':'')+'"><span class="coach-day-label">'+weekdays[day.day]+'</span><div class="coach-day-items">'+(cycling+lifting||'<span class="coach-day-rest">Rest day</span>')+'</div></div>';
+    const thisWeek=adaptive.days.slice(0,7);
+    const stillScheduled=thisWeek.reduce((sum,day)=>sum+day.minutes+(day.date.getTime()>=new Date(nowDate.getFullYear(),nowDate.getMonth(),nowDate.getDate()).getTime()?day.strengthMinutes:0),0);
+    $('coachPlanBudget').textContent='Remaining scheduled: '+(stillScheduled/60).toFixed(1)+' h · Weekly time goal: '+(schedule.budgetMinutes/60).toFixed(1)+' h · '+schedule.note;
+    $('coachWeek').innerHTML=thisWeek.map(day=>{
+      const assigned=library.find(w=>w.id===day.workoutId);
+      const isPast=day.key<todayKey;
+      const cycling=assigned&&day.minutes>0&&!isPast
+        ?'<button type="button" data-day-workout="'+escapeHtml(assigned.id)+'"><span><strong>🚴 '+escapeHtml(assigned.name)+'</strong><small>'+day.minutes+' min · '+(day.changed?'Adjusted · ':'')+'Classic cycling</small></span><span aria-hidden="true">→</span></button>':
+        day.status==='completed'?'<span class="coach-day-rest">✓ Ride recorded</span>':
+        day.status==='skipped'?'<span class="coach-day-rest">Skipped · not rescheduled</span>':'';
+      const lifting=day.strength&&!isPast?'<button type="button" class="coach-day-strength" data-strength-day="'+day.weekday+'" data-strength-variation="'+day.strength+'"><span><strong>▥ Full Body Strength '+day.strength+'</strong><small>'+day.strengthMinutes+' min · '+escapeHtml((strength?.settings.equipment||[]).filter(x=>x!=='bodyweight').join(', ')||'Bodyweight')+'</small></span><span aria-hidden="true">→</span></button>':
+        day.strength?'<span class="coach-day-rest">Strength was scheduled</span>':'';
+      return '<div class="coach-day-row '+(day.key===todayKey?'coach-week-today':'')+'"><span class="coach-day-label">'+weekdays[day.weekday]+'<small>'+escapeHtml(day.key.slice(5))+'</small></span><div class="coach-day-items">'+(cycling+lifting||'<span class="coach-day-rest">Rest day</span>')+
+        (day.changed?'<small class="coach-adaptive-inline">'+escapeHtml(day.reason)+'</small>':'')+'</div></div>';
     }).join('');
     const strengthPanel=$('coachStrengthToday');
     const todayGrid=$('coachViewToday').querySelector<HTMLElement>('.coach-today-grid')!;
@@ -514,6 +628,14 @@ export function mountCoach(bridge:CoachBridge){
     render();
     $('coachAnswer').textContent=notice;
   }
+  $('coachSkipToday').addEventListener('click',()=>{
+    const key=dayKey(new Date()),set=new Set(skippedDays());
+    if(set.has(key))set.delete(key);else set.add(key);
+    if(!writeJson(skippedKey,Array.from(set).slice(-90))){
+      $('coachStatus').textContent='Could not save the skipped session. Check browser storage.';return;
+    }
+    riderSelected=false;customWorkout=null;render();
+  });
   $('coachSwapToggle').addEventListener('click',()=>{
     const panel=$('coachSwapPanel');
     panel.hidden=!panel.hidden;
@@ -590,7 +712,38 @@ export function mountCoach(bridge:CoachBridge){
       }else{selected=button.dataset.upcomingWorkout;riderSelected=true;customWorkout=null;render();navigate('today');}
     }
   });
-  styleSelect.addEventListener('change',()=>{controlChoice=styleSelect.value as CoachControl;});
+  styleSelect.addEventListener('change',()=>{
+    controlChoice=styleSelect.value as CoachControl;
+    if(!ftpKnown&&controlChoice==='structured'){
+      controlChoice='guided';styleSelect.value='guided';
+      $('coachStatus').textContent='Set a reliable FTP in My Setup before selecting automatic ERG. Ride by feel is available now.';
+    }
+  });
+  $('coachFtpKnown').addEventListener('change',()=>{
+    const known=($('coachFtpKnown') as HTMLSelectElement).value==='yes';
+    ($('coachFtp') as HTMLInputElement).disabled=!known;
+    ($('coachFtpHelp')).textContent=known?'Enter the FTP from your latest reliable assessment.':'No FTP required for your first demo. Indoor rides will default to guided SIM, not automatic ERG watt targets.';
+  });
+  function checkinInput(id:string,min:number,max:number){
+    const field=$(id) as HTMLInputElement;
+    if(!field.value.trim())return null;
+    const value=Number(field.value);
+    if(!Number.isInteger(value)||value<min||value>max)throw Error(id+' must be a whole number from '+min+' to '+max+'.');
+    return value;
+  }
+  $('coachSaveCheckin').addEventListener('click',()=>{
+    try{
+      const now=new Date(),date=dayKey(now);
+      const input={date,feeling:($('coachFeeling') as HTMLSelectElement).value,
+        bodyBattery:checkinInput('coachBattery',0,100),
+        sleepScore:checkinInput('coachSleep',0,100),
+        hrvMs:checkinInput('coachHrv',1,300)};
+      const check=validCheckIn(input,date);
+      if(!check||!writeJson(COACH_CHECKIN_KEY,check))throw Error('Could not save check-in. Verify browser storage.');
+      $('coachCheckinFeedback').textContent='Saved for today. Your recommendation has been refreshed.';
+      render();
+    }catch(error){$('coachCheckinFeedback').textContent=error instanceof Error?error.message:'Invalid check-in.';}
+  });
   $('coachSaveProfile').addEventListener('click',()=>{
     const nextProfile=validProfile({
       ftp:Number(($('coachFtp') as HTMLInputElement).value),
@@ -605,10 +758,17 @@ export function mountCoach(bridge:CoachBridge){
       return;
     }
     rider=nextProfile;
+    ftpKnown=($('coachFtpKnown') as HTMLSelectElement).value==='yes';
     if(!writeJson(COACH_PROFILE_KEY,rider)){
       $('coachSettingsFeedback').textContent='Strength equipment saved, but cycling settings could not be stored. Enable browser storage and retry.';
       return;
     }
+    if(!writeJson(COACH_FTP_KNOWN_KEY,ftpKnown)){
+      $('coachSettingsFeedback').textContent='Could not save FTP status. Check browser storage.';
+      return;
+    }
+    if(!ftpKnown)controlChoice='guided';
+    styleSelect.value=controlChoice;
     riderSelected=false;customWorkout=null;
     syncSettingsForm();
     render();
@@ -671,6 +831,10 @@ export function mountCoach(bridge:CoachBridge){
   }
   $('coachStartClassic').addEventListener('click',()=>{
     if(!readJson(COACH_PROFILE_KEY)){navigate('settings',true);return;}
+    if(!ftpKnown&&controlChoice==='structured'){
+      controlChoice='guided';styleSelect.value='guided';
+      $('coachStatus').textContent='FTP is not set. Starting guided ride-by-feel instead of automatic watt targets.';
+    }
     start(getWorkout(),'classic',controlChoice);
   });
   let demoInput:HTMLInputElement|null=null;
@@ -683,7 +847,7 @@ export function mountCoach(bridge:CoachBridge){
   demoInput.addEventListener('input',()=>{demoWatts=Number(demoInput!.value);byId(demoControls,'coachDemoWatts').textContent=demoWatts+' W';});
   const demoStop=byId(demoControls,'coachDemoStop');
   demoStop.addEventListener('click',()=>{endCoaching();open();});
-  $('coachDemo').addEventListener('click',()=>{
+  function launchTrainerFreeDemo(){
     const preview=workoutLibrary(rider).find(w=>w.id==='preview')!;
     demoWatts=130;demoInput!.value='130';
     start(preview,'classic',controlChoice,true);
@@ -691,7 +855,9 @@ export function mountCoach(bridge:CoachBridge){
     demoControls.hidden=false;
     let last=performance.now();
     demoTimer=window.setInterval(()=>{const now=performance.now();const dt=Math.min(1.5,(now-last)/1000);last=now;tick(dt,demoWatts,85,true);},250);
-  });
+  }
+  $('coachDemo').addEventListener('click',launchTrainerFreeDemo);
+  $('coachFirstRunDemo').addEventListener('click',launchTrainerFreeDemo);
   function stopDemo(){if(demoTimer!==null)window.clearInterval(demoTimer);demoTimer=null;demoControls.hidden=true;}
   function showHud(powerNow:number|null=null){
     if(!session)return;
