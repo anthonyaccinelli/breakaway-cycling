@@ -94,6 +94,6 @@ test('adaptive UI uses common planner for calendar, week and explicit change sum
  assert.match(ui,/id="coachAdaptiveWeek"/);
  assert.match(ui,/id="coachAdaptiveToday"/);
  assert.match(ui,/currentCalendarDays=calendarDays\(nowDate,schedule\.days,library,recommendation\)\.map/);
- assert.match(ui,/thisWeek=adaptive\.days\.slice\(0,7\)/);
+ assert.ok(ui.includes('const weekDisplay=currentCalendarDays.map(shown=>'));
  assert.match(ui,/coachNextUp/);
 });

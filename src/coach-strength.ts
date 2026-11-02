@@ -92,7 +92,26 @@ export function integratedWeek(profile:CoachProfile,raw:StrengthSettings,
  const s=validStrength(raw),budgetMinutes=Math.round(Math.max(60,profile.hours*60));
  const days=base.map(d=>({day:d.day,cyclingId:d.workoutId,cyclingMinutes:d.workoutId?cyclingMinutes(d.workoutId):0,
    strength:null as 'A'|'B'|null,strengthMinutes:0,reason:d.reason}));
- if(!s.enabled)return {days,budgetMinutes,plannedMinutes:days.reduce((n,d)=>n+d.cyclingMinutes,0),note:'Strength training is turned off.'};
+ if(!s.enabled){
+  // Weekly availability must also constrain riders without strength sessions.
+  let planned=days.reduce((n,d)=>n+d.cyclingMinutes,0);
+  if(planned<=budgetMinutes)return {days,budgetMinutes,plannedMinutes:planned,note:'Strength training is turned off.'};
+  const priority=(d:IntegratedDay)=>d.cyclingId==='recovery'?0:d.cyclingId==='endurance'?1:d.cyclingId==='tempo'?2:3;
+  const adjustable=[...days].filter(d=>d.cyclingId).sort((a,b)=>priority(a)-priority(b));
+  for(const day of adjustable){
+   if(planned<=budgetMinutes)break;
+   const reduce=Math.min(Math.max(0,day.cyclingMinutes-15),planned-budgetMinutes);
+   day.cyclingMinutes-=reduce;planned-=reduce;
+  }
+  // When even minimum rides cannot fit, drop easy days rather than over-prescribe.
+  for(const day of adjustable){
+   if(planned<=budgetMinutes)break;
+   planned-=day.cyclingMinutes;day.cyclingMinutes=0;day.cyclingId=null;
+   day.reason='Removed because the selected weekly hours cannot fit all rides.';
+  }
+  return {days,budgetMinutes,plannedMinutes:planned,
+   note:'Strength is off. Cycling was adjusted to fit your available weekly hours.'};
+ }
  // Strength sessions must fit within the user's existing training days, not add surprise training days.
  const candidates=days.filter(d=>d.cyclingId&&d.day!==profile.restDay)
   .sort((a,b)=>((a.cyclingId==='endurance'||a.cyclingId==='recovery')?-1:1)-((b.cyclingId==='endurance'||b.cyclingId==='recovery')?-1:1));

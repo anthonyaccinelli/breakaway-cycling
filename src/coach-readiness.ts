@@ -15,7 +15,10 @@ const integer=(x:unknown,min:number,max:number):number|null=>
 export function validCheckIn(value:unknown,date:string):MorningCheckIn|null{
  if(!value||typeof value!=='object')return null;
  const v=value as Partial<MorningCheckIn>;
- if(v.date!==date||!['tired','okay','great'].includes(String(v.feeling)))return null;
+ // Read legacy unpadded dates while writing current dates consistently as YYYY-MM-DD.
+ const dateMatch=typeof v.date==='string'? /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(v.date):null;
+ const normalizedDate=dateMatch?[dateMatch[1],dateMatch[2].padStart(2,'0'),dateMatch[3].padStart(2,'0')].join('-'):null;
+ if(normalizedDate!==date||!['tired','okay','great'].includes(String(v.feeling)))return null;
  // Reject invalid readings rather than quietly considering them normal.
  for(const [k,min,max] of [['bodyBattery',0,100],['sleepScore',0,100],['hrvMs',1,300]] as const){
   if(v[k]!==null&&v[k]!==undefined&&integer(v[k],min,max)===null)return null;
@@ -40,6 +43,8 @@ export function applyRecoveryGuidance(plan:TodayRecommendation,check:MorningChec
 /** Explainable training-day signal. Never estimate Garmin thresholds without a personal baseline. */
 export function trainingDayGuidance(check:MorningCheckIn|null,recentLoad:{demandingRide:boolean;veryHardFeedback:boolean},completedToday=false){
  if(completedToday)return {color:'green' as const,label:'Training complete',detail:'You have already ridden today. No additional prescribed workout is needed.'};
+ if(!check&&!recentLoad.demandingRide&&!recentLoad.veryHardFeedback)
+  return {color:'neutral' as const,label:'Check-in optional',detail:'Coach has no reported fatigue today, but no check-in or personal recovery baseline is available. Follow the plan if you feel well, and adjust as needed.'};
  if(check?.feeling==='tired'&&(recentLoad.demandingRide||recentLoad.veryHardFeedback))
   return {color:'red' as const,label:'Recovery recommended',detail:'You reported fatigue and recent training was demanding. Coach recommends rest or gentle recovery rather than another hard effort.'};
  if(check?.feeling==='tired'||recentLoad.demandingRide||recentLoad.veryHardFeedback)

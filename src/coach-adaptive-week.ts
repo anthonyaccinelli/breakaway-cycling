@@ -1,7 +1,7 @@
 import type {CoachRecentFeedback,CoachRecentRide,TodayRecommendation} from './coach-engine';
 import type {IntegratedDay} from './coach-strength';
 
-export type AdaptiveStatus='planned'|'recovery'|'shortened'|'completed'|'skipped'|'rest';
+export type AdaptiveStatus='planned'|'recovery'|'shortened'|'completed'|'skipped'|'missed'|'event'|'rest';
 export type AdaptiveDay={
  key:string;date:Date;weekday:number;originalId:string|null;workoutId:string|null;
  originalMinutes:number;minutes:number;recordedMinutes:number;status:AdaptiveStatus;reason:string;
@@ -9,13 +9,15 @@ export type AdaptiveDay={
 };
 export type AdaptiveChange={
  key:string;originalId:string|null;workoutId:string|null;
- beforeMinutes:number;afterMinutes:number;reason:string;kind:'recovery'|'shortened'|'completed'|'skipped';
+ beforeMinutes:number;afterMinutes:number;reason:string;kind:'recovery'|'shortened'|'completed'|'skipped'|'missed'|'event';
 };
 export type AdaptiveWeek={days:AdaptiveDay[];changes:AdaptiveChange[];extraMinutes:number};
 export type AdaptiveInputs={
  now:Date;week:IntegratedDay[];rides:CoachRecentRide[];
  feedback:CoachRecentFeedback[];skipped:string[];ftp:number;ftpKnown:boolean;
  budgetMinutes:number;today:TodayRecommendation;recoveryMinutes:number;
+ planForDate?:(date:Date)=>IntegratedDay|undefined;
+ event?:{startDate:string;stages:number};
 };
 const DAY=86400000;
 export function adaptiveDateKey(date:Date):string{
@@ -41,7 +43,11 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
  for(let offset=0;offset<14;offset++){
   const date=new Date(currentSunday.getFullYear(),currentSunday.getMonth(),currentSunday.getDate()+offset);
   const key=adaptiveDateKey(date),weekday=date.getDay();
-  const baseline=week.find(d=>d.day===weekday);
+  const baseline=input.planForDate?.(date)??week.find(d=>d.day===weekday);
+  const eventStart=input.event?.startDate&&/^\d{4}-\d{2}-\d{2}$/.test(input.event.startDate)
+   ?new Date(input.event.startDate+'T12:00:00'):null;
+  const eventOffset=eventStart?Math.round((new Date(date.getFullYear(),date.getMonth(),date.getDate(),12).getTime()-eventStart.getTime())/DAY):-1;
+  const eventStage=eventOffset>=0&&eventOffset<Math.max(1,input.event?.stages||1)?eventOffset+1:0;
   const id=baseline?.cyclingId&&baseline.cyclingMinutes>0?baseline.cyclingId:null;
   const originalMinutes=id?baseline!.cyclingMinutes:0;
   const dateStart=date.getTime();
@@ -54,12 +60,15 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
   if((isPast||isToday)&&recorded.length){
    workoutId=null;minutes=0;status='completed';
    reason='A ride was recorded on this date. Coach does not prescribe a duplicate session.';
+  }else if(eventStage){
+   workoutId=null;minutes=0;status='event';
+   reason='Event stage '+eventStage+' of '+Math.max(1,input.event?.stages||1)+'. No additional indoor workout is prescribed. Follow your event pacing and fueling plan.';
   }else if((isPast||isToday)&&skipped.has(key)){
    workoutId=null;minutes=0;status='skipped';
    reason='You skipped this session. Coach will not stack it onto a later day.';
   }else if(isPast){
-   workoutId=null;minutes=0;status=id?'skipped':'rest';
-   reason=id?'This scheduled ride is past. It was not automatically rescheduled.':'Scheduled rest day.';
+   workoutId=null;minutes=0;status=id?'missed':'rest';
+   reason=id?'This scheduled ride was not recorded and has not been rescheduled.':'Scheduled rest day.';
   }else if(isToday){
    workoutId=today.workoutId;
    status=today.status==='completed'?'completed':!workoutId?'rest':today.status==='recovery'?'recovery':'planned';
@@ -81,7 +90,7 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
   }
   days.push({key,date,weekday,originalId:id,workoutId,originalMinutes,minutes,recordedMinutes,status,reason,
    changed:status==='completed'||workoutId!==id||minutes!==originalMinutes,
-   strength:baseline?.strength||null,strengthMinutes:baseline?.strengthMinutes||0});
+   strength:eventStage?null:baseline?.strength||null,strengthMinutes:eventStage?0:baseline?.strengthMinutes||0});
  }
  // Actual minutes above planned allowances from days already ridden this week.
  // A ride on a rest day has a zero allowance and counts fully as extra volume.
@@ -125,7 +134,7 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
   key:d.key,originalId:d.originalId,workoutId:d.workoutId,
   beforeMinutes:d.originalMinutes,afterMinutes:d.status==='completed'?d.recordedMinutes:d.minutes,
   reason:d.reason,kind:(d.status==='completed'?'completed':d.status==='skipped'?'skipped':
-    d.status==='shortened'?'shortened':'recovery') as AdaptiveChange['kind']
+    d.status==='shortened'?'shortened':d.status==='missed'?'missed':d.status==='event'?'event':'recovery') as AdaptiveChange['kind']
  }));
  return {days,changes,extraMinutes};
 }
