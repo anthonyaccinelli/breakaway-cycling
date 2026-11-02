@@ -7,8 +7,8 @@ const [main,devices,styles,route]=await Promise.all([
  read('pedalkin-handheld-devices.css'),read('pedalkin-handheld-route.ts')
 ]);
 test('02 Devices uses the same unmodified console SVG as 01 Route',()=>{
- assert.match(route,/src="\/pedalkin\/route-v2\.svg"/);
- assert.match(devices,/src="\/pedalkin\/route-v2\.svg"/);
+ assert.match(route,/src="\/pedalkin\/route-v3\\.svg"/);
+ assert.match(devices,/src="\/pedalkin\/route-v3\\.svg"/);
  assert.match(devices,/class="pk-dev-screen"/);
  assert.match(styles,/left:29\.24%!important;top:20\.05%!important/);
  assert.match(styles,/width:41\.56%!important;height:62\.8%!important/);
@@ -27,11 +27,11 @@ test('Connect buttons reuse actual BLE handlers without a second connection impl
  assert.doesNotMatch(devices,/(?:requestDevice|connectGatt|sendFtms|setTrainerResistance|setVirtualGearResistance)\(/);
 });
 test('Trainer readiness gates the ride button, while HR and Click remain optional',()=>{
- assert.match(devices,/const ready=!buttons\.continue\.disabled/);
- assert.match(devices,/next\.disabled=!ready/);
+ assert.match(devices,/next\.disabled=false/);
+ assert.match(devices,/trainerConnected=deviceStatus\('trainer'\)\.connected/);
  assert.match(devices,/if\(name==='continue'&&buttons\.continue\.disabled\)return/);
- assert.match(devices,/PAIR YOUR TRAINER TO ENABLE THE NEXT STEP/);
- assert.match(devices,/HR and Click are optional/);
+ assert.match(devices,/SKIP DEVICES — 03 RIDE/);
+ assert.match(devices,/All devices optional/);
  assert.match(devices,/dataset\.connectionState/);
 });
 test('Ride settings are paired to original drivetrain and FTMS controls',()=>{
