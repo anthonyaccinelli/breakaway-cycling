@@ -190,7 +190,7 @@ export function mountSpokemonPlayable(options:{
      const group=doc!.createElementNS(NS,'g');
      group.id='pk-active-buddy';group.setAttribute('data-creature-id',creature.id);
      const backdrop=doc!.createElementNS(NS,'rect');
-     for(const [k,v] of Object.entries({x:'1660',y:'607',width:'131',height:'113',fill:'#fff1d7'}))backdrop.setAttribute(k,v);
+     for(const [k,v] of Object.entries({x:'1660',y:'607',width:'131',height:'113',fill:'#fcf0d6'}))backdrop.setAttribute(k,v);
      group.append(backdrop);
      const sprite=doc!.createElementNS(NS,'svg');
      for(const [k,v] of Object.entries({x:'1659',y:'608',width:'132',height:'112',viewBox:'730 355 460 370',preserveAspectRatio:'xMidYMid meet'}))sprite.setAttribute(k,v);
@@ -244,6 +244,9 @@ export function mountSpokemonPlayable(options:{
   if(getScene()==='explore'){
    const hide=(selector:string)=>{const el=svg.querySelector<SVGElement>(selector);if(el)el.style.visibility='hidden';};
    hide('rect[x="1566"][y="98.2"]');
+   const biomePanel=svg.querySelector<SVGRectElement>('rect[x="1566"][y="277"]');
+   if(biomePanel){biomePanel.setAttribute('y','437');biomePanel.setAttribute('height','92');}
+   hide('line[x1="1586.33"][y1="439.41"]');
    hide('text[transform="translate(1590.5015 126.1968)"]');
    hide('text[transform="translate(1590.5015 183.81)"]');
    hide('rect[x="1592.9"][y="199.3"]');
