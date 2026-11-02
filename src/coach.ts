@@ -14,6 +14,8 @@ import {mountCoachStrength} from './coach-strength-ui';
 import './coach-ux-polish.css';
 import {dayKey,escapeHtml,readJson,writeJson} from './coach-dom';
 import {calendarDays} from './coach-calendar';
+import {adaptWeeklySchedule,adaptiveDateKey} from './coach-adaptive-week';
+import type {AdaptiveDay} from './coach-adaptive-week';
 import type {CoachCalendarDay} from './coach-calendar';
 import './coach-calendar.css';
 import {mountWorkoutImporter} from './coach-workout-import-ui';
@@ -53,6 +55,8 @@ export function mountCoach(bridge:CoachBridge){
   let importedRides:HistoricalRide[]=[];
   let expandedCalendarKey:string|null=null;
   let currentCalendarDays:CoachCalendarDay[]=[];
+  let activeRecommendedMinutes:number|null=null;
+  let currentAdaptiveDays:AdaptiveDay[]=[];
   let controlChoice:CoachControl='structured';
   const skippedKey='breakaway.coach.skipped-days.v1';
   function skippedDays():string[]{const d=readJson(skippedKey);return Array.isArray(d)?d.filter(x=>typeof x==='string').slice(-90):[];}
@@ -113,6 +117,7 @@ export function mountCoach(bridge:CoachBridge){
         <p id="coachCheckinFeedback" role="status" aria-live="polite"></p>
       </details>
     </section>
+    <div id="coachAdaptiveToday" class="coach-adaptive-summary" role="status" aria-live="polite" hidden></div>
     <div class="coach-calendar" aria-label="Next seven days of training">
       <div class="coach-calendar-heading"><span class="coach-tag">YOUR NEXT 7 DAYS</span><span class="coach-calendar-hint">Select a day for details</span></div>
       <div class="coach-calendar-strip" id="coachCalendarStrip" role="group" aria-label="Next seven calendar days"></div>
@@ -172,6 +177,7 @@ export function mountCoach(bridge:CoachBridge){
   </section>
   <section class="coach-view" id="coachViewPlan" role="tabpanel" aria-labelledby="coachTabPlan" data-coach-view="plan" hidden>
     <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training week.</h2><p>Your rides, strength sessions, and rest days in one place.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit my plan →</button></div>
+    <div id="coachAdaptiveWeek" class="coach-adaptive-summary" aria-label="Adaptive schedule changes" hidden></div>
     <div class="coach-plan-grid">
       <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS WEEK · CYCLING + STRENGTH</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
       <section class="coach-panel coach-plan-explain"><div class="coach-section-top"><span class="coach-tag">HOW TO USE YOUR WEEK</span></div>
@@ -340,11 +346,11 @@ export function mountCoach(bridge:CoachBridge){
   function getWorkout(){
     if(customWorkout)return customWorkout;
     const base=library.find(w=>w.id===selected)||library[0];
-    if(!strength?.settings.enabled||riderSelected)return base;
+    if(riderSelected)return base;
     const today=weekPlan().days[new Date().getDay()];
-    if(today.cyclingId===base.id&&today.cyclingMinutes>0&&today.cyclingMinutes*60<workoutDuration(base))
-      return shortenWorkout(base,today.cyclingMinutes);
-    return base;
+    const strengthLimit=strength?.settings.enabled&&today.cyclingId===base.id&&today.cyclingMinutes>0?today.cyclingMinutes:Infinity;
+    const limit=Math.min(activeRecommendedMinutes??Infinity,strengthLimit);
+    return Number.isFinite(limit)&&limit>=15&&limit*60<workoutDuration(base)?shortenWorkout(base,limit):base;
   }
   function showIntervalRequirements(index:number){
     const workout=getWorkout(), segment=workout.segments[index];
