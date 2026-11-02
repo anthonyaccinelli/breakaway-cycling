@@ -1134,13 +1134,14 @@ function shift(delta:number){if(drivetrainMode!=='virtual')return;gear=Math.max(
 let lastChartUpdate=0;let lastGearUpdate=0;
 function advanceRide(now:number){
  const dt=Math.max(0,Math.min(3,(now-last)/1000||0));last=now;
- if(running&&points.length&&(trainerReadyForRide()||sensorReadyForRide())){
+ const cscOnly=typeof sensorRideOnly==='function'&&sensorRideOnly();
+ if(running&&points.length&&((connected&&controlGranted&&realTelemetry)||cscOnly)){
   activeRideMs+=dt*1000;
   if(typeof coachRuntime!=='undefined')coachRuntime?.tick(dt,power,cadence,realTelemetry);
   // Power measured in joules per second; estimate metabolic calories using
   // a fixed cycling efficiency. Do not accrue calories while coasting at 0 W.
-  if(!sensorRideOnly())energyKcal+=Math.max(0,power)*dt/(GROSS_EFFICIENCY*4184);
-  if(!sensorRideOnly()&&realTelemetry){avgPowerEnergy+=Math.max(0,power)*dt;avgPowerDuration+=dt;}
+  if(!cscOnly)energyKcal+=Math.max(0,power)*dt/(GROSS_EFFICIENCY*4184);
+  if(!cscOnly&&realTelemetry){avgPowerEnergy+=Math.max(0,power)*dt;avgPowerDuration+=dt;}
   // Time-stepped road dynamics: pedaling force, gravity, rolling friction,
   // and aerodynamic drag. Coasting works at zero watts on flats and descents.
   const mass=Math.max(35,weightKg('weight')+weightKg('bikeWeight'));
@@ -1151,7 +1152,7 @@ function advanceRide(now:number){
   const step=dt/steps;
   if(procedural)ensureTerrain();
   for(let i=0;i<steps;i++){
-   if(sensorRideOnly()){
+   if(cscOnly){
     // The wheel sensor drives genuine distance; never fake power or trainer load.
     if(procedural)ensureTerrain();
     const limit=procedural?routeLimit:points.at(-1)!.distance;
@@ -1178,9 +1179,9 @@ function advanceRide(now:number){
    const waitForSummit=summit&&!questFinalSummitResolved&&summit.end>=(procedural?routeLimit:points.at(-1)!.distance)-100;
    if(!waitForSummit&&!(rideExperience==='cyclequest'&&questStoryChapter>0)){finishRide();status('Route complete');}
   }
-  if(!sensorRideOnly()&&trainerMode==='sim')void updateSimResistance(now);
-  if(!sensorRideOnly()&&trainerMode==='erg'&&now-lastGearUpdate>250){lastGearUpdate=now;void setVirtualGearResistance();}
-  if(!sensorRideOnly()&&trainerMode==='target'&&now-lastGearUpdate>1500){lastGearUpdate=now;void setFixedErgPower();}
+  if(!cscOnly&&trainerMode==='sim')void updateSimResistance(now);
+  if(!cscOnly&&trainerMode==='erg'&&now-lastGearUpdate>250){lastGearUpdate=now;void setVirtualGearResistance();}
+  if(!cscOnly&&trainerMode==='target'&&now-lastGearUpdate>1500){lastGearUpdate=now;void setFixedErgPower();}
   recordRideSample();
   update();
  }
