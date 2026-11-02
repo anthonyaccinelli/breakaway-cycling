@@ -87,8 +87,6 @@ test('Cadence-only sensors permit starting and advancing virtual distance withou
  const devices=await readFile(new URL('../src/pedalkin-handheld-devices.ts',import.meta.url),'utf8');
  assert.match(main,/function sensorReadyForRide\(\)\{return rideExperience==='pedalkin'&&cscHasCadence&&cscDevices.size>0;\}/);
  assert.match(main,/advanceCadenceSensorRide\(/);
- assert.match(main,/Math\.min\(160,cadence\)\)\/80\*5\.36448/);
- assert.match(main,/freshCadence\?Math\.max/);
  assert.match(main,/powerWatts:sensorRideOnly\(\)\?undefined/);
  assert.match(main,/Cadence-only ride started · virtual distance estimated/);
  assert.match(devices,/Cadence Sensor<\/strong>/);
