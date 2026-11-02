@@ -25,6 +25,7 @@ function loadCollection():SavedCreature[]{
 export function mountSpokemonPlayable(options:{
  host:HTMLElement;slot:HTMLElement;active:()=>boolean;getScene:()=>Scene;
  switchScene:(to:Scene,species?:SpokemonSpecies)=>void;
+ isTransitioning?:()=>boolean;
  onFinishRide:()=>void;
  onCollection?:(items:SavedCreature[])=>void;
  onHelp?:()=>void;
@@ -191,7 +192,7 @@ export function mountSpokemonPlayable(options:{
   endLabel.setAttribute('text-anchor','end');
  }
  function paint(){
-  if(!active())return;
+  if(!active()||options.isTransitioning?.())return;
   const object=slot.querySelector<HTMLObjectElement>('object.pk-exact-artboard');
   const doc=object?.contentDocument;
   const svg=doc?.documentElement as unknown as SVGSVGElement|null;
@@ -357,6 +358,7 @@ export function mountSpokemonPlayable(options:{
    simElapsed+=dt*5;simDistance+=simPower*.042*dt*5;
    simKcal+=simPower*dt*5/4184;
   }
+  if(options.isTransitioning?.())return; // Freeze Trust and Patience until scene reveal finishes.
   const f=frame(),moving=f.running&&f.powerWatts!==undefined&&f.powerWatts>50&&
    (f.cadenceRpm===undefined||f.cadenceRpm>35);
   const measuredDistance=Math.max(0,f.distanceMeters);
