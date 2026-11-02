@@ -50,3 +50,16 @@ test('Native Spokemon ride summary Done returns to game Route rather than legacy
  const summary=main.slice(main.indexOf('function showRideSummary(){'),main.indexOf('function setRideFocus(',main.indexOf('function showRideSummary(){')));
  assert.match(summary,/if\(rideExperience==='pedalkin'\)showBreakawayScreen\('route'\)/);
 });
+
+test('Overlay opens without treating an active ride as navigation away',()=>{
+ const start=ride.indexOf(" function triggerNavigation(target:'route'|'devices'|'ride'|'overlay'){");
+ const end=ride.indexOf('\n navButtons.forEach(',start);
+ assert.ok(start>=0&&end>start);
+ const handler=ride.slice(start,end);
+ assert.match(handler,/if\(target==='route'\|\|target==='devices'\)/);
+ assert.doesNotMatch(handler,/if\(target!=='ride'\)/);
+ assert.match(handler,/if\(target==='overlay'\)/);
+ assert.match(handler,/document\.getElementById\('nativeProfile'\)/);
+ assert.match(handler,/\.click\(\)/);
+ assert.match(main,/\$\('nativeProfile'\)\.addEventListener\('click'/);
+});
