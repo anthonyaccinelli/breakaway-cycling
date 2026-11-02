@@ -107,8 +107,8 @@ export function mountPedalkinHandheldDevices():void{
  const updateSelect=(src:HTMLSelectElement,dest:HTMLSelectElement)=>{
   dest.value=src.value;dest.dispatchEvent(new Event('change',{bubbles:true}));
  };
- shifting.addEventListener('change',()=>updateSelect(shifting,real.shifting));
- control.addEventListener('change',()=>updateSelect(control,real.control));
+ shifting.addEventListener('change',()=>{updateSelect(shifting,real.shifting);refresh();});
+ control.addEventListener('change',()=>{updateSelect(control,real.control);refresh();});
  auto.addEventListener('change',()=>{
   real.auto.checked=auto.checked;
   real.auto.dispatchEvent(new Event('change',{bubbles:true}));

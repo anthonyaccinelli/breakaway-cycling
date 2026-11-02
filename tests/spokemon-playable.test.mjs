@@ -17,7 +17,7 @@ test('Spokemon real game receives route, measured cadence, power and save state'
  assert.match(gameplay,/const ready=\(\)=>Boolean\(lastReal\?\.connected/);
 });
 test('Test mode cannot synthesize ride records or trainer commands',()=>{
- assert.match(gameplay,/Test rides are simulated and are never recorded or exported/);
+ assert.match(gameplay,/Test Ride moves along the route about 5× faster for gameplay QA/);
  assert.match(gameplay,/simulationRunning/);
  assert.doesNotMatch(gameplay,/dispatchEvent\(new CustomEvent\('pedalkin:ride-frame'/);
  assert.doesNotMatch(gameplay,/setResistance|setSimGradient|saveRecordedRide/);
@@ -25,9 +25,11 @@ test('Test mode cannot synthesize ride records or trainer commands',()=>{
 test('Encounter gameplay includes captures, failures, cooldown, and collection persistence',()=>{
  assert.match(gameplay,/choosePineForestSpokemon/);
  assert.match(gameplay,/if\(trust>=100\)/);
- assert.match(gameplay,/resolve\(Math\.random\(\)<\.85\)/);
+ assert.match(gameplay,/if\(trust>=100\)resolve\(true\)/);
+ assert.doesNotMatch(gameplay,/resolve\(Math\.random\(\)</);
+ assert.match(gameplay,/Math\.floor\(trust\)\+'%'\]/);
  assert.match(gameplay,/patience<=0/);
- assert.match(gameplay,/localStorage\.setItem\(STORAGE/);
+ assert.match(gameplay,/saveCollection\(\)/);
  assert.match(gameplay,/encounterCooldown=progressDistance/);
 });
 test('Exact Illustrator SVG assets remain untouched, with grade profiles rendered separately',()=>{

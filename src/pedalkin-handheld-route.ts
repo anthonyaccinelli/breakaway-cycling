@@ -59,6 +59,7 @@ export function mountPedalkinHandheldRoute():void {
     </div>
     <div class="pk-v2-live-chart" role="img" aria-label="Live generated route elevation profile"></div>
     <div class="pk-v2-scrub" aria-live="polite"></div>
+    <div class="pk-v2-feedback" role="status" aria-live="polite" hidden></div>
     <button class="pk-v2-hit pk-v2-upload" type="button" aria-label="Upload GPX or TCX route"></button>
     <div class="pk-v2-actions-grid" role="group" aria-label="Route generator and quick-start presets">
       <button class="pk-v2-hit pk-v2-generate" type="button">Generate Route</button>
@@ -84,6 +85,9 @@ export function mountPedalkinHandheldRoute():void {
   {proxy:at<HTMLInputElement>('.pk-v2-seed'),real:original.seed!},
   {proxy:at<HTMLInputElement>('.pk-v2-lock'),real:original.lock!}
  ];
+ const feedback=at<HTMLElement>('.pk-v2-feedback');
+ const tell=(msg:string)=>{feedback.textContent=msg;feedback.hidden=!msg;};
+ let routeMode:'generated'|'gpx'|'endless'|'draft'='generated';
  const biomeSelect=at<HTMLSelectElement>('.pk-v2-biome');
  for(const biome of PEDALKIN_BIOMES){
   const option=document.createElement('option');
@@ -106,6 +110,7 @@ export function mountPedalkinHandheldRoute():void {
  }
  for(const {proxy,real} of fields){
   const change=()=>{
+   if(proxy!==fields[3].proxy){routeMode='draft';tell('');}
    if(proxy instanceof HTMLInputElement&&proxy.type==='checkbox')(real as HTMLInputElement).checked=proxy.checked;
    else real.value=proxy.value;
    real.dispatchEvent(new Event('input',{bubbles:true}));
@@ -122,10 +127,17 @@ export function mountPedalkinHandheldRoute():void {
   });
  };
  doAction('.pk-v2-upload',original.gpx);
- doAction('.pk-v2-generate',original.generate);
+ at<HTMLButtonElement>('.pk-v2-generate').addEventListener('click',()=>{
+  const miles=Number(at<HTMLInputElement>('.pk-v2-miles').value);
+  const gain=Number(at<HTMLInputElement>('.pk-v2-gain').value);
+  if(!Number.isFinite(miles)||miles<=0){tell('DISTANCE MUST BE GREATER THAN ZERO.');return;}
+  if(!Number.isFinite(gain)||gain<0){tell('ELEVATION GAIN MUST BE ZERO OR MORE.');return;}
+  routeMode='generated';tell('');
+  original.generate!.click();requestAnimationFrame(syncFields);
+ });
  doAction('.pk-v2-surprise',original.surprise);
  doAction('.pk-v2-endless',original.endless);
- doAction('.pk-v2-next',get('stepRide'));
+ doAction('.pk-v2-next',get('stepSetup'));
  doAction('.pk-v2-nav-route',get('stepRoute'));
  doAction('.pk-v2-nav-devices',get('stepSetup'));
  doAction('.pk-v2-nav-ride',get('stepRide'));
@@ -156,12 +168,19 @@ export function mountPedalkinHandheldRoute():void {
    node.textContent=value;
    node.title=value;
   }
+  // Time is a rough planning estimate, not a rider-specific prediction.
+  // The underlying route studio uses a fixed 15-mph calculation.
+  at<HTMLElement>('[data-pk-stat="time"]').title='Approximate time at a constant 15 mph. Hills and rider fitness change actual duration.';
   // studioDifficulty is a verbose workout description, not the concise
   // terrain name shown in the user's Illustrator route preview card.
   const terrainLabel=original.terrain!.selectedOptions[0]?.textContent?.trim()||'—';
   const terrainStat=at<HTMLElement>('[data-pk-stat="terrain"]');
-  terrainStat.textContent=terrainLabel;
-  terrainStat.title=terrainLabel;
+  terrainStat.textContent=routeMode==='gpx'?'Imported GPX':routeMode==='endless'?'Endless':terrainLabel;
+  terrainStat.title=terrainStat.textContent||terrainLabel;
+  if(routeMode==='endless'){
+   at<HTMLElement>('[data-pk-stat="miles"]').textContent='∞ (next '+(get('studioPreviewMiles')?.textContent?.trim()||'5 mi')+')';
+   at<HTMLElement>('[data-pk-stat="time"]').textContent='No finish line';
+  }
   biomeStat.textContent=biomeSelect.selectedOptions[0]?.textContent?.replace(/ — Soon\*$/,'')||'Pine Forest';
   const chart=original.chart!.querySelector('svg');
   if(chart){
@@ -179,6 +198,21 @@ export function mountPedalkinHandheldRoute():void {
  const chartObserver=new MutationObserver(refreshVisual);
  chartObserver.observe(original.chart!,{childList:true,subtree:true});
  for(const x of stats){if(x.real)chartObserver.observe(x.real,{childList:true,characterData:true,subtree:true});}
+ // Synchronize native authoritative route state after asynchronous GPX parsing
+ // or a fresh Endless preview; never leave stale inputs on-screen.
+ window.addEventListener('spokemon:route-state',(event:Event)=>{
+  const detail=(event as CustomEvent<{mode:'gpx'|'endless'|'generated',name?:string}>).detail;
+  if(!detail)return;
+  routeMode=detail.mode;
+  if(routeMode==='gpx'||routeMode==='endless'){
+   const miles=parseFloat(get('studioPreviewMiles')?.textContent||'');
+   const gain=parseFloat(get('studioPreviewGain')?.textContent||'');
+   if(Number.isFinite(miles)&&miles>0)original.miles!.value=String(miles);
+   if(Number.isFinite(gain)&&gain>=0)original.gain!.value=String(gain);
+   tell(routeMode==='gpx'?'GPX LOADED: '+(detail.name||'YOUR ROUTE'):'ENDLESS: INPUTS SHOW NEXT PREVIEW CHUNK.');
+  }else tell('');
+  syncFields();refreshVisual();
+ });
  function sync(){
   const active=document.body.dataset.rideExperience==='pedalkin'&&document.body.dataset.breakawayScreen==='route';
   shell.hidden=!active;
