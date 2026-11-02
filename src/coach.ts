@@ -316,7 +316,8 @@ export function mountCoach(bridge:CoachBridge){
   }
   function strengthShouldBeLight():boolean{
     const feedback=recentFeedback().concat((strength?.history||[]).map(r=>({date:Date.parse(r.date),rpe:r.rpe})));
-    return adaptivePlan().today!=='green'||fatigueSignals(rider,Date.now(),recentRides(),feedback).fatigued;
+    const adjusted=adaptivePlan();
+    return !adjusted.days[0]?.locked&&(adjusted.today!=='green'||fatigueSignals(rider,Date.now(),recentRides(),feedback).fatigued);
   }
   function syncSettingsForm(){
     ($('coachFtp') as HTMLInputElement).value=String(rider.ftp);
