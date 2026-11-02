@@ -36,3 +36,13 @@ export function applyRecoveryGuidance(plan:TodayRecommendation,check:MorningChec
  if(!guide.suggestEasy||plan.status!=='planned'||!plan.workoutId||plan.workoutId==='recovery')return plan;
  return {workoutId:'recovery',status:'recovery',reason:'You reported feeling tired during your morning check-in. Coach suggests an easier recovery spin instead of your planned session. This is a training suggestion, not a medical assessment.'};
 }
+
+/** Explainable training-day signal. Never estimate Garmin thresholds without a personal baseline. */
+export function trainingDayGuidance(check:MorningCheckIn|null,recentLoad:{demandingRide:boolean;veryHardFeedback:boolean},completedToday=false){
+ if(completedToday)return {color:'green' as const,label:'Training complete',detail:'You have already ridden today. No additional prescribed workout is needed.'};
+ if(check?.feeling==='tired'&&(recentLoad.demandingRide||recentLoad.veryHardFeedback))
+  return {color:'red' as const,label:'Recovery recommended',detail:'You reported fatigue and recent training was demanding. Coach recommends rest or gentle recovery rather than another hard effort.'};
+ if(check?.feeling==='tired'||recentLoad.demandingRide||recentLoad.veryHardFeedback)
+  return {color:'yellow' as const,label:'Take it easy',detail:check?.feeling==='tired'?'You reported fatigue. Coach suggests a lighter session based on your check-in.':'Recent demanding training suggests a lighter session. Coach uses recorded effort, not Garmin score cutoffs.'};
+ return {color:'green' as const,label:'Follow your plan',detail:check?.feeling==='great'?'You feel good today. Follow your planned session without adding extra intensity.':'No fatigue flag was found in available inputs. Missing Garmin data does not mean you are fully recovered.'};
+}
