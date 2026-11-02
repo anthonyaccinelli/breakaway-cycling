@@ -227,9 +227,9 @@ export function mountCoach(bridge:CoachBridge){
           <label>YOUR PRIORITY<select id="coachEventPriority"><option value="A">A — primary goal</option><option value="B">B — preparation event</option><option value="C">C — training event</option></select></label>
           <label>YOUR OBJECTIVE<select id="coachEventObjective"><option value="finish">Finish comfortably</option><option value="perform">Perform / compete</option></select></label>
           <label>TERRAIN<select id="coachEventTerrain"><option value="road">Paved road</option><option value="gravel">Gravel</option><option value="trail">MTB trail</option><option value="mixed">Mixed</option></select></label>
-          <label>TOTAL EVENT DISTANCE (MILES, OPTIONAL)<input id="coachEventDistance" type="number" min="0.1" max="3106" step="1"></label>
+          <label>TOTAL EVENT DISTANCE (MILES, OPTIONAL)<input id="coachEventDistance" type="number" min="0.1" max="3106" step="any"></label>
           <label>TOTAL ESTIMATED RIDING TIME (MINUTES, OPTIONAL)<input id="coachEventDuration" type="number" min="1" max="30000" step="1"></label>
-          <label>TOTAL CLIMBING (FEET, OPTIONAL)<input id="coachEventElevation" type="number" min="1" max="328084" step="1"></label>
+          <label>TOTAL CLIMBING (FEET, OPTIONAL)<input id="coachEventElevation" type="number" min="0" max="328084" step="1"></label>
           <label id="coachEventStagesWrap">NUMBER OF CONSECUTIVE STAGES<input id="coachEventStages" type="number" min="2" max="30" step="1" value="2"></label>
         </div>
         <p class="coach-small" id="coachGoalPhaseSummary"></p>
@@ -370,6 +370,8 @@ export function mountCoach(bridge:CoachBridge){
   function showGoalFields(){
     const selected=($('coachEventDiscipline') as HTMLSelectElement).value;
     $('coachEventStagesWrap').hidden=selected!=='stage-race';
+    ($('coachEventStages') as HTMLInputElement).disabled=selected!=='stage-race';
+    if(selected==='stage-race' && Number(($('coachEventStages') as HTMLInputElement).value)<2)($('coachEventStages') as HTMLInputElement).value='2';
     $('coachEventStageHint').hidden=selected!=='stage-race';
     $('coachGeneralFocusWrap').hidden=selected!=='general';
     const goal=validEventGoal({discipline:selected,date:($('coachEventDate') as HTMLInputElement).value});
@@ -828,7 +830,10 @@ export function mountCoach(bridge:CoachBridge){
   $('coachSaveProfile').addEventListener('click',()=>{
     const proposedGoal=validEventGoal({discipline:($('coachEventDiscipline') as HTMLSelectElement).value,name:($('coachEventName') as HTMLInputElement).value,date:($('coachEventDate') as HTMLInputElement).value,priority:($('coachEventPriority') as HTMLSelectElement).value,objective:($('coachEventObjective') as HTMLSelectElement).value,terrain:($('coachEventTerrain') as HTMLSelectElement).value,distanceKm:($('coachEventDistance') as HTMLInputElement).value?Number(($('coachEventDistance') as HTMLInputElement).value)*1.609344:'',durationMinutes:($('coachEventDuration') as HTMLInputElement).value,elevationM:($('coachEventElevation') as HTMLInputElement).value?Number(($('coachEventElevation') as HTMLInputElement).value)*0.3048:'',stages:($('coachEventStages') as HTMLInputElement).value});
     if(($('coachEventDate') as HTMLInputElement).value&&!proposedGoal.date){$('coachSettingsFeedback').textContent='Please enter a valid event date.';return;}
-    if(!($('coachEventDistance') as HTMLInputElement).checkValidity()||!($('coachEventElevation') as HTMLInputElement).checkValidity()||!($('coachEventDuration') as HTMLInputElement).checkValidity()||!($('coachEventStages') as HTMLInputElement).checkValidity()){$('coachSettingsFeedback').textContent='Please check the distance, climbing, duration and stage count.';return;}
+    const goalFields:[string,string][]=[['coachEventDistance','event distance'],['coachEventElevation','total climbing'],['coachEventDuration','estimated riding time']];
+    if(proposedGoal.discipline==='stage-race')goalFields.push(['coachEventStages','number of stages']);
+    const invalidGoalField=goalFields.find(([id])=>!($(id) as HTMLInputElement).checkValidity());
+    if(invalidGoalField){const input=$(invalidGoalField[0]) as HTMLInputElement;$('coachSettingsFeedback').textContent='Please check '+invalidGoalField[1]+': '+(input.validationMessage||'enter a valid value')+'.';input.focus();return;}
     if(!writeJson(COACH_EVENT_GOAL_KEY,proposedGoal)){$('coachSettingsFeedback').textContent='Could not save your event goal. Check browser storage.';return;}
     eventGoal=proposedGoal;
     const nextProfile=validProfile({
