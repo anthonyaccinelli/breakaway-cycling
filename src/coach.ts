@@ -12,7 +12,7 @@ import './coach-v2.css';
 import {defaultStrength,integratedWeek,strengthRoutine} from './coach-strength';
 import {mountCoachStrength} from './coach-strength-ui';
 import './coach-ux-polish.css';
-import {dayKey,escapeHtml,readJson,writeJson} from './coach-dom';
+import {dayKey,normalizeDayKey,escapeHtml,readJson,writeJson} from './coach-dom';
 import {calendarDays} from './coach-calendar';
 import {adaptWeeklySchedule} from './coach-adaptive-week';
 import type {CoachCalendarDay} from './coach-calendar';
@@ -62,7 +62,7 @@ export function mountCoach(bridge:CoachBridge){
   let activeRecommendedMinutes:number|null=null;
   let controlChoice:CoachControl='structured';
   const skippedKey='breakaway.coach.skipped-days.v1';
-  function skippedDays():string[]{const d=readJson(skippedKey);return Array.isArray(d)?d.filter(x=>typeof x==='string').slice(-90):[];}
+  function skippedDays():string[]{const d=readJson(skippedKey);return Array.isArray(d)?[...new Set(d.map(normalizeDayKey).filter(Boolean))].slice(-90):[];}
   let ftpKnown=readJson(COACH_FTP_KNOWN_KEY)===true || (readJson(COACH_FTP_KNOWN_KEY)===null&&!!readJson(COACH_PROFILE_KEY));
   let platformRides:Awaited<ReturnType<CoachBridge['getPlatformRides']>>=[];
   let strength:ReturnType<typeof mountCoachStrength>|null=null;
