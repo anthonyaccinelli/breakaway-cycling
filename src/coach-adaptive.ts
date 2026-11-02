@@ -107,6 +107,9 @@ export function adaptWeek(input:{
   }
   if(day.locked){
    day.reasons.push('You chose to keep the original workout despite Coach’s recommendation.');
+   if(day.light!=='green'||missedFlag){
+     day.changes.push('Original workout kept by rider choice; Coach’s suggested adjustment is paused.');
+   }
   }else if(missedFlag){
    if(day.cyclingId){day.changes.push('Cycling workout removed — marked missed/skipped.');day.cyclingId=null;day.cyclingMinutes=0;}
    if(day.strength){day.changes.push('Strength session removed — marked missed/skipped.');day.strength=null;day.strengthMinutes=0;}
