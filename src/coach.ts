@@ -353,8 +353,8 @@ export function mountCoach(bridge:CoachBridge){
     if(customWorkout)return customWorkout;
     const base=library.find(w=>w.id===selected)||library[0];
     if(riderSelected)return base;
-    const today=weekPlan().days[new Date().getDay()];
-    const strengthLimit=strength?.settings.enabled&&today.cyclingId===base.id&&today.cyclingMinutes>0?today.cyclingMinutes:Infinity;
+    const today=weekPlan().days.find(day=>day.day===new Date().getDay());
+    const strengthLimit=strength?.settings.enabled&&today?.cyclingId===base.id&&today.cyclingMinutes>0?today.cyclingMinutes:Infinity;
     const limit=Math.min(activeRecommendedMinutes??Infinity,strengthLimit);
     return Number.isFinite(limit)&&limit>=15&&limit*60<workoutDuration(base)?shortenWorkout(base,limit):base;
   }
@@ -478,7 +478,18 @@ export function mountCoach(bridge:CoachBridge){
       ftp:rider.ftp,ftpKnown,budgetMinutes:schedule.budgetMinutes,
       today:baseRecommendation,recoveryMinutes:Math.round(workoutDuration(library.find(w=>w.id==='recovery')!)/60)
     });
-    const todayAdaptive=adaptive.days.find(d=>d.key===todayKey)!;
+    // A missing date must never crash Classic/Coach initialization.
+    // Rebuild a safe today entry from the weekly plan if adaptive dates differ.
+    const todayAdaptive=adaptive.days.find(d=>d.key===todayKey) ?? {
+      key:todayKey,date:nowDate,weekday:nowDate.getDay(),
+      originalId:schedule.days.find(d=>d.day===nowDate.getDay())?.cyclingId??null,
+      workoutId:baseRecommendation.workoutId,
+      originalMinutes:0,minutes:baseRecommendation.workoutId
+        ?Math.round(workoutDuration(library.find(w=>w.id===baseRecommendation.workoutId)||library[0])/60):0,
+      recordedMinutes:0,status:baseRecommendation.status==='recovery'?'recovery':
+        baseRecommendation.workoutId?'planned':'rest',reason:baseRecommendation.reason,
+      changed:false,strength:null,strengthMinutes:0
+    };
     activeRecommendedMinutes=todayAdaptive.minutes;
     const recommendation={
       workoutId:todayAdaptive.workoutId,
