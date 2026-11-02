@@ -582,7 +582,9 @@ export function mountPedalkinRide():void {
   dismiss.focus();
  }
  function triggerNavigation(target:'route'|'devices'|'ride'|'overlay'){
-  if(target!=='ride'){
+  // Opening the overlay leaves the Ride screen and recording running.
+  // Only navigation away to Route or Devices needs a pause confirmation.
+  if(target==='route'||target==='devices'){
    // Do not silently abandon an active recorded trainer ride.
    const finish=document.getElementById('rideFinishNow') as HTMLButtonElement|null;
    const start=document.getElementById('start') as HTMLButtonElement|null;
