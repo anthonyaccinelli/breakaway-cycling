@@ -454,7 +454,7 @@ export function mountCoach(bridge:CoachBridge){
       recommendation=todayAdjusted.completedRide
         ?{workoutId:null,status:'completed',reason:why||'You completed a ride today. No additional cycling workout is scheduled.'}
         :todayAdjusted.cyclingId
-        ?{workoutId:todayAdjusted.cyclingId,status:todayAdjusted.light==='green'?'planned':'recovery',
+        ?{workoutId:todayAdjusted.cyclingId,status:todayAdjusted.locked||todayAdjusted.light==='green'?'planned':'recovery',
           reason:why||'This is the workout scheduled for today.'}
         :{workoutId:null,status:'rest',reason:why||'No cycling workout is planned today.'};
     }
@@ -483,7 +483,7 @@ export function mountCoach(bridge:CoachBridge){
       ?(strengthOnly?'Strength training day':recommendation.status==='completed'?'Ride already completed':'Rest day')
       :getWorkout().name;
     $('coachRecommendationLabel').textContent=riderSelected?'YOUR CHOICE':
-      strengthOnly?'STRENGTH DAY':recommendation.status==='recovery'?'RECOVERY ADJUSTMENT':
+      todayAdjusted?.locked?'ORIGINAL · YOUR CHOICE':strengthOnly?'STRENGTH DAY':recommendation.status==='recovery'?'RECOVERY ADJUSTMENT':
       recommendation.status==='rest'||recommendation.status==='completed'?'REST RECOMMENDED':'FROM YOUR PLAN';
     $('coachWhy').textContent=strengthOnly&&!riderSelected?'Your plan includes strength today. No cycling workout is scheduled.':resting?'Coach recommends rest today.':riderSelected?'You chose an optional alternative for today. Coach originally recommended: '+recommendation.reason:'Why Coach chose this: '+recommendation.reason;
     $('coachRestReason').textContent=strengthOnly?'Your strength session is ready above. No trainer needed. You can still pick an optional cycling workout.':recommendation.reason;
