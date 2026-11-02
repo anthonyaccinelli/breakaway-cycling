@@ -42,9 +42,3 @@ export function trustRate(t:Temperament,watts:number,ftp:number,seconds:number):
  }else if(target==='stubborn')factor=0.65;
  return 3.5*factor;
 }
-export function chanceAtFullTrust(t:Temperament):number{
- if(t==='chaotic')return 0.7;
- if(t==='stubborn')return 0.8;
- if(t==='shy')return 0.83;
- return 0.85;
-}
