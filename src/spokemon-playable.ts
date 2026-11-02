@@ -21,6 +21,8 @@ function loadCollection():SavedCreature[]{
 export function mountSpokemonPlayable(options:{
  host:HTMLElement;slot:HTMLElement;active:()=>boolean;getScene:()=>Scene;
  switchScene:(to:Scene,species?:SpokemonSpecies)=>void;
+ isTransitioning?:()=>boolean;
+ canPaintDuringTransition?:()=>boolean;
  onFinishRide:()=>void;
  onCollection?:(items:SavedCreature[])=>void;
 }){
@@ -154,7 +156,9 @@ export function mountSpokemonPlayable(options:{
   endLabel.setAttribute('text-anchor','end');
  }
  function paint(){
-  if(!active())return;
+  // Draw only after the new SVG has been covered and swapped, preventing
+  // preauthored sample readouts from flashing on screen during reveal.
+  if(!active()||(options.isTransitioning?.()&&!options.canPaintDuringTransition?.()))return;
   const object=slot.querySelector<HTMLObjectElement>('object.pk-exact-artboard');
   const doc=object?.contentDocument;
   const svg=doc?.documentElement as unknown as SVGSVGElement|null;
@@ -306,6 +310,9 @@ export function mountSpokemonPlayable(options:{
    simElapsed+=dt*5;simDistance+=simPower*.042*dt*5;
    simKcal+=simPower*dt*5/4184;
   }
+  // The smart trainer keeps running normally, but Trust/Patience and new
+  // encounters pause while the wipe conceals and reveals the scene.
+  if(options.isTransitioning?.())return;
   const f=frame(),moving=f.running&&f.powerWatts!==undefined&&f.powerWatts>50&&
    (f.cadenceRpm===undefined||f.cadenceRpm>35);
   const measuredDistance=Math.max(0,f.distanceMeters);
