@@ -1,0 +1,24 @@
+/* Classic Game Boy encounter wipe, centered on the original 1920x1080 scene.
+   Does not move or obscure the HUD, menu or metric readouts. */
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-ride-stage>.pk-classic-wipe{
+ position:absolute!important;
+ left:19.80%!important;top:20.1%!important;
+ width:60.40%!important;height:55%!important;
+ display:block!important;
+ z-index:30!important;pointer-events:none!important;
+ overflow:hidden!important;
+ background:transparent!important;
+ image-rendering:pixelated!important;
+}
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-ride-stage>.pk-classic-wipe[hidden]{
+ display:none!important;
+}
+.pk-classic-wipe-bar{
+ position:absolute;left:0;width:100%;
+ display:block;transform:scaleX(0);
+ image-rendering:pixelated;
+ box-shadow:inset 0 2px 0 #08252b;
+}
+@media(prefers-reduced-motion:reduce){
+ .pk-classic-wipe-bar{animation:none!important;transition:none!important}
+}
