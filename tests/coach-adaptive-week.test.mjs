@@ -11,7 +11,7 @@ const week=Array.from({length:7},(_,day)=>({
  cyclingMinutes:day===1?45:day===2||day===4?60:0,
  strength:day===2?'A':null,strengthMinutes:day===2?30:0,reason:'Planned training'
 }));
-const planned={workoutId:'tempo',status:'planned',reason:'Today's training plan'};
+const planned={workoutId:'tempo',status:'planned',reason:"Today's training plan"};
 const on=(day,hour=12)=>new Date(2026,10,day,hour).getTime();
 function plan(overrides={}){
  return adaptWeeklySchedule({
