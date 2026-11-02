@@ -39,7 +39,7 @@ export function mountPedalkinHandheldDevices():void{
      </div>
      <div class="pk-dev-device" data-pk-device="sensor">
       <div class="pk-dev-device-heading"><span class="pk-dev-bluetooth">ᛒ</span>
-       <div class="pk-dev-device-name"><strong>Speed + Cadence</strong><small>Bluetooth CSC · no smart trainer needed</small></div>
+       <div class="pk-dev-device-name"><strong>Cadence Sensor</strong><small>Bluetooth CSC · speed sensor optional</small></div>
        <span class="pk-dev-tag">OPTIONAL</span></div>
       <button data-pk-action="sensor">CONNECT SENSOR</button>
       <small class="pk-dev-device-status" data-pk-status="sensor">Not connected</small>
@@ -164,11 +164,11 @@ export function mountPedalkinHandheldDevices():void{
   q<HTMLElement>('[data-pk-status="sensor"]').textContent=sensorState;
   const sensorReady=document.body.dataset.spokemonCscReady==='true';
   q<HTMLElement>('[data-pk-device="sensor"]').dataset.state=sensorReady?'connected':'disconnected';
-  q<HTMLButtonElement>('[data-pk-action="sensor"]').textContent=sensorReady?'SENSOR CONNECTED ✓':'CONNECT SENSOR';
+  q<HTMLButtonElement>('[data-pk-action="sensor"]').textContent=sensorReady?'CADENCE READY ✓':'CONNECT SENSOR';
   q<HTMLElement>('[data-pk-mode-info]').textContent=preferred==='power'
    ?'Power targets (W). Trainer or power meter required for real rides.'
    :preferred==='cadence'
-    ?'Cadence targets (RPM). Basic sensors; no resistance control.'
+    ?'Cadence targets (RPM). Cadence sensor alone works; distance is estimated without speed.'
     :'Auto: prefer measured power, otherwise use measured cadence.';
   q<HTMLButtonElement>('[data-pk-play-test]').textContent=
    'PLAY TEST '+(preferred==='power'?'POWER':'CADENCE')+' →';
