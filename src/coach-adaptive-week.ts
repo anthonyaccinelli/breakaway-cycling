@@ -89,7 +89,13 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
  const totalRidden=completed.reduce((sum,d)=>sum+valid.filter(r=>adaptiveDateKey(new Date(r.start))===d.key).reduce((n,r)=>n+rideMinutes(r),0),0);
  const allowance=completed.reduce((sum,d)=>sum+d.originalMinutes,0);
  const extraMinutes=Math.max(0,totalRidden-allowance);
- let remaining=extraMinutes;
+ const scheduledBudget=days.slice(0,7).reduce((sum,day)=>sum+day.originalMinutes+day.strengthMinutes,0);
+ const availableHeadroom=Math.max(0,input.budgetMinutes-scheduledBudget);
+ // Extra riding within free weekly hours does not automatically cut prescribed rides.
+ // Recovery swaps already reduce weekly volume, so credit those savings first.
+ const recoverySavings=days.slice(0,7).filter(day=>day.status==='recovery'&&day.date.getTime()>=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime())
+   .reduce((sum,day)=>sum+Math.max(0,day.originalMinutes-day.minutes),0);
+ let remaining=Math.max(0,extraMinutes-availableHeadroom-recoverySavings);
  // Adjust future easy sessions first to preserve key workouts where possible.
  const endOfWeek=new Date(currentSunday.getFullYear(),currentSunday.getMonth(),currentSunday.getDate()+7).getTime();
  const candidates=days.filter(d=>d.date.getTime()>=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime()&&
@@ -100,15 +106,14 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
    });
  for(const day of candidates){
   if(remaining<=0)break;
-  // Do not generate workouts shorter than 15 minutes. If necessary, cancel
-  // the remaining easy session rather than creating an unsafe tiny interval.
+  // Preserve at least 15 minutes per session rather than creating tiny intervals.
   const removable=Math.max(0,day.minutes-15);
   const reduction=Math.min(removable,remaining);
   if(reduction<=0)continue;
   day.minutes-=reduction;remaining-=reduction;
   if(day.minutes!==day.originalMinutes){
    day.status='shortened';day.changed=true;
-   day.reason='Recent rides added '+extraMinutes+' minutes above scheduled cycling this week. Coach shortened this ride by '+reduction+' minutes to protect your planned training time; strength and rest days stay unchanged.';
+   day.reason='Recent riding exceeded your available weekly time by '+(extraMinutes-availableHeadroom-recoverySavings)+' minutes. Coach shortened this ride by '+reduction+' minutes to protect your planned training time; strength and rest days stay unchanged.';
   }
  }
  // Only report actionable changes today or in the future, plus explicit
