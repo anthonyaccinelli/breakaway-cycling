@@ -96,7 +96,7 @@ export function mountCoach(bridge:CoachBridge){
     <div class="coach-page-lead"><div><span class="coach-tag">YOUR NEXT SESSION</span><h2>Today's training.</h2><p id="coachSuggestion">Coach selects your session from your weekly plan and recent riding.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="plan">View my week →</button></div>
     <div id="coachFirstRun" class="coach-first-run" hidden>
       <div><strong>New to indoor cycling? Start here.</strong><p>Tell Coach your goal, how many days you can ride, and what equipment you have. No power-meter knowledge is required to begin. You can try an eight-minute trainer-free demonstration in My Setup.</p></div>
-      <button type="button" data-navigate-coach="settings">SET UP MY PLAN →</button>
+      <div class="coach-first-run-actions"><button type="button" data-navigate-coach="settings">SET UP MY PLAN →</button><button type="button" id="coachFirstRunDemo" class="coach-demo-secondary">TRY WITHOUT A TRAINER</button></div>
     </div>
     <section class="coach-panel coach-morning" aria-label="Optional morning check-in">
       <div class="coach-section-top"><span class="coach-tag">DAILY CHECK-IN · OPTIONAL</span><span id="coachReadinessLabel">Not checked in</span></div>
@@ -138,7 +138,7 @@ export function mountCoach(bridge:CoachBridge){
             <p><strong>Automatic power (ERG)</strong> adjusts trainer resistance to help you meet a power target. <strong>Ride by feel (SIM)</strong> lets you change your effort yourself. If you are unsure, keep the recommended automatic option.</p>
           </div>
         </details>
-        <button type="button" id="coachStartClassic" class="coach-classic-start">CONNECT MY TRAINER <span aria-hidden="true">→</span></button>
+        <button type="button" id="coachStartClassic" class="coach-classic-start"><span id="coachStartLabel">CONNECT MY TRAINER</span> <span aria-hidden="true">→</span></button>
         <p class="coach-start-note">Next: connect your trainer and confirm the connection and optional heart-rate monitor. Pedaling starts the workout. New rider? Try the eight-minute trainer-free demo in My Setup first.</p>
         <div class="coach-quick"><button type="button" data-coach-question="tired">Feeling tired?</button><button type="button" data-coach-question="short">Short on time?</button><button type="button" data-coach-question="why">Why this ride?</button></div>
         <p id="coachAnswer" class="coach-feedback" aria-live="polite">Your workout is based on your saved FTP and experience.</p>
@@ -511,8 +511,7 @@ export function mountCoach(bridge:CoachBridge){
     $('coachHeaderFtp').textContent=ftpKnown?'FTP '+rider.ftp+' W':'FTP NOT SET';
     const hasSetup=!!readJson(COACH_PROFILE_KEY);
     $('coachFirstRun').hidden=hasSetup;
-    const connectText=$('coachStartClassic').querySelector('span');
-    if(connectText)connectText.textContent=hasSetup?'CONNECT MY TRAINER':'SET UP MY PLAN TO START';
+    $('coachStartLabel').textContent=hasSetup?'CONNECT MY TRAINER':'SET UP MY PLAN TO START';
     $('coachProfileSummary').innerHTML=
       '<div><strong>'+(ftpKnown?rider.ftp+' W':'Not set')+'</strong><span>FTP</span></div>'+
       '<div><strong>'+rider.hours+' h</strong><span>Per week</span></div>'+
@@ -787,7 +786,7 @@ export function mountCoach(bridge:CoachBridge){
   demoInput.addEventListener('input',()=>{demoWatts=Number(demoInput!.value);byId(demoControls,'coachDemoWatts').textContent=demoWatts+' W';});
   const demoStop=byId(demoControls,'coachDemoStop');
   demoStop.addEventListener('click',()=>{endCoaching();open();});
-  $('coachDemo').addEventListener('click',()=>{
+  function launchTrainerFreeDemo(){
     const preview=workoutLibrary(rider).find(w=>w.id==='preview')!;
     demoWatts=130;demoInput!.value='130';
     start(preview,'classic',controlChoice,true);
@@ -795,7 +794,9 @@ export function mountCoach(bridge:CoachBridge){
     demoControls.hidden=false;
     let last=performance.now();
     demoTimer=window.setInterval(()=>{const now=performance.now();const dt=Math.min(1.5,(now-last)/1000);last=now;tick(dt,demoWatts,85,true);},250);
-  });
+  }
+  $('coachDemo').addEventListener('click',launchTrainerFreeDemo);
+  $('coachFirstRunDemo').addEventListener('click',launchTrainerFreeDemo);
   function stopDemo(){if(demoTimer!==null)window.clearInterval(demoTimer);demoTimer=null;demoControls.hidden=true;}
   function showHud(powerNow:number|null=null){
     if(!session)return;
