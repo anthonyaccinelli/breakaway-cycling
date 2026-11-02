@@ -297,3 +297,21 @@
 #breakawayCoachScreen .coach-first-run-actions .coach-demo-secondary:hover{background:#eaf2ff!important}
 #breakawayCoachScreen .coach-first-run-actions .coach-demo-secondary:focus-visible{outline:3px solid #0b4bb9;outline-offset:3px}
 @media(max-width:700px){#breakawayCoachScreen .coach-first-run-actions{width:100%;flex-direction:column;align-items:stretch}#breakawayCoachScreen .coach-first-run-actions button{width:100%}}
+
+/* Adaptive scheduling: restrained typography and a readable before/after log. */
+#breakawayCoachScreen .coach-adaptive-summary[hidden]{display:none!important}
+#breakawayCoachScreen .coach-adaptive-summary{margin:0 0 17px;padding:16px 19px;
+  background:#fff;border:1px solid #c8d6e5;border-left:4px solid #527db5;border-radius:11px;
+  box-shadow:0 2px 9px #263b5710;color:#233d5c}
+#breakawayCoachScreen .coach-adaptive-summary>strong{display:block;font-size:14px;
+  font-weight:850;letter-spacing:.3px;color:#1b467e}
+#breakawayCoachScreen .coach-adaptive-summary>p{margin:6px 0 11px;color:#3c5775;font-size:14px;line-height:1.45}
+#breakawayCoachScreen .coach-adaptive-summary ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+#breakawayCoachScreen .coach-adaptive-summary li{padding:10px 12px;background:#f3f7fb;
+  border:1px solid #dbe5f0;border-radius:8px;font-size:14px;line-height:1.5}
+#breakawayCoachScreen .coach-adaptive-summary li strong{font-weight:850;color:#214671}
+#breakawayCoachScreen .coach-adaptive-summary li p{margin:4px 0 0;font-size:13px;color:#486079}
+#breakawayCoachScreen .coach-day-label small{display:block;font-size:11px;letter-spacing:0;
+  color:#52708f;font-weight:700;margin-top:2px}
+#breakawayCoachScreen .coach-adaptive-inline{display:block;width:100%;
+  color:#405b78;font-size:12px;line-height:1.4;padding:4px 6px}
