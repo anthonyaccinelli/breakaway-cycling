@@ -116,7 +116,7 @@ export function mountAdaptiveUI(statusHost:HTMLElement,morningHost:HTMLElement,c
   changesHost.querySelector('#coachChangeList')!.innerHTML=changes.length?
    changes.map(d=>'<article class="coach-adaptive-change"><div class="coach-adaptive-change-top">'+
     '<span class="coach-readiness-dot coach-readiness-dot-'+d.light+'" aria-hidden="true"></span><strong>'+escapeHtml(d.date)+'</strong>'+
-    '<span>'+ (d.light==='red'?'REST ADVISED':d.light==='yellow'?'EASIER SESSION':'COMPLETION UPDATE')+'</span></div>'+
+    '<span>'+ (d.locked?'RIDER OVERRIDE':d.light==='red'?'REST ADVISED':d.light==='yellow'?'EASIER SESSION':'COMPLETION UPDATE')+'</span></div>'+
     '<div class="coach-adaptive-beforeafter"><div><small>ORIGINALLY</small><strong>'+escapeHtml(d.originalLabel)+'</strong></div>'+
     '<span aria-hidden="true">→</span><div><small>NOW</small><strong>'+escapeHtml(d.updatedLabel)+'</strong></div></div>'+
     '<p>'+escapeHtml(d.changes.join(' ')+' '+d.reasons.join(' '))+'</p>'+
