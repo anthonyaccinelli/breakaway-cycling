@@ -435,3 +435,31 @@ body[data-ride-experience="pedalkin"] .ride-summary.ride-summary-fullscreen{
   padding:4px 1px!important;font-size:clamp(8px,2.1vw,11px)!important;
  }
 }
+
+
+/* Desktop-only: the authored Buddy Creature window is a real, accessible hit
+   target. It follows the SVG's original 1920×1080 coordinates. */
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode button.pk-buddy-art{
+ left:83.20%!important;top:56.20%!important;width:15.0%!important;height:22.10%!important;
+ z-index:11!important;cursor:pointer!important;pointer-events:auto!important;
+}
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-ride-nav,
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-ride-tabs,
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-ride-tabs>button{
+ pointer-events:auto!important;
+}
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-ride-nav{z-index:60!important;}
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-buddy-choices{
+ display:grid!important;gap:9px!important;margin:13px 0 0!important;
+}
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-buddy-choice{
+ display:block!important;position:static!important;min-height:42px!important;
+ width:100%!important;padding:9px 12px!important;margin:0!important;
+ text-align:left!important;opacity:1!important;visibility:visible!important;
+ border:2px solid #16383d!important;border-radius:5px!important;
+ background:#f6d58c!important;color:#16383d!important;cursor:pointer!important;
+ font:700 15px/1.3 "Spokemon Minecraft",monospace!important;
+}
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-buddy-choice[aria-pressed="true"]{
+ background:#a9d39c!important;
+}
