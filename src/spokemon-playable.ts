@@ -9,7 +9,9 @@ export type SpokemonRideTelemetry={
  speedMph?:number;caloriesKcal?:number;gear?:number|null;running?:boolean;connected?:boolean;
 };
 type Scene='explore'|'encounter';
-type SavedCreature={id:string;name:string;capturedAt:string;count:number};
+type SavedCreature={id:string;name:string;capturedAt:string;count:number;xp?:number};
+const levelAt=(xp:number)=>Math.floor(Math.sqrt(Math.max(0,xp)/120))+1;
+const threshold=(level:number)=>120*level*level;
 const NS='http://www.w3.org/2000/svg';
 const STORAGE='spokemon-caught-v1';
 const BUDDY_STORAGE='spokemon-buddy-v1';
@@ -51,6 +53,8 @@ export function mountSpokemonPlayable(options:{
  let lastSourceTime=0,lastTick=performance.now();
  let simulator=false,simulationRunning=false,simDistance=0,simPower=165,simElapsed=0,simKcal=0;
  let progressDistance=0;
+ let lastXpElapsed=0;
+ let levelFlashUntil=0;
  let encounterCount=0;
  let savedAt=0;
  const view=document.createElementNS(NS,'svg');
@@ -66,7 +70,8 @@ export function mountSpokemonPlayable(options:{
   '<div class="pk-game-toolbar-buttons"><button data-pk-control="simulate">START TEST RIDE</button>'+
   '<button data-pk-control="session">START / PAUSE REAL RIDE</button>'+
   '<button data-pk-control="encounter">FIND SPOKEMON</button>'+
-  '<button data-pk-control="collection">COLLECTION</button>'+
+  '<button data-pk-control="collection">COLLECTION</button>'+ 
+  '<button data-pk-control="fullscreen">FULL SCREEN</button>'+
   '<button data-pk-control="finish">SAVE & FINISH REAL RIDE</button></div>'+
   '<label>TEST EFFORT <output data-pk-game-watts>165 W</output><input data-pk-control="watts" type="range" min="60" max="310" value="165"></label>'+
   '<small>Test rides are simulated and are never recorded or exported. Real rides use your connected trainer and Breakaway recorder.</small></div></details>';
@@ -181,6 +186,24 @@ export function mountSpokemonPlayable(options:{
   if(!svg||svg.localName!=='svg')return;
   const f=frame();
   const currentBuddy=buddy();
+   svg.querySelector('#pk-game-progression')?.remove();
+   const hud=make('g',{id:'pk-game-progression'});
+   if(getScene()==='encounter'){
+    rect(hud,730,285,460,53,'#f2e8ca',5);
+    text(hud,748,320,'TEMPERAMENT: '+species.personality.toUpperCase(),25,'#17343b');
+   }
+   if(currentBuddy){
+    const xp=Math.max(0,currentBuddy.xp||0),level=levelAt(xp);
+    const low=threshold(level-1),high=threshold(level);
+    const ratio=clamp((xp-low)/(high-low),0,1);
+    rect(hud,730,827,460,92,'#17343b',5);
+    text(hud,747,856,currentBuddy.name.toUpperCase()+'  LV '+level,23,'#fff2d4');
+    rect(hud,747,867,426,18,'#52665e',2);
+    rect(hud,747,867,426*ratio,18,'#9eca96',2);
+    text(hud,747,909,'XP '+Math.floor(xp-low)+' / '+(high-low),19,'#fff2d4');
+    if(performance.now()<levelFlashUntil)text(hud,1040,856,'LEVEL UP!',22,'#f6d58c');
+   }
+   svg.appendChild(hud);
   const existingBuddy=svg.querySelector('#pk-active-buddy');
   if((existingBuddy?.getAttribute('data-creature-id')||'')!==(currentBuddy?.id||'')){
    existingBuddy?.remove();
@@ -329,7 +352,7 @@ export function mountSpokemonPlayable(options:{
  function saveCreature(){
   const old=collection.find(x=>x.id===species.id);
   if(old)old.count+=1;
-  else collection.push({id:species.id,name:species.name,capturedAt:new Date().toISOString(),count:1});
+  else collection.push({id:species.id,name:species.name,capturedAt:new Date().toISOString(),count:1,xp:0});
   try{localStorage.setItem(STORAGE,JSON.stringify(collection));}catch{}
   if(!selectedBuddyId)setBuddy(species.id);
   else paint();
@@ -369,6 +392,10 @@ export function mountSpokemonPlayable(options:{
   else if(action==='session'){if(ready())document.getElementById('start')?.click();}
   else if(action==='encounter')encounter();
   else if(action==='collection')journal();
+   else if(action==='fullscreen'){
+    if(document.fullscreenElement)void document.exitFullscreen?.();
+    else if(host.requestFullscreen)void host.requestFullscreen();
+   }
   else if(action==='finish'&&ready())onFinishRide();
  }));
  wattsControl.addEventListener('input',()=>{simPower=Number(wattsControl.value);output.textContent=simPower+' W';paint();});
@@ -400,6 +427,15 @@ export function mountSpokemonPlayable(options:{
    (f.cadenceRpm===undefined||f.cadenceRpm>35);
   const measuredDistance=Math.max(0,f.distanceMeters);
   if(ready()||simulator){progressDistance=measuredDistance;}
+   if(moving&&buddy()){
+    const current=buddy()!;
+    const delta=ready()?clamp(f.elapsedSeconds-lastXpElapsed,0,dt+0.5):dt*5;
+    const previous=levelAt(current.xp||0);
+    current.xp=(current.xp||0)+Math.max(0,delta);
+    if(levelAt(current.xp)>previous)levelFlashUntil=performance.now()+3500;
+    try{localStorage.setItem(STORAGE,JSON.stringify(collection));}catch{}
+   }
+   lastXpElapsed=f.elapsedSeconds;
   if(getScene()==='explore'&&moving&&progressDistance>=encounterCooldown){
    encounter();
   }
