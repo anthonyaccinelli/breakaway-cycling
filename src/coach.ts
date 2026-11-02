@@ -17,6 +17,9 @@ import {calendarDays} from './coach-calendar';
 import type {CoachCalendarDay} from './coach-calendar';
 import './coach-calendar.css';
 import {mountWorkoutImporter} from './coach-workout-import-ui';
+import {adaptWeek,changesSummary} from './coach-adaptive';
+import type {AdaptivePlan} from './coach-adaptive';
+import {mountAdaptiveUI} from './coach-adaptive-ui';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
@@ -54,6 +57,8 @@ export function mountCoach(bridge:CoachBridge){
   let controlChoice:CoachControl='structured';
   let platformRides:Awaited<ReturnType<CoachBridge['getPlatformRides']>>=[];
   let strength:ReturnType<typeof mountCoachStrength>|null=null;
+  let adaptive:ReturnType<typeof mountAdaptiveUI>|null=null;
+  let activeAdaptation:AdaptivePlan|null=null;
   let session:Session|null=null;
   let finishedId='';
   let renderAt=0;
@@ -93,6 +98,9 @@ export function mountCoach(bridge:CoachBridge){
       <div><strong>New to Breakaway Coach?</strong><p>Start here: set your goal, available training time, and equipment so Coach can make a plan for you.</p></div>
       <button type="button" data-navigate-coach="settings">SET UP MY PLAN →</button>
     </div>
+    <div id="coachAdaptiveStatus" aria-live="polite"></div>
+    <div id="coachAdaptiveTodayDiff"></div>
+    <section id="coachAdaptiveMorning" class="coach-panel coach-adaptive-morning" aria-label="Garmin morning sleep and HRV check-in"></section>
     <div class="coach-calendar" aria-label="Next seven days of training">
       <div class="coach-calendar-heading"><span class="coach-tag">YOUR NEXT 7 DAYS</span><span class="coach-calendar-hint">Select a day for details</span></div>
       <div class="coach-calendar-strip" id="coachCalendarStrip" role="group" aria-label="Next seven calendar days"></div>
@@ -150,6 +158,7 @@ export function mountCoach(bridge:CoachBridge){
   </section>
   <section class="coach-view" id="coachViewPlan" role="tabpanel" aria-labelledby="coachTabPlan" data-coach-view="plan" hidden>
     <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training week.</h2><p>Your rides, strength sessions, and rest days in one place.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit my plan →</button></div>
+    <section id="coachAdaptiveChanges" class="coach-panel" aria-label="Adaptive workout changes"></section>
     <div class="coach-plan-grid">
       <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS WEEK · CYCLING + STRENGTH</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
       <section class="coach-panel coach-plan-explain"><div class="coach-section-top"><span class="coach-tag">HOW TO USE YOUR WEEK</span></div>
