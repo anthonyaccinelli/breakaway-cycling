@@ -21,8 +21,9 @@ export function goalPhase(goal:CoachEventGoal,now:Date):{phase:'foundation'|'bas
  const event=new Date(goal.date+'T12:00:00');
  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);
  const days=Math.round((event.getTime()-today.getTime())/86400000);
+ const stageCount=goal.discipline==='stage-race'?Math.max(2,goal.stages):1;
  const weeksLeft=Math.max(0,Math.ceil(days/7));
- const phase=days<0?'post-event':days===0?'event':days<=7?'taper':days<=28?'specific':days<=70?'build':'base';
+ const phase=days<-(stageCount-1)?'post-event':days<=0?'event':days<=7?'taper':days<=28?'specific':days<=70?'build':'base';
  const descriptions={base:'Build a sustainable aerobic foundation before race-specific sessions.',build:'Develop the power and endurance needed for your event.',specific:'Practice efforts that resemble your event while managing fatigue.',taper:'Reduce accumulated fatigue; preserve fitness and arrive ready.',event:'Event day: follow your pacing, fueling and safety plan.','post-event':'Recover after the event before setting a new primary goal.'};
  return {phase,weeksLeft,description:descriptions[phase]};
 }
