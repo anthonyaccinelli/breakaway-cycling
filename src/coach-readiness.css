@@ -14,3 +14,8 @@
 .coach-v2 #coachFtpKnown{min-height:44px}
 .coach-v2 .coach-morning :is(input,select,summary,button):focus-visible{outline:3px solid #1c62b6;outline-offset:3px}
 @media(max-width:900px){.coach-v2 .coach-checkin-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.coach-v2 .coach-change-detail{margin:12px 0;padding:14px 16px;border:1px solid #b9cde0;border-radius:10px;background:#f2f7fc;color:#263d57}
+.coach-v2 .coach-change-detail strong{font-size:12px;letter-spacing:.05em}
+.coach-v2 .coach-change-pair{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0;font-weight:700;font-size:13px}
+.coach-v2 .coach-change-detail p{margin:8px 0;line-height:1.5}
