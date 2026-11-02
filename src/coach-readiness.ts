@@ -15,7 +15,10 @@ const integer=(x:unknown,min:number,max:number):number|null=>
 export function validCheckIn(value:unknown,date:string):MorningCheckIn|null{
  if(!value||typeof value!=='object')return null;
  const v=value as Partial<MorningCheckIn>;
- if(v.date!==date||!['tired','okay','great'].includes(String(v.feeling)))return null;
+ // Read legacy unpadded dates while writing current dates consistently as YYYY-MM-DD.
+ const dateMatch=typeof v.date==='string'? /^(\\d{4})-(\\d{1,2})-(\\d{1,2})$/.exec(v.date):null;
+ const normalizedDate=dateMatch?[dateMatch[1],dateMatch[2].padStart(2,'0'),dateMatch[3].padStart(2,'0')].join('-'):null;
+ if(normalizedDate!==date||!['tired','okay','great'].includes(String(v.feeling)))return null;
  // Reject invalid readings rather than quietly considering them normal.
  for(const [k,min,max] of [['bodyBattery',0,100],['sleepScore',0,100],['hrvMs',1,300]] as const){
   if(v[k]!==null&&v[k]!==undefined&&integer(v[k],min,max)===null)return null;
