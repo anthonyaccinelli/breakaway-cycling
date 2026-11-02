@@ -22,6 +22,7 @@ import {COACH_CHECKIN_KEY,COACH_FTP_KNOWN_KEY,validCheckIn,recoveryGuidance,appl
 import './coach-readiness.css';
 import {COACH_EVENT_GOAL_KEY,DEFAULT_EVENT_GOAL,GOAL_DISCIPLINES,validEventGoal,goalPhase,eventWeek} from './coach-event-goal';
 import type {CoachEventGoal} from './coach-event-goal';
+import './coach-event-goal.css';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
