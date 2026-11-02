@@ -987,6 +987,7 @@ function publishPedalkinRideFrame(){
   heartRateBpm:Number(($('heartRate').textContent||'').trim())||null,
   speedMph:speed*MPH_PER_MPS,caloriesKcal:energyKcal,
   gear:drivetrainMode==='virtual'?gear:null,
+  ftpWatts:Math.max(50,Math.min(1000,Number(($('ftp') as HTMLInputElement).value)||250)),
   running,connected:trainerReadyForRide()
  }}));
 }
