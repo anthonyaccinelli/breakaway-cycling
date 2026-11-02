@@ -462,7 +462,7 @@ export function mountCoach(bridge:CoachBridge){
     const strengthCard=day.strength?
       '<div class="coach-calendar-session"><div><span class="coach-calendar-type">'+(strengthDone?'STRENGTH · COMPLETED':'STRENGTH · NO TRAINER NEEDED')+'</span>'+
       '<strong>Full Body Strength '+day.strength+'</strong><p>'+day.strengthMinutes+' min · Exercises matched to your saved equipment</p></div>'+
-      (strengthDone?'':'<button type="button" data-calendar-action="strength" data-calendar-index="'+expandedIndex+'">START STRENGTH →</button>')+'</div>':'';
+      (strengthDone?'':'<button type="button" data-calendar-action="strength" data-calendar-index="'+expandedIndex+'">'+(day.isToday?'START STRENGTH':'START STRENGTH TODAY (OPTIONAL)')+' →</button>')+'</div>':'';
     const isEvent=day.reason.startsWith('Event stage ');
     const restCard=!rideCard&&!strengthCard?
       '<div class="coach-calendar-session"><div><span class="coach-calendar-type">'+(isEvent?'EVENT DAY':'RECOVERY')+'</span>'+
@@ -664,7 +664,7 @@ export function mountCoach(bridge:CoachBridge){
         day.status==='skipped'?'<span class="coach-day-rest">Skipped by you · not rescheduled</span>':
         day.status==='missed'?'<span class="coach-day-rest">Not completed · not rescheduled</span>':
         day.status==='event'?'<span class="coach-day-event">🏁 Event day · no indoor session scheduled</span>':'';
-      const lifting=day.strength&&!isPast?'<button type="button" class="coach-day-strength" data-strength-day="'+day.weekday+'" data-strength-variation="'+day.strength+'"><span><strong>▥ Full Body Strength '+day.strength+'</strong><small>'+day.strengthMinutes+' min · '+escapeHtml((strength?.settings.equipment||[]).filter(x=>x!=='bodyweight').join(', ')||'Bodyweight')+'</small></span><span aria-hidden="true">→</span></button>':
+      const lifting=day.strength&&!isPast?'<button type="button" class="coach-day-strength" data-strength-day="'+day.weekday+'" data-strength-variation="'+day.strength+'"><span><strong>▥ Full Body Strength '+day.strength+'</strong><small>'+day.strengthMinutes+' min'+(day.key===todayKey?'':' · Start today (optional)')+' · '+escapeHtml((strength?.settings.equipment||[]).filter(x=>x!=='bodyweight').join(', ')||'Bodyweight')+'</small></span><span aria-hidden="true">→</span></button>':
         day.strength?'<span class="coach-day-rest">Strength was scheduled</span>':'';
       return '<div class="coach-day-row '+(day.key===todayKey?'coach-week-today':'')+'"><span class="coach-day-label">'+weekdays[day.weekday]+'<small>'+escapeHtml(day.key.slice(5))+'</small></span><div class="coach-day-items">'+(cycling+lifting||'<span class="coach-day-rest">Rest day</span>')+
         (day.changed?'<small class="coach-adaptive-inline">'+escapeHtml(day.reason)+'</small>':'')+'</div></div>';
