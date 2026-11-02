@@ -25,7 +25,9 @@ test('Test mode cannot synthesize ride records or trainer commands',()=>{
 test('Encounter gameplay includes captures, failures, cooldown, and collection persistence',()=>{
  assert.match(gameplay,/choosePineForestSpokemon/);
  assert.match(gameplay,/if\(trust>=100\)/);
- assert.match(gameplay,/resolve\(Math\.random\(\)<\.85\)/);
+ // At the completion threshold, capture is guaranteed regardless of the RNG.
+ assert.match(gameplay,/if\\(trust>=100\\)\\{[\\s\\S]*?resolve\\(true\\);[\\s\\S]*?\\}else if\\(patience<=0\\)resolve\\(false\\)/);
+ assert.doesNotMatch(gameplay,/resolve\\(Math\\.random\\(\\)<\\.85\\)/);
  assert.match(gameplay,/patience<=0/);
  assert.match(gameplay,/localStorage\.setItem\(STORAGE/);
  assert.match(gameplay,/encounterCooldown=progressDistance/);
