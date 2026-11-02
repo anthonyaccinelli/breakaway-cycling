@@ -17,7 +17,7 @@ test('Spokemon real game receives route, measured cadence, power and save state'
  assert.match(gameplay,/const ready=\(\)=>Boolean\(lastReal\?\.connected/);
 });
 test('Test mode cannot synthesize ride records or trainer commands',()=>{
- assert.match(gameplay,/Test rides are simulated and are never recorded or exported/);
+ assert.match(gameplay,/Test Ride moves along the route about 5× faster for gameplay QA/);
  assert.match(gameplay,/simulationRunning/);
  assert.doesNotMatch(gameplay,/dispatchEvent\(new CustomEvent\('pedalkin:ride-frame'/);
  assert.doesNotMatch(gameplay,/setResistance|setSimGradient|saveRecordedRide/);
