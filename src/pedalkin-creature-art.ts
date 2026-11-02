@@ -15,6 +15,23 @@ export function addWorkingCreatureSilhouette(svg:SVGSVGElement,species:SpokemonS
  group.setAttribute('aria-label',species.name+' — provisional pixel-art silhouette');
  group.setAttribute('role','img');
  group.setAttribute('shape-rendering','crispEdges');
+ if(species.artSrc){
+  // Display the EXACT approved pixel artwork, not the provisional silhouette.
+  // The 64x64 image retains its transparent pixels and uses nearest-neighbor
+  // scaling within the existing 460x370 Illustrator creature viewport.
+  const sprite=document.createElementNS(SVG_NS,'image');
+  sprite.setAttribute('href',species.artSrc);
+  sprite.setAttribute('x','779');
+  sprite.setAttribute('y','355');
+  sprite.setAttribute('width','362');
+  sprite.setAttribute('height','362');
+  sprite.setAttribute('preserveAspectRatio','xMidYMid meet');
+  sprite.setAttribute('image-rendering','pixelated');
+  group.setAttribute('aria-label',species.name+' — approved pixel artwork');
+  group.append(sprite);
+  svg.append(group);
+  return;
+ }
  const art=document.createElementNS(SVG_NS,'g');
  art.setAttribute('transform','translate(782 394) scale(6.8)');
  const palette:Record<Tone,string>={
