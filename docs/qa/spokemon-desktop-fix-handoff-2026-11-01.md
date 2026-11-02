@@ -18,10 +18,10 @@ Original approved graphic baseline: `docs/spokemon-exact-svg-baseline-2026-11-01
 8. **SPK-010 / Validation:** Invalid zero/negative distance and invalid gain rejected with inline feedback; old route not silently overwritten.
 9. **SPK-011 / Settings:** Virtual gear and Target ERG panels refresh immediately on selection.
 10. **SPK-012 / Homepage:** corrected "smart trainer required" claim and outdated accessible name.
-11. **SPK-013 / Temperaments:** seven individual temperaments (Shy, Calm, Energetic, Playful, Stubborn, Unpredictable, Chaotic). Capture rate depends on current watts/FTP and temperament; Chaotic is ~1.8% of encounters and requires continuous ≥90% FTP for 10 sec (rare event, optional effort). Capture at 100% Trust still has nonzero failure chance.
+11. **SPK-013 / Temperaments:** seven individual temperaments (Shy, Calm, Energetic, Playful, Stubborn, Unpredictable, Chaotic). Capture rate depends on current watts/FTP and temperament; Chaotic is ~1.8% of encounters and requires continuous ≥90% FTP for 10 sec (rare event, optional effort). **100% Trust now guarantees capture**; the only failed encounter is when Patience expires before full Trust. This corrects the unfair post-100% random roll (previously 30% failure for Chaotic).
 12. **SPK-014 / Buddy:** stored chosen companion, selection menu, XP from moving pedal time, level display, temporary selected-species pixel sprite in the original companion viewport. Collection stores individual-capture temperament metadata while preserving backward compatibility with legacy species-count records.
 13. **SPK-015 / Sim stats:** Stats draws from current test or native ride frame, clearly labels test as NOT RECORDED; Game Controls explains 5× accelerated mode.
-14. **SPK-016 / Onboarding/feedback:** in-game How to Play covers ride, Trust, Patience, capture chance, temperaments, pause, Buddy and rare Chaotic. Capture/escape message stays 6.5 sec, with distinct success/failure text.
+14. **SPK-016 / Onboarding/feedback:** in-game How to Play covers ride, Trust, Patience, guaranteed capture at 100%, temperaments, pause, Buddy and rare Chaotic. Capture/escape message stays 6.5 sec, with distinct success/failure text.
 15. **SPK-017 / Zone 2 grace:** effort bands centered on sustainable cycling; short coasts/gear shifts protected.
 16. **SPK-018 / Time assumption:** time-estimate tooltip explicitly describes fixed 15-mph planning assumption.
 
@@ -48,7 +48,7 @@ Final additional browser test:
 - Buddy chooser rendered and had accurate level/XP;
 - visible 02 Devices tab opened setup;
 - no page JS errors.
-Further Chaotic QA: forced Elderoot/Chaotic was shown with the 90% FTP /10 sec requirement; the simulated sustained power reached 100% Trust and the deliberately forced failure roll produced an "escaped" result. Pause/real power/real FTMS still requires physical trainer confirmation.
+Historical QA: a forced Elderoot/Chaotic reached 100% Trust but failed a random roll, which the user identified as unfair. The random post-100% roll was removed on the current branch. Reaching full Trust must capture; otherwise Patience expiry allows an escape. Pause/real power/real FTMS still requires physical trainer confirmation.
 
 ## Tests / release state
 On tested code before final tooltip/update: `npm run build` success, `npx tsc --noEmit` success, `npm test` **269 passed, zero failed**.
@@ -65,3 +65,6 @@ Cannot validate real Elite Direto XR-T FTMS pairing and virtual gears, Bluetooth
 - Buddy collection currently localStorage on current device (no cross-device sync).
 - Running during an encounter is protected from UI navigation without finishing a real recorded session.
 - The initial testimonial/flow is desktop-first; leave mobile unchanged per explicit user preference.
+
+## Capture-rule correction (November 1, 2026)
+The user confirmed that **100% Trust is a guaranteed capture**, including Chaotic Spokemon. A failed encounter occurs only when the creature's Patience reaches zero before Trust reaches 100%. The UI floors displayed Trust to avoid showing “100%” at 99.5%. The original SVG masters remain untouched. The former chanceAtFullTrust helper and random capture roll have been removed; test cases assert this behavior. Do not reintroduce random failure after full Trust.
