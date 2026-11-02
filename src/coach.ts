@@ -487,9 +487,11 @@ export function mountCoach(bridge:CoachBridge){
     if(changed){
       const original=library.find(w=>w.id===originalId);
       const updated=library.find(w=>w.id===recommendation.workoutId);
+      const originalMinutes=original?Math.round(workoutDuration(original)/60):null;
+      const updatedMinutes=updated?Math.round(workoutDuration(updated)/60):null;
       $('coachChangeDetail').innerHTML='<strong>WHY TODAY CHANGED</strong>'+
-        '<div class="coach-change-pair"><span>ORIGINAL: '+escapeHtml(original?.name||originalId)+'</span><span>RECOMMENDED: '+escapeHtml(updated?.name||'Recovery spin')+'</span></div>'+
-        '<p>'+escapeHtml(recommendation.reason)+'</p><p>You can select the original workout under Swap workout. This does not alter your weekly plan.</p>';
+        '<div class="coach-change-pair"><span>ORIGINAL: '+escapeHtml(original?.name||originalId)+(originalMinutes===null?'':' · '+originalMinutes+' min')+'</span><span>RECOMMENDED: '+escapeHtml(updated?.name||'Recovery spin')+(updatedMinutes===null?'':' · '+updatedMinutes+' min')+'</span></div>'+
+        '<p>'+escapeHtml(recommendation.reason)+'</p><p>Only today’s suggestion changed. Your future schedule is unchanged. To ride the original workout, select it under Swap workout.</p>';
     }
     $('coachRestReason').textContent=strengthOnly?'Your strength session is ready above. No trainer needed. You can still pick an optional cycling workout.':recommendation.reason;
     $('coachUseRecommendation').hidden=!riderSelected;
