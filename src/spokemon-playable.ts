@@ -5,6 +5,7 @@ import './spokemon-playable.css';
 
 export type SpokemonRideTelemetry={
  distanceMeters:number;totalMeters:number;samples:number[];elapsedSeconds:number;
+ rideDistanceMeters?:number;elevationGainFeet?:number;
  gradePercent:number;powerWatts?:number;cadenceRpm?:number;heartRateBpm?:number|null;
  speedMph?:number;caloriesKcal?:number;gear?:number|null;running?:boolean;connected?:boolean;
 };
