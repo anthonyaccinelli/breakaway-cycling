@@ -679,6 +679,15 @@ export function mountPedalkinRide():void {
   host,slot,active,getScene:()=>stageName,
   switchScene:(which,species)=>{stageName=which;if(species)currentSpecies=species;render();},
   onFinishRide:finishThroughNative,
+  onHelp:()=>popupOpen('HOW TO BEFRIEND SPOKEMON',
+   '1. Generate a route and connect a smart trainer, or start an unrecorded Test Ride.\n'+
+   '2. Keep pedaling. Wild Spokemon appear as distance advances.\n'+
+   '3. Each encounter has a unique temperament and preferred effort.\n'+
+   '4. Maintain comfortable power to build Trust before Patience expires.\n'+
+   '5. Trust at 100% gives a CAPTURE CHANCE, not a guarantee.\n'+
+   '6. Pausing freezes the encounter; brief gear changes get a grace period.\n'+
+   '7. Open BUDDY to choose a companion and earn XP while pedaling.\n'+
+   '8. Chaotic creatures are extremely rare and optional: 90% FTP for 10 seconds.'),
   onCollection:(items)=>popupOpen('YOUR COLLECTION',items.length?items.map(c=>c.name+' ×'+c.count).join('\n')+'\n\n'+items.length+' of '+PINE_FOREST_SPOKEMON.length+' species discovered.':'No Spokemon collected yet. Keep riding to find a friend.')
  });
  function sync(){
