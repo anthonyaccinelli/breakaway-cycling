@@ -6,3 +6,12 @@
 .coach-v2 .coach-goal-setup [hidden]{display:none!important}
 .coach-v2 .coach-goal-headline{margin:12px 0;padding:12px 15px;background:#e7f0fc;border:1px solid #bbd2ed;border-radius:9px;color:#183b66;font-weight:700}
 @media(max-width:700px){.coach-v2 .coach-goal-setup .coach-fields{grid-template-columns:1fr}}
+
+.coach-v2 .coach-goal-headline{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.coach-v2 .coach-goal-headline>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.coach-v2 .coach-goal-headline strong{font-size:18px;color:#16375d;line-height:1.35}
+.coach-v2 .coach-goal-headline #coachGoalHeadlineMeta{font-size:12px;color:#45617f;text-transform:uppercase;letter-spacing:.03em}
+.coach-v2 .coach-goal-headline .coach-subtle-link{flex-shrink:0;color:#174ca6;font-weight:700}
+.coach-v2 .coach-day-warning{display:block;color:#852f28;font-size:13px;font-weight:700;padding:10px;background:#fff2ee;border:1px solid #e1a29c;border-radius:7px}
+.coach-v2 .coach-plan-goal-context{margin:5px 0 13px;color:#496582;font-size:14px}
+@media(max-width:540px){.coach-v2 .coach-goal-headline{align-items:flex-start;flex-direction:column}}
