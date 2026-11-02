@@ -289,6 +289,7 @@ export function mountCoach(bridge:CoachBridge){
     navigate('today');
     syncSettingsForm();
     ($('coachFtpKnown') as HTMLSelectElement).dispatchEvent(new Event('change'));
+    if(!ftpKnown){controlChoice='guided';styleSelect.value='guided';}
     const todayCheck=validCheckIn(readJson(COACH_CHECKIN_KEY),dayKey(new Date()));
     if(todayCheck){
       ($('coachFeeling') as HTMLSelectElement).value=todayCheck.feeling;
@@ -635,7 +636,13 @@ export function mountCoach(bridge:CoachBridge){
       }else{selected=button.dataset.upcomingWorkout;riderSelected=true;customWorkout=null;render();navigate('today');}
     }
   });
-  styleSelect.addEventListener('change',()=>{controlChoice=styleSelect.value as CoachControl;});
+  styleSelect.addEventListener('change',()=>{
+    controlChoice=styleSelect.value as CoachControl;
+    if(!ftpKnown&&controlChoice==='structured'){
+      controlChoice='guided';styleSelect.value='guided';
+      $('coachStatus').textContent='Set a reliable FTP in My Setup before selecting automatic ERG. Ride by feel is available now.';
+    }
+  });
   $('coachFtpKnown').addEventListener('change',()=>{
     const known=($('coachFtpKnown') as HTMLSelectElement).value==='yes';
     ($('coachFtp') as HTMLInputElement).disabled=!known;
