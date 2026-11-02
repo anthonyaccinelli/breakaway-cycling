@@ -1,3 +1,4 @@
+import {advanceCadenceSensorRide} from './spokemon-sensor-progress';
 import {virtualGearTarget,advanceRoadSpeed} from './virtual-drivetrain';
 import {createQuestIntroMusic} from './quest-intro-music';
 import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
@@ -1157,11 +1158,15 @@ function advanceRide(now:number){
     // virtual pace for route progression; never synthesize trainer power.
     if(procedural)ensureTerrain();
     const limit=procedural?routeLimit:points.at(-1)!.distance;
-    const freshCadence=now-cscLastCadenceAt<4500;
+    const freshCadence=cscLastCadenceAt>0&&now-cscLastCadenceAt<4500;
     cadence=freshCadence?cadence:0;
-    speed=cscHasSpeed?(now-cscLastSpeedAt<4500?cscSpeedMps:0)
-      :(freshCadence?Math.max(0,Math.min(160,cadence))/80*5.36448:0);
-    distance=Math.min(limit,distance+speed*step);
+    const progression=advanceCadenceSensorRide({
+     nowMs:now,lastSpeedAtMs:cscLastSpeedAt,lastCadenceAtMs:cscLastCadenceAt,
+     speedSensorConnected:cscHasSpeed,speedMps:cscSpeedMps,cadenceRpm:cadence,
+     distanceMeters:distance,stepSeconds:step,routeLimitMeters:limit,
+    });
+    speed=progression.speedMps;
+    distance=progression.distanceMeters;
     if(distance>=limit)break;
     continue;
    }
