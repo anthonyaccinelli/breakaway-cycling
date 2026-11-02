@@ -20,6 +20,8 @@ import './coach-calendar.css';
 import {mountWorkoutImporter} from './coach-workout-import-ui';
 import {COACH_CHECKIN_KEY,COACH_FTP_KNOWN_KEY,validCheckIn,recoveryGuidance,applyRecoveryGuidance,trainingDayGuidance} from './coach-readiness';
 import './coach-readiness.css';
+import {COACH_EVENT_GOAL_KEY,DEFAULT_EVENT_GOAL,GOAL_DISCIPLINES,validEventGoal,goalPhase,eventWeek} from './coach-event-goal';
+import type {CoachEventGoal} from './coach-event-goal';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
@@ -46,6 +48,7 @@ const byId=(parent:ParentNode,id:string)=>parent.querySelector<HTMLElement>('#'+
 export function mountCoach(bridge:CoachBridge){
   const profile=validProfile(readJson(COACH_PROFILE_KEY)||defaultProfile);
   let rider:CoachProfile=profile;
+  let eventGoal:CoachEventGoal=validEventGoal(readJson(COACH_EVENT_GOAL_KEY)||DEFAULT_EVENT_GOAL);
   let library=workoutLibrary(rider);
   let selected='endurance';
   let riderSelected=false;
@@ -115,6 +118,7 @@ export function mountCoach(bridge:CoachBridge){
         <p id="coachCheckinFeedback" role="status" aria-live="polite"></p>
       </details>
     </section>
+    <div class="coach-goal-headline" id="coachGoalHeadline" aria-live="polite">Your goal: balanced cycling fitness</div>
     <div id="coachAdaptiveToday" class="coach-adaptive-summary" role="status" aria-live="polite" hidden></div>
     <div class="coach-calendar" aria-label="Next seven days of training">
       <div class="coach-calendar-heading"><span class="coach-tag">YOUR NEXT 7 DAYS</span><span class="coach-calendar-hint">Select a day for details</span></div>
@@ -209,8 +213,27 @@ export function mountCoach(bridge:CoachBridge){
     </div>
     <div class="coach-settings-grid">
       <div class="coach-setup-left">
+      <section class="coach-panel coach-goal-setup" aria-label="Your training goal">
+        <div class="coach-section-top"><span class="coach-tag">STEP 1 · YOUR GOAL</span><span class="coach-tag">EVENT-BASED PLAN</span></div>
+        <h3>What are you training for?</h3>
+        <p class="coach-small">Your event changes the training emphasis. No race planned? Choose general cycling fitness.</p>
+        <div class="coach-fields">
+          <label>EVENT OR GOAL TYPE<select id="coachEventDiscipline">${Object.entries(GOAL_DISCIPLINES).map(([id,label])=>'<option value="'+id+'">'+label+'</option>').join('')}</select></label>
+          <label>EVENT NAME (OPTIONAL)<input id="coachEventName" type="text" maxlength="100" placeholder="e.g. Five-day gravel stage race"></label>
+          <label>EVENT DATE (IF KNOWN)<input id="coachEventDate" type="date"></label>
+          <label>YOUR PRIORITY<select id="coachEventPriority"><option value="A">A — primary goal</option><option value="B">B — preparation event</option><option value="C">C — training event</option></select></label>
+          <label>YOUR OBJECTIVE<select id="coachEventObjective"><option value="finish">Finish comfortably</option><option value="perform">Perform / compete</option></select></label>
+          <label>TERRAIN<select id="coachEventTerrain"><option value="road">Paved road</option><option value="gravel">Gravel</option><option value="trail">MTB trail</option><option value="mixed">Mixed</option></select></label>
+          <label>EVENT DISTANCE (KM, OPTIONAL)<input id="coachEventDistance" type="number" min="1" max="5000" step="1"></label>
+          <label>ESTIMATED RIDING TIME (MINUTES, OPTIONAL)<input id="coachEventDuration" type="number" min="1" max="30000" step="1"></label>
+          <label>ELEVATION GAIN (METERS, OPTIONAL)<input id="coachEventElevation" type="number" min="1" max="100000" step="1"></label>
+          <label id="coachEventStagesWrap">NUMBER OF STAGES<input id="coachEventStages" type="number" min="2" max="30" step="1" value="2"></label>
+        </div>
+        <p class="coach-small" id="coachGoalPhaseSummary"></p>
+        <p class="coach-small">Phase-based planning is an initial foundation, not a validated race-specific training prescription. Coaching will continue to adapt around your available time and recovery.</p>
+      </section>
       <section class="coach-panel">
-        <div class="coach-section-top"><span class="coach-tag">YOUR RIDER PROFILE</span><span class="coach-tag">LOCAL ONLY</span></div>
+        <div class="coach-section-top"><span class="coach-tag">STEP 2 · YOUR RIDER PROFILE</span><span class="coach-tag">LOCAL ONLY</span></div>
         <div class="coach-fields">
           <label>Do you know your measured or estimated FTP?<select id="coachFtpKnown"><option value="no">No — I'm new to power training</option><option value="yes">Yes — I'll enter it below</option></select></label>
           <label>FTP (W)<input id="coachFtp" type="number" min="75" max="550" step="1" aria-describedby="coachFtpHelp"></label>
@@ -317,7 +340,7 @@ export function mountCoach(bridge:CoachBridge){
   $('coachBack').addEventListener('click',close);
   // Single sources of truth for training schedule and recent load.
   function weekPlan(){
-    return integratedWeek(rider,strength?.settings||defaultStrength,recommendWeek(rider,false),
+    return integratedWeek(rider,strength?.settings||defaultStrength,eventGoal.discipline==='general'?recommendWeek(rider,false):eventWeek(rider,eventGoal,new Date()),
       id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
   }
   function recentRides():CoachRecentRide[]{
@@ -340,6 +363,14 @@ export function mountCoach(bridge:CoachBridge){
     const feedback=recentFeedback().concat((strength?.history||[]).map(r=>({date:Date.parse(r.date),rpe:r.rpe})));
     return fatigueSignals(rider,Date.now(),ftpKnown?recentRides():recentRides().map(r=>({...r,avgPower:null})),feedback).fatigued;
   }
+  function showGoalFields(){
+    const selected=($('coachEventDiscipline') as HTMLSelectElement).value;
+    $('coachEventStagesWrap').hidden=selected!=='stage-race';
+    const goal=validEventGoal({discipline:selected,date:($('coachEventDate') as HTMLInputElement).value});
+    const phase=goalPhase(goal,new Date());
+    $('coachGoalPhaseSummary').textContent=goal.discipline==='general'?'General fitness: build a sustainable weekly routine.':
+      (phase.weeksLeft===null?'Set an event date to calculate training phases.':phase.weeksLeft+' weeks remaining · '+phase.phase.toUpperCase()+' phase. '+phase.description);
+  }
   function syncSettingsForm(){
     ($('coachFtp') as HTMLInputElement).value=String(rider.ftp);
     ($('coachFtpKnown') as HTMLSelectElement).value=ftpKnown?'yes':'no';
@@ -348,6 +379,14 @@ export function mountCoach(bridge:CoachBridge){
     ($('coachRestDay') as HTMLSelectElement).value=String(rider.restDay);
     ($('coachExperience') as HTMLSelectElement).value=rider.experience;
     ($('coachGoal') as HTMLSelectElement).value=rider.goal;
+    ($('coachEventDiscipline') as HTMLSelectElement).value=eventGoal.discipline;
+    ($('coachEventName') as HTMLInputElement).value=eventGoal.name;
+    ($('coachEventDate') as HTMLInputElement).value=eventGoal.date;
+    ($('coachEventPriority') as HTMLSelectElement).value=eventGoal.priority;
+    ($('coachEventObjective') as HTMLSelectElement).value=eventGoal.objective;
+    ($('coachEventTerrain') as HTMLSelectElement).value=eventGoal.terrain;
+    for(const [id,val] of [['coachEventDistance',eventGoal.distanceKm],['coachEventDuration',eventGoal.durationMinutes],['coachEventElevation',eventGoal.elevationM],['coachEventStages',eventGoal.stages]] as const)($(id) as HTMLInputElement).value=val===null?'':String(val);
+    showGoalFields();
   }
   function getWorkout(){
     if(customWorkout)return customWorkout;
@@ -544,7 +583,7 @@ export function mountCoach(bridge:CoachBridge){
       strengthOnly?'STRENGTH DAY':recommendation.status==='recovery'?'RECOVERY ADJUSTMENT':
       recommendation.status==='rest'||recommendation.status==='completed'?'REST RECOMMENDED':'FROM YOUR PLAN';
     $('coachWhy').textContent=strengthOnly&&!riderSelected?'Your plan includes strength today. No cycling workout is scheduled.':resting?'Coach recommends rest today.':riderSelected?'You chose an optional alternative for today. Coach originally recommended: '+recommendation.reason:'Why Coach chose this: '+recommendation.reason;
-    const originalId=recommendWeek(rider,false)[nowDate.getDay()].workoutId;
+    const originalId=schedule.days.find(d=>d.day===nowDate.getDay())?.cyclingId||null;
     const changed=!riderSelected&&recommendation.status==='recovery'&&originalId&&originalId!==recommendation.workoutId;
     $('coachChangeDetail').hidden=!changed;
     if(changed){
@@ -573,6 +612,8 @@ export function mountCoach(bridge:CoachBridge){
     const history=historyRecords();
     const now=nowDate.getDay();
     const weekdays=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const phase=goalPhase(eventGoal,nowDate);
+    $('coachGoalHeadline').textContent=eventGoal.discipline==='general'?'Your goal: balanced cycling fitness':(eventGoal.name||GOAL_DISCIPLINES[eventGoal.discipline])+' · '+(phase.weeksLeft===null?'Set your event date':phase.weeksLeft+' weeks to go')+' · '+phase.phase+' phase';
     $('coachHeaderFtp').textContent=ftpKnown?'FTP '+rider.ftp+' W':'FTP NOT SET';
     const hasSetup=!!readJson(COACH_PROFILE_KEY);
     $('coachFirstRun').hidden=hasSetup;
@@ -755,7 +796,13 @@ export function mountCoach(bridge:CoachBridge){
       render();
     }catch(error){$('coachCheckinFeedback').textContent=error instanceof Error?error.message:'Invalid check-in.';}
   });
+  $('coachEventDiscipline').addEventListener('change',showGoalFields);
+  $('coachEventDate').addEventListener('change',showGoalFields);
   $('coachSaveProfile').addEventListener('click',()=>{
+    const proposedGoal=validEventGoal({discipline:($('coachEventDiscipline') as HTMLSelectElement).value,name:($('coachEventName') as HTMLInputElement).value,date:($('coachEventDate') as HTMLInputElement).value,priority:($('coachEventPriority') as HTMLSelectElement).value,objective:($('coachEventObjective') as HTMLSelectElement).value,terrain:($('coachEventTerrain') as HTMLSelectElement).value,distanceKm:($('coachEventDistance') as HTMLInputElement).value,durationMinutes:($('coachEventDuration') as HTMLInputElement).value,elevationM:($('coachEventElevation') as HTMLInputElement).value,stages:($('coachEventStages') as HTMLInputElement).value});
+    if(($('coachEventDate') as HTMLInputElement).value&&!proposedGoal.date){$('coachSettingsFeedback').textContent='Please enter a valid event date.';return;}
+    if(!writeJson(COACH_EVENT_GOAL_KEY,proposedGoal)){$('coachSettingsFeedback').textContent='Could not save your event goal. Check browser storage.';return;}
+    eventGoal=proposedGoal;
     const nextProfile=validProfile({
       ftp:Number(($('coachFtp') as HTMLInputElement).value),
       hours:Number(($('coachHours') as HTMLInputElement).value),
