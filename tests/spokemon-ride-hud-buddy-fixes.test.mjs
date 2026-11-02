@@ -19,12 +19,25 @@ test('Spokemon profile and ride dialogue show US miles, not km',()=>{
  assert.match(play,/REAL RIDE · '\+\(f\.distanceMeters\/METERS_PER_MILE\)/);
  assert.match(play,/TEST RIDE · '\+\(simDistance\/METERS_PER_MILE\)/);
 });
-test('Explore hides capture-only Trust and Patience, keeping the Biome card',()=>{
+test('Explore reuses two original upper-right cards for riding metrics, not capture controls',()=>{
  assert.match(play,/getScene\(\)==='explore'/);
- assert.match(play,/hide\('rect\[x="1566"\]\[y="98\.2"\]'\)/);
- assert.match(play,/biomePanel\.setAttribute\('y','437'\)/);
+ assert.match(play,/pk-explore-ride-stats/);
+ assert.match(play,/metric\('distance-label',1586,139,20\)/);
+ assert.match(play,/metric\('gain-label',1747,139,19\)/);
+ assert.match(play,/metric\('time-label',1586,310,23\)/);
+ assert.match(play,/biomePanel\.setAttribute\('y','277'\)/);
+ assert.match(play,/biomePanel\.setAttribute\('height','252'\)/);
+ assert.match(play,/hide\('text\[transform="translate\(1590\.5015 126\.1968\)"\]'\)/);
  assert.match(play,/hide\('text\[transform="translate\(1586\.3262 309\.9969\)"\]'\)/);
- assert.match(play,/hide\('rect\[x="1588\.33"\]\[y="383\.9"\]'\)/);
+ assert.doesNotMatch(play,/hide\('rect\[x="1566"\]\[y="98\.2"\]'\)/);
+});
+test('Distance and elevation gain use session-specific, measured totals',()=>{
+ assert.match(main,/rideDistanceMeters:sessionDistanceMeters\(\)/);
+ assert.match(main,/gainLossThrough\(distance\)\.gain-/);
+ assert.match(main,/gainLossThrough\(rideSessionStartDistance\)\.gain/);
+ assert.match(play,/elevationGainFeet\?:number/);
+ assert.match(play,/simulator\?ascentThrough\(samples,totalMeters,simDistance\):0/);
+ assert.match(play,/value\('time',clock\)/);
 });
 test('Captures automatically appoint a Buddy and selection persists across reload',()=>{
  assert.match(play,/BUDDY_STORAGE='spokemon-buddy-v1'/);
