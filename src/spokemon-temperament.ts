@@ -32,7 +32,7 @@ const cadenceSettings:typeof settings={
 };
 export function evaluateCadenceTemperament(
  personality:SpokemonTemperament,baselineRpm:number,cadenceRpm:number,
- moving:boolean,seconds:number,previous:TemperamentAttempt,metric:'power'|'cadence'='power'
+ moving:boolean,seconds:number,previous:TemperamentAttempt
 ):TemperamentFeedback{
  return evaluateTemperament(personality,baselineRpm,cadenceRpm,moving,seconds,previous,'cadence');
 }
@@ -41,7 +41,7 @@ export function initialTemperamentAttempt():TemperamentAttempt{
 }
 export function evaluateTemperament(
  personality:SpokemonTemperament,ftpWatts:number,powerWatts:number,
- moving:boolean,seconds:number,previous:TemperamentAttempt
+ moving:boolean,seconds:number,previous:TemperamentAttempt,metric:'power'|'cadence'='power'
 ):TemperamentFeedback{
  const ftp=clamp(Number.isFinite(ftpWatts)?ftpWatts:(metric==='cadence'?82:250),metric==='cadence'?55:50,metric==='cadence'?115:1000);
  const effort=Number.isFinite(powerWatts)?Math.max(0,powerWatts):0;
