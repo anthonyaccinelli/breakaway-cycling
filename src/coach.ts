@@ -18,6 +18,7 @@ import type {CoachCalendarDay} from './coach-calendar';
 import './coach-calendar.css';
 import {mountWorkoutImporter} from './coach-workout-import-ui';
 import {COACH_CHECKIN_KEY,COACH_FTP_KNOWN_KEY,validCheckIn,recoveryGuidance,applyRecoveryGuidance} from './coach-readiness';
+import './coach-readiness.css';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
