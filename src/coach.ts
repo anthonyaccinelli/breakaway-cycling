@@ -160,7 +160,7 @@ export function mountCoach(bridge:CoachBridge){
     <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training week.</h2><p>Your rides, strength sessions, and rest days in one place.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit my plan →</button></div>
     <section id="coachAdaptiveChanges" class="coach-panel" aria-label="Adaptive workout changes"></section>
     <div class="coach-plan-grid">
-      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS WEEK · CYCLING + STRENGTH</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
+      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">NEXT 7 DAYS · CYCLING + STRENGTH</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
       <section class="coach-panel coach-plan-explain"><div class="coach-section-top"><span class="coach-tag">HOW TO USE YOUR WEEK</span></div>
         <h3>Coach makes the plan. You choose when to go.</h3>
         <p>Tap a cycling session to review it on Today. Tap a strength session to open its guided workout. Your rest day stays free.</p>
@@ -512,12 +512,14 @@ export function mountCoach(bridge:CoachBridge){
       '<div><strong>'+rider.ftp+' W</strong><span>FTP</span></div>'+
       '<div><strong>'+rider.hours+' h</strong><span>Per week</span></div>'+
       '<div><strong>'+rider.days+' days</strong><span>Training days</span></div>';
-    const upcoming=schedule.days.flatMap(day=>{
+    const upcoming=adaptation.days.slice(1).flatMap(adjusted=>{
+      const day=schedule.days.find(x=>x.day===adjusted.weekday);
+      if(!day)return [];
       const entries:{day:number;name:string;type:'ride'|'strength';id:string;minutes:number}[]=[];
       if(day.cyclingId&&day.cyclingMinutes>0)entries.push({day:day.day,name:library.find(w=>w.id===day.cyclingId)?.name||'Cycling ride',type:'ride',id:day.cyclingId,minutes:day.cyclingMinutes});
       if(day.strength&&day.strengthMinutes>0)entries.push({day:day.day,name:'Full Body Strength '+day.strength,type:'strength',id:day.strength,minutes:day.strengthMinutes});
       return entries;
-    }).filter(item=>item.day>now).slice(0,3);
+    }).slice(0,3);
     $('coachNextUp').innerHTML=upcoming.length?upcoming.map(item=>
       '<button type="button" class="coach-upcoming-item" data-upcoming-type="'+item.type+'" data-upcoming-workout="'+escapeHtml(item.id)+'"><strong>'+weekdays[item.day]+'</strong><span>'+escapeHtml(item.name)+'<small>'+item.minutes+' min · '+(item.type==='ride'?'Ride':'Strength')+'</small></span><span aria-hidden="true">→</span></button>'
     ).join(''):'<p class="coach-small">Your remaining days this week are for recovery.</p>';
@@ -526,13 +528,15 @@ export function mountCoach(bridge:CoachBridge){
       return '<button type="button" class="coach-library-item" data-library-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+mins+' min</small></span><span aria-hidden="true">→</span></button>';
     }).join('');
     $('coachPlanBudget').textContent='Scheduled: '+(schedule.plannedMinutes/60).toFixed(1)+' / '+(schedule.budgetMinutes/60).toFixed(1)+' available hours · '+schedule.note;
-    $('coachWeek').innerHTML=schedule.days.map(day=>{
-      const dayLevel=adaptation.days.find(x=>x.weekday===day.day)?.light||'green';
+    $('coachWeek').innerHTML=adaptation.days.map(adjusted=>{
+      const day=schedule.days.find(x=>x.day===adjusted.weekday)!;
+      const dayLevel=adjusted.light;
       const assigned=library.find(w=>w.id===day.cyclingId);
       const cycling=assigned&&day.cyclingMinutes>0
         ?'<button type="button" data-day-workout="'+escapeHtml(assigned.id)+'"><span><strong>🚴 '+escapeHtml(assigned.name)+'</strong><small>'+day.cyclingMinutes+' min · Classic cycling</small></span><span aria-hidden="true">→</span></button>':'';
       const lifting=day.strength?'<button type="button" class="coach-day-strength" data-strength-day="'+day.day+'" data-strength-variation="'+day.strength+'"><span><strong>▥ Full Body Strength '+day.strength+'</strong><small>'+day.strengthMinutes+' min · '+escapeHtml((strength?.settings.equipment||[]).filter(x=>x!=='bodyweight').join(', ')||'Bodyweight')+'</small></span><span aria-hidden="true">→</span></button>':'';
-      return '<div class="coach-day-row coach-week-'+dayLevel+' '+(day.day===now?'coach-week-today':'')+'"><span class="coach-day-label">'+weekdays[day.day]+'<small>'+dayLevel.toUpperCase()+'</small></span><div class="coach-day-items">'+(cycling+lifting||'<span class="coach-day-rest">Rest day</span>')+'</div></div>';
+      return '<div class="coach-day-row coach-week-'+dayLevel+' '+(adjusted.date===dayKey(nowDate)?'coach-week-today':'')+'"><span class="coach-day-label">'+weekdays[day.day]+
+        '<small>'+adjusted.date.slice(5)+'</small><small>'+dayLevel.toUpperCase()+'</small></span><div class="coach-day-items">'+(cycling+lifting||'<span class="coach-day-rest">Rest day</span>')+'</div></div>';
     }).join('');
     const strengthPanel=$('coachStrengthToday');
     const todayGrid=$('coachViewToday').querySelector<HTMLElement>('.coach-today-grid')!;
