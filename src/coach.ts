@@ -440,8 +440,28 @@ export function mountCoach(bridge:CoachBridge){
     if(todayKey!==currentDay){currentDay=todayKey;riderSelected=false;customWorkout=null;expandedCalendarKey=null;}
     const inputs=recentRides();
     const feedback=recentFeedback();
-    const recommendation=recommendToday(rider,nowDate,inputs,feedback);
+    const adaptation=adaptivePlan();
+    activeAdaptation=adaptation;
+    const todayAdjusted=adaptation.days[0];
+    let recommendation=recommendToday(rider,nowDate,inputs,feedback);
+    if(todayAdjusted){
+      const why=todayAdjusted.reasons.concat(todayAdjusted.changes).join(' ');
+      recommendation=todayAdjusted.completedRide
+        ?{workoutId:null,status:'completed',reason:why||'You completed a ride today. No additional cycling workout is scheduled.'}
+        :todayAdjusted.cyclingId
+        ?{workoutId:todayAdjusted.cyclingId,status:todayAdjusted.light==='green'?'planned':'recovery',
+          reason:why||'This is the workout scheduled for today.'}
+        :{workoutId:null,status:'rest',reason:why||'No cycling workout is planned today.'};
+    }
     const schedule=weekPlan();
+    adaptive?.render(adaptation,library);
+    const todayChanges=changesSummary(adaptation,library).find(d=>d.date===dayKey(nowDate));
+    const diff=$('coachAdaptiveTodayDiff');
+    diff.hidden=!todayChanges;
+    diff.innerHTML=todayChanges
+      ?'<div class="coach-adaptive-today-diff"><div><strong>COACH CHANGED TODAY</strong><p><span>BEFORE:</span> '+escapeHtml(todayChanges.originalLabel)+'</p>'+
+        '<p><span>NOW:</span> '+escapeHtml(todayChanges.updatedLabel)+'</p></div>'+
+        '<button type="button">SEE WHY →</button></div>':'';
     currentCalendarDays=calendarDays(nowDate,schedule.days,library,recommendation);
     renderCalendar();
     const todaySchedule=schedule.days[nowDate.getDay()];
@@ -530,6 +550,10 @@ export function mountCoach(bridge:CoachBridge){
     $('coachSuggestion').textContent=strengthOnly?'Your strength workout is ready. No smart trainer needed.':strength?.settings.enabled?'Your next workout is ready. Cycling and strength fit within your weekly time.':'Your next workout is ready. Coach considers your schedule and recent riding.';
     $('coachSwapList').innerHTML=library.filter(w=>w.id!=='preview').map(w=>'<button type="button" data-swap-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+Math.round(workoutDuration(w)/60)+' min</small></span><span aria-hidden="true">→</span></button>').join('');
   }
+  $('coachAdaptiveTodayDiff').addEventListener('click',event=>{
+    const target=event.target;
+    if(target instanceof Element&&target.closest('button'))navigate('plan',true);
+  });
   function chooseWorkout(id:string,notice:string){
     if(!library.some(w=>w.id===id))return;
     selected=id;riderSelected=true;customWorkout=null;
