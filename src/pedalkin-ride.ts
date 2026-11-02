@@ -5,6 +5,7 @@ import {PINE_FOREST_SPOKEMON,choosePineForestSpokemon,nextPreviewSpokemon} from 
 import type {SpokemonSpecies} from './pedalkin-creatures';
 import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
 import {pixelateElevation} from './pedalkin-pixel-elevation';
+import {createSpokemonClassicWipe} from './spokemon-classic-wipe';
 
 type PedalkinRideFrame={
  distanceMeters:number;
@@ -98,6 +99,7 @@ export function mountPedalkinRide():void {
  const navButtons=host.querySelectorAll<HTMLButtonElement>('[data-pk-nav]');
  const active=()=>document.body.dataset.rideExperience==='pedalkin'&&document.body.dataset.breakawayScreen==='ride';
  let playable:ReturnType<typeof mountSpokemonPlayable>|null=null;
+ let classicWipe:ReturnType<typeof createSpokemonClassicWipe>|null=null;
  const svgUrl=(s:string)=>'/pedalkin/'+s+'.svg';
  function loadArt(){
   if(explored!==null&&encounterSvg!==null)return Promise.resolve();
@@ -446,14 +448,14 @@ export function mountPedalkinRide():void {
   * Measured reference: Exploration left panels y=95, right y=98.2,
   * bottom y=836.2, logo y=21.5. Encounter: 93, 95.2, 832, 17.6.
   */
- function render(){
+ function render(onReady?:()=>void){
   if(exactArtwork){
    // A real <img> is deliberate: inline SVG inherited Minecraft/global CSS,
    // and the old render logic shifted elements, rewrote text, modified elevation
    // paths, and injected creatures. An image of the supplied SVG changes NONE
    // of its authored content. It scales as one 1920x1080 artboard only.
    const artwork=slot.querySelector<HTMLObjectElement>('object.pk-exact-artboard');
-   if(artwork?.dataset.artboard===stageName){playable?.paint();return;}
+   if(artwork?.dataset.artboard===stageName){playable?.paint();onReady?.();return;}
    // Keep the original uploaded SVG as an isolated same-origin document.
    // Updating its native text elements retains the exact Illustrator fonts
    // and positioning, and avoids duplicate numbers painted over old values.
@@ -490,6 +492,7 @@ export function mountPedalkinRide():void {
      }
     }
     playable?.paint();
+    onReady?.();
    });
    slot.replaceChildren(untouched);
    if(stageName==='encounter'){
@@ -644,9 +647,26 @@ export function mountPedalkinRide():void {
   popup.hidden=true;
   triggerNavigation('route');
  }
+ function changeSpokemonScene(which:'explore'|'encounter',species?:SpokemonSpecies){
+  if(stageName===which||classicWipe?.isRunning())return;
+  if(!exactArtwork||!classicWipe){
+   stageName=which;if(species)currentSpecies=species;render();return;
+  }
+  classicWipe.transition(()=>new Promise<void>(resolve=>{
+   stageName=which;
+   if(species)currentSpecies=species;
+   // Resolve on actual same-origin SVG object load, after live values paint.
+   render(resolve);
+  }));
+ }
+ if(exactArtwork)classicWipe=createSpokemonClassicWipe({
+  stage,onDone:()=>playable?.paint()
+ });
  if(exactArtwork)playable=mountSpokemonPlayable({
   host,slot,active,getScene:()=>stageName,
-  switchScene:(which,species)=>{stageName=which;if(species)currentSpecies=species;render();},
+  switchScene:changeSpokemonScene,
+  isTransitioning:()=>classicWipe?.isRunning()===true,
+  canPaintDuringTransition:()=>classicWipe?.hasSwapped()===true,
   onFinishRide:finishThroughNative,
   onCollection:(items)=>popupOpen('YOUR COLLECTION',items.length?items.map(c=>c.name+' ×'+c.count).join('\n')+'\n\n'+items.length+' of '+PINE_FOREST_SPOKEMON.length+' species discovered.':'No Spokemon collected yet. Keep riding to find a friend.')
  });
@@ -655,7 +675,7 @@ export function mountPedalkinRide():void {
   document.body.classList.toggle('pk-riding',on);
   if(on){
    if(exactArtwork)render();
-   else void loadArt().then(render).catch(error=>{slot.textContent='Unable to load Pedalkin artboards';console.error(error);});
+   else void loadArt().then(()=>render()).catch(error=>{slot.textContent='Unable to load Pedalkin artboards';console.error(error);});
    if(demo&&!demoAnimationFrame)demoAnimationFrame=requestAnimationFrame(animateDemo);
   }
  }
