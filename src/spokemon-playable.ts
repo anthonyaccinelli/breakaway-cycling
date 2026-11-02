@@ -1,12 +1,14 @@
 import {PINE_FOREST_SPOKEMON,choosePineForestSpokemon} from './pedalkin-creatures';
 import type {SpokemonSpecies} from './pedalkin-creatures';
 import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
+import {evaluateTemperament,initialTemperamentAttempt} from './spokemon-temperament';
+import type {TemperamentFeedback} from './spokemon-temperament';
 import './spokemon-playable.css';
 
 export type SpokemonRideTelemetry={
  distanceMeters:number;totalMeters:number;samples:number[];elapsedSeconds:number;
  gradePercent:number;powerWatts?:number;cadenceRpm?:number;heartRateBpm?:number|null;
- speedMph?:number;caloriesKcal?:number;gear?:number|null;running?:boolean;connected?:boolean;
+ speedMph?:number;caloriesKcal?:number;gear?:number|null;ftpWatts?:number;running?:boolean;connected?:boolean;
 };
 type Scene='explore'|'encounter';
 type SavedCreature={id:string;name:string;capturedAt:string;count:number;xp?:number};
@@ -47,6 +49,8 @@ export function mountSpokemonPlayable(options:{
  let species:SpokemonSpecies=PINE_FOREST_SPOKEMON.find(x=>x.id===previewSpeciesId)
   ||PINE_FOREST_SPOKEMON.find(x=>x.id==='mossprout')||PINE_FOREST_SPOKEMON[0];
  let trust=0,patience=65,encounterCooldown=0,resolveAt=0;
+ let temperamentAttempt=initialTemperamentAttempt();
+ let temperamentFeedback:TemperamentFeedback|null=null;
  let outcome:'captured'|'escaped'|null=null;
  let message='Cruising through Pinepath Trail. Stay steady to attract nearby Spokemon.';
  let lastReal:SpokemonRideTelemetry|null=null;
@@ -103,6 +107,7 @@ export function mountSpokemonPlayable(options:{
   const slope=(samples[i+1]-samples[i])/Math.max(1,totalMeters/(samples.length-1))*100;
   return {distanceMeters:simulator?simDistance:0,totalMeters,samples,elapsedSeconds:simElapsed,
    gradePercent:simulator?slope:0,powerWatts:simulator?simPower:0,
+    ftpWatts:Math.max(50,Math.min(1000,Number((document.getElementById('ftp') as HTMLInputElement|null)?.value)||250)),
    cadenceRpm:simulator?88:0,heartRateBpm:simulator?124:null,
    speedMph:simulator?simPower*.083:0,caloriesKcal:simulator?simKcal:0,
    running:simulator&&simulationRunning,connected:false,gear:null};
@@ -186,10 +191,15 @@ export function mountSpokemonPlayable(options:{
   if(!svg||svg.localName!=='svg')return;
   const f=frame();
   const currentBuddy=buddy();
+   const ftp=Math.max(50,Math.min(1000,f.ftpWatts||250));
+   const challenge=temperamentFeedback||evaluateTemperament(species.personality,ftp,0,false,0,temperamentAttempt);
    svg.querySelector('#pk-game-progression')?.remove();
    const hud=make('g',{id:'pk-game-progression'});
    if(getScene()==='encounter'){
-    rect(hud,730,285,460,53,'#f2e8ca',5);
+    rect(hud,730,196,460,78,'#f2e8ca',5);
+     text(hud,746,227,challenge.cue+'  '+challenge.targetMin+'–'+challenge.targetMax+' W',22,'#17343b');
+     text(hud,746,256,challenge.feedback,17,'#365149');
+     rect(hud,730,285,460,53,'#f2e8ca',5);
     text(hud,748,320,'TEMPERAMENT: '+species.personality.toUpperCase(),25,'#17343b');
    }
    if(currentBuddy){
@@ -330,7 +340,11 @@ export function mountSpokemonPlayable(options:{
   if(patienceBar)patienceBar.setAttribute('width',(233.7*clamp(patience/65,0,1)).toFixed(2));
   // Do not truncate the message: size it to the available content width.
   // Dialogue panel spans x=24..1296; text starts x=56 and keeps a 28px inset.
-  set('translate(56 946)',message,1212);
+  const displayMessage=getScene()==='encounter'&&!outcome
+    ?species.name+' wants '+challenge.cue.toLowerCase()+' at '+challenge.targetMin+'–'+challenge.targetMax+
+     ' W. '+challenge.feedback+'.'
+    :message;
+   set('translate(56 946)',displayMessage,1212);
   const line2=ready()?(f.running?'REAL RIDE · '+(f.distanceMeters/METERS_PER_MILE).toFixed(2)+' mi':'TRAINER READY · PRESS START'):
    simulator?(simulationRunning?'TEST RIDE · '+(simDistance/METERS_PER_MILE).toFixed(2)+' mi':'TEST PAUSED'):
    'CONNECT TRAINER OR START TEST RIDE';
@@ -361,6 +375,8 @@ export function mountSpokemonPlayable(options:{
   if(getScene()==='encounter'||!active())return;
   species=choosePineForestSpokemon();
   trust=0;patience=65;outcome=null;resolveAt=0;
+  temperamentAttempt=initialTemperamentAttempt();
+  temperamentFeedback=null;
   encounterCount++;
   message='A wild '+species.name+' appeared! Keep pedaling steadily to earn Trust.';
   switchScene('encounter',species);
@@ -368,6 +384,8 @@ export function mountSpokemonPlayable(options:{
  }
  function returnExplore(){
   outcome=null;trust=0;patience=65;
+  temperamentAttempt=initialTemperamentAttempt();
+  temperamentFeedback=null;
   message='Cruising through Pinepath Trail. Stay steady to attract nearby Spokemon.';
   switchScene('explore');
   encounterCooldown=progressDistance+650+Math.random()*950;
@@ -444,10 +462,12 @@ export function mountSpokemonPlayable(options:{
     if(now>=resolveAt)returnExplore();
    }else{
     patience=Math.max(0,patience-dt);
-    if(moving){
-     const effort=clamp((f.powerWatts||160)/180,0.5,1.6);
-     trust=clamp(trust+dt*3.5*effort,0,100);
-    }
+    const challenge=evaluateTemperament(
+     species.personality,f.ftpWatts||250,f.powerWatts||0,moving,dt,temperamentAttempt
+    );
+    temperamentAttempt=challenge.next;
+    temperamentFeedback=challenge;
+    trust=clamp(trust+challenge.trustGain,0,100);
     if(trust>=100){
      // At 100% Trust a creature always joins the collection.
      // Escape can still occur if Patience runs out before full Trust;
@@ -468,6 +488,7 @@ export function mountSpokemonPlayable(options:{
   simDistance=0;simElapsed=0;simKcal=0;
   progressDistance=0;
   trust=0;patience=65;outcome=null;resolveAt=0;
+  temperamentAttempt=initialTemperamentAttempt();temperamentFeedback=null;
   encounterCooldown=350;
   message='Cruising through Pinepath Trail. Stay steady to attract nearby Spokemon.';
   if(active())paint();
