@@ -94,8 +94,8 @@ test('November 2–7 scheduled workouts match the rolling seven-day calendar',()
 });
 test('My Week explicitly projects the same calendar dates rendered in Today',()=>{
  const source=readFileSync(new URL('../src/coach.ts',import.meta.url),'utf8');
- assert.match(source,/const shown=currentCalendarDays\.find\(item=>item\.key===day\.key\)/);
- assert.match(source,/workoutId:shown\.rideId&&shown\.rideMinutes>0\?shown\.rideId:null/);
+ assert.match(source,/const weekDisplay=currentCalendarDays\.map\(shown=>/);
+ assert.match(source,/workoutId:scheduled\?shown\.rideId:null/);
 });
 test('a Today workout wins over stale or incomplete weekly display data',()=>{
  const date=new Date(2026,10,2);
@@ -129,7 +129,7 @@ test('previous unrecorded ride is not mislabeled as user-initiated skip',()=>{
 });
 test('source maps daily recommendations to the same event week displayed in My Week',()=>{
  const ui=readFileSync(new URL('../src/coach.ts',import.meta.url),'utf8');
- assert.match(ui,/reconcileCoachWeek\(thisWeek,currentCalendarDays,library,todayKey\)/);
+ assert.match(ui,/const weekDisplay=currentCalendarDays\.map\(shown=>/);
  assert.match(ui,/schedule\.days\.map\(day=>\(\{day:day\.day,workoutId:day\.cyclingId,reason:day\.reason\}\)\)/);
 });
 
