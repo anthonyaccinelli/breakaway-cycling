@@ -302,7 +302,7 @@ async function generateClassicRoute():Promise<boolean>{
 const POWER_WINDOW_MS=3000, BEER_KCAL=150, GROSS_EFFICIENCY=0.24;
 let powerHistory:{time:number;watts:number}[]=[];
 let energyKcal=0, activeRideMs=0, lastActiveTick=0, rideSessionStartDistance=0;
-type RideSample={seconds:number; distance:number; elevation:number; power:number; cadence:number; heartRate:number|null};
+type RideSample={seconds:number; distance:number; elevation:number; power:number; hasPower?:boolean; cadence:number; heartRate:number|null};
 let rideSamples:RideSample[]=[];let lastSampleSecond=-1;
 // v409: local, versioned crash-recovery checkpoint. Never stores Bluetooth credentials.
 const RIDE_RECOVERY_KEY='breakaway-ride-recovery-v409';
@@ -1264,6 +1264,86 @@ async function connectTrainerDevice(selected:any){try{
  }catch(err){status('Trainer connection error: '+String(err));throw err;}
 }
 $('connect').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[FTMS,CYCLING_POWER]});pausedBleRoles.delete('trainer');rememberDevice('trainer',selected);await connectTrainerDevice(selected);}catch(err){status('Trainer connection error: '+String(err));}});
+
+// A read-only Bluetooth CSC sensor can drive Spokemon without a smart trainer.
+// Pair two separate CSC sensors if the wheel and crank are separate devices.
+const cscButton=document.createElement('button');
+cscButton.type='button';cscButton.id='connectSpeedCadence';cscButton.hidden=true;
+document.body.append(cscButton);
+const cscStatus=document.createElement('span');cscStatus.id='speedCadenceStatus';
+cscStatus.hidden=true;document.body.append(cscStatus);
+const CSC_REMEMBERED_KEY='spokemon-remembered-csc-v1';
+const rememberedCscIds:string[]=(()=>{
+ try{const ids=JSON.parse(localStorage.getItem(CSC_REMEMBERED_KEY)||'[]');return Array.isArray(ids)?ids.filter(x=>typeof x==='string').slice(0,4):[];}
+ catch{return [];}
+})();
+function rememberCsc(deviceId:string){
+ if(!rememberedCscIds.includes(deviceId))rememberedCscIds.push(deviceId);
+ try{localStorage.setItem(CSC_REMEMBERED_KEY,JSON.stringify(rememberedCscIds.slice(-4)));}catch{}
+}
+async function connectCscDevice(selected:any){
+ if(!selected?.id)throw Error('Sensor has no Bluetooth device ID.');
+ if(cscDevices.has(selected.id)&&selected.gatt?.connected)return;
+ const server=await selected.gatt.connect();
+ const service=await server.getPrimaryService(CSC_SERVICE);
+ const measurement=await service.getCharacteristic(CSC_MEASUREMENT);
+ await measurement.startNotifications();
+ cscDevices.set(selected.id,selected);
+ cscStates.set(selected.id,{});
+ cscCapabilities.set(selected.id,{speed:false,cadence:false});
+ selected.addEventListener('gattserverdisconnected',()=>{
+  cscDevices.delete(selected.id);cscStates.delete(selected.id);cscCapabilities.delete(selected.id);
+  updateCscStatus();
+  if(running&&!trainerReadyForRide()&&!sensorReadyForRide()){
+   pauseRide();saveRideRecovery();status('Speed/cadence sensors disconnected — ride saved and paused.');
+  }
+ });
+ measurement.addEventListener('characteristicvaluechanged',(event:any)=>{
+  try{
+   const reading=parseCscMeasurement(event.target.value,cscStates.get(selected.id)||{},cscWheelCircumferenceMm);
+   cscStates.set(selected.id,reading.state);
+   const caps=cscCapabilities.get(selected.id);
+   if(caps){caps.speed||=reading.wheelPresent;caps.cadence||=reading.crankPresent;}
+   const now=performance.now();
+   if(reading.speedMps!==null){cscSpeedMps=reading.speedMps;cscLastSpeedAt=now;}
+   if(reading.cadenceRpm!==null){
+    cscLastCadenceAt=now;
+    if(!trainerReadyForRide())cadence=reading.cadenceRpm;
+   }
+   updateCscStatus();
+   if(rideExperience==='pedalkin'&&!trainerReadyForRide()){
+    if(running)advanceRide(now);
+    update();
+   }
+  }catch(error){status('CSC sensor packet error: '+String(error));}
+ });
+ updateCscStatus();
+ status('CSC sensor paired. Pedal to initialize speed and cadence; pair a second sensor if necessary.');
+}
+cscButton.addEventListener('click',async()=>{
+ try{
+  const bluetooth=(navigator as any).bluetooth;
+  if(!bluetooth)throw Error('Use desktop Chrome/Edge over HTTPS for Bluetooth CSC sensors.');
+  const selected=await bluetooth.requestDevice({filters:[{services:[CSC_SERVICE]}],optionalServices:[CSC_SERVICE]});
+  await connectCscDevice(selected);rememberCsc(selected.id);
+ }catch(error){status('Speed/cadence sensor: '+String(error));}
+});
+async function reconnectRememberedCsc(){
+ if(localStorage.getItem('breakaway-auto-bluetooth-v1')==='false'||document.hidden)return;
+ const bluetooth=(navigator as any).bluetooth;
+ if(typeof bluetooth?.getDevices!=='function')return;
+ try{
+  const granted:any[]=await bluetooth.getDevices();
+  for(const id of rememberedCscIds){
+   if(cscDevices.has(id))continue;
+   const selected=granted.find(x=>x.id===id);
+   if(selected)try{await connectCscDevice(selected);}catch{/* retry after sensor wakes */}
+  }
+ }catch{/* permissions unavailable in this browser */}
+}
+window.setInterval(()=>{if(rideExperience==='pedalkin')void reconnectRememberedCsc();},12000);
+window.addEventListener('focus',()=>{if(rideExperience==='pedalkin')void reconnectRememberedCsc();});
+updateCscStatus();
 
 // v3.8.7 — persist rider and trainer preferences on this browser.
 // Restore values before the existing trainer-mode event listeners are installed.
