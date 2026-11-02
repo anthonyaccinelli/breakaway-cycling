@@ -112,8 +112,8 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
   if(reduction<=0)continue;
   day.minutes-=reduction;remaining-=reduction;
   if(day.minutes!==day.originalMinutes){
-   day.status='shortened';day.changed=true;
-   day.reason='Recent riding exceeded your available weekly time by '+(extraMinutes-availableHeadroom-recoverySavings)+' minutes. Coach shortened this ride by '+reduction+' minutes to protect your planned training time; strength and rest days stay unchanged.';
+   day.status=day.status==='recovery'?'recovery':'shortened';day.changed=true;
+   day.reason+=' Additional riding exceeded your remaining weekly time by '+(extraMinutes-availableHeadroom-recoverySavings)+' minutes, so Coach shortened this session by '+reduction+' minutes. Strength and rest days stay unchanged.';
   }
  }
  // Only report actionable changes today or in the future, plus explicit
