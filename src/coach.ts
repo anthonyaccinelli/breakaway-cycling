@@ -400,8 +400,8 @@ export function mountCoach(bridge:CoachBridge){
     const ride=day.rideId?library.find(w=>w.id===day.rideId):null;
     const rideCard=ride?
       '<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>'+escapeHtml(ride.name)+'</strong>'+
-      '<p>'+day.rideMinutes+' min · '+escapeHtml(ride.description)+'</p></div>'+
-      '<button type="button" data-calendar-action="ride" data-calendar-index="'+expandedIndex+'">VIEW RIDE →</button></div>':
+      '<p>'+day.rideMinutes+' min · '+escapeHtml(ride.description)+'</p><p>'+escapeHtml(day.reason)+'</p></div>'+
+      '<button type="button" data-calendar-action="ride" data-calendar-index="'+expandedIndex+'">'+(day.isToday?'VIEW TODAY’S RIDE':'USE THIS RIDE TODAY (OPTIONAL)')+' →</button></div>':
       day.completedRide?'<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>Ride completed today</strong><p>Coach will account for your recorded ride.</p></div></div>':'';
     const strengthDone=day.isToday&&strength?.completedToday()===true;
     const strengthCard=day.strength?
@@ -536,7 +536,7 @@ export function mountCoach(bridge:CoachBridge){
       const updatedMinutes=updated?Math.round(workoutDuration(updated)/60):null;
       $('coachChangeDetail').innerHTML='<strong>WHY TODAY CHANGED</strong>'+
         '<div class="coach-change-pair"><span>ORIGINAL: '+escapeHtml(original?.name||originalId)+(originalMinutes===null?'':' · '+originalMinutes+' min')+'</span><span>RECOMMENDED: '+escapeHtml(updated?.name||'Recovery spin')+(updatedMinutes===null?'':' · '+updatedMinutes+' min')+'</span></div>'+
-        '<p>'+escapeHtml(recommendation.reason)+'</p><p>Only today’s suggestion changed. Your future schedule is unchanged. To ride the original workout, select it under Swap workout.</p>';
+        '<p>'+escapeHtml(recommendation.reason)+'</p><p>See the updated training week for any changes to upcoming sessions. To ride the original workout today, select it under Swap workout.</p>';
     }
     $('coachRestReason').textContent=strengthOnly?'Your strength session is ready above. No trainer needed. You can still pick an optional cycling workout.':recommendation.reason;
     $('coachUseRecommendation').hidden=!riderSelected;
