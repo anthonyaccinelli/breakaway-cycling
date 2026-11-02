@@ -26,6 +26,7 @@ export function mountSpokemonPlayable(options:{
  host:HTMLElement;slot:HTMLElement;active:()=>boolean;getScene:()=>Scene;
  switchScene:(to:Scene,species?:SpokemonSpecies)=>void;
  isTransitioning?:()=>boolean;
+ canPaintDuringTransition?:()=>boolean;
  onFinishRide:()=>void;
  onCollection?:(items:SavedCreature[])=>void;
  onHelp?:()=>void;
@@ -192,7 +193,9 @@ export function mountSpokemonPlayable(options:{
   endLabel.setAttribute('text-anchor','end');
  }
  function paint(){
-  if(!active()||options.isTransitioning?.())return;
+  // Once the new SVG is swapped under a covered curtain, update its original
+  // sample labels BEFORE the curtain opens. Capture timers still stay frozen.
+  if(!active()||(options.isTransitioning?.()&&!options.canPaintDuringTransition?.()))return;
   const object=slot.querySelector<HTMLObjectElement>('object.pk-exact-artboard');
   const doc=object?.contentDocument;
   const svg=doc?.documentElement as unknown as SVGSVGElement|null;
