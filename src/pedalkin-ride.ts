@@ -5,6 +5,7 @@ import {PINE_FOREST_SPOKEMON,choosePineForestSpokemon,nextPreviewSpokemon} from 
 import type {SpokemonSpecies} from './pedalkin-creatures';
 import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
 import {pixelateElevation} from './pedalkin-pixel-elevation';
+import {createSpokemonTransitions} from './spokemon-transitions';
 
 type PedalkinRideFrame={
  distanceMeters:number;
@@ -98,6 +99,7 @@ export function mountPedalkinRide():void {
  const navButtons=host.querySelectorAll<HTMLButtonElement>('[data-pk-nav]');
  const active=()=>document.body.dataset.rideExperience==='pedalkin'&&document.body.dataset.breakawayScreen==='ride';
  let playable:ReturnType<typeof mountSpokemonPlayable>|null=null;
+ let sceneTransitions:ReturnType<typeof createSpokemonTransitions>|null=null;
  const svgUrl=(s:string)=>'/pedalkin/'+s+'.svg';
  function loadArt(){
   if(explored!==null&&encounterSvg!==null)return Promise.resolve();
@@ -675,9 +677,28 @@ export function mountPedalkinRide():void {
   popup.hidden=true;
   triggerNavigation('route');
  }
+ function changePlayScene(which:'explore'|'encounter',species?:SpokemonSpecies){
+  if(stageName===which||sceneTransitions?.isRunning())return;
+  stageName=which;
+  if(species)currentSpecies=species;
+  if(exactArtwork&&sceneTransitions)sceneTransitions.transition(()=>render());
+  else render();
+ }
+ if(exactArtwork){
+  const compareTransitions=new URLSearchParams(location.search).get('spokemonTransitions')==='compare';
+  sceneTransitions=createSpokemonTransitions({
+   stage,preview:compareTransitions,
+   onSceneRequested:(which)=>changePlayScene(which),
+   onDone:()=>playable?.paint()
+  });
+  if(new URLSearchParams(location.search).get('spokemonTransitionStyle')==='wipe'){
+   sceneTransitions.setStyle('wipe');
+  }
+ }
  if(exactArtwork)playable=mountSpokemonPlayable({
   host,slot,active,getScene:()=>stageName,
-  switchScene:(which,species)=>{stageName=which;if(species)currentSpecies=species;render();},
+  switchScene:changePlayScene,
+  isTransitioning:()=>sceneTransitions?.isRunning()===true,
   onFinishRide:finishThroughNative,
   onHelp:()=>popupOpen('HOW TO BEFRIEND SPOKEMON',
    '1. Generate a route and connect a smart trainer, or start an unrecorded Test Ride.\n'+
