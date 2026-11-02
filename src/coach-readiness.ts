@@ -34,5 +34,5 @@ export function recoveryGuidance(check:MorningCheckIn|null){
 export function applyRecoveryGuidance(plan:TodayRecommendation,check:MorningCheckIn|null):TodayRecommendation{
  const guide=recoveryGuidance(check);
  if(!guide.suggestEasy||plan.status!=='planned'||!plan.workoutId||plan.workoutId==='recovery')return plan;
- return {workoutId:'recovery',status:'recovery',reason:'Your morning check-in reported fatigue. Coach suggests a recovery spin instead of the planned '+plan.workoutId+' workout. You may still choose the original session if appropriate.'};
+ return {workoutId:'recovery',status:'recovery',reason:'You reported feeling tired during your morning check-in. Coach suggests an easier recovery spin instead of your planned session. This is a training suggestion, not a medical assessment.'};
 }
