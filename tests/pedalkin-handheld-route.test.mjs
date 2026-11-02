@@ -59,3 +59,8 @@ test('The Illustrator game screen is only scaled, never recreated in markup',()=
  assert.match(css,/aspect-ratio:16\/9/);
  assert.doesNotMatch(route,/pk-v2-pad-[abxy]/);
 });
+
+test('Surprise Me button is spelled correctly in the Illustrator artboard',()=>{
+ assert.match(art,/>Surprise Me!<\/tspan>/);
+ assert.doesNotMatch(art,/Surpise Me!/);
+});
