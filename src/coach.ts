@@ -434,7 +434,8 @@ export function mountCoach(bridge:CoachBridge){
     const details=$('coachCalendarDetails');
     const expandedIndex=currentCalendarDays.findIndex(day=>day.key===expandedCalendarKey);
     strip.innerHTML=currentCalendarDays.map((day,index)=>{
-      const activity=day.rideName|| (day.completedRide?'Ride completed':null);
+      const isEvent=day.reason.startsWith('Event stage ');
+      const activity=day.rideName|| (day.completedRide?'Ride completed':isEvent?'Event day':null);
       const strengthDone=day.isToday&&strength?.completedToday()===true;
       const strengthName=day.strength?(strengthDone?'✓ Strength completed':'Full Body Strength '+day.strength):null;
       const summary=[activity,strengthName].filter(Boolean);
@@ -461,9 +462,10 @@ export function mountCoach(bridge:CoachBridge){
       '<div class="coach-calendar-session"><div><span class="coach-calendar-type">'+(strengthDone?'STRENGTH · COMPLETED':'STRENGTH · NO TRAINER NEEDED')+'</span>'+
       '<strong>Full Body Strength '+day.strength+'</strong><p>'+day.strengthMinutes+' min · Exercises matched to your saved equipment</p></div>'+
       (strengthDone?'':'<button type="button" data-calendar-action="strength" data-calendar-index="'+expandedIndex+'">START STRENGTH →</button>')+'</div>':'';
+    const isEvent=day.reason.startsWith('Event stage ');
     const restCard=!rideCard&&!strengthCard?
-      '<div class="coach-calendar-session"><div><span class="coach-calendar-type">RECOVERY</span>'+
-      '<strong>Rest day</strong><p>No workout is scheduled. Recovery is part of your plan.</p></div></div>':'';
+      '<div class="coach-calendar-session"><div><span class="coach-calendar-type">'+(isEvent?'EVENT DAY':'RECOVERY')+'</span>'+
+      '<strong>'+(isEvent?'Race or stage day':'Rest day')+'</strong><p>'+(isEvent?escapeHtml(day.reason):'No workout is scheduled. Recovery is part of your plan.')+'</p></div></div>':'';
     details.innerHTML='<div class="coach-calendar-detail-head"><div><span class="coach-calendar-type">DAY DETAILS</span>'+
       '<h3>'+escapeHtml(day.title)+'</h3></div>'+
       '<button type="button" class="coach-calendar-close" data-calendar-action="close" aria-label="Close calendar day details">✕</button></div>'+
