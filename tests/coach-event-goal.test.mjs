@@ -101,3 +101,62 @@ test('source maps daily recommendations to the same event week displayed in My W
  assert.match(ui,/reconcileCoachWeek\(thisWeek,currentCalendarDays,library,todayKey\)/);
  assert.match(ui,/schedule\.days\.map\(day=>\(\{day:day\.day,workoutId:day\.cyclingId,reason:day\.reason\}\)\)/);
 });
+
+test('race week does not schedule an additional trainer workout on competition day',()=>{
+ const now=new Date(2027,6,10,12);
+ const goal=validEventGoal({discipline:'criterium',date:'2027-07-12'});
+ const w=eventWeek(rider,goal,now).map(d=>({
+  day:d.day,cyclingId:d.workoutId,cyclingMinutes:d.workoutId?45:0,
+  strength:null,strengthMinutes:0,reason:d.reason
+ }));
+ const result=adaptWeeklySchedule({now,week:w,rides:[],feedback:[],skipped:[],
+  ftp:280,ftpKnown:true,budgetMinutes:480,recoveryMinutes:25,
+  today:{workoutId:w.find(d=>d.day===6)?.cyclingId||null,status:'planned',reason:'Plan'},
+  event:{startDate:'2027-07-12',stages:1}});
+ const race=result.days.find(d=>d.key==='2027-07-12');
+ assert.equal(race.status,'event');
+ assert.equal(race.workoutId,null);
+ assert.equal(race.minutes,0);
+ assert.match(race.reason,/Event stage 1 of 1/);
+});
+test('five-day stage race protects each stage and reserves strength-free racing days',()=>{
+ const now=new Date(2027,6,10,12);
+ const stage=validEventGoal({discipline:'stage-race',date:'2027-07-12',stages:5});
+ const week=eventWeek(rider,stage,now).map(d=>({
+  day:d.day,cyclingId:d.workoutId,cyclingMinutes:d.workoutId?60:0,
+  strength:'A',strengthMinutes:30,reason:d.reason
+ }));
+ const result=adaptWeeklySchedule({now,week,rides:[],feedback:[],skipped:[],
+  ftp:280,ftpKnown:true,budgetMinutes:600,recoveryMinutes:30,
+  today:{workoutId:null,status:'rest',reason:'Rest'},event:{startDate:'2027-07-12',stages:5}});
+ const stages=result.days.filter(d=>d.key>='2027-07-12'&&d.key<='2027-07-16');
+ assert.equal(stages.length,5);
+ for(const [i,d] of stages.entries()){
+  assert.equal(d.status,'event','stage '+(i+1));
+  assert.equal(d.workoutId,null);
+  assert.equal(d.strength,null);
+  assert.equal(d.strengthMinutes,0);
+  assert.match(d.reason,new RegExp('stage '+(i+1)+' of 5'));
+ }
+ assert.equal(goalPhase(stage,new Date(2027,6,15)).phase,'event');
+ assert.equal(goalPhase(stage,new Date(2027,6,17)).phase,'post-event');
+});
+test('date-aware planning callback adapts each day across a periodization boundary',()=>{
+ const now=new Date(2027,6,3,12);
+ const week=Array.from({length:7},(_,day)=>({day,cyclingId:'endurance',cyclingMinutes:45,strength:null,strengthMinutes:0,reason:'Baseline'}));
+ const result=adaptWeeklySchedule({now,week,rides:[],feedback:[],skipped:[],ftp:280,ftpKnown:true,budgetMinutes:480,
+  recoveryMinutes:25,today:{workoutId:'endurance',status:'planned',reason:'Today'},
+  planForDate:date=>({
+   day:date.getDay(),cyclingId:date.getDate()>=8?'recovery':'endurance',
+   cyclingMinutes:date.getDate()>=8?25:45,strength:null,strengthMinutes:0,
+   reason:date.getDate()>=8?'Taper':'Base'
+  })});
+ assert.equal(result.days.find(d=>d.key==='2027-07-07').workoutId,'endurance');
+ assert.equal(result.days.find(d=>d.key==='2027-07-08').workoutId,'recovery');
+});
+test('the selected calendar workout duration survives navigating into Today',()=>{
+ const ui=readFileSync(new URL('../src/coach.ts',import.meta.url),'utf8');
+ assert.match(ui,/selectedOverrideMinutes=day\.rideMinutes/);
+ assert.match(ui,/selectedOverrideMinutes=planned\?\.rideMinutes/);
+ assert.match(ui,/minutes\*60<workoutDuration\(base\)/);
+});
