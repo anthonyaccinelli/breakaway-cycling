@@ -1,7 +1,7 @@
 import {PINE_FOREST_SPOKEMON,choosePineForestSpokemon} from './pedalkin-creatures';
 import type {SpokemonSpecies} from './pedalkin-creatures';
 import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
-import {chooseTemperament,descriptions,preferredEffort,trustRate,chanceAtFullTrust} from './spokemon-temperaments';
+import {chooseTemperament,descriptions,preferredEffort,trustRate} from './spokemon-temperaments';
 import type {Temperament} from './spokemon-temperaments';
 import './spokemon-playable.css';
 
@@ -229,7 +229,7 @@ export function mountSpokemonPlayable(options:{
    ['translate(48 529.9)',(f.speedMph||0).toFixed(1)+' MPH'],
    ['translate(48 652.8)',f.gradePercent.toFixed(1)+' %'],
    ['translate(48 778.5)',Math.round(f.caloriesKcal||0)+' KCAL'],
-   ['translate(1590.5015 183.81)',Math.round(trust)+'%'],
+   ['translate(1590.5015 183.81)',Math.floor(trust)+'%'],
    ['translate(1586.3262 368.0016)',getScene()==='encounter'?Math.ceil(patience)+' s':'—']
   ] as const;
   for(const [selector,value] of numbers)set(selector,value);
@@ -317,7 +317,7 @@ export function mountSpokemonPlayable(options:{
   if(outcome)return;
   outcome=success?'captured':'escaped';
   if(success){saveCreature();message='★ '+species.name+' joined your collection! '+temperament.toUpperCase()+' temperament.';}
-  else message=species.name+' escaped! '+(trust>=100?'Trust reached 100%, but capture is not guaranteed.':'Try a gentler, steadier effort next time.');
+  else message=species.name+' escaped before reaching 100% Trust. Try adjusting your effort next time.';
   resolveAt=performance.now()+6500;
   paint();
  }
@@ -388,7 +388,9 @@ export function mountSpokemonPlayable(options:{
      coastGrace=Math.max(0,coastGrace-dt);
     }
     if(moving||coastGrace<=0)patience=Math.max(0,patience-dt);
-    if(trust>=100)resolve(Math.random()<chanceAtFullTrust(temperament));
+    // Full Trust is a promise: once earned, capture is guaranteed. Failure
+    // happens only if Patience expires BEFORE Trust reaches 100%.
+    if(trust>=100)resolve(true);
     else if(patience<=0)resolve(false);
    }
    // Pausing a real or test session freezes Patience and Trust completely.
