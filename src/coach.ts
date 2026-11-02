@@ -17,7 +17,7 @@ import {calendarDays} from './coach-calendar';
 import type {CoachCalendarDay} from './coach-calendar';
 import './coach-calendar.css';
 import {mountWorkoutImporter} from './coach-workout-import-ui';
-import {COACH_CHECKIN_KEY,COACH_FTP_KNOWN_KEY,validCheckIn,recoveryGuidance,applyRecoveryGuidance} from './coach-readiness';
+import {COACH_CHECKIN_KEY,COACH_FTP_KNOWN_KEY,validCheckIn,recoveryGuidance,applyRecoveryGuidance,trainingDayGuidance} from './coach-readiness';
 import './coach-readiness.css';
 
 export interface CoachBridge {
@@ -453,8 +453,10 @@ export function mountCoach(bridge:CoachBridge){
     const feedback=recentFeedback();
     const check=validCheckIn(readJson(COACH_CHECKIN_KEY),todayKey);
     const recovery=recoveryGuidance(check);
-    $('coachReadinessLabel').textContent=recovery.label;
-    $('coachReadinessExplanation').textContent=recovery.detail;
+    const trainingSignal=trainingDayGuidance(check,fatigueSignals(rider,nowDate.getTime(),inputs,feedback),inputs.some(ride=>ride.start>=new Date(nowDate.getFullYear(),nowDate.getMonth(),nowDate.getDate()).getTime()&&ride.elapsed>=900));
+    $('coachReadinessLabel').textContent=trainingSignal.label;
+    $('coachReadinessLabel').setAttribute('data-day-color',trainingSignal.color);
+    $('coachReadinessExplanation').textContent=trainingSignal.detail+' '+recovery.detail;
     const baseRecommendation=applyRecoveryGuidance(recommendToday(rider,nowDate,inputs,feedback),check);
     const skipped=skippedDays().includes(todayKey);
     const recommendation=skipped&&baseRecommendation.status!=='completed'
