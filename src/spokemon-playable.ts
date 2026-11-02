@@ -460,6 +460,9 @@ export function mountSpokemonPlayable(options:{
   simulator=true;simulationRunning=true;
   tool.querySelector('details')?.setAttribute('open','');
   refreshInputControls();paint();
+  // The menu's Play Test button should reveal an actual RPM/W encounter
+  // immediately rather than waiting for hundreds of virtual meters.
+  encounter();
  };
  const choiceChanged=()=>{temperamentAttempt=initialTemperamentAttempt();temperamentFeedback=null;encounterInputMode='none';refreshInputControls();paint();};
  window.addEventListener('spokemon:demo-start',demoStart);
