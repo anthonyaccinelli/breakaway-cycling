@@ -86,11 +86,50 @@ test('Cadence-only sensors permit starting and advancing virtual distance withou
  const main=await readFile(new URL('../src/main.ts',import.meta.url),'utf8');
  const devices=await readFile(new URL('../src/pedalkin-handheld-devices.ts',import.meta.url),'utf8');
  assert.match(main,/function sensorReadyForRide\(\)\{return rideExperience==='pedalkin'&&cscHasCadence&&cscDevices.size>0;\}/);
- assert.match(main,/speed=cscHasSpeed\?/);
+ assert.match(main,/advanceCadenceSensorRide\(/);
  assert.match(main,/Math\.min\(160,cadence\)\)\/80\*5\.36448/);
  assert.match(main,/freshCadence\?Math\.max/);
  assert.match(main,/powerWatts:sensorRideOnly\(\)\?undefined/);
  assert.match(main,/Cadence-only ride started · virtual distance estimated/);
  assert.match(devices,/Cadence Sensor<\/strong>/);
  assert.match(devices,/distance is estimated without speed/);
+});
+
+test('Cadence-only route movement works without wheel speed, and stops when stale',async()=>{
+ const {advanceCadenceSensorRide:advance}=await load('spokemon-sensor-progress');
+ const base={nowMs:10000,lastSpeedAtMs:0,lastCadenceAtMs:9900,
+  speedSensorConnected:false,speedMps:0,cadenceRpm:80,
+  distanceMeters:100,stepSeconds:1,routeLimitMeters:1000};
+ const moving=advance(base);
+ assert.equal(moving.source,'cadence');
+ assert(Math.abs(moving.speedMps-5.36448)<1e-6);
+ assert(moving.distanceMeters>base.distanceMeters);
+ const stopped=advance({...base,nowMs:15000});
+ assert.equal(stopped.source,'stopped');
+ assert.equal(stopped.distanceMeters,base.distanceMeters);
+ assert.equal(stopped.speedMps,0);
+ const routeEnd=advance({...base,distanceMeters:999});
+ assert.equal(routeEnd.distanceMeters,1000);
+});
+
+test('Fresh wheel speed wins, including zero speed; stale wheel falls back to cadence',async()=>{
+ const {advanceCadenceSensorRide:advance}=await load('spokemon-sensor-progress');
+ const base={nowMs:10000,lastSpeedAtMs:9900,lastCadenceAtMs:9900,
+  speedSensorConnected:true,speedMps:8,cadenceRpm:80,
+  distanceMeters:50,stepSeconds:1,routeLimitMeters:1000};
+ assert.equal(advance(base).source,'wheel');
+ assert.equal(advance(base).distanceMeters,58);
+ const stationary=advance({...base,speedMps:0});
+ assert.equal(stationary.source,'wheel');
+ assert.equal(stationary.distanceMeters,50);
+ const staleWheel=advance({...base,lastSpeedAtMs:4000});
+ assert.equal(staleWheel.source,'cadence');
+ assert(staleWheel.distanceMeters>50);
+ const wheelDisconnected=advance({...base,speedSensorConnected:false});
+ assert.equal(wheelDisconnected.source,'cadence');
+ const allStale=advance({...base,lastSpeedAtMs:4000,lastCadenceAtMs:4000});
+ assert.equal(allStale.source,'stopped');
+ assert.equal(allStale.distanceMeters,50);
+ const noInitialWheel=advance({...base,lastSpeedAtMs:0});
+ assert.equal(noInitialWheel.source,'cadence');
 });
