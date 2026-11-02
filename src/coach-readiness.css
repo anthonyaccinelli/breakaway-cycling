@@ -24,3 +24,5 @@
 #breakawayCoachScreen #coachReadinessLabel[data-day-color="green"]{color:#165f42;background:#e6f5eb;border:1px solid #8dc7a4;padding:5px 10px;border-radius:999px;font-weight:800}
 #breakawayCoachScreen #coachReadinessLabel[data-day-color="yellow"]{color:#785100;background:#fff4d2;border:1px solid #dfb958;padding:5px 10px;border-radius:999px;font-weight:800}
 #breakawayCoachScreen #coachReadinessLabel[data-day-color="red"]{color:#912b30;background:#ffebed;border:1px solid #e5a4a9;padding:5px 10px;border-radius:999px;font-weight:800}
+
+#breakawayCoachScreen #coachReadinessLabel[data-day-color="neutral"]{color:#38516c;background:#edf2f8;border:1px solid #bdcbd9;padding:5px 10px;border-radius:999px;font-weight:800}
