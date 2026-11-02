@@ -21,7 +21,8 @@ test('Both transition modes use the original Illustrator scene artboards',()=>{
 });
 test('Forest Rustle and Game Boy horizontal bars are animated without mutating original SVG paths',()=>{
  assert.match(transitions,/style==='rustle'/);
- assert.match(transitions,/style==='wipe'/);
+ assert.match(transitions,/style==='rustle'\?960:760/);
+ assert.match(transitions,/curtain\.dataset\.style=style/);
  assert.match(transitions,/for\(let i=0;i<16;i\+\+\)/);
  assert.match(transitions,/leafCanvas\.width=960/);
  assert.match(transitions,/drawLeaves\(t,coverage\)/);
