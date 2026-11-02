@@ -241,6 +241,7 @@ export function mountSpokemonPlayable(options:{
   ] as const;
   for(const [selector,value] of numbers)set(selector,value);
   set('translate(52 738.5)','GEAR');
+  set('translate(1585.0078 740.9976)',currentBuddy?'BUDDY: '+currentBuddy.name.toUpperCase():'NO BUDDY SELECTED');
   if(getScene()==='explore'){
    const hide=(selector:string)=>{const el=svg.querySelector<SVGElement>(selector);if(el)el.style.visibility='hidden';};
    hide('rect[x="1566"][y="98.2"]');
