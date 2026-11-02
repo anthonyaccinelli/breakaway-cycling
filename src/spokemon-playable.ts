@@ -27,6 +27,7 @@ export function mountSpokemonPlayable(options:{
  switchScene:(to:Scene,species?:SpokemonSpecies)=>void;
  onFinishRide:()=>void;
  onCollection?:(items:SavedCreature[])=>void;
+ onHelp?:()=>void;
 }){
  const {host,slot,active,getScene,switchScene,onFinishRide}=options;
  let collection=loadCollection();
@@ -58,11 +59,30 @@ export function mountSpokemonPlayable(options:{
   '<button data-pk-control="session">START / PAUSE REAL RIDE</button>'+
   '<button data-pk-control="encounter">FIND SPOKEMON</button>'+
   '<button data-pk-control="collection">COLLECTION</button>'+
-  '<button data-pk-control="finish">SAVE & FINISH REAL RIDE</button></div>'+
+  '<button data-pk-control="finish">SAVE & FINISH REAL RIDE</button>'+ 
+  '<button data-pk-control="help">HOW TO PLAY</button></div>'+
   '<label>TEST EFFORT <output data-pk-game-watts>165 W</output><input data-pk-control="watts" type="range" min="60" max="310" value="165"></label>'+
   '<small>Test rides are simulated and are never recorded or exported. Real rides use your connected trainer and Breakaway recorder.</small></div></details>';
  host.append(tool);
  const status=tool.querySelector<HTMLElement>('.pk-game-status')!;
+ let lastBuddyArtId='';
+ function renderBuddyArt(){
+  const selected=buddy();
+  if(!selected){slot.querySelector('.pk-buddy-live-creature')?.remove();lastBuddyArtId='';return;}
+  if(selected.id===lastBuddyArtId&&slot.querySelector('.pk-buddy-live-creature'))return;
+  const creature=PINE_FOREST_SPOKEMON.find(x=>x.id===selected.id);
+  if(!creature)return;
+  const sprite=document.createElementNS(NS,'svg');
+  sprite.classList.add('pk-buddy-live-creature');
+  sprite.setAttribute('viewBox','730 350 460 370');
+  sprite.setAttribute('preserveAspectRatio','xMidYMid meet');
+  sprite.setAttribute('aria-label',selected.name+' — buddy');
+  sprite.setAttribute('shape-rendering','crispEdges');
+  addWorkingCreatureSilhouette(sprite,creature);
+  sprite.querySelector('#pk-working-creature > text')?.remove();
+  slot.querySelector('.pk-buddy-live-creature')?.remove();
+  slot.append(sprite);lastBuddyArtId=selected.id;
+ }
  const note=tool.querySelector<HTMLElement>('[data-pk-game-note]')!;
  const simButton=tool.querySelector<HTMLButtonElement>('[data-pk-control="simulate"]')!;
  const output=tool.querySelector<HTMLOutputElement>('[data-pk-game-watts]')!;
@@ -178,6 +198,7 @@ export function mountSpokemonPlayable(options:{
   // Keep the original SVG isolated; it is not rebuilt on every telemetry tick.
   if(!svg||svg.localName!=='svg')return;
   const f=frame();
+  renderBuddyArt();
   const set=(transform:string,value:string,maxWidth?:number)=>{
    const t=svg.querySelector<SVGTextElement>('text[transform="'+transform+'"]');
    const span=t?.querySelector<SVGTSpanElement>('tspan');
@@ -311,6 +332,7 @@ export function mountSpokemonPlayable(options:{
   else if(action==='session'){if(ready())document.getElementById('start')?.click();}
   else if(action==='encounter')encounter();
   else if(action==='collection')journal();
+  else if(action==='help')options.onHelp?.();
   else if(action==='finish'&&ready())onFinishRide();
  }));
  wattsControl.addEventListener('input',()=>{simPower=Number(wattsControl.value);output.textContent=simPower+' W';paint();});
