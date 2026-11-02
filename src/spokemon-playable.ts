@@ -92,7 +92,7 @@ export function mountSpokemonPlayable(options:{
   return el;
  };
  const rect=(parent:SVGElement,x:number,y:number,w:number,h:number,color:string,r=0)=>parent.appendChild(make('rect',{x:String(x),y:String(y),width:String(w),height:String(h),fill:color,rx:String(r)}));
- const text=(parent:SVGElement,x:number,y:number,label:string,size=38,color='#17343b')=>parent.appendChild(make('text',{x:String(x),y:String(y),'font-size':String(size),'font-family':'Spokemon Minecraft, monospace','font-weight':'700',fill:color},label));
+ const text=(parent:SVGElement,x:number,y:number,label:string,size=38,color='#17343b')=>parent.appendChild(make('text',{x:String(x),y:String(y),'font-size':String(size),'font-family':'Minecraft, Spokemon Minecraft, monospace','font-weight':'700',fill:color},label));
  const line=(parent:SVGElement,x1:number,y1:number,x2:number,y2:number,color:string,width=3)=>parent.appendChild(make('line',{x1:String(x1),y1:String(y1),x2:String(x2),y2:String(y2),stroke:color,'stroke-width':String(width)}));
  const ready=()=>Boolean(lastReal?.connected&&Date.now()-lastSourceTime<7000);
  const labelSource=()=>ready()?'TRAINER':simulator?'TEST RIDE':'READY';
@@ -193,27 +193,36 @@ export function mountSpokemonPlayable(options:{
   const currentBuddy=buddy();
    const ftp=Math.max(50,Math.min(1000,f.ftpWatts||250));
    const challenge=temperamentFeedback||evaluateTemperament(species.personality,ftp,0,false,0,temperamentAttempt);
-   svg.querySelector('#pk-game-progression')?.remove();
-   const hud=make('g',{id:'pk-game-progression'});
-   if(getScene()==='encounter'){
-    rect(hud,730,196,460,78,'#f2e8ca',5);
-     text(hud,746,227,challenge.cue+'  '+challenge.targetMin+'–'+challenge.targetMax+' W',22,'#17343b');
-     text(hud,746,256,challenge.feedback,17,'#365149');
-     rect(hud,730,285,460,53,'#f2e8ca',5);
-    text(hud,748,320,'TEMPERAMENT: '+species.personality.toUpperCase(),25,'#17343b');
-   }
-   if(currentBuddy){
-    const xp=Math.max(0,currentBuddy.xp||0),level=levelAt(xp);
-    const low=threshold(level-1),high=threshold(level);
-    const ratio=clamp((xp-low)/(high-low),0,1);
-    rect(hud,730,95,460,92,'#17343b',5);
-    text(hud,747,124,currentBuddy.name.toUpperCase()+'  LV '+level,23,'#fff2d4');
-    rect(hud,747,135,426,18,'#52665e',2);
-    rect(hud,747,135,426*ratio,18,'#9eca96',2);
-    text(hud,747,177,'XP '+Math.floor(xp-low)+' / '+(high-low),19,'#fff2d4');
-    if(performance.now()<levelFlashUntil)text(hud,1040,124,'LEVEL UP!',22,'#f6d58c');
-   }
-   svg.appendChild(hud);
+  // The supplied SVG owns the layout. Live data only updates the authored panels.
+  svg.querySelector('#pk-game-progression')?.remove();
+  const hud=make('g',{id:'pk-game-progression','pointer-events':'none'});
+  const scene=getScene();
+  const currentXp=Math.max(0,currentBuddy?.xp||0);
+  const currentLevel=levelAt(currentXp);
+  const xpLower=threshold(currentLevel-1),xpUpper=threshold(currentLevel);
+  const xpRatio=clamp((currentXp-xpLower)/(xpUpper-xpLower),0,1);
+  // Shared companion card, using exactly the artist's XP bar bounds.
+  rect(hud,1581,716,306,88,'#fcf0d6',0);
+  text(hud,1586.3,745.3,
+   'FRIENDSHIP LV. '+currentLevel+' - XP '+Math.floor(currentXp-xpLower)+' / '+(xpUpper-xpLower),
+   17,'#102f36');
+  rect(hud,1592.9,758.2,274.9,40.5,'#fcf0d6',6.8);
+  if(xpRatio>0)rect(hud,1596,761.3,268.7*xpRatio,34.3,'#6aad38',4.5);
+  hud.appendChild(make('rect',{x:'1592.9',y:'758.2',width:'274.9',height:'40.5',
+   rx:'6.8',fill:'none',stroke:'#102f36','stroke-width':'6'}));
+  if(currentBuddy&&performance.now()<levelFlashUntil)
+   text(hud,1745,784,'LEVEL UP!',19,'#102f36');
+  if(scene==='encounter'){
+   // The supplied trust and patience bars are fixed bounding boxes, not fills.
+   const borderedBar=(x:number,y:number,w:number,h:number,ratio:number,fill:string,r:number)=>{
+    rect(hud,x,y,w,h,'#fcf0d6',r);
+    if(ratio>0)rect(hud,x+3,y+3,(w-6)*clamp(ratio,0,1),h-6,fill,Math.max(1,r-2));
+    hud.appendChild(make('rect',{x:String(x),y:String(y),width:String(w),height:String(h),
+     rx:String(r),fill:'none',stroke:'#102f36','stroke-width':'5'}));
+   };
+   borderedBar(1592.9,199.3,138.6,40.5,trust/100,'#d27573',4.8);
+   borderedBar(1588.3,383.9,233.7,40.5,patience/65,'#f4d58e',6.3);
+  }
   const existingBuddy=svg.querySelector('#pk-active-buddy');
   if((existingBuddy?.getAttribute('data-creature-id')||'')!==(currentBuddy?.id||'')){
    existingBuddy?.remove();
@@ -235,15 +244,22 @@ export function mountSpokemonPlayable(options:{
     }
    }
   }
-  const example=svg.querySelector('circle[cx="1724"][cy="652.8"]');
-  if(example)example.setAttribute('visibility','hidden');
+  const example=svg.querySelector('circle[cx="1724"][cy="652.8"],circle[cx="1722.5"][cy="652"]');
+  if(example&&currentBuddy)example.setAttribute('visibility','hidden');
   const exampleText=svg.querySelector('text[transform="translate(1675.3999 689.9976)"]');
   if(exampleText)exampleText.setAttribute('visibility','hidden');
   const set=(transform:string,value:string,maxWidth?:number)=>{
-   const t=svg.querySelector<SVGTextElement>('text[transform="'+transform+'"]');
-   const span=t?.querySelector<SVGTSpanElement>('tspan');
-   if(!t||!span)return;
-   if(span.textContent!==value)span.textContent=value;
+   const match=/translate\(([-\d.]+)\s+([-\d.]+)\)/.exec(transform);
+   const t=svg.querySelector<SVGTextElement>('text[transform="'+transform+'"]')||
+    (match?Array.from(svg.querySelectorAll<SVGTextElement>('text[transform]')).find(el=>{
+     const m=/translate\(([-\d.]+)\s+([-\d.]+)\)/.exec(el.getAttribute('transform')||'');
+     return !!m&&Math.abs(Number(m[1])-Number(match[1]))<0.7&&
+      Math.abs(Number(m[2])-Number(match[2]))<0.7;
+    }):undefined);
+   if(!t)return;
+   const span=t.querySelector<SVGTSpanElement>('tspan');
+   if(span){if(span.textContent!==value)span.textContent=value;}
+   else if(t.textContent!==value)t.textContent=value;
    if(maxWidth===undefined)return;
    // The Illustrator text uses the supplied Minecraft font. Preserve its
    // baseline and original size whenever it fits; only reduce its font size
@@ -268,29 +284,14 @@ export function mountSpokemonPlayable(options:{
    ['translate(48 407.1)',Math.round(f.cadenceRpm||0)+' RPM'],
    ['translate(48 529.9)',(f.speedMph||0).toFixed(1)+' MPH'],
    ['translate(48 652.8)',f.gradePercent.toFixed(1)+' %'],
-   ['translate(48 778.5)',f.gear==null?'—':String(f.gear)],
-   ['translate(1590.5015 183.81)',getScene()==='encounter'?Math.floor(trust)+'%':''],
-   ['translate(1586.3262 368.0016)',getScene()==='encounter'?Math.ceil(patience)+' s':'—']
+   ['translate(48 778.5)',Math.round(f.caloriesKcal||0)+' KCAL'],
+   ['translate(1590.5 183.8)',scene==='encounter'?Math.floor(trust)+'%':''],
+   ['translate(1586.3 368)',scene==='encounter'?Math.ceil(patience)+' s':'']
   ] as const;
   for(const [selector,value] of numbers)set(selector,value);
-  set('translate(52 738.5)','GEAR');
-  set('translate(1585.0078 740.9976)',currentBuddy?'BUDDY: '+currentBuddy.name.toUpperCase():'NO BUDDY SELECTED');
-  if(getScene()==='explore'){
-   const hide=(selector:string)=>{const el=svg.querySelector<SVGElement>(selector);if(el)el.style.visibility='hidden';};
-   hide('rect[x="1566"][y="98.2"]');
-   const biomePanel=svg.querySelector<SVGRectElement>('rect[x="1566"][y="277"]');
-   if(biomePanel){biomePanel.setAttribute('y','437');biomePanel.setAttribute('height','92');}
-   hide('line[x1="1586.33"][y1="439.41"]');
-   hide('text[transform="translate(1590.5015 126.1968)"]');
-   hide('text[transform="translate(1590.5015 183.81)"]');
-   hide('rect[x="1592.9"][y="199.3"]');
-   hide('text[transform="translate(1586.3262 309.9969)"]');
-   hide('text[transform="translate(1586.3262 368.0016)"]');
-   hide('rect[x="1588.33"][y="383.9"]');
-   // Replace capture-only cards with current-session exploration statistics.
-   // Values come from the same real/test ride telemetry as the other readouts.
-   svg.querySelector('#pk-explore-session-stats')?.remove();
-   const stats=make('g',{id:'pk-explore-session-stats'});
+  if(scene==='explore'){
+   // Preserve the TWO existing Encounter-sized panels. Only the data inside
+   // changes to the user's Explore screenshot; no extra or resized cards.
    const ascentMeters=(()=>{
     const samples=f.samples.filter(Number.isFinite);
     if(samples.length<2||f.totalMeters<=0)return 0;
@@ -301,17 +302,21 @@ export function mountSpokemonPlayable(options:{
     if(index<samples.length-1)sum+=Math.max(0,samples[index+1]-samples[index])*fraction;
     return sum;
    })();
-   const duration=Math.max(0,Math.floor(f.elapsedSeconds||0));
-   const clock=String(Math.floor(duration/3600)).padStart(2,'0')+':'+String(Math.floor(duration%3600/60)).padStart(2,'0')+':'+String(duration%60).padStart(2,'0');
-   const card=(x:number,y:number,w:number,h:number,label:string,value:string,valueSize=36)=>{
-    rect(stats,x,y,w,h,'#f2e8ca',6);
-    text(stats,x+14,y+30,label,17,'#365149');
-    text(stats,x+14,y+82,value,valueSize,'#102e35');
-   };
-   card(1566,98,162,142,'DISTANCE',(f.distanceMeters/METERS_PER_MILE).toFixed(2)+' MI',26);
-   card(1736,98,168,142,'ELEVATION',Math.round(ascentMeters*3.280839895)+' FT',29);
-   card(1566,250,338,170,'TIME ELAPSED',clock,48);
-   svg.appendChild(stats);
+   const miles=(f.distanceMeters/METERS_PER_MILE).toFixed(1)+' mi.';
+   const feet=Math.round(ascentMeters*3.280839895).toLocaleString('en-US')+' ft.';
+   const seconds=Math.max(0,Math.floor(f.elapsedSeconds||0));
+   const elapsed=Math.floor(seconds/3600)+' hr '+Math.floor(seconds%3600/60)+' min';
+   // Inset backgrounds conceal the capture-only labels and progress bars,
+   // without covering any outer #102f36 border or changing card geometry.
+   rect(hud,1573,104,316,145,'#fcf0d6');
+   text(hud,1590,132,'DISTANCE TRAVELED',20,'#214f55');
+   text(hud,1590,172,miles,40,'#102f36');
+   text(hud,1590,207,'ELEVATION GAINED',20,'#214f55');
+   text(hud,1590,247,feet,39,'#102f36');
+   rect(hud,1573,284,316,148,'#fcf0d6');
+   text(hud,1590,320,'ELAPSED TIME',24,'#214f55');
+   text(hud,1590,378,elapsed,37,'#102f36');
+   // The existing divider, BIOME / PINE FOREST and companion card remain.
   }
   // The Illustrator master includes six colored sample bars. Resize those
   // ORIGINAL paths from their left edge instead of drawing bars over them.
@@ -333,22 +338,26 @@ export function mountSpokemonPlayable(options:{
    const rgb=low.map((a,i)=>Math.round(a+(high[i]-a)*ratio));
    item.style.fill='rgb('+rgb.join(',')+')';
   }
-  // Update the exact original Illustrator fill rectangles, not new cover art.
-  const trustBar=svg.querySelector<SVGRectElement>('rect[x="1592.9"][y="199.3"]');
-  if(trustBar)trustBar.setAttribute('width',(288.75*clamp(trust/100,0,1)).toFixed(2));
-  const patienceBar=svg.querySelector<SVGRectElement>('rect[x="1588.33"][y="383.9"]');
-  if(patienceBar)patienceBar.setAttribute('width',(233.7*clamp(patience/65,0,1)).toFixed(2));
-  // Do not truncate the message: size it to the available content width.
-  // Dialogue panel spans x=24..1296; text starts x=56 and keeps a 28px inset.
-  const displayMessage=getScene()==='encounter'&&!outcome
-    ?species.name+' wants '+challenge.cue.toLowerCase()+' at '+challenge.targetMin+'–'+challenge.targetMax+
-     ' W. '+challenge.feedback+'.'
-    :message;
-   set('translate(56 946)',displayMessage,1212);
-  const line2=ready()?(f.running?'REAL RIDE · '+(f.distanceMeters/METERS_PER_MILE).toFixed(2)+' mi':'TRAINER READY · PRESS START'):
-   simulator?(simulationRunning?'TEST RIDE · '+(simDistance/METERS_PER_MILE).toFixed(2)+' mi':'TEST PAUSED'):
-   'CONNECT TRAINER OR START TEST RIDE';
-  set('translate(56 1001.0032)',line2,1212);
+  // Text lives in its original authored SVG positions, not in new popups.
+  if(scene==='encounter'){
+   const announcement=outcome==='captured'
+    ?species.name+' joined your collection!'
+    :outcome==='escaped'?species.name+' wandered away.'
+    :'A '+species.personality.toUpperCase()+' '+species.name+' appeared!';
+   const cue=species.personality==='shy'?'Stay steady':
+    species.personality==='gentle'?'Ride gently':
+    species.personality==='stubborn'?'Hold strong':
+    challenge.cue==='BRISK'?'Ride brisk':'Ride easy';
+   const requirement=outcome==='captured'?'Your new friend is ready to ride!':
+    outcome==='escaped'?'Keep riding to discover another.':
+    cue+' '+challenge.targetMin+' - '+challenge.targetMax+' W to earn its trust!';
+   set('translate(56 926.7)',announcement,1205);
+   set('translate(56 1004.1)',requirement,1205);
+  }else{
+   set('translate(56 946)',message,1212);
+   set('translate(56 1001.0032)',ready()?'REAL RIDE':simulator?'TEST RIDE':'CONNECT TRAINER OR START TEST RIDE',1212);
+  }
+  svg.appendChild(hud);
   // The original elevation artwork is replaced only within its exact bounds.
   if(getScene()==='explore'){
    if(view.parentNode!==slot)slot.append(view);
