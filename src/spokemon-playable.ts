@@ -196,12 +196,12 @@ export function mountSpokemonPlayable(options:{
     const xp=Math.max(0,currentBuddy.xp||0),level=levelAt(xp);
     const low=threshold(level-1),high=threshold(level);
     const ratio=clamp((xp-low)/(high-low),0,1);
-    rect(hud,730,827,460,92,'#17343b',5);
-    text(hud,747,856,currentBuddy.name.toUpperCase()+'  LV '+level,23,'#fff2d4');
-    rect(hud,747,867,426,18,'#52665e',2);
-    rect(hud,747,867,426*ratio,18,'#9eca96',2);
-    text(hud,747,909,'XP '+Math.floor(xp-low)+' / '+(high-low),19,'#fff2d4');
-    if(performance.now()<levelFlashUntil)text(hud,1040,856,'LEVEL UP!',22,'#f6d58c');
+    rect(hud,730,95,460,92,'#17343b',5);
+    text(hud,747,124,currentBuddy.name.toUpperCase()+'  LV '+level,23,'#fff2d4');
+    rect(hud,747,135,426,18,'#52665e',2);
+    rect(hud,747,135,426*ratio,18,'#9eca96',2);
+    text(hud,747,177,'XP '+Math.floor(xp-low)+' / '+(high-low),19,'#fff2d4');
+    if(performance.now()<levelFlashUntil)text(hud,1040,124,'LEVEL UP!',22,'#f6d58c');
    }
    svg.appendChild(hud);
   const existingBuddy=svg.querySelector('#pk-active-buddy');
