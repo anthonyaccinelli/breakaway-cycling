@@ -137,7 +137,7 @@ export function mountCoach(bridge:CoachBridge){
           </div>
         </details>
         <button type="button" id="coachStartClassic" class="coach-classic-start">CONNECT MY TRAINER <span aria-hidden="true">→</span></button>
-        <p class="coach-start-note">Next: connect and confirm your smart trainer and optional heart-rate monitor. Pedaling starts the workout. New rider? Try the eight-minute trainer-free demo in My Setup first.</p>
+        <p class="coach-start-note">Next: connect your trainer and confirm the connection and optional heart-rate monitor. Pedaling starts the workout. New rider? Try the eight-minute trainer-free demo in My Setup first.</p>
         <div class="coach-quick"><button type="button" data-coach-question="tired">Feeling tired?</button><button type="button" data-coach-question="short">Short on time?</button><button type="button" data-coach-question="why">Why this ride?</button></div>
         <p id="coachAnswer" class="coach-feedback" aria-live="polite">Your workout is based on your saved FTP and experience.</p>
         <p id="coachStatus" class="coach-status" role="status"></p>
