@@ -7,8 +7,8 @@ const [main,devices,styles,route]=await Promise.all([
  read('pedalkin-handheld-devices.css'),read('pedalkin-handheld-route.ts')
 ]);
 test('02 Devices uses the same unmodified console SVG as 01 Route',()=>{
- assert.match(route,/src="\/pedalkin\/route-v3\\.svg"/);
- assert.match(devices,/src="\/pedalkin\/route-v3\\.svg"/);
+ assert.match(route,/src="\/pedalkin\/route-v3\.svg"/);
+ assert.match(devices,/src="\/pedalkin\/route-v3\.svg"/);
  assert.match(devices,/class="pk-dev-screen"/);
  assert.match(styles,/left:29\.24%!important;top:20\.05%!important/);
  assert.match(styles,/width:41\.56%!important;height:62\.8%!important/);
