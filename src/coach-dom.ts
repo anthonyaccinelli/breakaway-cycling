@@ -9,7 +9,7 @@ export const dayKey=(value:Date):string=>[value.getFullYear(),String(value.getMo
 // Old versions stored unpadded keys (e.g. 2026-11-2). Preserve existing skips.
 export const normalizeDayKey=(value:unknown):string=>{
  if(typeof value!=='string')return '';
- const match=/^(\\d{4})-(\\d{1,2})-(\\d{1,2})$/.exec(value);
+ const match=/^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(value);
  if(!match)return '';
  const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]);
  const date=new Date(year,month-1,day);
