@@ -488,8 +488,19 @@ export function mountSpokemonPlayable(options:{
   // The smart trainer keeps running normally, but Trust/Patience and new
   // encounters pause while the wipe conceals and reveals the scene.
   if(options.isTransitioning?.())return;
-  const f=frame(),moving=Boolean(f.running&&f.powerWatts!==undefined&&f.powerWatts>50&&
-   (f.cadenceRpm===undefined||f.cadenceRpm>35));
+  const f=frame(),mode=inputMode();
+  const moving=Boolean(f.running&&(mode==='cadence'
+   ?(f.cadenceRpm||0)>=20
+   :(mode==='power'&&(f.powerWatts||0)>50&&(f.cadenceRpm===undefined||f.cadenceRpm>35))));
+  if(mode!==encounterInputMode){
+   encounterInputMode=mode;temperamentAttempt=initialTemperamentAttempt();temperamentFeedback=null;
+  }
+  if(moving&&mode==='cadence'&&getScene()==='explore'&&ready()&&cadenceSampleSeconds<24){
+   const sample=clamp(f.cadenceRpm||0,55,115);
+   cadenceBaseline=clamp((cadenceBaseline*cadenceSampleSeconds+sample*dt)/(cadenceSampleSeconds+dt),60,110);
+   cadenceSampleSeconds+=dt;
+  }
+  refreshInputControls();
   const measuredDistance=Math.max(0,f.distanceMeters);
   if(ready()||simulator){progressDistance=measuredDistance;}
    if(moving&&buddy()){
@@ -508,10 +519,11 @@ export function mountSpokemonPlayable(options:{
    if(outcome){
     if(now>=resolveAt)returnExplore();
    }else{
+    if(mode==='none'||(!ready()&&!simulator)||!f.running){paint();return;}
     patience=Math.max(0,patience-dt);
-    const challenge=evaluateTemperament(
-     species.personality,f.ftpWatts||250,f.powerWatts||0,moving,dt,temperamentAttempt
-    );
+    const challenge=mode==='cadence'
+     ?evaluateCadenceTemperament(species.personality,cadenceBaseline,f.cadenceRpm||0,moving,dt,temperamentAttempt)
+     :evaluateTemperament(species.personality,f.ftpWatts||250,f.powerWatts||0,moving,dt,temperamentAttempt);
     temperamentAttempt=challenge.next;
     temperamentFeedback=challenge;
     trust=clamp(trust+challenge.trustGain,0,100);
