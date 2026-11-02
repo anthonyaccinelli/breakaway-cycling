@@ -441,8 +441,8 @@ export function mountSpokemonPlayable(options:{
   // The smart trainer keeps running normally, but Trust/Patience and new
   // encounters pause while the wipe conceals and reveals the scene.
   if(options.isTransitioning?.())return;
-  const f=frame(),moving=f.running&&f.powerWatts!==undefined&&f.powerWatts>50&&
-   (f.cadenceRpm===undefined||f.cadenceRpm>35);
+  const f=frame(),moving=Boolean(f.running&&f.powerWatts!==undefined&&f.powerWatts>50&&
+   (f.cadenceRpm===undefined||f.cadenceRpm>35));
   const measuredDistance=Math.max(0,f.distanceMeters);
   if(ready()||simulator){progressDistance=measuredDistance;}
    if(moving&&buddy()){
