@@ -139,6 +139,7 @@ export function createSpokemonTransitions(options:{
  return {
   transition,
   isRunning:()=>running,
+  hasSwapped:()=>running&&midpoint,
   setStyle:(next:SpokemonTransitionStyle)=>{style=next;if(panel)panel.querySelector<HTMLSelectElement>('select')!.value=style;},
   getStyle:()=>style,
   destroy:()=>{clean();panel?.remove();curtain.remove();}
