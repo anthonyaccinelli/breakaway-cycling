@@ -55,7 +55,8 @@ export function mountPedalkinRide():void {
    ${showPlaytestControls?'<div class="pk-profile-bar"><button type="button" data-pk-profile="toggle">Pause preview</button><input type="range" data-pk-profile="seek" min="0" max="1000" value="0" aria-label="Preview rider position along elevation profile"/><span class="pk-profile-status">0.0 / 25.0 km · Fast-forward playtest</span></div>':''}
    <div class="pk-ride-stage"><div class="pk-svg-slot" role="region" aria-label="Pedalkin 03 Ride screen"></div>
      <button type="button" class="pk-hitspot pk-journal" aria-label="Open creature journal" data-pk-action="journal"></button>
-     <button type="button" class="pk-hitspot pk-buddy" aria-label="Open buddy" data-pk-action="buddy"></button>
+     <button type="button" class="pk-hitspot pk-buddy" aria-label="Choose buddy" data-pk-action="buddy"></button>
+     <button type="button" class="pk-hitspot pk-buddy-art" aria-label="Select the creature in your Buddy window" data-pk-action="buddy"></button>
      <button type="button" class="pk-hitspot pk-stats" aria-label="Open ride stats" data-pk-action="stats"></button>
      <button type="button" class="pk-hitspot pk-save" aria-label="Save and close ride" data-pk-action="save"></button>
    </div>
@@ -581,6 +582,28 @@ export function mountPedalkinRide():void {
   dismiss.focus();
  }
  function triggerNavigation(target:'route'|'devices'|'ride'|'overlay'){
+  if(target!=='ride'){
+   // Do not silently abandon an active recorded trainer ride.
+   const finish=document.getElementById('rideFinishNow') as HTMLButtonElement|null;
+   const start=document.getElementById('start') as HTMLButtonElement|null;
+   if(finish&&!finish.hidden&&!finish.disabled&&start?.textContent?.toLowerCase().includes('pause')){
+    popupOpen('RIDE IN PROGRESS','Pause your recorded ride before opening 01 Route or 02 Devices. Recording remains saved and resumable.');
+    const choose=popup.querySelector<HTMLElement>('.pk-popup-body')!;
+    const button=document.createElement('button');
+    button.type='button';button.className='pk-ride-leave-confirm';
+    button.textContent='PAUSE RIDE & OPEN '+(target==='route'?'01 ROUTE':'02 DEVICES');
+    button.onclick=()=>{
+     popup.hidden=true;
+     start.click(); // real native Pause action; keep the activity for resumption
+     requestAnimationFrame(()=>{
+      const id=target==='route'?'stepRoute':'stepSetup';
+      (document.getElementById(id) as HTMLButtonElement|null)?.click();
+     });
+    };
+    choose.append(button);
+    return;
+   }
+  }
   if(target==='overlay'){
    // The same native always-on-top command used by Classic and Survival.
    // Mobile browsers may not support Document Picture-in-Picture.
@@ -620,8 +643,30 @@ export function mountPedalkinRide():void {
  host.querySelectorAll<HTMLButtonElement>('[data-pk-action]').forEach(button=>button.addEventListener('click',()=>{
   switch(button.dataset.pkAction){
    case 'journal':popupOpen('SPOKEMON JOURNAL',exactArtwork?(playable?.getCollection().map(c=>c.name+' ×'+c.count).join('\n')||'No Spokemon collected yet.'):PINE_FOREST_SPOKEMON.map((c,i)=>(i+1)+'. '+c.name).join('\n'));break;
-   case 'buddy':popupOpen('YOUR BUDDY',exactArtwork?(playable?.getCollection()[0]?.name||'Befriend your first Spokemon to choose a companion.'):'Companionship 12.');break;
-   case 'stats':popupOpen('RIDE STATS',exactArtwork?'Distance: '+(document.getElementById('distance')?.textContent||'0')+' miles\nPower: '+(document.getElementById('power')?.textContent||'—')+' W\nCollected: '+(playable?.getCollection().length||0):'Legacy preview state');break;
+   case 'buddy':{
+    if(!exactArtwork||!playable){popupOpen('YOUR BUDDY','Befriend your first Spokemon to choose a companion.');break;}
+    const captured=playable.getCollection();
+    const selected=playable.getBuddy();
+    popupOpen('YOUR BUDDY',captured.length?
+     'ACTIVE: '+(selected?.name||'None')+'\nChoose a caught Spokemon below to make it your companion.':
+     'Catch your first Spokemon to fill the Creature window.');
+    const container=popup.querySelector<HTMLElement>('.pk-popup-body')!;
+    const choices=document.createElement('div');choices.className='pk-buddy-choices';
+    for(const caught of captured){
+     const option=document.createElement('button');
+     option.type='button';option.className='pk-buddy-choice';
+     option.textContent=(caught.id===selected?.id?'★ ':'')+caught.name+' ×'+caught.count;
+     option.setAttribute('aria-pressed',String(caught.id===selected?.id));
+     option.addEventListener('click',()=>{
+      playable?.setBuddy(caught.id);
+      popup.hidden=true;
+     });
+     choices.append(option);
+    }
+    container.append(choices);
+    break;
+   }
+   case 'stats':popupOpen('RIDE STATS',exactArtwork?'Distance: '+(document.getElementById('distance')?.textContent||'0')+' miles\nPower: '+(document.getElementById('power')?.textContent||'—')+' W\nGear: '+(document.getElementById('gear')?.textContent||'—')+'\nCollected: '+(playable?.getCollection().length||0):'Legacy preview state');break;
    case 'save':
     if(exactArtwork){
      if(!playable){popupOpen('SAVE & CLOSE','Game is loading.');break;}
