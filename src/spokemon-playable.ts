@@ -391,6 +391,6 @@ export function mountSpokemonPlayable(options:{
  function sync(){if(active()){lastTick=performance.now();paint();}else{tool.querySelector('details')?.removeAttribute('open');}}
  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-ride-experience','data-breakaway-screen']});
  sync();
- return {setFrame,paint,stopTestRide,setBuddy,getBuddy:()=>buddy(),getTemperament:()=>temperament,
+ return {setFrame,paint,stopTestRide,setBuddy,getBuddy:()=>buddy(),getLiveStats:()=>frame(),getTemperament:()=>temperament,
   getCollection:()=>collection.slice(),getCurrentSpecies:()=>species,isSimulating:()=>simulator,destroy:()=>{window.clearInterval(timer);view.remove();tool.remove();}};
 }
