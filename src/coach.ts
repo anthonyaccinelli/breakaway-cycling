@@ -121,6 +121,7 @@ export function mountCoach(bridge:CoachBridge){
         <div class="coach-section-top"><span class="coach-tag">COACH RECOMMENDS</span><span id="coachRecommendationLabel" class="coach-feature-pill">YOUR PLAN</span></div>
         <h3 id="coachRecommendedName" class="coach-recommended-name">Aerobic Builder</h3>
         <div id="coachWhy" class="coach-why"></div>
+        <div id="coachChangeDetail" class="coach-change-detail" role="status" aria-live="polite" hidden></div>
         <div id="coachRestState" class="coach-rest-state" hidden><p id="coachRestReason"></p><button type="button" id="coachBrowseOptional">CHOOSE AN OPTIONAL RIDE →</button></div>
         <div id="coachWorkoutControls">
         <div id="coachWorkoutInfo" class="coach-workout-info"></div>
@@ -471,10 +472,20 @@ export function mountCoach(bridge:CoachBridge){
       strengthOnly?'STRENGTH DAY':recommendation.status==='recovery'?'RECOVERY ADJUSTMENT':
       recommendation.status==='rest'||recommendation.status==='completed'?'REST RECOMMENDED':'FROM YOUR PLAN';
     $('coachWhy').textContent=strengthOnly&&!riderSelected?'Your plan includes strength today. No cycling workout is scheduled.':resting?'Coach recommends rest today.':riderSelected?'You chose an optional alternative for today. Coach originally recommended: '+recommendation.reason:'Why Coach chose this: '+recommendation.reason;
+    const originalId=recommendWeek(rider,false)[nowDate.getDay()].workoutId;
+    const changed=!riderSelected&&recommendation.status==='recovery'&&originalId&&originalId!==recommendation.workoutId;
+    $('coachChangeDetail').hidden=!changed;
+    if(changed){
+      const original=library.find(w=>w.id===originalId);
+      const updated=library.find(w=>w.id===recommendation.workoutId);
+      $('coachChangeDetail').innerHTML='<strong>WHY TODAY CHANGED</strong>'+
+        '<div class="coach-change-pair"><span>ORIGINAL: '+escapeHtml(original?.name||originalId)+'</span><span>RECOMMENDED: '+escapeHtml(updated?.name||'Recovery spin')+'</span></div>'+
+        '<p>'+escapeHtml(recommendation.reason)+'</p><p>You can select the original workout under Swap workout. This does not alter your weekly plan.</p>';
+    }
     $('coachRestReason').textContent=strengthOnly?'Your strength session is ready above. No trainer needed. You can still pick an optional cycling workout.':recommendation.reason;
     $('coachUseRecommendation').hidden=!riderSelected;
     const w=getWorkout(), duration=workoutDuration(w);
-    $('coachWorkoutInfo').innerHTML='<div><strong>'+escapeHtml(w.category.toUpperCase())+'</strong><span>'+Math.round(duration/60)+' MINUTES · '+w.segments.length+' SEGMENTS</span></div><p>'+escapeHtml(w.description)+'</p>';
+    $('coachWorkoutInfo').innerHTML='<div><strong>'+escapeHtml(w.category.toUpperCase())+'</strong><span>'+Math.round(duration/60)+' MINUTES · '+w.segments.length+' SEGMENTS</span></div><p>'+escapeHtml(w.description)+'</p>'+(ftpKnown?'':'<p><strong>FTP not yet established:</strong> displayed watt values are examples, not individualized targets. Keep the first ride conversational and use guided SIM mode, not ERG.</p>');
     $('coachSegments').innerHTML=w.segments.map((segment,i)=>{
       const color=segment.low<.6?'#86b5da':segment.low<.8?'#63d8bd':segment.low<1?'#f9be70':'#fb7489';
       const height=Math.max(24,Math.min(100,Math.round(segment.high*80)));
