@@ -1,3 +1,4 @@
+import {advanceCadenceSensorRide} from './spokemon-sensor-progress';
 import {virtualGearTarget,advanceRoadSpeed} from './virtual-drivetrain';
 import {createQuestIntroMusic} from './quest-intro-music';
 import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
@@ -70,16 +71,16 @@ try{
  const mm=Number(localStorage.getItem('spokemon-wheel-circumference-mm'));
  if(Number.isFinite(mm)&&mm>=1000&&mm<=3000)cscWheelCircumferenceMm=mm;
 }catch{}
-function sensorReadyForRide(){return rideExperience==='pedalkin'&&cscHasSpeed&&cscHasCadence&&cscDevices.size>0;}
+function sensorReadyForRide(){return rideExperience==='pedalkin'&&cscHasCadence&&cscDevices.size>0;}
 function sensorRideOnly(){return rideExperience==='pedalkin'&&!trainerReadyForRide()&&sensorReadyForRide();}
 function updateCscStatus(){
  cscHasSpeed=Array.from(cscCapabilities.values()).some(x=>x.speed);
  cscHasCadence=Array.from(cscCapabilities.values()).some(x=>x.cadence);
- document.body.dataset.spokemonCscReady=String(cscHasSpeed&&cscHasCadence&&cscDevices.size>0);
+ document.body.dataset.spokemonCscReady=String(cscHasCadence&&cscDevices.size>0);
  const label=document.getElementById('speedCadenceStatus');
  if(label)label.textContent=cscDevices.size
   ?'Speed '+(cscHasSpeed?'✓':'—')+' · Cadence '+(cscHasCadence?'✓':'—')
-  :'Not connected · pair speed and cadence sensor(s)';
+  :'Not connected · pair a cadence sensor';
 }
 let drivetrainMode:'traditional'|'virtual'='traditional';let realTelemetry=false;let trainerMode:'sim'|'erg'|'target'='sim';let lastTarget=0;let targetErgWatts=180;let lastFixedErgCommand=0;let controlResponseWaiter:((v:DataView)=>void)|null=null;let controlQueue=Promise.resolve();let points:Point[]=[];let distance=0;let speed=0;let power=0;let cadence=0;let cadenceReceivedAt=-Infinity;let gear=6;let running=false;let last=0;let device:BLEDevice;let control:any;let connected=false;let controlGranted=false;let pending=false;let trainerGrade=NaN;
 // Procedural routes: deterministic, streaming terrain; never allocate the entire endless route.
@@ -525,7 +526,7 @@ function confirmManualFinish(){
  overlay.querySelector<HTMLButtonElement>('#manualConfirmFinish')!.onclick=()=>{overlay.remove();finishRide();};
  overlay.querySelector<HTMLButtonElement>('#manualKeepRiding')!.focus();
 }
-function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!(trainerReadyForRide()||sensorReadyForRide()))return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);if(rideExperience==='cyclequest')showCycleQuest();else showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();if(trainerReadyForRide())void command([0x07]);if(sensorRideOnly()){status('Speed/cadence ride started · no resistance control');return;}if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
+function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!(trainerReadyForRide()||sensorReadyForRide()))return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);if(rideExperience==='cyclequest')showCycleQuest();else showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();if(trainerReadyForRide())void command([0x07]);if(sensorRideOnly()){status(cscHasSpeed?'Speed/cadence ride started · no resistance control':'Cadence-only ride started · virtual distance estimated · no resistance control');return;}if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
 function pauseRide(){if(!running)return;rideAwaitingPedaling=(breakawayScreen==='ride'||rideExperience==='cyclequest')&&!rideEnd;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
 function finishRide(){
  closeStationaryPrompt();stationarySince=0;
@@ -1153,12 +1154,19 @@ function advanceRide(now:number){
   if(procedural)ensureTerrain();
   for(let i=0;i<steps;i++){
    if(cscOnly){
-    // The wheel sensor drives genuine distance; never fake power or trainer load.
+    // Prefer measured wheel speed. With cadence alone, use a clearly estimated
+    // virtual pace for route progression; never synthesize trainer power.
     if(procedural)ensureTerrain();
     const limit=procedural?routeLimit:points.at(-1)!.distance;
-    speed=now-cscLastSpeedAt<4500?cscSpeedMps:0;
-    cadence=now-cscLastCadenceAt<4500?cadence:0;
-    distance=Math.min(limit,distance+speed*step);
+    const freshCadence=cscLastCadenceAt>0&&now-cscLastCadenceAt<4500;
+    cadence=freshCadence?cadence:0;
+    const progression=advanceCadenceSensorRide({
+     nowMs:now,lastSpeedAtMs:cscLastSpeedAt,lastCadenceAtMs:cscLastCadenceAt,
+     speedSensorConnected:cscHasSpeed,speedMps:cscSpeedMps,cadenceRpm:cadence,
+     distanceMeters:distance,stepSeconds:step,routeLimitMeters:limit,
+    });
+    speed=progression.speedMps;
+    distance=progression.distanceMeters;
     if(distance>=limit)break;
     continue;
    }
@@ -1296,7 +1304,7 @@ async function connectCscDevice(selected:any){
   cscDevices.delete(selected.id);cscStates.delete(selected.id);cscCapabilities.delete(selected.id);
   updateCscStatus();
   if(running&&!trainerReadyForRide()&&!sensorReadyForRide()){
-   pauseRide();saveRideRecovery();status('Speed/cadence sensors disconnected — ride saved and paused.');
+   pauseRide();saveRideRecovery();status('Cadence sensor disconnected — ride saved and paused.');
   }
  });
  measurement.addEventListener('characteristicvaluechanged',(event:any)=>{
@@ -2936,7 +2944,7 @@ function updateSetupReadiness(){
  button.disabled=fromHome||rideExperience==='pedalkin'?false:!ready;
  button.textContent=fromHome?'Choose a mode →':rideExperience==='pedalkin'?'03 Ride → (trainer optional)':ready?'Start Riding →':'Connect Trainer to Continue';
  const label=document.getElementById('setupReadiness')!;
- label.textContent=rideExperience==='pedalkin'?(ready?'Trainer connected · ready to ride.':'Trainer optional · use 03 Ride without connecting anything.'):fromHome?(ready?'✓ Trainer ready · choose a mode when you’re ready.':'Connect devices now, or choose a mode and connect later.'):ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.';
+ label.textContent=rideExperience==='pedalkin'?(ready?(sensorRideOnly()?(cscHasSpeed?'Speed/cadence ready · measured distance.':'Cadence ready · estimated distance.'):'Trainer connected · ready to ride.'):'Connect cadence sensor, trainer, or use play test.'):fromHome?(ready?'✓ Trainer ready · choose a mode when you’re ready.':'Connect devices now, or choose a mode and connect later.'):ready?'✓ Trainer ready · HRM and Zwift Click are optional.':'Trainer required · HRM and Zwift Click are optional.';
  refreshSetupDeviceCards();
 }
 function showBreakawayScreen(screen:BreakawayScreen){
@@ -2975,10 +2983,10 @@ function enterRideScreen(){
  // Do not start the real ride engine or record synthetic workouts until an actual trainer is ready.
  if(rideExperience==='pedalkin'&&!trainerReadyForRide()&&!sensorReadyForRide()){
   showBreakawayScreen('ride');
-  status('Spokemon ready: connect speed/cadence sensors, a power trainer, or start a play test.');
+  status('Spokemon ready: connect a cadence sensor, a smart trainer, or start a play test.');
   return;
  }
- if(!trainerReadyForRide()&&!sensorReadyForRide()){updateSetupReadiness();status('Connect and initialize a smart trainer or speed/cadence sensors first');return;}
+ if(!trainerReadyForRide()&&!sensorReadyForRide()){updateSetupReadiness();status('Connect a cadence sensor or smart trainer first');return;}
  // Start the ride from the Connect Trainer action itself. FTMS power and
  // cadence notifications will advance the ride when the rider pedals.
  showBreakawayScreen('ride');
