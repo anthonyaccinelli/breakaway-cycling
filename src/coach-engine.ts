@@ -146,10 +146,10 @@ export function fatigueSignals(profile:CoachProfile,now:number,rides:CoachRecent
  const veryHardFeedback=feedback.some(x=>Number.isFinite(x.date)&&x.date<=now&&now-x.date<=48*3600000&&x.rpe!==null&&x.rpe>=9);
  return {demandingRide,veryHardFeedback,fatigued:demandingRide||veryHardFeedback};
 }
-export function recommendToday(profile:CoachProfile,day:Date,rides:CoachRecentRide[]=[],feedback:CoachRecentFeedback[]=[]):TodayRecommendation {
+export function recommendToday(profile:CoachProfile,day:Date,rides:CoachRecentRide[]=[],feedback:CoachRecentFeedback[]=[],scheduledWeek?:{day:number;workoutId:string|null;reason?:string}[]):TodayRecommendation {
  const p=validProfile(profile),now=day.getTime();
  const startOfDay=new Date(day.getFullYear(),day.getMonth(),day.getDate()).getTime();
- const scheduled=recommendWeek(p,false)[day.getDay()];
+ const scheduled=scheduledWeek?.find(d=>d.day===day.getDay())??recommendWeek(p,false)[day.getDay()];
  const validRides=rides.filter(r=>Number.isFinite(r.start)&&r.start<=now&&Number.isFinite(r.elapsed)&&r.elapsed>0&&r.start>=now-7*86400000);
  const completedToday=validRides.some(r=>r.start>=startOfDay&&r.elapsed>=15*60);
  const {demandingRide,veryHardFeedback}=fatigueSignals(p,now,validRides,feedback);
@@ -165,7 +165,7 @@ export function recommendToday(profile:CoachProfile,day:Date,rides:CoachRecentRi
   endurance:'aerobic endurance',race:'preparing for your cycling event'
  };
  return {workoutId:scheduled.workoutId,status:'planned',
-   reason:'Your '+p.days+'-day weekly schedule calls for this session to support '+descriptions[p.goal]+'. The recommendation uses your rider profile and basic scheduling rules.'};
+   reason:scheduledWeek&&scheduled.reason?'Event-based plan: '+scheduled.reason:'Your '+p.days+'-day weekly schedule calls for this session to support '+descriptions[p.goal]+'. The recommendation uses your rider profile and basic scheduling rules.'};
 }
 /** Return a concrete shorter workout; preserve power ranges, warmup, and recovery segments. */
 export function shortenWorkout(workout:CoachWorkout,maxMinutes=30):CoachWorkout {
