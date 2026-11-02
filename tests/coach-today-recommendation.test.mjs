@@ -57,7 +57,7 @@ test('the daily UI prioritizes recommendation and keeps swapping optional',()=>{
  assert.match(ui,/id="coachBrowseOptional"/);
  assert.match(ui,/data-coach-question="short"/);
  assert.match(ui,/shortenWorkout\(w,target\)/);
- assert.match(ui,/recommendToday\(rider,nowDate,inputs,feedback\)/);
+ assert.match(ui,/recommendToday\(rider,nowDate,ridesForFatigue,feedback\)/);
  assert.match(ui,/loadHistoricalRides\(\)/);
  assert.match(styles,/\.coach-v2 \.coach-swap-panel/);
 });
