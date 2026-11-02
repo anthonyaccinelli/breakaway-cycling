@@ -107,6 +107,8 @@ export function mountSpokemonPlayable(options:{
   const i=clamp(Math.floor(simDistance/totalMeters*(samples.length-1)),0,samples.length-2);
   const slope=(samples[i+1]-samples[i])/Math.max(1,totalMeters/(samples.length-1))*100;
   return {distanceMeters:simulator?simDistance:0,totalMeters,samples,elapsedSeconds:simElapsed,
+   rideDistanceMeters:simulator?simDistance:0,
+   elevationGainFeet:simulator?ascentThrough(samples,totalMeters,simDistance):0,
    gradePercent:simulator?slope:0,powerWatts:simulator?simPower:0,
    cadenceRpm:simulator?88:0,heartRateBpm:simulator?124:null,
    speedMph:simulator?simPower*.083:0,caloriesKcal:simulator?simKcal:0,
