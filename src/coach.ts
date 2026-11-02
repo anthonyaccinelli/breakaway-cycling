@@ -654,7 +654,19 @@ export function mountCoach(bridge:CoachBridge){
       return '<button type="button" class="coach-library-item" data-library-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+mins+' min</small></span><span aria-hidden="true">→</span></button>';
     }).join('');
     const thisWeek=adaptive.days.slice(0,7);
-    const weekDisplay=reconcileCoachWeek(thisWeek,currentCalendarDays,library,todayKey);
+    // Both panels must render the identical date-keyed adaptive result. The rolling
+    // calendar spans into next Sunday, whereas My Week begins last Sunday.
+    // Reconcile the overlapping days, then explicitly project the already-rendered
+    // calendar's rides into My Week so no independent calculation can hide them.
+    const weekDisplay=reconcileCoachWeek(thisWeek,currentCalendarDays,library,todayKey).map(day=>{
+      const shown=currentCalendarDays.find(item=>item.key===day.key);
+      if(!shown||day.key<todayKey)return day;
+      const ride=shown.rideId&&shown.rideMinutes>0?library.find(w=>w.id===shown.rideId):undefined;
+      return {...day,workoutId:shown.rideId&&shown.rideMinutes>0?shown.rideId:null,
+        name:ride?.name??null,minutes:shown.rideMinutes,
+        missingWorkout:!!shown.rideId&&shown.rideMinutes>0&&!ride,
+        strength:shown.strength,strengthMinutes:shown.strengthMinutes};
+    });
     const stillScheduled=thisWeek.reduce((sum,day)=>sum+day.minutes+(day.date.getTime()>=new Date(nowDate.getFullYear(),nowDate.getMonth(),nowDate.getDate()).getTime()?day.strengthMinutes:0),0);
     $('coachPlanBudget').textContent='Remaining cycling + strength this calendar week: '+(stillScheduled/60).toFixed(1)+' h · Weekly time goal: '+(schedule.budgetMinutes/60).toFixed(1)+' h · '+schedule.note;
     $('coachWeek').innerHTML=weekDisplay.map(day=>{
