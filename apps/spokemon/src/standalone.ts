@@ -62,6 +62,18 @@ let lastFrameAt=performance.now(),lastRecordAt=0;
 const sensors=new Map<string,Sensor>();
 let trainer:BleDevice|null=null,hrDevice:BleDevice|null=null;
 const bluetooth=()=> (navigator as Navigator & {bluetooth?:any}).bluetooth;
+for(const id of ['connect','connectHr','connectClick']){
+ const button=get<HTMLButtonElement>(id),parent=button.parentElement!;
+ const tile=document.createElement('div');tile.className='setup-device-tile';tile.dataset.connectionState='disconnected';
+ const indicator=document.createElement('span');indicator.className='setup-connection-indicator';indicator.textContent='Not connected';
+ parent.insertBefore(tile,button);tile.append(button,indicator);
+}
+function deviceIndicator(id:string,state:'connected'|'disconnected'|'connecting',label:string){
+ const tile=get(id).closest<HTMLElement>('.setup-device-tile');
+ if(tile)tile.dataset.connectionState=state;
+ const node=tile?.querySelector<HTMLElement>('.setup-connection-indicator');
+ if(node)node.textContent=label;
+}
 function status(message:string){banner.textContent=message;}
 function nav(page:'route'|'setup'|'ride'){
  document.body.dataset.breakawayScreen=page;
@@ -81,6 +93,7 @@ get('up').onclick=()=>{gear=Math.min(24,gear+1);get('gear').textContent=String(g
 get('drivetrainMode').onchange=()=>status('Gear preference updated. Smart-trainer virtual resistance is not yet validated in this extraction.');
 get('trainerMode').onchange=()=>status('Trainer control selection saved. Current standalone prototype reads FTMS telemetry; it does not yet command resistance.');
 get('connectClick').onclick=()=>status('Zwift Click control pairing has not been ported to the standalone engine yet.');
+deviceIndicator('connectClick','disconnected','Not available in extraction build');
 get('applyErgWatts').onclick=()=>status('Fixed ERG control remains unavailable until the original trainer command engine is extracted.');
 get('rideFinishNow').onclick=()=>finishRide();
 function renderProfile(){
@@ -198,22 +211,22 @@ get('connect').onclick=async()=>{
  try{
   trainer=await bluetooth().requestDevice({filters:[{services:[FTMS]}]});
   const gatt=await trainer.gatt.connect();trainerConnected=true;
-  trainer.addEventListener('gattserverdisconnected',()=>{trainerConnected=false;lastPowerAt=0;updateConnection();status('Trainer disconnected. Ride pauses until measurements reconnect.');});
+  trainer.addEventListener('gattserverdisconnected',()=>{trainerConnected=false;lastPowerAt=0;deviceIndicator('connect','disconnected','Disconnected');updateConnection();status('Trainer disconnected. Ride pauses until measurements reconnect.');});
   await subscribe(gatt,FTMS,BIKE_DATA,parseIndoorBikeData);
-  updateConnection();status('FTMS trainer connected for live measurement. SIM/ERG resistance controls require further migration.');
- }catch(e){trainerConnected=false;status('Trainer connection failed: '+String(e));}
+  deviceIndicator('connect','connected','FTMS telemetry connected');updateConnection();status('FTMS trainer connected for live measurement. SIM/ERG resistance controls require further migration.');
+ }catch(e){trainerConnected=false;deviceIndicator('connect','disconnected','Not connected');status('Trainer connection failed: '+String(e));}
 };
 get('connectHr').onclick=async()=>{
  if(!bluetooth()){status('Web Bluetooth is unavailable.');return;}
  try{
   hrDevice=await bluetooth().requestDevice({filters:[{services:[HR]}]});
   const gatt=await hrDevice.gatt.connect();
-  hrDevice.addEventListener('gattserverdisconnected',()=>{heartRate=null;get('hrStatus').textContent='Disconnected';});
+  hrDevice.addEventListener('gattserverdisconnected',()=>{heartRate=null;get('hrStatus').textContent='Disconnected';deviceIndicator('connectHr','disconnected','Disconnected');});
   await subscribe(gatt,HR,HR_DATA,v=>{
    const large=!!(v.getUint8(0)&1);heartRate=large?v.getUint16(1,true):v.getUint8(1);
    get('hrStatus').textContent=String(heartRate)+' bpm';
   });
-  get('hrStatus').textContent='Connected';status('Heart-rate sensor connected.');
+  get('hrStatus').textContent='Connected';deviceIndicator('connectHr','connected','Heart-rate connected');status('Heart-rate sensor connected.');
  }catch(e){status('Heart-rate connection failed: '+String(e));}
 };
 get('start').onclick=()=>{
@@ -266,6 +279,43 @@ get('nativeProfile').onclick=()=>void openOverlay();
 mountPedalkinHandheldRoute();
 mountPedalkinHandheldDevices();
 mountPedalkinRide();
+// Save portability controls live inside the existing Game Controls menu;
+// nothing is painted on top of the user's Illustrator artboard.
+const controls=document.querySelector<HTMLElement>('.pk-game-toolbar-buttons');
+if(controls){
+ const exportButton=document.createElement('button');exportButton.type='button';exportButton.textContent='EXPORT SPOKEMON SAVE';
+ exportButton.onclick=()=>{
+  const keys=['spokemon-caught-v1','spokemon-buddy-v1','spokemon-input-choice-v1'];
+  const data:Record<string,string|null>={};
+  for(const key of keys)data[key]=localStorage.getItem(key);
+  download('spokemon-save-'+new Date().toISOString().slice(0,10)+'.json',
+   JSON.stringify({format:'spokemon-portable-save',version:1,exportedAt:new Date().toISOString(),data},null,2),
+   'application/json');
+ };
+ const importInput=document.createElement('input');importInput.type='file';importInput.accept='.json,application/json';
+ importInput.setAttribute('aria-label','Import Spokemon save file');importInput.hidden=true;
+ const importButton=document.createElement('button');importButton.type='button';importButton.textContent='IMPORT SPOKEMON SAVE';
+ importButton.onclick=()=>importInput.click();
+ importInput.onchange=async()=>{
+  const file=importInput.files?.[0];if(!file)return;
+  try{
+   if(file.size>1024*1024)throw Error('File is too large');
+   const parsed=JSON.parse(await file.text());
+   if(parsed?.format!=='spokemon-portable-save'||parsed.version!==1)throw Error('Unknown Spokemon save format');
+   const data=parsed.data;
+   const captured=data?.['spokemon-caught-v1'];
+   if(typeof captured!=='string'||!Array.isArray(JSON.parse(captured)))throw Error('Collection is invalid');
+   if(data['spokemon-buddy-v1']!==null&&typeof data['spokemon-buddy-v1']!=='string')throw Error('Buddy is invalid');
+   if(data['spokemon-input-choice-v1']!==null&&!['auto','power','cadence'].includes(data['spokemon-input-choice-v1']))throw Error('Input mode is invalid');
+   if(!window.confirm('Replace this browser’s Spokemon collection with the imported save?'))return;
+   for(const key of ['spokemon-caught-v1','spokemon-buddy-v1','spokemon-input-choice-v1']){
+    const value=data[key];if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);
+   }
+   location.reload();
+  }catch(e){status('Save import failed: '+String(e));}
+ };
+ controls.append(exportButton,importButton,importInput);
+}
 renderProfile();nav('route');
 status('Standalone Spokemon extraction · Original Illustrator artwork preserved · Test Ride available without hardware.');
 function publishFrame(now:number){

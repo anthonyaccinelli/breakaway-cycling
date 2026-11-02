@@ -9,6 +9,7 @@ Independent Vite app (root: apps/spokemon) designed for migration into its own G
 - Bluetooth Cycling Speed and Cadence, including cadence-only virtual distance, freshness checks and measured wheel speed precedence
 - Basic FTMS Indoor Bike Data and Bluetooth HR readings; no trainer resistance commands yet
 - Deterministic generated terrain, GPX import, independent TCX export for real rides, local summary saves
+- Collection JSON export/import from 03 Ride > Game Controls (manual file migration requires a matching export control on the old domain)
 - Responsive standalone artboards and portable app-local CI
 
 ## IMPORTANT release limitations
