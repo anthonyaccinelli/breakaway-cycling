@@ -168,6 +168,9 @@ export function mountPedalkinHandheldRoute():void {
    node.textContent=value;
    node.title=value;
   }
+  // Time is a rough planning estimate, not a rider-specific prediction.
+  // The underlying route studio uses a fixed 15-mph calculation.
+  at<HTMLElement>('[data-pk-stat="time"]').title='Approximate time at a constant 15 mph. Hills and rider fitness change actual duration.';
   // studioDifficulty is a verbose workout description, not the concise
   // terrain name shown in the user's Illustrator route preview card.
   const terrainLabel=original.terrain!.selectedOptions[0]?.textContent?.trim()||'—';
