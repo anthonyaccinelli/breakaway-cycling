@@ -23,7 +23,6 @@ import './coach-readiness.css';
 import {COACH_EVENT_GOAL_KEY,DEFAULT_EVENT_GOAL,GOAL_DISCIPLINES,validEventGoal,goalPhase,eventWeek} from './coach-event-goal';
 import type {CoachEventGoal} from './coach-event-goal';
 import './coach-event-goal.css';
-import {reconcileCoachWeek} from './coach-week-view';
 
 export interface CoachBridge {
   launchMode:(mode:CoachMode)=>void;
@@ -184,7 +183,7 @@ export function mountCoach(bridge:CoachBridge){
     <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training week.</h2><p>Your rides, strength sessions, and rest days in one place.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit my plan →</button></div>
     <div id="coachAdaptiveWeek" class="coach-adaptive-summary" aria-label="Adaptive schedule changes" hidden></div>
     <div class="coach-plan-grid">
-      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS CALENDAR WEEK · SUNDAY–SATURDAY</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
+      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">MY NEXT 7 DAYS · SAME PLAN AS TODAY</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
       <section class="coach-panel coach-plan-explain"><div class="coach-section-top"><span class="coach-tag">HOW TO USE YOUR WEEK</span></div>
         <h3>Coach makes the plan. You choose when to go.</h3>
         <p>Tap a cycling session to review it on Today. Tap a strength session to open its guided workout. Your rest day stays free.</p>
@@ -653,22 +652,24 @@ export function mountCoach(bridge:CoachBridge){
       const mins=Math.round(workoutDuration(w)/60);
       return '<button type="button" class="coach-library-item" data-library-workout="'+escapeHtml(w.id)+'"><span><strong>'+escapeHtml(w.name)+'</strong><small>'+escapeHtml(w.category)+' · '+mins+' min</small></span><span aria-hidden="true">→</span></button>';
     }).join('');
-    const thisWeek=adaptive.days.slice(0,7);
-    // Both panels must render the identical date-keyed adaptive result. The rolling
-    // calendar spans into next Sunday, whereas My Week begins last Sunday.
-    // Reconcile the overlapping days, then explicitly project the already-rendered
-    // calendar's rides into My Week so no independent calculation can hide them.
-    const weekDisplay=reconcileCoachWeek(thisWeek,currentCalendarDays,library,todayKey).map(day=>{
-      const shown=currentCalendarDays.find(item=>item.key===day.key);
-      if(!shown||day.key<todayKey)return day;
-      const ride=shown.rideId&&shown.rideMinutes>0?library.find(w=>w.id===shown.rideId):undefined;
-      return {...day,workoutId:shown.rideId&&shown.rideMinutes>0?shown.rideId:null,
-        name:ride?.name??null,minutes:shown.rideMinutes,
-        missingWorkout:!!shown.rideId&&shown.rideMinutes>0&&!ride,
-        strength:shown.strength,strengthMinutes:shown.strengthMinutes};
+    // My Week intentionally uses the exact same rolling seven-day source as
+    // My Next 7 Days. Do not recompute a separate Sunday–Saturday schedule.
+    const weekDisplay=currentCalendarDays.map(shown=>{
+      const adapted=adaptive.days.find(day=>day.key===shown.key);
+      const scheduled=!!shown.rideId&&shown.rideMinutes>0;
+      const workout=scheduled?library.find(w=>w.id===shown.rideId):undefined;
+      return {
+        key:shown.key,weekday:shown.date.getDay(),
+        workoutId:scheduled?shown.rideId:null,name:workout?.name??null,
+        minutes:scheduled?shown.rideMinutes:0,
+        strength:shown.strength,strengthMinutes:shown.strengthMinutes,
+        status:adapted?.status??'rest',reason:shown.reason,
+        changed:adapted?.changed??false,
+        missingWorkout:scheduled&&!workout
+      };
     });
-    const stillScheduled=thisWeek.reduce((sum,day)=>sum+day.minutes+(day.date.getTime()>=new Date(nowDate.getFullYear(),nowDate.getMonth(),nowDate.getDate()).getTime()?day.strengthMinutes:0),0);
-    $('coachPlanBudget').textContent='Remaining cycling + strength this calendar week: '+(stillScheduled/60).toFixed(1)+' h · Weekly time goal: '+(schedule.budgetMinutes/60).toFixed(1)+' h · '+schedule.note;
+    const stillScheduled=weekDisplay.reduce((sum,day)=>sum+day.minutes+day.strengthMinutes,0);
+    $('coachPlanBudget').textContent='Next 7 days cycling + strength: '+(stillScheduled/60).toFixed(1)+' h · Weekly time goal: '+(schedule.budgetMinutes/60).toFixed(1)+' h · '+schedule.note;
     $('coachWeek').innerHTML=weekDisplay.map(day=>{
       const isPast=day.key<todayKey;
       const cycling=day.workoutId&&day.name&&day.minutes>0&&!isPast
