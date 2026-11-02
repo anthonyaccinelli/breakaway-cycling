@@ -304,7 +304,7 @@ if(controls){
    if(parsed?.format!=='spokemon-portable-save'||parsed.version!==1)throw Error('Unknown Spokemon save format');
    const data=parsed.data;
    const captured=data?.['spokemon-caught-v1'];
-   if(typeof captured!=='string'||!Array.isArray(JSON.parse(captured)))throw Error('Collection is invalid');
+   if(captured!==null&&(typeof captured!=='string'||!Array.isArray(JSON.parse(captured))))throw Error('Collection is invalid');
    if(data['spokemon-buddy-v1']!==null&&typeof data['spokemon-buddy-v1']!=='string')throw Error('Buddy is invalid');
    if(data['spokemon-input-choice-v1']!==null&&!['auto','power','cadence'].includes(data['spokemon-input-choice-v1']))throw Error('Input mode is invalid');
    if(!window.confirm('Replace this browser’s Spokemon collection with the imported save?'))return;
