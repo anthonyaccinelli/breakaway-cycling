@@ -40,6 +40,8 @@ export function applyRecoveryGuidance(plan:TodayRecommendation,check:MorningChec
 /** Explainable training-day signal. Never estimate Garmin thresholds without a personal baseline. */
 export function trainingDayGuidance(check:MorningCheckIn|null,recentLoad:{demandingRide:boolean;veryHardFeedback:boolean},completedToday=false){
  if(completedToday)return {color:'green' as const,label:'Training complete',detail:'You have already ridden today. No additional prescribed workout is needed.'};
+ if(!check&&!recentLoad.demandingRide&&!recentLoad.veryHardFeedback)
+  return {color:'neutral' as const,label:'Check-in optional',detail:'Coach has no reported fatigue today, but no check-in or personal recovery baseline is available. Follow the plan if you feel well, and adjust as needed.'};
  if(check?.feeling==='tired'&&(recentLoad.demandingRide||recentLoad.veryHardFeedback))
   return {color:'red' as const,label:'Recovery recommended',detail:'You reported fatigue and recent training was demanding. Coach recommends rest or gentle recovery rather than another hard effort.'};
  if(check?.feeling==='tired'||recentLoad.demandingRide||recentLoad.veryHardFeedback)
