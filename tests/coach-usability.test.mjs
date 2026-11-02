@@ -33,8 +33,8 @@ test('Navigation is clear, with one setup save and no unavoidable advanced train
  assert.match(ui,/id="coachDemo"/);
 });
 test('Cycling and strength appear on one calendar and upcoming uses its integrated schedule',()=>{
- assert.match(ui,/const upcoming=schedule\.days\.flatMap/);
- assert.match(ui,/filter\(item=>item\.day>now\)/);
+ assert.match(ui,/const upcoming=currentCalendarDays\.slice\(1\)\.flatMap/);
+ assert.match(ui,/data-upcoming-key/);
  assert.match(ui,/data-upcoming-type/);
  assert.match(ui,/coach-strength-primary/);
  assert.match(ui,/strengthOnly\)todayGrid\.insertBefore/);
