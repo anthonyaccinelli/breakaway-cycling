@@ -25,9 +25,9 @@ test('Test mode cannot synthesize ride records or trainer commands',()=>{
 test('Encounter gameplay includes captures, failures, cooldown, and collection persistence',()=>{
  assert.match(gameplay,/choosePineForestSpokemon/);
  assert.match(gameplay,/if\(trust>=100\)/);
- assert.match(gameplay,/resolve\(Math\.random\(\)<\.85\)/);
+ assert.match(gameplay,/resolve\(Math\.random\(\)<chanceAtFullTrust\(temperament\)\)/);
  assert.match(gameplay,/patience<=0/);
- assert.match(gameplay,/localStorage\.setItem\(STORAGE/);
+ assert.match(gameplay,/saveCollection\(\)/);
  assert.match(gameplay,/encounterCooldown=progressDistance/);
 });
 test('Exact Illustrator SVG assets remain untouched, with grade profiles rendered separately',()=>{
