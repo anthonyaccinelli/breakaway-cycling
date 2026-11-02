@@ -1,0 +1,84 @@
+/* Adaptive Coach additions. All dark-surface text uses high contrast. */
+#breakawayCoachScreen.coach-v2 .coach-readiness{
+ border-radius:13px;border:1px solid #aacbb5;background:#e8f5ec;
+ padding:15px 19px;margin:0 0 16px;color:#1c4b32
+}
+#breakawayCoachScreen.coach-v2 .coach-readiness-yellow{border-color:#e1be71;background:#fff3d6;color:#714a0c}
+#breakawayCoachScreen.coach-v2 .coach-readiness-red{border-color:#df9c9c;background:#fff0ef;color:#872522}
+#breakawayCoachScreen.coach-v2 .coach-readiness-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#breakawayCoachScreen.coach-v2 .coach-readiness-head strong{font-size:14px;font-weight:900}
+#breakawayCoachScreen.coach-v2 .coach-readiness-head>span:last-child{margin-left:auto;font-size:11px;font-weight:800}
+#breakawayCoachScreen.coach-v2 .coach-readiness p{font-size:13px;line-height:1.55;margin:8px 0;color:inherit}
+#breakawayCoachScreen.coach-v2 .coach-readiness button{font-size:12px;font-weight:900;text-decoration:underline;text-underline-offset:3px;color:inherit;background:transparent;border:0;min-height:35px;cursor:pointer;padding:3px 0}
+#breakawayCoachScreen.coach-v2 .coach-readiness-dot{width:13px;height:13px;flex:0 0 auto;border-radius:50%;background:#248855;border:1px solid #176039}
+#breakawayCoachScreen.coach-v2 .coach-readiness-yellow .coach-readiness-dot,
+#breakawayCoachScreen.coach-v2 .coach-readiness-dot-yellow{background:#efb72c;border-color:#9f7612}
+#breakawayCoachScreen.coach-v2 .coach-readiness-red .coach-readiness-dot,
+#breakawayCoachScreen.coach-v2 .coach-readiness-dot-red{background:#e44c4c;border-color:#a71f24}
+#breakawayCoachScreen.coach-v2 .coach-readiness-dot-green{background:#248855;border-color:#176039}
+#breakawayCoachScreen.coach-v2 .coach-readiness-dot{display:inline-block}
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill.coach-day-yellow{border-color:#efd075!important;box-shadow:inset 0 0 0 2px #efd075}
+#breakawayCoachScreen.coach-v2 .coach-calendar-pill.coach-day-red{border-color:#ff9b9b!important;box-shadow:inset 0 0 0 2px #ff9b9b}
+#breakawayCoachScreen.coach-v2 .coach-calendar-date::first-letter{color:inherit}
+#breakawayCoachScreen.coach-v2 .coach-calendar-signal{display:inline-flex;align-items:center;gap:5px;font-size:11px!important;
+ font-weight:900!important;color:#fff!important;letter-spacing:.1px;margin-top:auto}
+#breakawayCoachScreen.coach-v2 .coach-calendar-signal::before{content:"";display:inline-block;width:8px;height:8px;
+ background:#5be39e;border:1px solid #136b4e;border-radius:50%}
+#breakawayCoachScreen.coach-v2 .coach-day-yellow .coach-calendar-signal::before{background:#ffe06d;border-color:#b78819}
+#breakawayCoachScreen.coach-v2 .coach-day-red .coach-calendar-signal::before{background:#ff9a96;border-color:#ac3634}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-morning{margin:0 0 17px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-header{display:flex;justify-content:space-between;align-items:start;gap:14px;margin-bottom:14px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-header h3{font-size:22px!important;color:#203b5d!important;margin:5px 0 6px!important}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-header p{color:#3e5a76;font-size:14px;line-height:1.5;margin:0;max-width:610px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-local{flex:0 0 auto;font-size:11px;font-weight:900;color:#2e557f;background:#e7f0fc;
+ border:1px solid #bcd0e7;padding:7px 10px;border-radius:99px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-form label,#breakawayCoachScreen.coach-v2 .coach-adaptive-baseline-fields label,
+#breakawayCoachScreen.coach-v2 .coach-adaptive-missed-fields label{display:grid;gap:6px;font-size:13px!important;font-weight:850;color:#294767}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-form label small{font-size:12px;color:#516c88}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-form :is(input,select),#breakawayCoachScreen.coach-v2 .coach-adaptive-baseline input,
+#breakawayCoachScreen.coach-v2 .coach-adaptive-missed-fields :is(input,select){
+ width:100%;box-sizing:border-box;min-height:47px;padding:11px;border:1px solid #b2c8de;background:#fbfdff;color:#173450;
+ border-radius:9px;font-size:15px
+}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-baseline{margin-top:13px;border:1px solid #d4e0ed;border-radius:9px;overflow:hidden}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-baseline summary{cursor:pointer;padding:13px 14px;min-height:45px;box-sizing:border-box;
+ background:#eef4fd;color:#1b4a92;font-size:13px;font-weight:850}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-baseline p{color:#415d79;font-size:13px;line-height:1.55;padding:1px 14px 0}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-baseline-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;padding:12px 14px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-actions{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-top:16px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-primary,#breakawayCoachScreen.coach-v2 .coach-adaptive-secondary{min-height:47px;
+ padding:12px 16px;border-radius:9px;cursor:pointer;font-weight:900;font-size:13px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-primary{border:1px solid #0d4dbc;background:#1657c9;color:#fff}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-primary:hover{background:#0b3f9b}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-secondary{background:#edf4fd;color:#174c8e;border:1px solid #a8c0dd}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-secondary:disabled{opacity:.55;cursor:default}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-notice{color:#315779;font-size:13px;margin:10px 0 0}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-changes-header h3{font-size:22px!important;margin:5px 0 7px!important;color:#1c3958!important}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-changes-header p{font-size:13px;color:#49647e;line-height:1.5;margin:0 0 14px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-change-list{display:grid;gap:10px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-change{border:1px solid #cbd9e9;border-radius:11px;background:#f8fbff;padding:14px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-change-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:13px;color:#224362}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-change-top>span:last-child{margin-left:auto;font-size:11px;font-weight:850;color:#415a75}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-beforeafter{display:grid;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);gap:8px;
+ align-items:center;margin:12px 0}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-beforeafter>div{background:#eef3fa;border-radius:9px;min-height:71px;padding:10px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-beforeafter small{display:block;color:#426081;font-size:11px;font-weight:900;margin-bottom:4px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-beforeafter strong{display:block;color:#243c59;font-size:13px;line-height:1.4}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-change p{font-size:12px;color:#455e79;line-height:1.55;margin:0 0 10px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-change>button{min-height:42px;border:1px solid #b1c6df;
+ background:#fff;color:#20529b;border-radius:8px;padding:9px 13px;font-size:12px;font-weight:850;cursor:pointer}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-nochanges{font-size:14px;color:#425f7d;line-height:1.5}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-missed{margin-top:17px;border-top:1px solid #dae5f0;padding-top:14px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-missed summary{font-size:14px;color:#1b53a4;font-weight:900;cursor:pointer;min-height:42px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-missed p{font-size:13px;color:#46607c}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-missed-fields{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;align-items:end}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-missed-row{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:8px 0;
+ font-size:13px;color:#395c7c;border-bottom:1px solid #e2eaf3}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-missed-row button{min-height:42px;font-size:12px;font-weight:900;color:#1552aa;border:0;background:transparent}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-disclaimer{font-size:12px;color:#50667f;line-height:1.55;margin:16px 0 0}
+@media(max-width:800px){#breakawayCoachScreen.coach-v2 .coach-adaptive-form{grid-template-columns:1fr}
+ #breakawayCoachScreen.coach-v2 .coach-adaptive-missed-fields{grid-template-columns:1fr 1fr}
+ #breakawayCoachScreen.coach-v2 .coach-adaptive-missed-fields button{grid-column:1/-1}}
+@media(max-width:540px){#breakawayCoachScreen.coach-v2 .coach-adaptive-header{flex-direction:column}
+ #breakawayCoachScreen.coach-v2 .coach-adaptive-baseline-fields,#breakawayCoachScreen.coach-v2 .coach-adaptive-missed-fields{grid-template-columns:1fr}}
