@@ -48,3 +48,11 @@ test('Both navigation actions use real native Route and Devices controls',()=>{
  assert.match(ride,/RIDE IN PROGRESS/);
  assert.match(rideCss,/\.pk-ride-nav\{z-index:60!important;\}/);
 });
+
+test('Buddy name updates with the current selection and active rides can pause before navigating',()=>{
+ assert.match(play,/BUDDY: '\+currentBuddy\.name\.toUpperCase\(\)/);
+ assert.match(ride,/PAUSE RIDE & OPEN /);
+ assert.match(ride,/start\.click\(\)/);
+ assert.match(ride,/requestAnimationFrame\(\(\)=>/);
+ assert.match(rideCss,/\.pk-ride-leave-confirm/);
+});
