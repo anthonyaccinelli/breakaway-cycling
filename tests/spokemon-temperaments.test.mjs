@@ -29,10 +29,8 @@ test('Stubborn takes longer and playful preferred efforts alternate',()=>{
  assert.notEqual(t.preferredEffort('unpredictable',1),t.preferredEffort('unpredictable',16));
 });
 
-test('Chaotic cannot use ordinary Trust accumulation and capture never guarantees success',()=>{
+test('Chaotic cannot gain Trust through ordinary wattage; its sustained 10-second effort governs capture',()=>{
  assert.equal(t.trustRate('chaotic',300,300,3),0);
- for(const name of ['shy','calm','energetic','playful','stubborn','unpredictable','chaotic']){
-  assert(t.chanceAtFullTrust(name)>0&&t.chanceAtFullTrust(name)<1);
- }
- assert(t.chanceAtFullTrust('chaotic')<t.chanceAtFullTrust('calm'));
+ assert.equal(t.trustRate('chaotic',600,300,15),0);
+ assert.equal('chanceAtFullTrust' in t,false,'No random failure after reaching 100% Trust');
 });
