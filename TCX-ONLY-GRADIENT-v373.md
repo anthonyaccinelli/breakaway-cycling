@@ -1,1 +1,0 @@
-v3.7.3: Removes Strava integration and upload endpoints. Ride history remains local with manual TCX download. Dynamic current gradient at upper-left elevation profile: green <=6%, orange >6%, red >12%, purple >18%; font scales with steepness. No automatic uploads.

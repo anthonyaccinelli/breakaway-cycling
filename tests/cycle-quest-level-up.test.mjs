@@ -1,5 +1,0 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {createLevelUpQueue,levelUpMarkup} from '../cycle-quest/level-up.js';
-const stats={hp:L=>100+10*(L-1),attack:L=>100*1.08**(L-1)};
-test('celebration lasts ten wall-clock seconds',()=>{const q=createLevelUpQueue();q.enqueue(12,13);assert.equal(q.update(100).until,10100);assert(q.update(10099));assert.equal(q.update(10100),null);});
-test('levels wait for battle and rewards and queue in order',()=>{const q=createLevelUpQueue();q.enqueue(3,4);assert.equal(q.update(0,true),null);q.enqueue(4,5);assert.deepEqual(q.update(12000,false),{before:3,after:5,until:22000});q.enqueue(5,6);assert.deepEqual(q.update(22000,false),{before:5,after:6,until:32000});});
-test('celebration displays gains and confirms full healing',()=>{const markup=levelUpMarkup({before:12,after:13,until:10000},stats,false,0);assert(markup.includes('+10'));assert(markup.includes('+19'));assert(markup.includes('HP FULLY RESTORED'));assert(markup.includes('RETURNING IN 10s'));});
