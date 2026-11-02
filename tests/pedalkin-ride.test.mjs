@@ -47,7 +47,7 @@ test('Desktop route controls are visible; changing mode while recording is guard
  assert.match(ride,/get\('stepSetup'\)|stepSetup/);
 });
 test('Trainer-free test rides never send FTMS commands or fake recorded workouts',()=>{
- assert.match(play,/Test rides are simulated and are never recorded or exported/);
+ assert.match(play,/Test Ride moves along the route about 5× faster for gameplay QA/);
  assert.doesNotMatch(play,/saveRecordedRide|setResistance\(|dispatchEvent\(new CustomEvent\('pedalkin:ride-frame'/);
  assert.match(main,/pedalkin:ride-frame/);
  assert.match(play,/const ready=\(\)=>Boolean\(lastReal\?\.connected/);
