@@ -160,3 +160,19 @@ test('the selected calendar workout duration survives navigating into Today',()=
  assert.match(ui,/selectedOverrideMinutes=planned\?\.rideMinutes/);
  assert.match(ui,/minutes\*60<workoutDuration\(base\)/);
 });
+
+const {integratedWeek,defaultStrength}=await compile('coach-strength');
+test('weekly time availability is honored even without strength enabled',()=>{
+ const busy={...rider,hours:2,days:5};
+ const raw=eventWeek(busy,ultra,new Date(2026,10,2));
+ const result=integratedWeek(busy,{...defaultStrength,enabled:false},raw, id=>id==='recovery'?30:90);
+ assert.ok(result.plannedMinutes<=120,'do not prescribe more than the two available hours');
+ assert.ok(result.days.reduce((sum,d)=>sum+d.cyclingMinutes,0)<=120);
+ assert.equal(result.days.some(d=>d.day===busy.restDay&&d.cyclingId!==null),false);
+});
+test('an eight-hour athlete keeps their normal schedule when sessions fit',()=>{
+ const raw=eventWeek(rider,ultra,new Date(2026,10,2));
+ const normal=integratedWeek(rider,{...defaultStrength,enabled:false},raw,id=>id==='recovery'?30:90);
+ assert.ok(normal.plannedMinutes<=480);
+ assert.ok(normal.days.filter(d=>d.cyclingId).length>=4);
+});
