@@ -254,3 +254,16 @@ body.pk-dev-active .pk-dev-screen,
 body.pk-dev-active .pk-dev-screen :is(input,select,button,div,label,span,small,h1,h2,p,strong,output){
  font-family:"Spokemon Minecraft",monospace!important;font-weight:700!important;
 }
+
+/* Compact four sensor tiles and the input choice inside the original Illustrator screen. */
+.pk-dev-device{flex-basis:4.45cqw!important;padding:.24cqw .55cqw .12cqw!important;gap:.08cqw!important}
+.pk-dev-device-heading{height:1.95cqw!important}
+.pk-dev-bluetooth{height:1.75cqw!important;width:1.75cqw!important;font-size:1.27cqw!important}
+.pk-dev-device>button{flex-basis:1.45cqw!important;height:1.45cqw!important;font-size:.61cqw!important}
+.pk-dev-device-status{min-height:.42cqw!important}
+.pk-dev-column{gap:.32cqw!important;padding:.48cqw .65cqw!important}
+.pk-dev-settings{gap:.26cqw!important;padding:.48cqw .7cqw!important}
+.pk-dev-settings select{height:1.85cqw!important;margin-bottom:.16cqw!important;font-size:.72cqw!important}
+.pk-dev-mode-info{margin:0!important;color:#456b6e!important;font:650 .55cqw/1.25 Arial,sans-serif!important;min-height:1.3cqw!important}
+.pk-dev-play-test{display:block!important;flex:none!important;width:100%!important;min-height:1.88cqw!important;height:1.88cqw!important;margin:0 0 .2cqw!important;background:#244f46!important;color:#fff6d7!important;border:0!important;border-radius:.32cqw!important;font:900 .72cqw/1 'Courier New',monospace!important;cursor:pointer!important}
+.pk-dev-play-test:hover{background:#327660!important}

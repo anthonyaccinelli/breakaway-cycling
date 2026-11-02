@@ -1,5 +1,7 @@
 import './pedalkin-handheld-devices.css';
 import {enableSpokemonHandheldFont} from './pedalkin-font-artwork';
+import {getSpokemonInputChoice,setSpokemonInputChoice} from './spokemon-input-mode';
+import type {SpokemonInputChoice} from './spokemon-input-mode';
 
 /** 02 Devices — the exact 01 Route console frame, with controls bridged
  * to Breakaway's original BLE and shifting handlers. */
@@ -35,6 +37,13 @@ export function mountPedalkinHandheldDevices():void{
       <button data-pk-action="trainer">CONNECT TRAINER</button>
       <small class="pk-dev-device-status" data-pk-status="trainer">Not connected</small>
      </div>
+     <div class="pk-dev-device" data-pk-device="sensor">
+      <div class="pk-dev-device-heading"><span class="pk-dev-bluetooth">ᛒ</span>
+       <div class="pk-dev-device-name"><strong>Speed + Cadence</strong><small>Bluetooth CSC · no smart trainer needed</small></div>
+       <span class="pk-dev-tag">OPTIONAL</span></div>
+      <button data-pk-action="sensor">CONNECT SENSOR</button>
+      <small class="pk-dev-device-status" data-pk-status="sensor">Not connected</small>
+     </div>
      <div class="pk-dev-device" data-pk-device="hr">
       <div class="pk-dev-device-heading"><span class="pk-dev-bluetooth">ᛒ</span>
        <div class="pk-dev-device-name"><strong>Heart Rate</strong><small>Bluetooth heart-rate sensor</small></div>
@@ -55,6 +64,14 @@ export function mountPedalkinHandheldDevices():void{
     <section class="pk-dev-column">
      <h2>02 / RIDE SETTINGS</h2>
      <div class="pk-dev-settings">
+      <label for="pkDevInput">ENCOUNTER INPUT</label>
+      <select id="pkDevInput" data-pk-input>
+       <option value="auto">AUTO DETECT (RECOMMENDED)</option>
+       <option value="power">POWER · WATTS</option>
+       <option value="cadence">CADENCE · RPM</option>
+      </select>
+      <p class="pk-dev-mode-info" data-pk-mode-info aria-live="polite">Choose power or cadence for Spokemon encounters.</p>
+      <button class="pk-dev-play-test" data-pk-play-test type="button">PLAY TEST THIS MODE →</button>
       <label for="pkDevShifting">SHIFTING STYLE</label>
       <select id="pkDevShifting" data-pk-shifting><option value="traditional">Traditional Shifting</option><option value="virtual">Virtual Shifting</option></select>
       <label for="pkDevControl">TRAINER CONTROL</label>
@@ -80,7 +97,7 @@ export function mountPedalkinHandheldDevices():void{
  void enableSpokemonHandheldFont(shell);
  const q=<T extends Element=HTMLElement>(selector:string)=>shell.querySelector<T>(selector)!;
  const buttons={
-  trainer:el<HTMLButtonElement>('connect')!,hr:el<HTMLButtonElement>('connectHr')!,
+  sensor:el<HTMLButtonElement>('connectSpeedCadence'),trainer:el<HTMLButtonElement>('connect')!,hr:el<HTMLButtonElement>('connectHr')!,
   click:el<HTMLButtonElement>('connectClick')!,down:el<HTMLButtonElement>('down')!,
   up:el<HTMLButtonElement>('up')!,watts:el<HTMLButtonElement>('applyErgWatts'),
   continue:el<HTMLButtonElement>('goToRide')!
@@ -104,6 +121,15 @@ export function mountPedalkinHandheldDevices():void{
  const control=q<HTMLSelectElement>('[data-pk-control]');
  const auto=q<HTMLInputElement>('[data-pk-auto]');
  const watts=q<HTMLInputElement>('[data-pk-watts]');
+ const input=q<HTMLSelectElement>('[data-pk-input]');
+ input.value=getSpokemonInputChoice();
+ input.addEventListener('change',()=>{setSpokemonInputChoice(input.value as SpokemonInputChoice);refresh();});
+ q<HTMLButtonElement>('[data-pk-play-test]').addEventListener('click',()=>{
+  // No fake BLE data: the test lives entirely inside the game's simulator.
+  if(document.body.dataset.rideExperience!=='pedalkin')return;
+  buttons.continue.click();
+  requestAnimationFrame(()=>window.dispatchEvent(new Event('spokemon:demo-start')));
+ });
  const updateSelect=(src:HTMLSelectElement,dest:HTMLSelectElement)=>{
   dest.value=src.value;dest.dispatchEvent(new Event('change',{bubbles:true}));
  };
@@ -132,6 +158,20 @@ export function mountPedalkinHandheldDevices():void{
  function refresh(){
   if(shell.hidden)return;
   if(document.activeElement!==shifting)shifting.value=real.shifting.value;
+  if(document.activeElement!==input)input.value=getSpokemonInputChoice();
+  const preferred=getSpokemonInputChoice();
+  const sensorState=(el('speedCadenceStatus')?.textContent||'Not connected').trim();
+  q<HTMLElement>('[data-pk-status="sensor"]').textContent=sensorState;
+  const sensorReady=document.body.dataset.spokemonCscReady==='true';
+  q<HTMLElement>('[data-pk-device="sensor"]').dataset.state=sensorReady?'connected':'disconnected';
+  q<HTMLButtonElement>('[data-pk-action="sensor"]').textContent=sensorReady?'SENSOR CONNECTED ✓':'CONNECT SENSOR';
+  q<HTMLElement>('[data-pk-mode-info]').textContent=preferred==='power'
+   ?'Power targets (W). Trainer or power meter required for real rides.'
+   :preferred==='cadence'
+    ?'Cadence targets (RPM). Basic sensors; no resistance control.'
+    :'Auto: prefer measured power, otherwise use measured cadence.';
+  q<HTMLButtonElement>('[data-pk-play-test]').textContent=
+   'PLAY TEST '+(preferred==='power'?'POWER':'CADENCE')+' →';
   if(document.activeElement!==control)control.value=real.control.value;
   if(document.activeElement!==auto)auto.checked=real.auto.checked;
   if(real.watts&&document.activeElement!==watts)watts.value=real.watts.value;
@@ -149,12 +189,13 @@ export function mountPedalkinHandheldDevices():void{
    button.disabled=state.pending;
   }
   const trainerConnected=deviceStatus('trainer').connected;
+  const sensorConnected=document.body.dataset.spokemonCscReady==='true';
   const next=q<HTMLButtonElement>('[data-pk-action="continue"]');
   next.disabled=false;
-  next.innerHTML=trainerConnected?'READY TO RIDE! <span aria-hidden="true">→</span>':'SKIP DEVICES — 03 RIDE <span aria-hidden="true">→</span>';
-  q<HTMLElement>('[data-pk-ready]').textContent=trainerConnected?'● TRAINER READY':'● TRAINER OPTIONAL';
-  q<HTMLElement>('[data-pk-ready]').dataset.ready=String(trainerConnected);
-  q<HTMLElement>('[data-pk-banner]').textContent=trainerConnected?'✓ TRAINER CONNECTED. READY FOR THE NEXT STEP.':'● NO TRAINER REQUIRED — YOU CAN ENTER 03 RIDE NOW.';
+  next.innerHTML=trainerConnected||sensorConnected?'READY TO RIDE! <span aria-hidden="true">→</span>':'SKIP DEVICES — 03 RIDE <span aria-hidden="true">→</span>';
+  q<HTMLElement>('[data-pk-ready]').textContent=trainerConnected?'● TRAINER READY':sensorConnected?'● SENSORS READY':'● DEVICE OPTIONAL';
+  q<HTMLElement>('[data-pk-ready]').dataset.ready=String(trainerConnected||sensorConnected);
+  q<HTMLElement>('[data-pk-banner]').textContent=trainerConnected?'✓ TRAINER CONNECTED. READY FOR THE NEXT STEP.':sensorConnected?'✓ SPEED + CADENCE CONNECTED. READY TO RIDE.':'● NO TRAINER REQUIRED — SELECT A MODE OR PLAY TEST.';
   q<HTMLElement>('[data-pk-distance]').textContent=(el<HTMLInputElement>('generatedMiles')?.value||'—')+' MI';
  }
  function sync(){

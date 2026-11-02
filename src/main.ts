@@ -30,6 +30,8 @@ import {mountPedalkinHandheldDevices} from './pedalkin-handheld-devices';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
+import {parseCscMeasurement} from './spokemon-csc';
+import type {CscState} from './spokemon-csc';
 
 // Riding opens immediately; settings and progress remain saved on this device.
 void (async function startBreakawayApplication(){
@@ -41,6 +43,8 @@ type BLEDevice = any;
 const FTMS='00001826-0000-1000-8000-00805f9b34fb';
 const CYCLING_POWER='00001818-0000-1000-8000-00805f9b34fb';
 const CYCLING_POWER_MEASUREMENT='00002a63-0000-1000-8000-00805f9b34fb';
+const CSC_SERVICE='00001816-0000-1000-8000-00805f9b34fb';
+const CSC_MEASUREMENT='00002a5b-0000-1000-8000-00805f9b34fb';
 const CONTROL='00002ad9-0000-1000-8000-00805f9b34fb';
 const STATUS='00002ada-0000-1000-8000-00805f9b34fb';
 const BIKE='00002ad2-0000-1000-8000-00805f9b34fb';
@@ -56,6 +60,26 @@ function setCycleQuestHold(hold:boolean){
  }
  cycleQuestHold=hold;
  if(!hold){cycleQuestHeldGrade=null;cycleQuestHeldSlope=null;}
+}
+let cscHasSpeed=false,cscHasCadence=false,cscSpeedMps=0,cscLastSpeedAt=0,cscLastCadenceAt=0;
+const cscDevices=new Map<string,BLEDevice>();
+const cscStates=new Map<string,CscState>();
+const cscCapabilities=new Map<string,{speed:boolean;cadence:boolean}>();
+let cscWheelCircumferenceMm=2105;
+try{
+ const mm=Number(localStorage.getItem('spokemon-wheel-circumference-mm'));
+ if(Number.isFinite(mm)&&mm>=1000&&mm<=3000)cscWheelCircumferenceMm=mm;
+}catch{}
+function sensorReadyForRide(){return rideExperience==='pedalkin'&&cscHasSpeed&&cscHasCadence&&cscDevices.size>0;}
+function sensorRideOnly(){return rideExperience==='pedalkin'&&!trainerReadyForRide()&&sensorReadyForRide();}
+function updateCscStatus(){
+ cscHasSpeed=Array.from(cscCapabilities.values()).some(x=>x.speed);
+ cscHasCadence=Array.from(cscCapabilities.values()).some(x=>x.cadence);
+ document.body.dataset.spokemonCscReady=String(cscHasSpeed&&cscHasCadence&&cscDevices.size>0);
+ const label=document.getElementById('speedCadenceStatus');
+ if(label)label.textContent=cscDevices.size
+  ?'Speed '+(cscHasSpeed?'✓':'—')+' · Cadence '+(cscHasCadence?'✓':'—')
+  :'Not connected · pair speed and cadence sensor(s)';
 }
 let drivetrainMode:'traditional'|'virtual'='traditional';let realTelemetry=false;let trainerMode:'sim'|'erg'|'target'='sim';let lastTarget=0;let targetErgWatts=180;let lastFixedErgCommand=0;let controlResponseWaiter:((v:DataView)=>void)|null=null;let controlQueue=Promise.resolve();let points:Point[]=[];let distance=0;let speed=0;let power=0;let cadence=0;let cadenceReceivedAt=-Infinity;let gear=6;let running=false;let last=0;let device:BLEDevice;let control:any;let connected=false;let controlGranted=false;let pending=false;let trainerGrade=NaN;
 // Procedural routes: deterministic, streaming terrain; never allocate the entire endless route.
@@ -278,7 +302,7 @@ async function generateClassicRoute():Promise<boolean>{
 const POWER_WINDOW_MS=3000, BEER_KCAL=150, GROSS_EFFICIENCY=0.24;
 let powerHistory:{time:number;watts:number}[]=[];
 let energyKcal=0, activeRideMs=0, lastActiveTick=0, rideSessionStartDistance=0;
-type RideSample={seconds:number; distance:number; elevation:number; power:number; cadence:number; heartRate:number|null};
+type RideSample={seconds:number; distance:number; elevation:number; power:number; hasPower?:boolean; cadence:number; heartRate:number|null};
 let rideSamples:RideSample[]=[];let lastSampleSecond=-1;
 // v409: local, versioned crash-recovery checkpoint. Never stores Bluetooth credentials.
 const RIDE_RECOVERY_KEY='breakaway-ride-recovery-v409';
@@ -332,7 +356,7 @@ function recordRideSample(){
  const seconds=Math.floor(activeRideMs/1000);
  if(seconds<=lastSampleSecond)return;
  lastSampleSecond=seconds;
- rideSamples.push({seconds,distance,elevation:at(distance).elevation,power:Math.round(Math.max(0,power)),cadence:Math.round(Math.max(0,cadence)),heartRate:Number(($('heartRate').textContent||'').trim())||null});
+ rideSamples.push({seconds,distance,elevation:at(distance).elevation,power:Math.round(Math.max(0,power)),hasPower:!sensorRideOnly(),cadence:Math.round(Math.max(0,cadence)),heartRate:Number(($('heartRate').textContent||'').trim())||null});
 }
 // Route position includes earlier Story rides; activity totals start at this session's origin.
 function sessionDistanceMeters(routeDistance=distance,startDistance=rideSessionStartDistance){return Math.max(0,routeDistance-startDistance);}
@@ -348,7 +372,7 @@ function buildRideTcx(){
   const previous=rideSamples[i-1],seconds=s.seconds-(previous?.seconds??0);
   const sampleSpeed=seconds>0?Math.max(0,s.distance-(previous?.distance??rideSessionStartDistance))/seconds:0;
   const t=new Date(startMs+s.seconds*1000).toISOString();
-  return `<Trackpoint><Time>${t}</Time><AltitudeMeters>${s.elevation.toFixed(2)}</AltitudeMeters><DistanceMeters>${sessionDistanceMeters(s.distance).toFixed(2)}</DistanceMeters>${s.heartRate!==null?`<HeartRateBpm><Value>${s.heartRate}</Value></HeartRateBpm>`:''}<Cadence>${s.cadence}</Cadence><Extensions><TPX xmlns="http://www.garmin.com/xmlschemas/ActivityExtension/v2"><Watts>${s.power}</Watts><Speed>${sampleSpeed.toFixed(2)}</Speed></TPX></Extensions></Trackpoint>`;
+  return `<Trackpoint><Time>${t}</Time><AltitudeMeters>${s.elevation.toFixed(2)}</AltitudeMeters><DistanceMeters>${sessionDistanceMeters(s.distance).toFixed(2)}</DistanceMeters>${s.heartRate!==null?`<HeartRateBpm><Value>${s.heartRate}</Value></HeartRateBpm>`:''}<Cadence>${s.cadence}</Cadence><Extensions><TPX xmlns="http://www.garmin.com/xmlschemas/ActivityExtension/v2">${s.hasPower===false?'':`<Watts>${s.power}</Watts>`}<Speed>${sampleSpeed.toFixed(2)}</Speed></TPX></Extensions></Trackpoint>`;
  }).join('');
  return `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Activities><Activity Sport="Biking"><Id>${start}</Id><Lap StartTime="${start}"><TotalTimeSeconds>${(activeRideMs/1000).toFixed(1)}</TotalTimeSeconds><DistanceMeters>${sessionDistanceMeters().toFixed(2)}</DistanceMeters><Calories>${Math.round(energyKcal)}</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${entries}</Track></Lap><Notes>${tcxEscape(routeName)}\nElevation gain: ${Math.round(sessionGainFeet())} ft (${Math.round(sessionGainFeet()/FEET_PER_METER)} m)</Notes></Activity></Activities></TrainingCenterDatabase>`;
 }
@@ -427,7 +451,7 @@ function showStationaryPrompt(){
  status('Ride paused after 30 seconds stationary. Pedal for 3 seconds or select Resume ride.');
 }
 function checkStationaryRide(now:number){
- if(!running||!connected||!realTelemetry||!rideStart||rideEnd){stationarySince=0;return;}
+ if(!running||!(trainerReadyForRide()||sensorReadyForRide())||!rideStart||rideEnd){stationarySince=0;return;}
  if(speed>STOP_SPEED_MPS||cadence>=20||power>=15){stationarySince=0;return;}
  if(!stationarySince)stationarySince=now;
  if(now-stationarySince>=30000)showStationaryPrompt();
@@ -501,7 +525,7 @@ function confirmManualFinish(){
  overlay.querySelector<HTMLButtonElement>('#manualConfirmFinish')!.onclick=()=>{overlay.remove();finishRide();};
  overlay.querySelector<HTMLButtonElement>('#manualKeepRiding')!.focus();
 }
-function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!connected||!controlGranted||!realTelemetry)return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);if(rideExperience==='cyclequest')showCycleQuest();else showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();void command([0x07]);if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
+function beginRide(){rideAwaitingPedaling=false;stationarySince=0;stationaryPromptShown=false;closeStationaryPrompt();if(running||!points.length||!(trainerReadyForRide()||sensorReadyForRide()))return; if(!rideStart||rideEnd){editElevation=false;chartEl.classList.remove('editing');$('editElevation').textContent='Edit elevation';rideStart=new Date().toISOString();rideEnd=null;clearRideRecovery();resetRideMetrics();$('rideSummary').hidden=true;}running=true;setRideFocus(true);if(rideExperience==='cyclequest')showCycleQuest();else showBreakawayScreen('ride');lastActiveTick=performance.now();$('start').textContent='Pause ride';syncManualFinishButton();if(trainerReadyForRide())void command([0x07]);if(sensorRideOnly()){status('Speed/cadence ride started · no resistance control');return;}if(trainerMode==='target')void setFixedErgPower(true);else if(trainerMode==='erg')void setVirtualGearResistance();else{resetSimController();void updateSimResistance(performance.now(),true);}status('Ride started');}
 function pauseRide(){if(!running)return;rideAwaitingPedaling=(breakawayScreen==='ride'||rideExperience==='cyclequest')&&!rideEnd;running=false;lastActiveTick=0;pedalSince=0;$('start').textContent='Resume ride';if(connected&&controlGranted)void command([0x08,0x02]);}
 function finishRide(){
  closeStationaryPrompt();stationarySince=0;
@@ -983,12 +1007,13 @@ function publishPedalkinRideFrame(){
  window.dispatchEvent(new CustomEvent('pedalkin:ride-frame',{detail:{
   distanceMeters:Math.max(0,distance),totalMeters,samples,elapsedSeconds:activeRideMs/1000,
   gradePercent:displayGrade(),
-  powerWatts:Math.max(0,threeSecondWatts()??power),cadenceRpm:realTelemetry?cadence:0,
+  powerWatts:sensorRideOnly()?undefined:Math.max(0,threeSecondWatts()??power),cadenceRpm:(realTelemetry||cscHasCadence)?cadence:0,
+  powerAvailable:trainerReadyForRide(),cadenceAvailable:trainerReadyForRide()||cscHasCadence,
   heartRateBpm:Number(($('heartRate').textContent||'').trim())||null,
   speedMph:speed*MPH_PER_MPS,caloriesKcal:energyKcal,
   gear:drivetrainMode==='virtual'?gear:null,
   ftpWatts:Math.max(50,Math.min(1000,Number(($('ftp') as HTMLInputElement).value)||250)),
-  running,connected:trainerReadyForRide()
+  running,connected:trainerReadyForRide()||sensorReadyForRide()
  }}));
 }
 function update(){const currentClimb=refreshClimbState();const p=at(distance),max=procedural?routeLimit:(points.at(-1)?.distance||0);
@@ -1109,13 +1134,14 @@ function shift(delta:number){if(drivetrainMode!=='virtual')return;gear=Math.max(
 let lastChartUpdate=0;let lastGearUpdate=0;
 function advanceRide(now:number){
  const dt=Math.max(0,Math.min(3,(now-last)/1000||0));last=now;
- if(running&&points.length&&connected&&controlGranted&&realTelemetry){
+ const cscOnly=typeof sensorRideOnly==='function'&&sensorRideOnly();
+ if(running&&points.length&&((connected&&controlGranted&&realTelemetry)||cscOnly)){
   activeRideMs+=dt*1000;
   if(typeof coachRuntime!=='undefined')coachRuntime?.tick(dt,power,cadence,realTelemetry);
   // Power measured in joules per second; estimate metabolic calories using
   // a fixed cycling efficiency. Do not accrue calories while coasting at 0 W.
-  energyKcal+=Math.max(0,power)*dt/(GROSS_EFFICIENCY*4184);
-  if(realTelemetry){avgPowerEnergy+=Math.max(0,power)*dt;avgPowerDuration+=dt;}
+  if(!cscOnly)energyKcal+=Math.max(0,power)*dt/(GROSS_EFFICIENCY*4184);
+  if(!cscOnly&&realTelemetry){avgPowerEnergy+=Math.max(0,power)*dt;avgPowerDuration+=dt;}
   // Time-stepped road dynamics: pedaling force, gravity, rolling friction,
   // and aerodynamic drag. Coasting works at zero watts on flats and descents.
   const mass=Math.max(35,weightKg('weight')+weightKg('bikeWeight'));
@@ -1126,6 +1152,16 @@ function advanceRide(now:number){
   const step=dt/steps;
   if(procedural)ensureTerrain();
   for(let i=0;i<steps;i++){
+   if(cscOnly){
+    // The wheel sensor drives genuine distance; never fake power or trainer load.
+    if(procedural)ensureTerrain();
+    const limit=procedural?routeLimit:points.at(-1)!.distance;
+    speed=now-cscLastSpeedAt<4500?cscSpeedMps:0;
+    cadence=now-cscLastCadenceAt<4500?cadence:0;
+    distance=Math.min(limit,distance+speed*step);
+    if(distance>=limit)break;
+    continue;
+   }
    // Freeze route progress without discarding momentum. This keeps virtual gearing
    // and trainer load continuous through battles, rewards and level-up screens.
    if(cycleQuestHold)break;
@@ -1143,9 +1179,9 @@ function advanceRide(now:number){
    const waitForSummit=summit&&!questFinalSummitResolved&&summit.end>=(procedural?routeLimit:points.at(-1)!.distance)-100;
    if(!waitForSummit&&!(rideExperience==='cyclequest'&&questStoryChapter>0)){finishRide();status('Route complete');}
   }
-  if(trainerMode==='sim')void updateSimResistance(now);
-  if(trainerMode==='erg'&&now-lastGearUpdate>250){lastGearUpdate=now;void setVirtualGearResistance();}
-  if(trainerMode==='target'&&now-lastGearUpdate>1500){lastGearUpdate=now;void setFixedErgPower();}
+  if(!cscOnly&&trainerMode==='sim')void updateSimResistance(now);
+  if(!cscOnly&&trainerMode==='erg'&&now-lastGearUpdate>250){lastGearUpdate=now;void setVirtualGearResistance();}
+  if(!cscOnly&&trainerMode==='target'&&now-lastGearUpdate>1500){lastGearUpdate=now;void setFixedErgPower();}
   recordRideSample();
   update();
  }
@@ -1229,6 +1265,86 @@ async function connectTrainerDevice(selected:any){try{
  }catch(err){status('Trainer connection error: '+String(err));throw err;}
 }
 $('connect').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[FTMS,CYCLING_POWER]});pausedBleRoles.delete('trainer');rememberDevice('trainer',selected);await connectTrainerDevice(selected);}catch(err){status('Trainer connection error: '+String(err));}});
+
+// A read-only Bluetooth CSC sensor can drive Spokemon without a smart trainer.
+// Pair two separate CSC sensors if the wheel and crank are separate devices.
+const cscButton=document.createElement('button');
+cscButton.type='button';cscButton.id='connectSpeedCadence';cscButton.hidden=true;
+document.body.append(cscButton);
+const cscStatus=document.createElement('span');cscStatus.id='speedCadenceStatus';
+cscStatus.hidden=true;document.body.append(cscStatus);
+const CSC_REMEMBERED_KEY='spokemon-remembered-csc-v1';
+const rememberedCscIds:string[]=(()=>{
+ try{const ids=JSON.parse(localStorage.getItem(CSC_REMEMBERED_KEY)||'[]');return Array.isArray(ids)?ids.filter(x=>typeof x==='string').slice(0,4):[];}
+ catch{return [];}
+})();
+function rememberCsc(deviceId:string){
+ if(!rememberedCscIds.includes(deviceId))rememberedCscIds.push(deviceId);
+ try{localStorage.setItem(CSC_REMEMBERED_KEY,JSON.stringify(rememberedCscIds.slice(-4)));}catch{}
+}
+async function connectCscDevice(selected:any){
+ if(!selected?.id)throw Error('Sensor has no Bluetooth device ID.');
+ if(cscDevices.has(selected.id)&&selected.gatt?.connected)return;
+ const server=await selected.gatt.connect();
+ const service=await server.getPrimaryService(CSC_SERVICE);
+ const measurement=await service.getCharacteristic(CSC_MEASUREMENT);
+ await measurement.startNotifications();
+ cscDevices.set(selected.id,selected);
+ cscStates.set(selected.id,{});
+ cscCapabilities.set(selected.id,{speed:false,cadence:false});
+ selected.addEventListener('gattserverdisconnected',()=>{
+  cscDevices.delete(selected.id);cscStates.delete(selected.id);cscCapabilities.delete(selected.id);
+  updateCscStatus();
+  if(running&&!trainerReadyForRide()&&!sensorReadyForRide()){
+   pauseRide();saveRideRecovery();status('Speed/cadence sensors disconnected — ride saved and paused.');
+  }
+ });
+ measurement.addEventListener('characteristicvaluechanged',(event:any)=>{
+  try{
+   const reading=parseCscMeasurement(event.target.value,cscStates.get(selected.id)||{},cscWheelCircumferenceMm);
+   cscStates.set(selected.id,reading.state);
+   const caps=cscCapabilities.get(selected.id);
+   if(caps){caps.speed||=reading.wheelPresent;caps.cadence||=reading.crankPresent;}
+   const now=performance.now();
+   if(reading.speedMps!==null){cscSpeedMps=reading.speedMps;cscLastSpeedAt=now;}
+   if(reading.cadenceRpm!==null){
+    cscLastCadenceAt=now;
+    if(!trainerReadyForRide())cadence=reading.cadenceRpm;
+   }
+   updateCscStatus();
+   if(rideExperience==='pedalkin'&&!trainerReadyForRide()){
+    if(running)advanceRide(now);
+    update();
+   }
+  }catch(error){status('CSC sensor packet error: '+String(error));}
+ });
+ updateCscStatus();
+ status('CSC sensor paired. Pedal to initialize speed and cadence; pair a second sensor if necessary.');
+}
+cscButton.addEventListener('click',async()=>{
+ try{
+  const bluetooth=(navigator as any).bluetooth;
+  if(!bluetooth)throw Error('Use desktop Chrome/Edge over HTTPS for Bluetooth CSC sensors.');
+  const selected=await bluetooth.requestDevice({filters:[{services:[CSC_SERVICE]}],optionalServices:[CSC_SERVICE]});
+  await connectCscDevice(selected);rememberCsc(selected.id);
+ }catch(error){status('Speed/cadence sensor: '+String(error));}
+});
+async function reconnectRememberedCsc(){
+ if(localStorage.getItem('breakaway-auto-bluetooth-v1')==='false'||document.hidden)return;
+ const bluetooth=(navigator as any).bluetooth;
+ if(typeof bluetooth?.getDevices!=='function')return;
+ try{
+  const granted:any[]=await bluetooth.getDevices();
+  for(const id of rememberedCscIds){
+   if(cscDevices.has(id))continue;
+   const selected=granted.find(x=>x.id===id);
+   if(selected)try{await connectCscDevice(selected);}catch{/* retry after sensor wakes */}
+  }
+ }catch{/* permissions unavailable in this browser */}
+}
+window.setInterval(()=>{if(rideExperience==='pedalkin')void reconnectRememberedCsc();},12000);
+window.addEventListener('focus',()=>{if(rideExperience==='pedalkin')void reconnectRememberedCsc();});
+updateCscStatus();
 
 // v3.8.7 — persist rider and trainer preferences on this browser.
 // Restore values before the existing trainer-mode event listeners are installed.
@@ -2814,7 +2930,7 @@ for(const entry of setupDeviceDefinitions){
  document.getElementById(entry.id)?.addEventListener('click',()=>{setupPairingPending[entry.id]=true;refreshSetupDeviceCards();});
 }
 function updateSetupReadiness(){
- const ready=trainerReadyForRide();
+ const ready=trainerReadyForRide()||sensorReadyForRide();
  const fromHome=document.body.dataset.deviceShortcut==='true';
  const button=document.getElementById('goToRide') as HTMLButtonElement;
  button.disabled=fromHome||rideExperience==='pedalkin'?false:!ready;
@@ -2857,12 +2973,12 @@ function enterRideScreen(){
  stopRideCountdown();
  // SPOKEMON always permits entering the ride screen without hardware.
  // Do not start the real ride engine or record synthetic workouts until an actual trainer is ready.
- if(rideExperience==='pedalkin'&&!trainerReadyForRide()){
+ if(rideExperience==='pedalkin'&&!trainerReadyForRide()&&!sensorReadyForRide()){
   showBreakawayScreen('ride');
-  status('Spokemon ready: connect a trainer for real riding or start a test session from Game Controls.');
+  status('Spokemon ready: connect speed/cadence sensors, a power trainer, or start a play test.');
   return;
  }
- if(!trainerReadyForRide()){updateSetupReadiness();status('Connect and initialize the smart trainer first');return;}
+ if(!trainerReadyForRide()&&!sensorReadyForRide()){updateSetupReadiness();status('Connect and initialize a smart trainer or speed/cadence sensors first');return;}
  // Start the ride from the Connect Trainer action itself. FTMS power and
  // cadence notifications will advance the ride when the rider pedals.
  showBreakawayScreen('ride');

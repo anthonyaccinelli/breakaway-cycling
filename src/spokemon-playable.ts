@@ -1,7 +1,9 @@
 import {PINE_FOREST_SPOKEMON,choosePineForestSpokemon} from './pedalkin-creatures';
 import type {SpokemonSpecies} from './pedalkin-creatures';
 import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
-import {evaluateTemperament,initialTemperamentAttempt} from './spokemon-temperament';
+import {evaluateTemperament,evaluateCadenceTemperament,initialTemperamentAttempt} from './spokemon-temperament';
+import {getSpokemonInputChoice,resolveSpokemonInput} from './spokemon-input-mode';
+import type {SpokemonInputMode} from './spokemon-input-mode';
 import type {TemperamentFeedback} from './spokemon-temperament';
 import './spokemon-playable.css';
 
@@ -9,6 +11,7 @@ export type SpokemonRideTelemetry={
  distanceMeters:number;totalMeters:number;samples:number[];elapsedSeconds:number;
  gradePercent:number;powerWatts?:number;cadenceRpm?:number;heartRateBpm?:number|null;
  speedMph?:number;caloriesKcal?:number;gear?:number|null;ftpWatts?:number;running?:boolean;connected?:boolean;
+ powerAvailable?:boolean;cadenceAvailable?:boolean;
 };
 type Scene='explore'|'encounter';
 type SavedCreature={id:string;name:string;capturedAt:string;count:number;xp?:number};
@@ -55,7 +58,9 @@ export function mountSpokemonPlayable(options:{
  let message='Cruising through Pinepath Trail. Stay steady to attract nearby Spokemon.';
  let lastReal:SpokemonRideTelemetry|null=null;
  let lastSourceTime=0,lastTick=performance.now();
- let simulator=false,simulationRunning=false,simDistance=0,simPower=165,simElapsed=0,simKcal=0;
+ let simulator=false,simulationRunning=false,simDistance=0,simPower=165,simCadence=82,simElapsed=0,simKcal=0;
+ let cadenceBaseline=82,cadenceSampleSeconds=0;
+ let encounterInputMode:SpokemonInputMode='none';
  let progressDistance=0;
  let lastXpElapsed=0;
  let levelFlashUntil=0;
@@ -77,7 +82,8 @@ export function mountSpokemonPlayable(options:{
   '<button data-pk-control="collection">COLLECTION</button>'+ 
   '<button data-pk-control="fullscreen">FULL SCREEN</button>'+
   '<button data-pk-control="finish">SAVE & FINISH REAL RIDE</button></div>'+
-  '<label>TEST EFFORT <output data-pk-game-watts>165 W</output><input data-pk-control="watts" type="range" min="60" max="310" value="165"></label>'+
+  '<label data-pk-demo-power>TEST POWER <output data-pk-game-watts>165 W</output><input data-pk-control="watts" type="range" min="60" max="310" value="165"></label>'+
+   '<label data-pk-demo-cadence hidden>TEST CADENCE <output data-pk-game-rpm>82 RPM</output><input data-pk-control="rpm" type="range" min="40" max="115" value="82"></label>'+
   '<small>Test rides are simulated and are never recorded or exported. Real rides use your connected trainer and Breakaway recorder.</small></div></details>';
  host.append(tool);
  const status=tool.querySelector<HTMLElement>('.pk-game-status')!;
@@ -85,6 +91,10 @@ export function mountSpokemonPlayable(options:{
  const simButton=tool.querySelector<HTMLButtonElement>('[data-pk-control="simulate"]')!;
  const output=tool.querySelector<HTMLOutputElement>('[data-pk-game-watts]')!;
  const wattsControl=tool.querySelector<HTMLInputElement>('[data-pk-control="watts"]')!;
+  const cadenceControl=tool.querySelector<HTMLInputElement>('[data-pk-control="rpm"]')!;
+  const rpmOutput=tool.querySelector<HTMLOutputElement>('[data-pk-game-rpm]')!;
+  const demoPower=tool.querySelector<HTMLElement>('[data-pk-demo-power]')!;
+  const demoCadence=tool.querySelector<HTMLElement>('[data-pk-demo-cadence]')!;
  const make=(tag:string,attrs:Record<string,string>,text?:string)=>{
   const el=document.createElementNS(NS,tag);
   Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
@@ -95,7 +105,13 @@ export function mountSpokemonPlayable(options:{
  const text=(parent:SVGElement,x:number,y:number,label:string,size=38,color='#17343b')=>parent.appendChild(make('text',{x:String(x),y:String(y),'font-size':String(size),'font-family':'Minecraft, Spokemon Minecraft, monospace','font-weight':'700',fill:color},label));
  const line=(parent:SVGElement,x1:number,y1:number,x2:number,y2:number,color:string,width=3)=>parent.appendChild(make('line',{x1:String(x1),y1:String(y1),x2:String(x2),y2:String(y2),stroke:color,'stroke-width':String(width)}));
  const ready=()=>Boolean(lastReal?.connected&&Date.now()-lastSourceTime<7000);
- const labelSource=()=>ready()?'TRAINER':simulator?'TEST RIDE':'READY';
+ const inputMode=():SpokemonInputMode=>resolveSpokemonInput(
+  getSpokemonInputChoice(),
+  ready()&&!!lastReal?.powerAvailable,
+  ready()&&!!lastReal?.cadenceAvailable,
+  simulator
+ );
+ const labelSource=()=>ready()?(inputMode()==='cadence'?'CADENCE SENSOR':'POWER SENSOR'):simulator?'TEST RIDE':'READY';
  const frame=():SpokemonRideTelemetry=>{
   const route=lastReal&&Array.isArray(lastReal.samples)&&lastReal.samples.length>1?lastReal:null;
   const samples=route?.samples||Array.from({length:97},(_,i)=>85+31*Math.sin(i*.15)+22*Math.sin(i*.39)+65*Math.sin(i*.055));
@@ -106,11 +122,11 @@ export function mountSpokemonPlayable(options:{
   const i=clamp(Math.floor(simDistance/totalMeters*(samples.length-1)),0,samples.length-2);
   const slope=(samples[i+1]-samples[i])/Math.max(1,totalMeters/(samples.length-1))*100;
   return {distanceMeters:simulator?simDistance:0,totalMeters,samples,elapsedSeconds:simElapsed,
-   gradePercent:simulator?slope:0,powerWatts:simulator?simPower:0,
+   gradePercent:simulator?slope:0,powerWatts:simulator&&inputMode()==='power'?simPower:undefined,
     ftpWatts:Math.max(50,Math.min(1000,Number((document.getElementById('ftp') as HTMLInputElement|null)?.value)||250)),
-   cadenceRpm:simulator?88:0,heartRateBpm:simulator?124:null,
-   speedMph:simulator?simPower*.083:0,caloriesKcal:simulator?simKcal:0,
-   running:simulator&&simulationRunning,connected:false,gear:null};
+   cadenceRpm:simulator?simCadence:0,heartRateBpm:simulator?124:null,
+   speedMph:simulator?(inputMode()==='cadence'?simCadence*.15:simPower*.083):0,caloriesKcal:simulator?simKcal:0,
+   running:simulator&&simulationRunning,connected:false,gear:null,powerAvailable:false,cadenceAvailable:false};
  };
  function drawProfile(root:SVGElement,f:SpokemonRideTelemetry){
   // Exact measured chart inset in the user's 1920x1080 Illustrator SVG.
@@ -192,7 +208,10 @@ export function mountSpokemonPlayable(options:{
   const f=frame();
   const currentBuddy=buddy();
    const ftp=Math.max(50,Math.min(1000,f.ftpWatts||250));
-   const challenge=temperamentFeedback||evaluateTemperament(species.personality,ftp,0,false,0,temperamentAttempt);
+   const metric=inputMode();
+    const challenge=temperamentFeedback||(metric==='cadence'
+     ?evaluateCadenceTemperament(species.personality,cadenceBaseline,0,false,0,temperamentAttempt)
+     :evaluateTemperament(species.personality,ftp,0,false,0,temperamentAttempt));
   // The supplied SVG owns the layout. Live data only updates the authored panels.
   svg.querySelector('#pk-game-progression')?.remove();
   const hud=make('g',{id:'pk-game-progression','pointer-events':'none'});
@@ -278,7 +297,7 @@ export function mountSpokemonPlayable(options:{
    }
   };
   const numbers=[
-   ['translate(48 161.5)',Math.round(f.powerWatts||0)+'W'],
+   ['translate(48 161.5)',(f.powerWatts==null?'—':Math.round(f.powerWatts))+'W'],
    ['translate(177 161.5)',''], // Don't show the stale example W/kg.
    ['translate(48 284.3)',f.heartRateBpm==null?'— BPM':Math.round(f.heartRateBpm)+' BPM'],
    ['translate(48 407.1)',Math.round(f.cadenceRpm||0)+' RPM'],
@@ -350,12 +369,12 @@ export function mountSpokemonPlayable(options:{
     challenge.cue==='BRISK'?'Ride brisk':'Ride easy';
    const requirement=outcome==='captured'?'Your new friend is ready to ride!':
     outcome==='escaped'?'Keep riding to discover another.':
-    cue+' '+challenge.targetMin+' - '+challenge.targetMax+' W to earn its trust!';
+    cue+' '+challenge.targetMin+' - '+challenge.targetMax+(metric==='cadence'?' RPM':' W')+' to earn its trust!';
    set('translate(56 926.7)',announcement,1205);
    set('translate(56 1004.1)',requirement,1205);
   }else{
    set('translate(56 946)',message,1212);
-   set('translate(56 1001.0032)',ready()?'REAL RIDE':simulator?'TEST RIDE':'CONNECT TRAINER OR START TEST RIDE',1212);
+   set('translate(56 1001.0032)',ready()?'REAL RIDE · '+labelSource():simulator?'TEST RIDE · '+inputMode().toUpperCase():'CONNECT SENSORS OR START TEST RIDE',1212);
   }
   svg.appendChild(hud);
   // The original elevation artwork is replaced only within its exact bounds.
@@ -426,6 +445,28 @@ export function mountSpokemonPlayable(options:{
   else if(action==='finish'&&ready())onFinishRide();
  }));
  wattsControl.addEventListener('input',()=>{simPower=Number(wattsControl.value);output.textContent=simPower+' W';paint();});
+ cadenceControl.addEventListener('input',()=>{simCadence=Number(cadenceControl.value);rpmOutput.textContent=simCadence+' RPM';paint();});
+ function refreshInputControls(){
+  const mode=inputMode();
+  demoPower.hidden=mode==='cadence';
+  demoCadence.hidden=mode!=='cadence';
+  note.textContent=ready()?('REAL RIDE · '+(mode==='none'?'Waiting for selected sensor':mode.toUpperCase()+' MODE'))
+   :simulator?('PLAY TEST · '+mode.toUpperCase()+' MODE · Test rides are simulated and are never recorded or exported.')
+   :'No sensors connected. Choose Power or Cadence in 02 Devices, then start a test ride.';
+  status.textContent=ready()?mode.toUpperCase():simulator?'DEMO · '+mode.toUpperCase():'OFFLINE';
+ }
+ const demoStart=()=>{
+  if(ready())return;
+  simulator=true;simulationRunning=true;
+  tool.querySelector('details')?.setAttribute('open','');
+  refreshInputControls();paint();
+  // The menu's Play Test button should reveal an actual RPM/W encounter
+  // immediately rather than waiting for hundreds of virtual meters.
+  encounter();
+ };
+ const choiceChanged=()=>{temperamentAttempt=initialTemperamentAttempt();temperamentFeedback=null;encounterInputMode='none';refreshInputControls();paint();};
+ window.addEventListener('spokemon:demo-start',demoStart);
+ window.addEventListener('spokemon:input-choice',choiceChanged);
  function setFrame(f:SpokemonRideTelemetry){
   if(!f||!Number.isFinite(f.totalMeters)||f.totalMeters<=0)return;
   lastReal=f;lastSourceTime=Date.now();
@@ -444,14 +485,25 @@ export function mountSpokemonPlayable(options:{
   if(!ready()&&simulator&&simulationRunning){
    // 5x traversal speed is exclusively a trainer-free game test. The native
    // Breakaway activity recorder never receives synthetic data.
-   simElapsed+=dt*5;simDistance+=simPower*.042*dt*5;
-   simKcal+=simPower*dt*5/4184;
+   simElapsed+=dt*5;simDistance+=(inputMode()==='cadence'?simCadence*.0105:simPower*.042)*dt*5;
+   if(inputMode()==='power')simKcal+=simPower*dt*5/4184;
   }
   // The smart trainer keeps running normally, but Trust/Patience and new
   // encounters pause while the wipe conceals and reveals the scene.
   if(options.isTransitioning?.())return;
-  const f=frame(),moving=Boolean(f.running&&f.powerWatts!==undefined&&f.powerWatts>50&&
-   (f.cadenceRpm===undefined||f.cadenceRpm>35));
+  const f=frame(),mode=inputMode();
+  const moving=Boolean(f.running&&(mode==='cadence'
+   ?(f.cadenceRpm||0)>=20
+   :(mode==='power'&&(f.powerWatts||0)>50&&(f.cadenceRpm===undefined||f.cadenceRpm>35))));
+  if(mode!==encounterInputMode){
+   encounterInputMode=mode;temperamentAttempt=initialTemperamentAttempt();temperamentFeedback=null;
+  }
+  if(moving&&mode==='cadence'&&getScene()==='explore'&&ready()&&cadenceSampleSeconds<24){
+   const sample=clamp(f.cadenceRpm||0,55,115);
+   cadenceBaseline=clamp((cadenceBaseline*cadenceSampleSeconds+sample*dt)/(cadenceSampleSeconds+dt),60,110);
+   cadenceSampleSeconds+=dt;
+  }
+  refreshInputControls();
   const measuredDistance=Math.max(0,f.distanceMeters);
   if(ready()||simulator){progressDistance=measuredDistance;}
    if(moving&&buddy()){
@@ -470,10 +522,11 @@ export function mountSpokemonPlayable(options:{
    if(outcome){
     if(now>=resolveAt)returnExplore();
    }else{
+    if(mode==='none'||(!ready()&&!simulator)||!f.running){paint();return;}
     patience=Math.max(0,patience-dt);
-    const challenge=evaluateTemperament(
-     species.personality,f.ftpWatts||250,f.powerWatts||0,moving,dt,temperamentAttempt
-    );
+    const challenge=mode==='cadence'
+     ?evaluateCadenceTemperament(species.personality,cadenceBaseline,f.cadenceRpm||0,moving,dt,temperamentAttempt)
+     :evaluateTemperament(species.personality,f.ftpWatts||250,f.powerWatts||0,moving,dt,temperamentAttempt);
     temperamentAttempt=challenge.next;
     temperamentFeedback=challenge;
     trust=clamp(trust+challenge.trustGain,0,100);
@@ -505,5 +558,5 @@ export function mountSpokemonPlayable(options:{
  function sync(){if(active()){lastTick=performance.now();paint();}else{tool.querySelector('details')?.removeAttribute('open');}}
  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-ride-experience','data-breakaway-screen']});
  sync();
- return {setFrame,paint,stopTestRide,setBuddy,getBuddy:()=>buddy(),getCollection:()=>collection.slice(),getCurrentSpecies:()=>species,isSimulating:()=>simulator,destroy:()=>{window.clearInterval(timer);view.remove();tool.remove();}};
+ return {setFrame,paint,stopTestRide,setBuddy,getBuddy:()=>buddy(),getCollection:()=>collection.slice(),getCurrentSpecies:()=>species,isSimulating:()=>simulator,destroy:()=>{window.clearInterval(timer);window.removeEventListener('spokemon:demo-start',demoStart);window.removeEventListener('spokemon:input-choice',choiceChanged);view.remove();tool.remove();}};
 }

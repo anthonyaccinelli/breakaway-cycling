@@ -23,24 +23,37 @@ const settings:Record<SpokemonTemperament,{
  curious:{easy:[.55,.63],brisk:[.69,.76],holdSeconds:5},
  playful:{easy:[.55,.64],brisk:[.68,.76],holdSeconds:4}
 };
+const cadenceSettings:typeof settings={
+ gentle:{easy:[.75,.87]},
+ shy:{easy:[.90,1.02]},
+ stubborn:{easy:[1.00,1.12],holdSeconds:4},
+ curious:{easy:[.82,.94],brisk:[1.02,1.13],holdSeconds:5},
+ playful:{easy:[.85,.96],brisk:[1.08,1.18],holdSeconds:4}
+};
+export function evaluateCadenceTemperament(
+ personality:SpokemonTemperament,baselineRpm:number,cadenceRpm:number,
+ moving:boolean,seconds:number,previous:TemperamentAttempt
+):TemperamentFeedback{
+ return evaluateTemperament(personality,baselineRpm,cadenceRpm,moving,seconds,previous,'cadence');
+}
 export function initialTemperamentAttempt():TemperamentAttempt{
  return {phase:'easy',heldSeconds:0,offTargetSeconds:0,lastWatts:null};
 }
 export function evaluateTemperament(
  personality:SpokemonTemperament,ftpWatts:number,powerWatts:number,
- moving:boolean,seconds:number,previous:TemperamentAttempt
+ moving:boolean,seconds:number,previous:TemperamentAttempt,metric:'power'|'cadence'='power'
 ):TemperamentFeedback{
- const ftp=clamp(Number.isFinite(ftpWatts)?ftpWatts:250,50,1000);
+ const ftp=clamp(Number.isFinite(ftpWatts)?ftpWatts:(metric==='cadence'?82:250),metric==='cadence'?55:50,metric==='cadence'?115:1000);
  const effort=Number.isFinite(powerWatts)?Math.max(0,powerWatts):0;
  const dt=clamp(Number.isFinite(seconds)?seconds:0,0,1.5);
- const rule=settings[personality],alternating=!!rule.brisk;
+ const rule=(metric==='cadence'?cadenceSettings:settings)[personality],alternating=!!rule.brisk;
  const phase=alternating?previous.phase:'easy';
  const [low,high]=phase==='brisk'&&rule.brisk?rule.brisk:rule.easy;
  const targetMin=Math.round(ftp*low),targetMax=Math.round(ftp*high);
  // 3s-averaged telemetry + 2.5s grace protects virtual shifts and hills.
- const tolerance=Math.max(6,ftp*.025);
+ const tolerance=metric==='cadence'?2.5:Math.max(6,ftp*.025);
  const within=effort>=ftp*low-tolerance&&effort<=ftp*high+tolerance;
- const smooth=previous.lastWatts===null||Math.abs(effort-previous.lastWatts)<=Math.max(15,ftp*.075);
+ const smooth=previous.lastWatts===null||Math.abs(effort-previous.lastWatts)<=(metric==='cadence'?7:Math.max(15,ftp*.075));
  const matched=moving&&within&&(personality!=='shy'||smooth);
  const next={...previous,lastWatts:moving?effort:previous.lastWatts};
  const cue=alternating?(phase==='easy'?'EASY':'BRISK'):personality==='stubborn'?'HOLD STRONG':personality==='gentle'?'RIDE GENTLY':'STAY STEADY';
@@ -52,8 +65,8 @@ export function evaluateTemperament(
  if(!matched){
   next.offTargetSeconds+=dt;
   if(next.offTargetSeconds>2.5)next.heldSeconds=0;
-  const feedback=effort<ftp*low-tolerance?'A LITTLE MORE POWER':
-   effort>ftp*high+tolerance?'EASE OFF A LITTLE':
+  const feedback=effort<ftp*low-tolerance?(metric==='cadence'?'PEDAL A LITTLE FASTER':'A LITTLE MORE POWER'):
+   effort>ftp*high+tolerance?(metric==='cadence'?'PEDAL A LITTLE SLOWER':'EASE OFF A LITTLE'):
    'SMOOTH OUT YOUR PEDALING';
   return {next,trustGain:0,targetMin,targetMax,cue,feedback,matched:false};
  }
