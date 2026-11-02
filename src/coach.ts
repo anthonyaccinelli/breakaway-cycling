@@ -234,7 +234,7 @@ export function mountCoach(bridge:CoachBridge){
         <p class="coach-small">Phase-based planning is an initial foundation, not a validated race-specific training prescription. Coaching will continue to adapt around your available time and recovery.</p>
       </section>
       <section class="coach-panel">
-        <div class="coach-section-top"><span class="coach-tag">STEP 2 · YOUR RIDER PROFILE</span><span class="coach-tag">LOCAL ONLY</span></div>
+        <div class="coach-section-top"><span class="coach-tag">YOUR RIDER PROFILE</span><span class="coach-tag">STEP 2</span><span class="coach-tag">LOCAL ONLY</span></div>
         <div class="coach-fields">
           <label>Do you know your measured or estimated FTP?<select id="coachFtpKnown"><option value="no">No — I'm new to power training</option><option value="yes">Yes — I'll enter it below</option></select></label>
           <label>FTP (W)<input id="coachFtp" type="number" min="75" max="550" step="1" aria-describedby="coachFtpHelp"></label>
