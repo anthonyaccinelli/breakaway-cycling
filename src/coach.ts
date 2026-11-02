@@ -464,14 +464,51 @@ export function mountCoach(bridge:CoachBridge){
     $('coachReadinessLabel').setAttribute('data-day-color',trainingSignal.color);
     $('coachReadinessExplanation').textContent=trainingSignal.detail+' '+recovery.detail;
     const baseRecommendation=applyRecoveryGuidance(recommendToday(rider,nowDate,inputs,feedback),check);
-    const skipped=skippedDays().includes(todayKey);
-    const recommendation=skipped&&baseRecommendation.status!=='completed'
-      ?{workoutId:null as string|null,status:'rest' as const,reason:'You marked today as skipped. Coach will not automatically stack a missed session tomorrow; your next scheduled training day stays available.'}
-      :baseRecommendation;
-    $('coachSkipToday').textContent=skipped?"Undo skipped session":"Skip today's session";
     const schedule=weekPlan();
-    currentCalendarDays=calendarDays(nowDate,schedule.days,library,recommendation);
+    const adaptive=adaptWeeklySchedule({
+      now:nowDate,week:schedule.days,rides:inputs,feedback,skipped:skippedDays(),
+      ftp:rider.ftp,ftpKnown,budgetMinutes:schedule.budgetMinutes,
+      today:baseRecommendation,recoveryMinutes:Math.round(workoutDuration(library.find(w=>w.id==='recovery')!)/60)
+    });
+    currentAdaptiveDays=adaptive.days;
+    const todayAdaptive=adaptive.days.find(d=>d.key===todayKey)!;
+    activeRecommendedMinutes=todayAdaptive.minutes;
+    const recommendation={
+      workoutId:todayAdaptive.workoutId,
+      status:(todayAdaptive.status==='completed'?'completed':todayAdaptive.status==='recovery'?'recovery':
+        todayAdaptive.status==='rest'||todayAdaptive.status==='skipped'?'rest':'planned') as 'completed'|'recovery'|'rest'|'planned',
+      reason:todayAdaptive.reason
+    };
+    const skipped=skippedDays().includes(todayKey);
+    $('coachSkipToday').textContent=skipped?"Undo skipped session":"Skip today's session";
+    currentCalendarDays=calendarDays(nowDate,schedule.days,library,recommendation).map(day=>{
+      const update=adaptive.days.find(d=>d.key===day.key);
+      if(!update)return day;
+      const workout=library.find(w=>w.id===update.workoutId);
+      return {...day,rideId:workout?.id||null,rideName:workout?.name||null,
+        rideDescription:workout?.description||null,rideMinutes:update.minutes,
+        completedRide:update.status==='completed',reason:update.reason};
+    });
     renderCalendar();
+    const changeMarkup=(c:typeof adaptive.changes[number])=>{
+      const before=library.find(w=>w.id===c.originalId)?.name||(c.originalId?'Planned ride':'Rest day');
+      const after=library.find(w=>w.id===c.workoutId)?.name||
+        (c.kind==='completed'?'Ride recorded':c.kind==='skipped'?'Skipped':'No ride scheduled');
+      return '<li><strong>'+escapeHtml(c.key)+'</strong> · '+
+        escapeHtml(before)+' ('+c.beforeMinutes+' min) → '+escapeHtml(after)+
+        ' ('+c.afterMinutes+' min)<p>'+escapeHtml(c.reason)+'</p></li>';
+    };
+    const futureChanges=adaptive.changes.filter(c=>c.key>=todayKey);
+    const todaySummary=$('coachAdaptiveToday');
+    todaySummary.hidden=futureChanges.length===0;
+    todaySummary.innerHTML=futureChanges.length?'<strong>YOUR UPDATED TRAINING WEEK · '+futureChanges.length+' CHANGE'+(futureChanges.length===1?'':'S')+'</strong>'+
+      '<p>Coach accounts for extra rides and recovery without adding make-up sessions.</p><ul>'+futureChanges.map(changeMarkup).join('')+'</ul>':'';
+    const thisWeekChanges=adaptive.changes.filter(c=>c.key<=adaptive.days[6].key);
+    const weekSummary=$('coachAdaptiveWeek');
+    weekSummary.hidden=thisWeekChanges.length===0;
+    weekSummary.innerHTML=thisWeekChanges.length?'<strong>WHAT CHANGED IN YOUR WEEK</strong>'+
+      '<p>Workout adjustments are date-specific. Your strength sessions and chosen rest day stay protected.</p><ul>'+
+      thisWeekChanges.map(changeMarkup).join('')+'</ul>':'';
     const todaySchedule=schedule.days[nowDate.getDay()];
     const strengthOnToday=!!todaySchedule?.strength;
     const strengthDoneToday=strength?.completedToday()||false;
