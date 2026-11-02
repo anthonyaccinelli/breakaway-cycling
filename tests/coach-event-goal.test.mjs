@@ -66,6 +66,37 @@ test('five-day endurance plan does not silently disappear from My Week',()=>{
  }
  assert.ok(view.filter(d=>d.workoutId!==null).length>=3,'all-rest week regression');
 });
+test('November 2–7 scheduled workouts match the rolling seven-day calendar',()=>{
+ const now=new Date(2026,10,2,9);
+ const schedule=[
+  {day:0,cyclingId:'endurance',cyclingMinutes:90},
+  {day:1,cyclingId:'endurance',cyclingMinutes:90},
+  {day:2,cyclingId:'recovery',cyclingMinutes:30},
+  {day:3,cyclingId:'endurance',cyclingMinutes:90},
+  {day:4,cyclingId:'endurance',cyclingMinutes:90},
+  {day:5,cyclingId:null,cyclingMinutes:0},
+  {day:6,cyclingId:null,cyclingMinutes:0}
+ ].map(d=>({...d,strength:null,strengthMinutes:0,reason:'Planned'}));
+ const adaptive=adaptWeeklySchedule({now,week:schedule,rides:[],feedback:[],skipped:[],
+  ftp:280,ftpKnown:true,budgetMinutes:480,recoveryMinutes:30,
+  today:{workoutId:'endurance',status:'planned',reason:'Today'}});
+ const dates=adaptive.days.filter(d=>d.key>='2026-11-02'&&d.key<='2026-11-08');
+ const calendar=dates.map(d=>({key:d.key,rideId:d.workoutId,rideMinutes:d.minutes,
+  strength:d.strength,strengthMinutes:d.strengthMinutes}));
+ const view=reconcileCoachWeek(adaptive.days.slice(0,7),calendar,workouts,'2026-11-02');
+ for(const key of ['2026-11-02','2026-11-03','2026-11-04','2026-11-05']){
+  const day=view.find(d=>d.key===key);
+  assert.ok(day.workoutId,key+' must not render as rest');
+  assert.ok(day.name,key+' must show a workout title');
+ }
+ for(const key of ['2026-11-06','2026-11-07'])
+  assert.equal(view.find(d=>d.key===key).workoutId,null);
+});
+test('My Week explicitly projects the same calendar dates rendered in Today',()=>{
+ const source=readFileSync(new URL('../src/coach.ts',import.meta.url),'utf8');
+ assert.match(source,/const shown=currentCalendarDays\.find\(item=>item\.key===day\.key\)/);
+ assert.match(source,/workoutId:shown\.rideId&&shown\.rideMinutes>0\?shown\.rideId:null/);
+});
 test('a Today workout wins over stale or incomplete weekly display data',()=>{
  const date=new Date(2026,10,2);
  const stale=[{key:'2026-11-02',date,weekday:1,workoutId:null,minutes:90,
