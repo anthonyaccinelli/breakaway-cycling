@@ -287,9 +287,24 @@ export function mountCoach(bridge:CoachBridge){
   });
   $('coachBack').addEventListener('click',close);
   // Single sources of truth for training schedule and recent load.
-  function weekPlan(){
-    return integratedWeek(rider,strength?.settings||defaultStrength,recommendWeek(rider,false),
+  function adaptivePlan():AdaptivePlan{
+    const baseline=integratedWeek(rider,strength?.settings||defaultStrength,recommendWeek(rider,false),
       id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+    const feedback=recentFeedback().concat((strength?.history||[]).map(r=>({date:Date.parse(r.date),rpe:r.rpe})));
+    return adaptWeek({now:new Date(),profile:rider,base:baseline.days,rides:recentRides(),feedback,
+      mornings:adaptive?.getMornings()||[],missed:adaptive?.getMissed()||[],overrides:adaptive?.getOverrides()||[]});
+  }
+  function weekPlan(){
+    const baseline=integratedWeek(rider,strength?.settings||defaultStrength,recommendWeek(rider,false),
+      id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
+    const adjusted=adaptivePlan();
+    const days=baseline.days.map(day=>{
+      const replacement=adjusted.days.find(d=>d.weekday===day.day);
+      return replacement?{...day,cyclingId:replacement.cyclingId,cyclingMinutes:replacement.cyclingMinutes,
+        strength:replacement.strength,strengthMinutes:replacement.strengthMinutes,
+        reason:replacement.reasons.join(' ')||day.reason}:day;
+    });
+    return {...baseline,days,plannedMinutes:days.reduce((sum,day)=>sum+day.cyclingMinutes+day.strengthMinutes,0)};
   }
   function recentRides():CoachRecentRide[]{
     return platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower}))
@@ -301,7 +316,7 @@ export function mountCoach(bridge:CoachBridge){
   }
   function strengthShouldBeLight():boolean{
     const feedback=recentFeedback().concat((strength?.history||[]).map(r=>({date:Date.parse(r.date),rpe:r.rpe})));
-    return fatigueSignals(rider,Date.now(),recentRides(),feedback).fatigued;
+    return adaptivePlan().today!=='green'||fatigueSignals(rider,Date.now(),recentRides(),feedback).fatigued;
   }
   function syncSettingsForm(){
     ($('coachFtp') as HTMLInputElement).value=String(rider.ftp);
