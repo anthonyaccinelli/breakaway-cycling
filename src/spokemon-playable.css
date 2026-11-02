@@ -51,3 +51,14 @@ body.pk-riding .pk-ride-host .pk-game-toolbar button:disabled{
  .pk-game-toolbar summary{padding:5px 7px}
  .pk-game-toolbar-body{max-height:70dvh;overflow-y:auto}
 }
+
+
+/* The selected Buddy is an independent sprite inside the SVG's original
+   x=1664, y=604, 120x98 creature slot. The source artwork is never modified. */
+body.pk-riding .pk-ride-host.pk-exact-artwork-mode .pk-svg-slot>svg.pk-buddy-live-creature{
+ position:absolute!important;display:block!important;left:86.6667%!important;top:55.90%!important;
+ width:6.25%!important;height:9.0741%!important;
+ max-width:none!important;max-height:none!important;padding:0!important;margin:0!important;
+ z-index:2!important;pointer-events:none!important;overflow:hidden!important;
+ background:#f1e6c7!important;shape-rendering:crispEdges!important;
+}
