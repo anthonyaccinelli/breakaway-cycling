@@ -254,6 +254,31 @@ export function mountSpokemonPlayable(options:{
    hide('text[transform="translate(1586.3262 309.9969)"]');
    hide('text[transform="translate(1586.3262 368.0016)"]');
    hide('rect[x="1588.33"][y="383.9"]');
+   // Replace capture-only cards with current-session exploration statistics.
+   // Values come from the same real/test ride telemetry as the other readouts.
+   svg.querySelector('#pk-explore-session-stats')?.remove();
+   const stats=make('g',{id:'pk-explore-session-stats'});
+   const ascentMeters=(()=>{
+    const samples=f.samples.filter(Number.isFinite);
+    if(samples.length<2||f.totalMeters<=0)return 0;
+    const completed=clamp(f.distanceMeters/f.totalMeters,0,1)*(samples.length-1);
+    let sum=0;
+    for(let i=1;i<=Math.floor(completed);i++)sum+=Math.max(0,samples[i]-samples[i-1]);
+    const index=Math.floor(completed),fraction=completed-index;
+    if(index<samples.length-1)sum+=Math.max(0,samples[index+1]-samples[index])*fraction;
+    return sum;
+   })();
+   const duration=Math.max(0,Math.floor(f.elapsedSeconds||0));
+   const clock=String(Math.floor(duration/3600)).padStart(2,'0')+':'+String(Math.floor(duration%3600/60)).padStart(2,'0')+':'+String(duration%60).padStart(2,'0');
+   const card=(x:number,y:number,w:number,h:number,label:string,value:string,valueSize=36)=>{
+    rect(stats,x,y,w,h,'#f2e8ca',6);
+    text(stats,x+14,y+30,label,17,'#365149');
+    text(stats,x+14,y+82,value,valueSize,'#102e35');
+   };
+   card(1566,98,162,142,'DISTANCE',(f.distanceMeters/METERS_PER_MILE).toFixed(2)+' MI',26);
+   card(1736,98,168,142,'ELEVATION',Math.round(ascentMeters*3.280839895)+' FT',29);
+   card(1566,250,338,170,'TIME ELAPSED',clock,48);
+   svg.appendChild(stats);
   }
   // The Illustrator master includes six colored sample bars. Resize those
   // ORIGINAL paths from their left edge instead of drawing bars over them.
