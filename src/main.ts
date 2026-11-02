@@ -982,6 +982,11 @@ function publishPedalkinRideFrame(){
  const samples=Array.from({length:97},(_,i)=>overviewAt(totalMeters*i/96).elevation);
  window.dispatchEvent(new CustomEvent('pedalkin:ride-frame',{detail:{
   distanceMeters:Math.max(0,distance),totalMeters,samples,elapsedSeconds:activeRideMs/1000,
+  // Ride totals are session-relative, while distanceMeters remains the
+  // absolute position on the route for profile/encounter calculations.
+  rideDistanceMeters:sessionDistanceMeters(),
+  elevationGainFeet:Math.max(0,(gainLossThrough(distance).gain-
+    gainLossThrough(rideSessionStartDistance).gain)*FEET_PER_METER),
   gradePercent:displayGrade(),
   powerWatts:Math.max(0,threeSecondWatts()??power),cadenceRpm:realTelemetry?cadence:0,
   heartRateBpm:Number(($('heartRate').textContent||'').trim())||null,
