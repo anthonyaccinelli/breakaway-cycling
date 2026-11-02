@@ -184,7 +184,7 @@ export function mountCoach(bridge:CoachBridge){
     <div class="coach-page-lead"><div><span class="coach-tag">BUILD CONSISTENCY</span><h2>Your training week.</h2><p>Your rides, strength sessions, and rest days in one place.</p></div><button type="button" class="coach-subtle-link" data-navigate-coach="settings">Edit my plan →</button></div>
     <div id="coachAdaptiveWeek" class="coach-adaptive-summary" aria-label="Adaptive schedule changes" hidden></div>
     <div class="coach-plan-grid">
-      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS WEEK · CYCLING + STRENGTH</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
+      <section class="coach-panel"><div class="coach-section-top"><span class="coach-tag">THIS CALENDAR WEEK · SUNDAY–SATURDAY</span></div><p id="coachPlanBudget" class="coach-plan-summary"></p><div id="coachWeek" class="coach-week-integrated"></div></section>
       <section class="coach-panel coach-plan-explain"><div class="coach-section-top"><span class="coach-tag">HOW TO USE YOUR WEEK</span></div>
         <h3>Coach makes the plan. You choose when to go.</h3>
         <p>Tap a cycling session to review it on Today. Tap a strength session to open its guided workout. Your rest day stays free.</p>
@@ -228,13 +228,13 @@ export function mountCoach(bridge:CoachBridge){
           <label>YOUR OBJECTIVE<select id="coachEventObjective"><option value="finish">Finish comfortably</option><option value="perform">Perform / compete</option></select></label>
           <label>TERRAIN<select id="coachEventTerrain"><option value="road">Paved road</option><option value="gravel">Gravel</option><option value="trail">MTB trail</option><option value="mixed">Mixed</option></select></label>
           <label>TOTAL EVENT DISTANCE (MILES, OPTIONAL)<input id="coachEventDistance" type="number" min="0.1" max="3106" step="1"></label>
-          <label>ESTIMATED RIDING TIME (MINUTES, OPTIONAL)<input id="coachEventDuration" type="number" min="1" max="30000" step="1"></label>
+          <label>TOTAL ESTIMATED RIDING TIME (MINUTES, OPTIONAL)<input id="coachEventDuration" type="number" min="1" max="30000" step="1"></label>
           <label>TOTAL CLIMBING (FEET, OPTIONAL)<input id="coachEventElevation" type="number" min="1" max="328084" step="1"></label>
           <label id="coachEventStagesWrap">NUMBER OF CONSECUTIVE STAGES<input id="coachEventStages" type="number" min="2" max="30" step="1" value="2"></label>
         </div>
         <p class="coach-small" id="coachGoalPhaseSummary"></p>
         <p class="coach-small" id="coachEventStageHint" hidden>For a multi-day race, enter the total distance, total climbing, and the first stage date. Individual stage profiles will be added in the next planning iteration.</p>
-        <p class="coach-small">Phase-based planning is an initial foundation, not a validated race-specific training prescription. Coaching will continue to adapt around your available time and recovery.</p>
+        <p class="coach-small">Planning preview: event discipline and date currently guide the weekly emphasis and phase. Course metrics, objective, terrain and race priority are saved but not yet used to prescribe race-specific intervals. Coach still adapts your weekly schedule around actual rides.</p>
       </section>
       <section class="coach-panel">
         <div class="coach-section-top"><span class="coach-tag">YOUR RIDER PROFILE</span><span class="coach-tag">STEP 2</span><span class="coach-tag">LOCAL ONLY</span></div>
@@ -245,7 +245,7 @@ export function mountCoach(bridge:CoachBridge){
           <label>DAYS / WEEK<input id="coachDays" type="number" min="2" max="6" step="1"></label>
           <label>REST DAY<select id="coachRestDay"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
           <label>LEVEL<select id="coachExperience"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
-          <label>GENERAL FITNESS FOCUS (NO RACE EVENT)<select id="coachGoal"><option value="fitness">Ride consistently</option><option value="ftp">Increase FTP</option><option value="endurance">Build endurance</option><option value="race">Prepare to race</option></select></label>
+          <label id="coachGeneralFocusWrap">GENERAL FITNESS FOCUS (NO RACE EVENT)<select id="coachGoal"><option value="fitness">Ride consistently</option><option value="ftp">Increase FTP</option><option value="endurance">Build endurance</option><option value="race">Prepare to race</option></select></label>
         </div>
         <p id="coachFtpHelp" class="coach-small"><strong>New to FTP?</strong> Functional Threshold Power is an estimate of your sustainable cycling power. The starting 200 W is a placeholder, <strong>not a measurement of your fitness</strong>. Set a known FTP if you have one; otherwise start with the trainer-free demo and use easy efforts until you establish a suitable training baseline. Avoid treating placeholder watt targets as personalized prescriptions.</p><p class="coach-small">Your weekly training hours include both cycling and strength. You can change them any time.</p>
         <p class="coach-small"><strong>Saved on this browser only:</strong> clearing site data, using private browsing, or switching computers can remove your plan. Account sync is not currently available.</p>
@@ -371,6 +371,7 @@ export function mountCoach(bridge:CoachBridge){
     const selected=($('coachEventDiscipline') as HTMLSelectElement).value;
     $('coachEventStagesWrap').hidden=selected!=='stage-race';
     $('coachEventStageHint').hidden=selected!=='stage-race';
+    $('coachGeneralFocusWrap').hidden=selected!=='general';
     const goal=validEventGoal({discipline:selected,date:($('coachEventDate') as HTMLInputElement).value});
     const phase=goalPhase(goal,new Date());
     $('coachGoalPhaseSummary').textContent=goal.discipline==='general'?'General fitness: build a sustainable weekly routine.':
@@ -653,7 +654,7 @@ export function mountCoach(bridge:CoachBridge){
     const thisWeek=adaptive.days.slice(0,7);
     const weekDisplay=reconcileCoachWeek(thisWeek,currentCalendarDays,library,todayKey);
     const stillScheduled=thisWeek.reduce((sum,day)=>sum+day.minutes+(day.date.getTime()>=new Date(nowDate.getFullYear(),nowDate.getMonth(),nowDate.getDate()).getTime()?day.strengthMinutes:0),0);
-    $('coachPlanBudget').textContent='Remaining this calendar week: '+(stillScheduled/60).toFixed(1)+' h · Weekly time goal: '+(schedule.budgetMinutes/60).toFixed(1)+' h · '+schedule.note;
+    $('coachPlanBudget').textContent='Remaining cycling + strength this calendar week: '+(stillScheduled/60).toFixed(1)+' h · Weekly time goal: '+(schedule.budgetMinutes/60).toFixed(1)+' h · '+schedule.note;
     $('coachWeek').innerHTML=weekDisplay.map(day=>{
       const isPast=day.key<todayKey;
       const cycling=day.workoutId&&day.name&&day.minutes>0&&!isPast
