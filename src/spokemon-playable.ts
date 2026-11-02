@@ -449,8 +449,10 @@ export function mountSpokemonPlayable(options:{
      trust=clamp(trust+dt*3.5*effort,0,100);
     }
     if(trust>=100){
-     // Captures are not guaranteed. Approx. 85% success at full trust.
-     resolve(Math.random()<.85);
+     // At 100% Trust a creature always joins the collection.
+     // Escape can still occur if Patience runs out before full Trust;
+     // when both thresholds happen on one tick, capture wins.
+     resolve(true);
     }else if(patience<=0)resolve(false);
    }
   }
