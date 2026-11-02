@@ -28,7 +28,10 @@ export function mountSpokemonPlayable(options:{
 }){
  const {host,slot,active,getScene,switchScene,onFinishRide}=options;
  let collection=loadCollection();
- let species:SpokemonSpecies= PINE_FOREST_SPOKEMON.find(x=>x.id==='mossprout')||PINE_FOREST_SPOKEMON[0];
+ const previewSpeciesId=new URLSearchParams(location.search).has('pedalkinPreview')
+  ?new URLSearchParams(location.search).get('spokemonSpecies'):null;
+ let species:SpokemonSpecies=PINE_FOREST_SPOKEMON.find(x=>x.id===previewSpeciesId)
+  ||PINE_FOREST_SPOKEMON.find(x=>x.id==='mossprout')||PINE_FOREST_SPOKEMON[0];
  let trust=0,patience=65,encounterCooldown=0,resolveAt=0;
  let outcome:'captured'|'escaped'|null=null;
  let message='Cruising through Pinepath Trail. Stay steady to attract nearby Spokemon.';

@@ -79,7 +79,9 @@ export function mountPedalkinRide():void {
  let patience=48;
  let outcome:'captured'|'escaped'|null=null;
  let lastEncounterTick=0;
- let currentSpecies:SpokemonSpecies=nextPreviewSpokemon(0);
+ const previewSpeciesId=demo?new URLSearchParams(location.search).get('spokemonSpecies'):null;
+ let currentSpecies:SpokemonSpecies=
+  PINE_FOREST_SPOKEMON.find(creature=>creature.id===previewSpeciesId) || nextPreviewSpokemon(0);
  let encounterCount=0;
  let nextEncounterKm=1.35;
  let resolveAfter=0;

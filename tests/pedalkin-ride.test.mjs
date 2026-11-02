@@ -185,10 +185,10 @@ test('Playing preview shows true game UI without developer bars while preserving
 
 test('Biome 01 encounter pool contains all 12 catalogued Spokemon and preserves rarity tiers',async()=>{
  const source=await readFile(new URL('../src/pedalkin-creatures.ts',import.meta.url),'utf8');
- const species=['Pipcone','Mossprout','Scampernut','Fernbit','Toadstoolie','Hootwig',
-  'Bumblebark','Glimmoth','Pebblit','Foxfire','Shroomble','Elderoot'];
+ const species=['Pipcone','Mossprout','Dear','Fernbit','Hedgie','Hootwig',
+  'Bumblebark','Glimmoth','Pebblit','Bob Moss','Shroomble','Elderoot'];
  for(const name of species)assert.match(source,new RegExp("name:'"+name+"'"));
- assert.equal((source.match(/name:'(?:Pipcone|Mossprout|Scampernut|Fernbit|Toadstoolie|Hootwig|Bumblebark|Glimmoth|Pebblit|Foxfire|Shroomble|Elderoot)'/g)||[]).length,12);
+ assert.equal((source.match(/name:'(?:Pipcone|Mossprout|Dear|Fernbit|Hedgie|Hootwig|Bumblebark|Glimmoth|Pebblit|Bob Moss|Shroomble|Elderoot)'/g)||[]).length,12);
  assert.equal((source.match(/rarity:'common'/g)||[]).length,5);
  assert.equal((source.match(/rarity:'uncommon'/g)||[]).length,4);
  assert.equal((source.match(/rarity:'rare'/g)||[]).length,2);
