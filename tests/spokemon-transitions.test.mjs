@@ -41,6 +41,8 @@ test('Selection panel previews both styles and plays return transitions',()=>{
 });
 test('Transitions stop Patience ticks and respect reduced-motion users',()=>{
  assert.match(play,/options\.isTransitioning\?\.\(\)/);
+ assert.match(play,/options\.canPaintDuringTransition\?\.\(\)/);
+ assert.match(transitions,/hasSwapped:\(\)=>running&&midpoint/);
  assert.match(play,/Freeze Trust and Patience/);
  assert.match(transitions,/prefers-reduced-motion: reduce/);
 });
