@@ -31,7 +31,7 @@ test('All three riding modes tag saved activities for training awareness only',(
  assert.match(main,/mode:rideExperience,meters:sessionDistanceMeters\(\)/);
  assert.match(main,/getPlatformRides:async\(\)=> \(await savedRides\(\)\)\.map/);
  assert.match(coach,/ALL BREAKAWAY RIDES/);
- assert.match(coach,/recommendToday\(rider,nowDate,inputs,feedback\)/);
+ assert.match(coach,/recommendToday\(rider,nowDate,ridesForFatigue,feedback\)/);
  assert.match(coach,/platformRides\.map\(r=>\(\{start:r.start,elapsed:r.elapsed,avgPower:r.avgPower\}\)\)/);
 });
 test('Coach dashboard is a fixed overlay that is not affected by the generic main route CSS',()=>{
