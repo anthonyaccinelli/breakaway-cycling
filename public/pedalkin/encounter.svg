@@ -138,12 +138,7 @@
       }
     </style>
   </defs>
-  <g id="wShoCz">
-    <g id="wShoCz1">
-      <image id="image" class="st10" width="661" height="399" transform="translate(368.7 111.3) scale(1.7 1.8)" xlink:href="gamescreens_Encounter Screen-1.png"/>
-    </g>
-  </g>
-  <polygon class="st16" points="0 0 0 80 0 1080 1920 1080 1920 80 1920 0 0 0"/>
+<polygon class="st16" points="0 0 0 80 0 1080 1920 1080 1920 80 1920 0 0 0"/>
   <g class="st10">
     <g class="st10">
       <text class="st4" transform="translate(25 34)"><tspan x="0" y="0">PEDALKIN / 03 RIDE</tspan></text>
@@ -287,12 +282,7 @@
     </g>
   </g>
   <rect class="st18" x="746.3" y="16.5" width="427.3" height="75.5" rx="37.7" ry="37.7"/>
-  <g id="wShoCz2">
-    <g id="wShoCz11">
-      <image id="image1" data-name="image" class="st10" width="661" height="399" transform="translate(388.7 111.3) scale(1.7 1.8)" xlink:href="gamescreens_Encounter Screen-2.png"/>
-    </g>
-  </g>
-  <rect class="st1" x="380" y="111.3" width="1160" height="700"/>
+<rect class="st1" x="380" y="111.3" width="1160" height="700"/>
   <g class="st10">
     <text class="st9" transform="translate(1590.5 126.2)"><tspan x="0" y="0">SPOKEMON TRUST</tspan></text>
   </g>
