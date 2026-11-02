@@ -675,7 +675,7 @@ export function mountPedalkinRide():void {
   document.body.classList.toggle('pk-riding',on);
   if(on){
    if(exactArtwork)render();
-   else void loadArt().then(render).catch(error=>{slot.textContent='Unable to load Pedalkin artboards';console.error(error);});
+   else void loadArt().then(()=>render()).catch(error=>{slot.textContent='Unable to load Pedalkin artboards';console.error(error);});
    if(demo&&!demoAnimationFrame)demoAnimationFrame=requestAnimationFrame(animateDemo);
   }
  }
