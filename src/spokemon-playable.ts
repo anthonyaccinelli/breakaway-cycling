@@ -62,7 +62,7 @@ export function mountSpokemonPlayable(options:{
   '<button data-pk-control="finish">SAVE & FINISH REAL RIDE</button>'+ 
   '<button data-pk-control="help">HOW TO PLAY</button></div>'+
   '<label>TEST EFFORT <output data-pk-game-watts>165 W</output><input data-pk-control="watts" type="range" min="60" max="310" value="165"></label>'+
-  '<small>Test rides are simulated and are never recorded or exported. Real rides use your connected trainer and Breakaway recorder.</small></div></details>';
+  '<small>Test Ride moves along the route about 5× faster for gameplay QA. It is never recorded or exported. Real rides use your connected trainer and Breakaway recorder.</small></div></details>';
  host.append(tool);
  const status=tool.querySelector<HTMLElement>('.pk-game-status')!;
  let lastBuddyArtId='';
