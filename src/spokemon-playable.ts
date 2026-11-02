@@ -87,6 +87,15 @@ export function mountSpokemonPlayable(options:{
  const text=(parent:SVGElement,x:number,y:number,label:string,size=38,color='#17343b')=>parent.appendChild(make('text',{x:String(x),y:String(y),'font-size':String(size),'font-family':'Spokemon Minecraft, monospace','font-weight':'700',fill:color},label));
  const line=(parent:SVGElement,x1:number,y1:number,x2:number,y2:number,color:string,width=3)=>parent.appendChild(make('line',{x1:String(x1),y1:String(y1),x2:String(x2),y2:String(y2),stroke:color,'stroke-width':String(width)}));
  const ready=()=>Boolean(lastReal?.connected&&Date.now()-lastSourceTime<7000);
+ const ascentThrough=(samples:number[],totalMeters:number,meters:number)=>{
+  if(samples.length<2||totalMeters<=0)return 0;
+  const progress=clamp(meters/totalMeters,0,1)*(samples.length-1);
+  const steps=Math.floor(progress);
+  let ascent=0;
+  for(let i=1;i<=steps;i++)ascent+=Math.max(0,samples[i]-samples[i-1]);
+  if(steps<samples.length-1)ascent+=Math.max(0,(samples[steps+1]-samples[steps])*(progress-steps));
+  return ascent*3.280839895;
+ };
  const labelSource=()=>ready()?'TRAINER':simulator?'TEST RIDE':'READY';
  const frame=():SpokemonRideTelemetry=>{
   const route=lastReal&&Array.isArray(lastReal.samples)&&lastReal.samples.length>1?lastReal:null;
