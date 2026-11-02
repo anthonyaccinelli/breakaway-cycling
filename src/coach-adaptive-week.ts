@@ -1,7 +1,7 @@
 import type {CoachRecentFeedback,CoachRecentRide,TodayRecommendation} from './coach-engine';
 import type {IntegratedDay} from './coach-strength';
 
-export type AdaptiveStatus='planned'|'recovery'|'shortened'|'completed'|'skipped'|'rest';
+export type AdaptiveStatus='planned'|'recovery'|'shortened'|'completed'|'skipped'|'missed'|'rest';
 export type AdaptiveDay={
  key:string;date:Date;weekday:number;originalId:string|null;workoutId:string|null;
  originalMinutes:number;minutes:number;recordedMinutes:number;status:AdaptiveStatus;reason:string;
@@ -9,7 +9,7 @@ export type AdaptiveDay={
 };
 export type AdaptiveChange={
  key:string;originalId:string|null;workoutId:string|null;
- beforeMinutes:number;afterMinutes:number;reason:string;kind:'recovery'|'shortened'|'completed'|'skipped';
+ beforeMinutes:number;afterMinutes:number;reason:string;kind:'recovery'|'shortened'|'completed'|'skipped'|'missed';
 };
 export type AdaptiveWeek={days:AdaptiveDay[];changes:AdaptiveChange[];extraMinutes:number};
 export type AdaptiveInputs={
@@ -58,8 +58,8 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
    workoutId=null;minutes=0;status='skipped';
    reason='You skipped this session. Coach will not stack it onto a later day.';
   }else if(isPast){
-   workoutId=null;minutes=0;status=id?'skipped':'rest';
-   reason=id?'This scheduled ride is past. It was not automatically rescheduled.':'Scheduled rest day.';
+   workoutId=null;minutes=0;status=id?'missed':'rest';
+   reason=id?'This scheduled ride was not recorded and has not been rescheduled.':'Scheduled rest day.';
   }else if(isToday){
    workoutId=today.workoutId;
    status=today.status==='completed'?'completed':!workoutId?'rest':today.status==='recovery'?'recovery':'planned';
@@ -125,7 +125,7 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
   key:d.key,originalId:d.originalId,workoutId:d.workoutId,
   beforeMinutes:d.originalMinutes,afterMinutes:d.status==='completed'?d.recordedMinutes:d.minutes,
   reason:d.reason,kind:(d.status==='completed'?'completed':d.status==='skipped'?'skipped':
-    d.status==='shortened'?'shortened':'recovery') as AdaptiveChange['kind']
+    d.status==='shortened'?'shortened':d.status==='missed'?'missed':'recovery') as AdaptiveChange['kind']
  }));
  return {days,changes,extraMinutes};
 }
