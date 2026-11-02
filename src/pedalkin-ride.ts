@@ -587,7 +587,20 @@ export function mountPedalkinRide():void {
    const finish=document.getElementById('rideFinishNow') as HTMLButtonElement|null;
    const start=document.getElementById('start') as HTMLButtonElement|null;
    if(finish&&!finish.hidden&&!finish.disabled&&start?.textContent?.toLowerCase().includes('pause')){
-    popupOpen('RIDE IN PROGRESS','Pause and finish your recorded ride using SAVE & CLOSE before leaving 03 Ride.');
+    popupOpen('RIDE IN PROGRESS','Pause your recorded ride before opening 01 Route or 02 Devices. Recording remains saved and resumable.');
+    const choose=popup.querySelector<HTMLElement>('.pk-popup-body')!;
+    const button=document.createElement('button');
+    button.type='button';button.className='pk-ride-leave-confirm';
+    button.textContent='PAUSE RIDE & OPEN '+(target==='route'?'01 ROUTE':'02 DEVICES');
+    button.onclick=()=>{
+     popup.hidden=true;
+     start.click(); // real native Pause action; keep the activity for resumption
+     requestAnimationFrame(()=>{
+      const id=target==='route'?'stepRoute':'stepSetup';
+      (document.getElementById(id) as HTMLButtonElement|null)?.click();
+     });
+    };
+    choose.append(button);
     return;
    }
   }
