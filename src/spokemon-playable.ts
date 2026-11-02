@@ -6,12 +6,14 @@ import './spokemon-playable.css';
 export type SpokemonRideTelemetry={
  distanceMeters:number;totalMeters:number;samples:number[];elapsedSeconds:number;
  gradePercent:number;powerWatts?:number;cadenceRpm?:number;heartRateBpm?:number|null;
- speedMph?:number;caloriesKcal?:number;running?:boolean;connected?:boolean;
+ speedMph?:number;caloriesKcal?:number;gear?:number|null;running?:boolean;connected?:boolean;
 };
 type Scene='explore'|'encounter';
 type SavedCreature={id:string;name:string;capturedAt:string;count:number};
 const NS='http://www.w3.org/2000/svg';
 const STORAGE='spokemon-caught-v1';
+const BUDDY_STORAGE='spokemon-buddy-v1';
+const METERS_PER_MILE=1609.344;
 const COLORS=['#f6d58c','#9eca96','#6aad38','#989141','#c6744a','#f45853'];
 const clamp=(v:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,v));
 const bucket=(p:number)=>p<0?0:p<1?1:p<4?2:p<8?3:p<12?4:5;
@@ -28,6 +30,16 @@ export function mountSpokemonPlayable(options:{
 }){
  const {host,slot,active,getScene,switchScene,onFinishRide}=options;
  let collection=loadCollection();
+ let selectedBuddyId='';
+ try{selectedBuddyId=localStorage.getItem(BUDDY_STORAGE)||'';}catch{}
+ if(!collection.some(c=>c.id===selectedBuddyId))selectedBuddyId=collection[0]?.id||'';
+ const buddy=()=>collection.find(c=>c.id===selectedBuddyId);
+ const setBuddy=(id:string)=>{
+  if(!collection.some(c=>c.id===id))return false;
+  selectedBuddyId=id;
+  try{localStorage.setItem(BUDDY_STORAGE,id);}catch{}
+  paint();return true;
+ };
  const previewSpeciesId=new URLSearchParams(location.search).has('pedalkinPreview')
   ?new URLSearchParams(location.search).get('spokemonSpecies'):null;
  let species:SpokemonSpecies=PINE_FOREST_SPOKEMON.find(x=>x.id===previewSpeciesId)
@@ -88,7 +100,7 @@ export function mountSpokemonPlayable(options:{
    gradePercent:simulator?slope:0,powerWatts:simulator?simPower:0,
    cadenceRpm:simulator?88:0,heartRateBpm:simulator?124:null,
    speedMph:simulator?simPower*.083:0,caloriesKcal:simulator?simKcal:0,
-   running:simulator&&simulationRunning,connected:false};
+   running:simulator&&simulationRunning,connected:false,gear:null};
  };
  function drawProfile(root:SVGElement,f:SpokemonRideTelemetry){
   // Exact measured chart inset in the user's 1920x1080 Illustrator SVG.
@@ -154,8 +166,8 @@ export function mountSpokemonPlayable(options:{
   const riderY=py(leftIndex)+(py(leftIndex+1)-py(leftIndex))*fraction;
   line(plot,x,top+9,x,bottom-5,'#f6d58c',2);
   plot.appendChild(make('circle',{cx:String(x),cy:String(riderY),r:'10',fill:'#f6d58c',stroke:'#17343b','stroke-width':'3'}));
-  text(plot,415,766,(f.distanceMeters/1000).toFixed(1)+' km',24,'#17343b');
-  const endLabel=text(plot,1520,766,(meters/1000).toFixed(1)+' km',24,'#17343b');
+  text(plot,415,766,(f.distanceMeters/METERS_PER_MILE).toFixed(1)+' mi',24,'#17343b');
+  const endLabel=text(plot,1520,766,(meters/METERS_PER_MILE).toFixed(1)+' mi',24,'#17343b');
   endLabel.setAttribute('text-anchor','end');
  }
  function paint(){
@@ -168,6 +180,32 @@ export function mountSpokemonPlayable(options:{
   // Keep the original SVG isolated; it is not rebuilt on every telemetry tick.
   if(!svg||svg.localName!=='svg')return;
   const f=frame();
+  const currentBuddy=buddy();
+  const existingBuddy=svg.querySelector('#pk-active-buddy');
+  if((existingBuddy?.getAttribute('data-creature-id')||'')!==(currentBuddy?.id||'')){
+   existingBuddy?.remove();
+   if(currentBuddy){
+    const creature=PINE_FOREST_SPOKEMON.find(c=>c.id===currentBuddy.id);
+    if(creature){
+     const group=doc!.createElementNS(NS,'g');
+     group.id='pk-active-buddy';group.setAttribute('data-creature-id',creature.id);
+     const backdrop=doc!.createElementNS(NS,'rect');
+     for(const [k,v] of Object.entries({x:'1660',y:'607',width:'131',height:'113',fill:'#fff1d7'}))backdrop.setAttribute(k,v);
+     group.append(backdrop);
+     const sprite=doc!.createElementNS(NS,'svg');
+     for(const [k,v] of Object.entries({x:'1659',y:'608',width:'132',height:'112',viewBox:'730 355 460 370',preserveAspectRatio:'xMidYMid meet'}))sprite.setAttribute(k,v);
+     sprite.setAttribute('role','img');sprite.setAttribute('aria-label',creature.name+' active buddy');
+     sprite.setAttribute('shape-rendering','crispEdges');
+     addWorkingCreatureSilhouette(sprite,creature);
+     sprite.querySelector('#pk-working-creature > text')?.remove();
+     group.append(sprite);svg.append(group);
+    }
+   }
+  }
+  const example=svg.querySelector('circle[cx="1724"][cy="652.8"]');
+  if(example)example.setAttribute('visibility','hidden');
+  const exampleText=svg.querySelector('text[transform="translate(1675.3999 689.9976)"]');
+  if(exampleText)exampleText.setAttribute('visibility','hidden');
   const set=(transform:string,value:string,maxWidth?:number)=>{
    const t=svg.querySelector<SVGTextElement>('text[transform="'+transform+'"]');
    const span=t?.querySelector<SVGTSpanElement>('tspan');
@@ -197,11 +235,22 @@ export function mountSpokemonPlayable(options:{
    ['translate(48 407.1)',Math.round(f.cadenceRpm||0)+' RPM'],
    ['translate(48 529.9)',(f.speedMph||0).toFixed(1)+' MPH'],
    ['translate(48 652.8)',f.gradePercent.toFixed(1)+' %'],
-   ['translate(48 778.5)',Math.round(f.caloriesKcal||0)+' KCAL'],
-   ['translate(1590.5015 183.81)',Math.round(trust)+'%'],
+   ['translate(48 778.5)',f.gear==null?'—':String(f.gear)],
+   ['translate(1590.5015 183.81)',getScene()==='encounter'?Math.floor(trust)+'%':''],
    ['translate(1586.3262 368.0016)',getScene()==='encounter'?Math.ceil(patience)+' s':'—']
   ] as const;
   for(const [selector,value] of numbers)set(selector,value);
+  set('translate(52 738.5)','GEAR');
+  if(getScene()==='explore'){
+   const hide=(selector:string)=>{const el=svg.querySelector<SVGElement>(selector);if(el)el.style.visibility='hidden';};
+   hide('rect[x="1566"][y="98.2"]');
+   hide('text[transform="translate(1590.5015 126.1968)"]');
+   hide('text[transform="translate(1590.5015 183.81)"]');
+   hide('rect[x="1592.9"][y="199.3"]');
+   hide('text[transform="translate(1586.3262 309.9969)"]');
+   hide('text[transform="translate(1586.3262 368.0016)"]');
+   hide('rect[x="1588.33"][y="383.9"]');
+  }
   // The Illustrator master includes six colored sample bars. Resize those
   // ORIGINAL paths from their left edge instead of drawing bars over them.
   const barData=[
@@ -210,7 +259,7 @@ export function mountSpokemonPlayable(options:{
    ['M52.88,416.6',f.cadenceRpm||0,145],
    ['M54,539.4',f.speedMph||0,40],
    ['M54,662.3',Math.max(0,f.gradePercent),15],
-   ['M54,788',f.caloriesKcal||0,1000]
+   ['M54,788',f.gear||0,24]
   ] as const;
   for(const [prefix,reading,limit] of barData){
    const item=Array.from(svg.querySelectorAll<SVGPathElement>('path[d]'))
@@ -230,8 +279,8 @@ export function mountSpokemonPlayable(options:{
   // Do not truncate the message: size it to the available content width.
   // Dialogue panel spans x=24..1296; text starts x=56 and keeps a 28px inset.
   set('translate(56 946)',message,1212);
-  const line2=ready()?(f.running?'REAL RIDE · '+(f.distanceMeters/1000).toFixed(2)+' km':'TRAINER READY · PRESS START'):
-   simulator?(simulationRunning?'TEST RIDE · '+(simDistance/1000).toFixed(2)+' km':'TEST PAUSED'):
+  const line2=ready()?(f.running?'REAL RIDE · '+(f.distanceMeters/METERS_PER_MILE).toFixed(2)+' mi':'TRAINER READY · PRESS START'):
+   simulator?(simulationRunning?'TEST RIDE · '+(simDistance/METERS_PER_MILE).toFixed(2)+' mi':'TEST PAUSED'):
    'CONNECT TRAINER OR START TEST RIDE';
   set('translate(56 1001.0032)',line2,1212);
   // The original elevation artwork is replaced only within its exact bounds.
@@ -253,6 +302,8 @@ export function mountSpokemonPlayable(options:{
   if(old)old.count+=1;
   else collection.push({id:species.id,name:species.name,capturedAt:new Date().toISOString(),count:1});
   try{localStorage.setItem(STORAGE,JSON.stringify(collection));}catch{}
+  if(!selectedBuddyId)setBuddy(species.id);
+  else paint();
  }
  function encounter(){
   if(getScene()==='encounter'||!active())return;
@@ -357,5 +408,5 @@ export function mountSpokemonPlayable(options:{
  function sync(){if(active()){lastTick=performance.now();paint();}else{tool.querySelector('details')?.removeAttribute('open');}}
  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-ride-experience','data-breakaway-screen']});
  sync();
- return {setFrame,paint,stopTestRide,getCollection:()=>collection.slice(),getCurrentSpecies:()=>species,isSimulating:()=>simulator,destroy:()=>{window.clearInterval(timer);view.remove();tool.remove();}};
+ return {setFrame,paint,stopTestRide,setBuddy,getBuddy:()=>buddy(),getCollection:()=>collection.slice(),getCurrentSpecies:()=>species,isSimulating:()=>simulator,destroy:()=>{window.clearInterval(timer);view.remove();tool.remove();}};
 }
