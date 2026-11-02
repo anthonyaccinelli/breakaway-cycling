@@ -1,4 +1,5 @@
 import './pedalkin-ride.css';
+import {bindFullscreenButton} from './ride-fullscreen';
 import {mountSpokemonPlayable} from './spokemon-playable';
 import type {SpokemonRideTelemetry} from './spokemon-playable';
 import {PINE_FOREST_SPOKEMON,choosePineForestSpokemon,nextPreviewSpokemon} from './pedalkin-creatures';
@@ -49,6 +50,7 @@ export function mountPedalkinRide():void {
        <button type="button" data-pk-nav="ride" aria-current="page">03 RIDE</button>
        <button type="button" data-pk-nav="overlay" aria-label="Open always-on-top overlay">04 OVERLAY</button>
      </nav>
+     <button type="button" class="pk-ride-fullscreen" aria-label="Toggle fullscreen" style="background:#fcf0d6;color:#214f55;border:2px solid #214f55;padding:8px 12px;font:inherit;font-weight:bold;cursor:pointer;position:relative;z-index:5">FULL SCREEN</button>
      <span class="pk-ride-nav-state">PINE FOREST</span>
    </header>
    ${showPlaytestControls?'<div class="pk-demo-bar"><strong>DESIGN PLAYTEST · NO TRAINER / NO RECORDED RIDE</strong><div class="pk-demo-buttons"><button type="button" data-pk-demo="explore">Exploration</button><button type="button" data-pk-demo="encounter">Encounter</button><button type="button" data-pk-demo="pedal">Pedal 15 seconds</button><button type="button" data-pk-demo="escape">Let escape</button><button type="button" data-pk-demo="reset">Reset</button></div></div>':''}
@@ -69,6 +71,7 @@ export function mountPedalkinRide():void {
  // and bottom on common 16:9 desktop browser viewports.
  if(exactArtwork)document.body.append(host);
  else ride.append(host);
+ bindFullscreenButton(host.querySelector<HTMLButtonElement>('.pk-ride-fullscreen')!);
  const slot=host.querySelector<HTMLElement>('.pk-svg-slot')!;
  const stage=host.querySelector<HTMLElement>('.pk-ride-stage')!;
  const popup=host.querySelector<HTMLElement>('.pk-popup')!;
