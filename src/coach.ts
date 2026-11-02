@@ -54,6 +54,8 @@ export function mountCoach(bridge:CoachBridge){
   let expandedCalendarKey:string|null=null;
   let currentCalendarDays:CoachCalendarDay[]=[];
   let controlChoice:CoachControl='structured';
+  const skippedKey='breakaway.coach.skipped-days.v1';
+  function skippedDays():string[]{const d=readJson(skippedKey);return Array.isArray(d)?d.filter(x=>typeof x==='string').slice(-90):[];}
   let ftpKnown=readJson(COACH_FTP_KNOWN_KEY)===true || (readJson(COACH_FTP_KNOWN_KEY)===null&&!!readJson(COACH_PROFILE_KEY));
   let platformRides:Awaited<ReturnType<CoachBridge['getPlatformRides']>>=[];
   let strength:ReturnType<typeof mountCoachStrength>|null=null;
@@ -145,6 +147,7 @@ export function mountCoach(bridge:CoachBridge){
         <div class="coach-swap-actions">
           <button type="button" id="coachSwapToggle" class="coach-subtle-link" aria-expanded="false" aria-controls="coachSwapPanel">Swap workout →</button>
           <button type="button" id="coachUseRecommendation" class="coach-subtle-link" hidden>Use Coach's recommendation ↺</button>
+          <button type="button" id="coachSkipToday" class="coach-subtle-link">Skip today's session</button>
         </div>
         <div id="coachSwapPanel" class="coach-swap-panel" hidden>
           <p>Prefer something else? Choosing a different workout is optional and won't rewrite your weekly plan.</p>
@@ -452,7 +455,12 @@ export function mountCoach(bridge:CoachBridge){
     const recovery=recoveryGuidance(check);
     $('coachReadinessLabel').textContent=recovery.label;
     $('coachReadinessExplanation').textContent=recovery.detail;
-    const recommendation=applyRecoveryGuidance(recommendToday(rider,nowDate,inputs,feedback),check);
+    const baseRecommendation=applyRecoveryGuidance(recommendToday(rider,nowDate,inputs,feedback),check);
+    const skipped=skippedDays().includes(todayKey);
+    const recommendation=skipped&&baseRecommendation.status!=='completed'
+      ?{workoutId:null as string|null,status:'rest' as const,reason:'You marked today as skipped. Coach will not automatically stack a missed session tomorrow; your next scheduled training day stays available.'}
+      :baseRecommendation;
+    $('coachSkipToday').textContent=skipped?"Undo skipped session":"Skip today's session";
     const schedule=weekPlan();
     currentCalendarDays=calendarDays(nowDate,schedule.days,library,recommendation);
     renderCalendar();
@@ -560,6 +568,14 @@ export function mountCoach(bridge:CoachBridge){
     render();
     $('coachAnswer').textContent=notice;
   }
+  $('coachSkipToday').addEventListener('click',()=>{
+    const key=dayKey(new Date()),set=new Set(skippedDays());
+    if(set.has(key))set.delete(key);else set.add(key);
+    if(!writeJson(skippedKey,Array.from(set).slice(-90))){
+      $('coachStatus').textContent='Could not save the skipped session. Check browser storage.';return;
+    }
+    riderSelected=false;customWorkout=null;render();
+  });
   $('coachSwapToggle').addEventListener('click',()=>{
     const panel=$('coachSwapPanel');
     panel.hidden=!panel.hidden;
