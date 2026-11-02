@@ -27,7 +27,7 @@ test('fatigue self-report suggests recovery without changing the saved schedule'
 test('garmin readings are recorded, not treated as independent readiness thresholds',()=>{
  const low=m.validCheckIn({date,feeling:'great',bodyBattery:10,sleepScore:10,hrvMs:10},date);
  assert.equal(m.applyRecoveryGuidance(planned,low).workoutId,'tempo');
- assert.match(m.recoveryGuidance(low).detail,/personalized recovery thresholds/);
+ assert.match(m.recoveryGuidance(low).detail,/Personalized recovery thresholds/);
  assert.equal(m.recoveryGuidance(null).suggestEasy,false);
 });
 test('Coach exposes and preserves beginner FTP state and daily check-in',()=>{
