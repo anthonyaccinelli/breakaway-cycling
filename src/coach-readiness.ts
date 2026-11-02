@@ -16,7 +16,7 @@ export function validCheckIn(value:unknown,date:string):MorningCheckIn|null{
  if(!value||typeof value!=='object')return null;
  const v=value as Partial<MorningCheckIn>;
  // Read legacy unpadded dates while writing current dates consistently as YYYY-MM-DD.
- const dateMatch=typeof v.date==='string'? /^(\\d{4})-(\\d{1,2})-(\\d{1,2})$/.exec(v.date):null;
+ const dateMatch=typeof v.date==='string'? /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(v.date):null;
  const normalizedDate=dateMatch?[dateMatch[1],dateMatch[2].padStart(2,'0'),dateMatch[3].padStart(2,'0')].join('-'):null;
  if(normalizedDate!==date||!['tired','okay','great'].includes(String(v.feeling)))return null;
  // Reject invalid readings rather than quietly considering them normal.
