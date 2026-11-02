@@ -18,8 +18,8 @@ test('User supplied Minecraft is embedded as valid self-contained WOFF2 font',()
  assert.match(css,/font-family:"Spokemon Minecraft"/);
  assert.match(css,/font-weight:400 900/);
 });
-test('01 Route and 02 Devices display same untouched SVG as inline vector, allowing authored labels to adopt the font',()=>{
- assert.match(svg,/fetch\('\/pedalkin\/route-v2.svg'\)/);
+test('01 Route and 02 Devices display same untouched SVG as inline vector using the approved v3 Illustrator artboard',()=>{
+ assert.match(svg,/fetch\('\/pedalkin\/route-v3.svg'\)/);
  assert.match(svg,/new DOMParser\(\)\.parseFromString/);
  assert.match(svg,/existing\.replaceWith\(svg\)/);
  assert.match(svg,/svg\.classList\.add/);
