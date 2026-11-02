@@ -14,8 +14,7 @@ import {mountCoachStrength} from './coach-strength-ui';
 import './coach-ux-polish.css';
 import {dayKey,escapeHtml,readJson,writeJson} from './coach-dom';
 import {calendarDays} from './coach-calendar';
-import {adaptWeeklySchedule,adaptiveDateKey} from './coach-adaptive-week';
-import type {AdaptiveDay} from './coach-adaptive-week';
+import {adaptWeeklySchedule} from './coach-adaptive-week';
 import type {CoachCalendarDay} from './coach-calendar';
 import './coach-calendar.css';
 import {mountWorkoutImporter} from './coach-workout-import-ui';
@@ -56,7 +55,6 @@ export function mountCoach(bridge:CoachBridge){
   let expandedCalendarKey:string|null=null;
   let currentCalendarDays:CoachCalendarDay[]=[];
   let activeRecommendedMinutes:number|null=null;
-  let currentAdaptiveDays:AdaptiveDay[]=[];
   let controlChoice:CoachControl='structured';
   const skippedKey='breakaway.coach.skipped-days.v1';
   function skippedDays():string[]{const d=readJson(skippedKey);return Array.isArray(d)?d.filter(x=>typeof x==='string').slice(-90):[];}
@@ -323,9 +321,17 @@ export function mountCoach(bridge:CoachBridge){
       id=>Math.round(workoutDuration(library.find(w=>w.id===id)||library[0])/60));
   }
   function recentRides():CoachRecentRide[]{
-    return platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower}))
-      .concat(importedRides.filter(r=>!platformRides.some(p=>Math.abs(p.start-r.start)<120000))
-        .map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower})));
+    const fromPlatform:CoachRecentRide[]=platformRides.map(r=>({start:r.start,elapsed:r.elapsed,avgPower:r.avgPower}));
+    const fromImports:CoachRecentRide[]=importedRides.filter(r=>!fromPlatform.some(p=>Math.abs(p.start-r.start)<120000))
+      .map(r=>({start:r.start,elapsed:r.duration,avgPower:r.avgPower,source:'import'}));
+    // A completed coached session may appear in local history before the normal
+    // ride archive refreshes. Count it once, never double-count an imported ride.
+    const combined=fromPlatform.concat(fromImports);
+    const coachOnly:CoachRecentRide[]=historyRecords().filter(r=>r.mode==='classic'&&r.elapsedSeconds>0)
+      .map(r=>({start:Date.parse(r.date)-r.elapsedSeconds*1000,elapsed:r.elapsedSeconds,
+        avgPower:r.averageWatts,source:'classic' as const}))
+      .filter(r=>Number.isFinite(r.start)&&!combined.some(p=>Math.abs(p.start-r.start)<120000));
+    return combined.concat(coachOnly);
   }
   function recentFeedback():CoachRecentFeedback[]{
     return historyRecords().map(r=>({date:Date.parse(r.date),rpe:r.rpe}));
@@ -470,7 +476,6 @@ export function mountCoach(bridge:CoachBridge){
       ftp:rider.ftp,ftpKnown,budgetMinutes:schedule.budgetMinutes,
       today:baseRecommendation,recoveryMinutes:Math.round(workoutDuration(library.find(w=>w.id==='recovery')!)/60)
     });
-    currentAdaptiveDays=adaptive.days;
     const todayAdaptive=adaptive.days.find(d=>d.key===todayKey)!;
     activeRecommendedMinutes=todayAdaptive.minutes;
     const recommendation={
