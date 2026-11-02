@@ -699,6 +699,7 @@ export function mountPedalkinRide():void {
   host,slot,active,getScene:()=>stageName,
   switchScene:changePlayScene,
   isTransitioning:()=>sceneTransitions?.isRunning()===true,
+  canPaintDuringTransition:()=>sceneTransitions?.hasSwapped()===true,
   onFinishRide:finishThroughNative,
   onHelp:()=>popupOpen('HOW TO BEFRIEND SPOKEMON',
    '1. Generate a route and connect a smart trainer, or start an unrecorded Test Ride.\n'+
