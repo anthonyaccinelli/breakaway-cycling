@@ -338,7 +338,7 @@ export function mountCoach(bridge:CoachBridge){
   }
   function strengthShouldBeLight():boolean{
     const feedback=recentFeedback().concat((strength?.history||[]).map(r=>({date:Date.parse(r.date),rpe:r.rpe})));
-    return fatigueSignals(rider,Date.now(),recentRides(),feedback).fatigued;
+    return fatigueSignals(rider,Date.now(),ftpKnown?recentRides():recentRides().map(r=>({...r,avgPower:null})),feedback).fatigued;
   }
   function syncSettingsForm(){
     ($('coachFtp') as HTMLInputElement).value=String(rider.ftp);
@@ -463,13 +463,15 @@ export function mountCoach(bridge:CoachBridge){
     if(todayKey!==currentDay){currentDay=todayKey;riderSelected=false;customWorkout=null;expandedCalendarKey=null;}
     const inputs=recentRides();
     const feedback=recentFeedback();
+    // Without a known FTP, watts alone cannot identify a demanding session.
+    const ridesForFatigue=ftpKnown?inputs:inputs.map(r=>({...r,avgPower:null}));
     const check=validCheckIn(readJson(COACH_CHECKIN_KEY),todayKey);
     const recovery=recoveryGuidance(check);
-    const trainingSignal=trainingDayGuidance(check,fatigueSignals(rider,nowDate.getTime(),inputs,feedback),inputs.some(ride=>ride.start>=new Date(nowDate.getFullYear(),nowDate.getMonth(),nowDate.getDate()).getTime()&&ride.elapsed>=900));
+    const trainingSignal=trainingDayGuidance(check,fatigueSignals(rider,nowDate.getTime(),ridesForFatigue,feedback),inputs.some(ride=>ride.start>=new Date(nowDate.getFullYear(),nowDate.getMonth(),nowDate.getDate()).getTime()&&ride.elapsed>=900));
     $('coachReadinessLabel').textContent=trainingSignal.label;
     $('coachReadinessLabel').setAttribute('data-day-color',trainingSignal.color);
     $('coachReadinessExplanation').textContent=trainingSignal.detail+' '+recovery.detail;
-    const baseRecommendation=applyRecoveryGuidance(recommendToday(rider,nowDate,inputs,feedback),check);
+    const baseRecommendation=applyRecoveryGuidance(recommendToday(rider,nowDate,ridesForFatigue,feedback),check);
     const schedule=weekPlan();
     const adaptive=adaptWeeklySchedule({
       now:nowDate,week:schedule.days,rides:inputs,feedback,skipped:skippedDays(),
