@@ -82,3 +82,27 @@
  #breakawayCoachScreen.coach-v2 .coach-adaptive-missed-fields button{grid-column:1/-1}}
 @media(max-width:540px){#breakawayCoachScreen.coach-v2 .coach-adaptive-header{flex-direction:column}
  #breakawayCoachScreen.coach-v2 .coach-adaptive-baseline-fields,#breakawayCoachScreen.coach-v2 .coach-adaptive-missed-fields{grid-template-columns:1fr}}
+
+
+#breakawayCoachScreen.coach-v2 #coachAdaptiveTodayDiff[hidden]{display:none!important}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-today-diff{
+ display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap;
+ background:#edf4ff;border:1px solid #b6ccec;border-radius:13px;padding:13px 18px;margin:0 0 16px;color:#1b3d68;
+}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-today-diff strong{font-size:13px;font-weight:900;color:#124b9d}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-today-diff p{font-size:13px;line-height:1.45;margin:3px 0}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-today-diff p span{color:#416184;font-weight:900;font-size:11px}
+#breakawayCoachScreen.coach-v2 .coach-adaptive-today-diff button{
+ padding:11px 14px;min-height:44px;border:1px solid #8fb1df;border-radius:8px;
+ background:#fff;color:#144b9c;font-size:13px;font-weight:900;cursor:pointer
+}
+#breakawayCoachScreen.coach-v2 .coach-calendar-adaptation{
+ background:#eef5fd;border:1px solid #c5d7eb;border-radius:9px;padding:13px 15px;margin-top:10px
+}
+#breakawayCoachScreen.coach-v2 .coach-calendar-adaptation strong{color:#174d9d;font-size:12px;letter-spacing:.5px}
+#breakawayCoachScreen.coach-v2 .coach-calendar-adaptation p{font-size:13px;color:#315575;line-height:1.5;margin:6px 0 0}
+#breakawayCoachScreen.coach-v2 .coach-week-yellow{border-color:#d5a63d!important;background:#fff8e8!important}
+#breakawayCoachScreen.coach-v2 .coach-week-red{border-color:#d98286!important;background:#fff0f0!important}
+#breakawayCoachScreen.coach-v2 .coach-day-label small{display:block;color:#4d6178;font-size:10px;font-weight:850;margin-top:6px}
+#breakawayCoachScreen.coach-v2 .coach-week-yellow .coach-day-label small{color:#805217}
+#breakawayCoachScreen.coach-v2 .coach-week-red .coach-day-label small{color:#9c3432}
