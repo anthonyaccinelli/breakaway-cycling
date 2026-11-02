@@ -255,17 +255,69 @@ export function mountSpokemonPlayable(options:{
   set('translate(52 738.5)','GEAR');
   set('translate(1585.0078 740.9976)',currentBuddy?'BUDDY: '+currentBuddy.name.toUpperCase():'NO BUDDY SELECTED');
   if(getScene()==='explore'){
-   const hide=(selector:string)=>{const el=svg.querySelector<SVGElement>(selector);if(el)el.style.visibility='hidden';};
-   hide('rect[x="1566"][y="98.2"]');
-   const biomePanel=svg.querySelector<SVGRectElement>('rect[x="1566"][y="277"]');
-   if(biomePanel){biomePanel.setAttribute('y','437');biomePanel.setAttribute('height','92');}
-   hide('line[x1="1586.33"][y1="439.41"]');
+   // The approved Illustrator Explore artboard has two cream upper-right
+   // cards. They were incorrectly hidden along with Trust and Patience.
+   // Keep both card backgrounds and the native Biome divider, but replace
+   // encounter-only labels/bars with real riding totals.
+   const hide=(selector:string)=>{
+    const item=svg.querySelector<SVGElement>(selector);
+    if(item)item.setAttribute('visibility','hidden');
+   };
    hide('text[transform="translate(1590.5015 126.1968)"]');
    hide('text[transform="translate(1590.5015 183.81)"]');
    hide('rect[x="1592.9"][y="199.3"]');
    hide('text[transform="translate(1586.3262 309.9969)"]');
    hide('text[transform="translate(1586.3262 368.0016)"]');
    hide('rect[x="1588.33"][y="383.9"]');
+   // Restore the full second card if a live DOM had previously shrunk it.
+   const biomePanel=svg.querySelector<SVGRectElement>('rect[x="1566"][y="277"]');
+   if(biomePanel){biomePanel.setAttribute('y','277');biomePanel.setAttribute('height','252');}
+   let statGroup=svg.querySelector<SVGGElement>('#pk-explore-ride-stats');
+   if(!statGroup){
+    statGroup=doc!.createElementNS(NS,'g');
+    statGroup.id='pk-explore-ride-stats';
+    statGroup.setAttribute('role','group');
+    const metric=(key:string,x:number,y:number,size:number)=>{
+     const el=doc!.createElementNS(NS,'text');
+     el.setAttribute('data-pk-metric',key);
+     el.setAttribute('x',String(x));el.setAttribute('y',String(y));
+     el.setAttribute('font-size',String(size));
+     el.setAttribute('font-family','Minecraft, Spokemon Minecraft, monospace');
+     el.setAttribute('font-weight','700');
+     el.setAttribute('fill','#16383d');
+     statGroup!.append(el);
+    };
+    const divider=doc!.createElementNS(NS,'line');
+    for(const [key,val] of Object.entries({x1:'1736',y1:'119',x2:'1736',y2:'231',stroke:'#8ea8a0','stroke-width':'2'}))
+     divider.setAttribute(key,val);
+    statGroup.append(divider);
+    metric('distance-label',1586,139,20);
+    metric('gain-label',1747,139,19);
+    metric('distance',1586,195,32);
+    metric('gain',1747,195,29);
+    metric('time-label',1586,310,23);
+    metric('time',1586,368,42);
+    svg.append(statGroup);
+   }
+   const value=(key:string,t:string)=>{
+    const el=statGroup!.querySelector<SVGTextElement>('text[data-pk-metric="'+key+'"]');
+    if(el&&el.textContent!==t)el.textContent=t;
+   };
+   const rideMeters=Math.max(0,f.rideDistanceMeters??f.distanceMeters);
+   const feet=Math.max(0,f.elevationGainFeet??0);
+   const seconds=Math.max(0,Math.floor(f.elapsedSeconds||0));
+   const pad=(n:number)=>String(n).padStart(2,'0');
+   const clock=pad(Math.floor(seconds/3600))+':'+pad(Math.floor(seconds/60)%60)+':'+pad(seconds%60);
+   value('distance-label','DISTANCE');
+   value('gain-label','ELEV. GAIN');
+   value('distance',(rideMeters/METERS_PER_MILE).toFixed(2)+' MI');
+   value('gain',Math.round(feet).toLocaleString('en-US')+' FT');
+   value('time-label','TIME ELAPSED');
+   value('time',clock);
+   statGroup.setAttribute('aria-label','Distance '+(rideMeters/METERS_PER_MILE).toFixed(2)+
+    ' miles, elevation gain '+Math.round(feet)+' feet, elapsed time '+clock);
+  }else{
+   svg.querySelector('#pk-explore-ride-stats')?.remove();
   }
   // The Illustrator master includes six colored sample bars. Resize those
   // ORIGINAL paths from their left edge instead of drawing bars over them.
