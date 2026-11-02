@@ -684,7 +684,7 @@ export function mountPedalkinRide():void {
    '2. Keep pedaling. Wild Spokemon appear as distance advances.\n'+
    '3. Each encounter has a unique temperament and preferred effort.\n'+
    '4. Maintain comfortable power to build Trust before Patience expires.\n'+
-   '5. Trust at 100% gives a CAPTURE CHANCE, not a guarantee.\n'+
+   '5. Reach 100% Trust before Patience runs out to GUARANTEE capture.\n'+
    '6. Pausing freezes the encounter; brief gear changes get a grace period.\n'+
    '7. Open BUDDY to choose a companion and earn XP while pedaling.\n'+
    '8. Chaotic creatures are extremely rare and optional: 90% FTP for 10 seconds.'),
