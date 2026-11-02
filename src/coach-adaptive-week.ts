@@ -4,7 +4,7 @@ import type {IntegratedDay} from './coach-strength';
 export type AdaptiveStatus='planned'|'recovery'|'shortened'|'completed'|'skipped'|'rest';
 export type AdaptiveDay={
  key:string;date:Date;weekday:number;originalId:string|null;workoutId:string|null;
- originalMinutes:number;minutes:number;status:AdaptiveStatus;reason:string;
+ originalMinutes:number;minutes:number;recordedMinutes:number;status:AdaptiveStatus;reason:string;
  changed:boolean;strength:'A'|'B'|null;strengthMinutes:number;
 };
 export type AdaptiveChange={
@@ -46,6 +46,7 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
   const originalMinutes=id?baseline!.cyclingMinutes:0;
   const dateStart=date.getTime();
   const recorded=valid.filter(r=>adaptiveDateKey(new Date(r.start))===key);
+  const recordedMinutes=recorded.reduce((sum,r)=>sum+rideMinutes(r),0);
   const isPast=dateStart<new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
   const isToday=key===todayKey;
   let workoutId=id,minutes=originalMinutes,status:AdaptiveStatus=id?'planned':'rest';
@@ -78,8 +79,8 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
       'A demanding or long ride was recorded before this session. Coach replaced it with easier recovery riding.';
    }
   }
-  days.push({key,date,weekday,originalId:id,workoutId,originalMinutes,minutes,status,reason,
-   changed:workoutId!==id||minutes!==originalMinutes,
+  days.push({key,date,weekday,originalId:id,workoutId,originalMinutes,minutes,recordedMinutes,status,reason,
+   changed:status==='completed'||workoutId!==id||minutes!==originalMinutes,
    strength:baseline?.strength||null,strengthMinutes:baseline?.strengthMinutes||0});
  }
  // Actual minutes above planned allowances from days already ridden this week.
@@ -122,7 +123,7 @@ export function adaptWeeklySchedule(input:AdaptiveInputs):AdaptiveWeek{
    d.changed||(d.status==='skipped'&&skipped.has(d.key))
  )).map(d=>({
   key:d.key,originalId:d.originalId,workoutId:d.workoutId,
-  beforeMinutes:d.originalMinutes,afterMinutes:d.minutes,
+  beforeMinutes:d.originalMinutes,afterMinutes:d.status==='completed'?d.recordedMinutes:d.minutes,
   reason:d.reason,kind:(d.status==='completed'?'completed':d.status==='skipped'?'skipped':
     d.status==='shortened'?'shortened':'recovery') as AdaptiveChange['kind']
  }));
