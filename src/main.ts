@@ -31,11 +31,13 @@ import {mountPedalkinHandheldDevices} from './pedalkin-handheld-devices';
 import {createClient} from '@supabase/supabase-js';
 import {startRiderPresence} from './rider-presence';
 import {renderAdvancedRideCharts} from './ride-analysis';
+import {mountLegacyPedalkinExport} from './pedalkin-migration-export';
 import {parseCscMeasurement} from './spokemon-csc';
 import type {CscState} from './spokemon-csc';
 
 // Riding opens immediately; settings and progress remain saved on this device.
 void (async function startBreakawayApplication(){
+mountLegacyPedalkinExport();
 
 startRiderPresence(createClient, document.getElementById('liveRidersCount'), document.getElementById('liveRiders'));
 let coachRuntime:ReturnType<typeof mountCoach>|null=null;
