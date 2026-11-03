@@ -60,8 +60,9 @@ export function openPedaldex(getCollection:()=>readonly CollectedCreature[]):voi
     const rect=svg.querySelector<SVGRectElement>('[data-pedaldex-slot="'+i+'"]');
     if(!rect)continue;
     const x=Number(rect.getAttribute('x')),y=Number(rect.getAttribute('y'));
-    rect.setAttribute('fill','#fcf0d6');
-    rect.setAttribute('stroke','none');
+    // Illustrator stylesheet sets .st0 fill:none; override its class rule explicitly.
+    rect.style.setProperty('fill','#fcf0d6');
+    rect.style.setProperty('stroke','none');
     const image=el('image',{
      x:String(x+10),y:String(y+5),width:'143.8',height:'130',
      href:species.artSrc||'',preserveAspectRatio:'xMidYMid meet',
