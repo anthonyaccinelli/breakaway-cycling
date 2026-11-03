@@ -20,7 +20,7 @@ export const PINE_FOREST_SPOKEMON:readonly SpokemonSpecies[]=[
  {id:'bumblebark',name:'Bumblebark',rarity:'uncommon',weight:8,kind:'bear',accent:'#b28b62',dark:'#765a43',personality:'gentle'},
  {id:'glimmoth',name:'Glimmoth',rarity:'uncommon',weight:8,kind:'moth',accent:'#c4c9e9',dark:'#717ba3',personality:'shy'},
  {id:'pebblit',name:'Pebblit',rarity:'uncommon',weight:8,kind:'rock',accent:'#9eac91',dark:'#69776c',personality:'stubborn'},
- {id:'bob-moss',name:'Bob Moss',rarity:'rare',weight:3,kind:'rock',accent:'#78bd61',dark:'#515a54',personality:'stubborn',artSrc:'/pedalkin/creatures/bob-moss.png'},
+ {id:'mossgob',name:'Mossgob',rarity:'rare',weight:3,kind:'rock',accent:'#78bd61',dark:'#515a54',personality:'stubborn',artSrc:'/pedalkin/creatures/mossgob.png'},
  {id:'shroomble',name:'Shroomble',rarity:'rare',weight:3,kind:'fungus',accent:'#a997d6',dark:'#73629f',personality:'shy'},
  {id:'elderoot',name:'Elderoot',rarity:'extremely rare',weight:0.6,kind:'guardian',accent:'#adbe83',dark:'#6e8b59',personality:'stubborn'},
 ];
@@ -33,7 +33,7 @@ export function choosePineForestSpokemon(random= Math.random):SpokemonSpecies{
 export function nextPreviewSpokemon(index:number):SpokemonSpecies{
  // A curated showcase order (all 12 are reachable on repeated encounters).
  // Normal encounters use the weighted random picker above.
- const order=['dear','bob-moss','hedgie','mossprout','pipcone','fernbit',
+ const order=['dear','mossgob','hedgie','mossprout','pipcone','fernbit',
   'hootwig','glimmoth','bumblebark','pebblit','shroomble','elderoot'];
  const id=order[((index%order.length)+order.length)%order.length];
  return PINE_FOREST_SPOKEMON.find(c=>c.id===id)!;
