@@ -1,12 +1,11 @@
-name: Breakaway Coach adaptive checks
+name: Breakaway Coach integration checks
 on:
-  push:
-    branches:
-      - feat/coach-next-steps-2026-11-01
   pull_request:
     paths:
-      - 'src/coach*.ts'
-      - 'src/coach*.css'
+      - 'src/main.ts'
+      - 'src/coach-route.ts'
+      - 'src/vendor/breakaway-coach/**'
+      - 'src/classic-route-reference.ts'
       - 'tests/coach*.test.mjs'
       - '.github/workflows/coach-adaptive-checks.yml'
 permissions:
