@@ -1,0 +1,126 @@
+/* Homepage concept / 2026-11: four plain navigation links instead of artwork tiles.
+   Scoped to home so game and Coach buttons stay untouched. */
+body[data-breakaway-screen="home"] #modeLanding .mode-landing-links {
+  grid-column: 1/-1 !important;
+  grid-row: 4 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  grid-template-columns: none !important;
+  grid-template-rows: none !important;
+  width: min(960px, 100%) !important;
+  max-width: 960px !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  gap: 0 !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  justify-self: center !important;
+  align-self: center !important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-nav-link {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: grid !important;
+  grid-template-columns: 64px minmax(0,1fr) 48px !important;
+  align-items: center !important;
+  gap: 18px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 94px !important;
+  padding: clamp(13px, 1.7vh, 20px) 12px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid #365167 !important;
+  border-radius: 0 !important;
+  color: #f3f7fa !important;
+  box-shadow: none !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  font-family: "Host Grotesk", Inter, system-ui, sans-serif !important;
+  transition: color .18s ease, background .18s ease !important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-nav-link:first-child {
+  border-top: 1px solid #365167 !important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-nav-number {
+  color: #51dcb8 !important;
+  font: 800 13px/1.2 "Host Grotesk", system-ui, sans-serif !important;
+  letter-spacing: .14em !important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-nav-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-nav-title {
+  font-size: clamp(26px, 3.35vw, 45px) !important;
+  line-height: 1.08 !important;
+  font-weight: 800 !important;
+  letter-spacing: -.045em !important;
+  text-transform: uppercase !important;
+  color: inherit !important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-nav-description {
+  color: #a9c0cf !important;
+  font: 500 clamp(12px, 1vw, 14px)/1.35 "Instrument Sans", system-ui, sans-serif !important;
+  letter-spacing: 0 !important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-nav-arrow {
+  justify-self: end !important;
+  font: 400 clamp(26px, 2.6vw, 34px)/1 "Host Grotesk", system-ui, sans-serif !important;
+  color: #56d9b8 !important;
+  transition: transform .18s ease !important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-nav-link:hover {
+  background: #1a3445 !important;
+  color: #71efc9 !important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-nav-link:hover .mode-nav-arrow {
+  transform: translate(3px, -3px) !important;
+}
+body[data-breakaway-screen="home"] #modeLanding .mode-nav-link:focus-visible {
+  outline: 3px solid #f5fcff !important;
+  outline-offset: -3px !important;
+  background: #1a3445 !important;
+}
+@media(max-height:710px) and (min-width:761px) {
+  body[data-breakaway-screen="home"] #modeLanding .mode-nav-link {
+    min-height: 67px !important;
+    padding: 8px 12px !important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-nav-title {
+    font-size: clamp(22px, 2.7vw, 34px) !important;
+  }
+}
+@media(max-width:760px) {
+  body[data-breakaway-screen="home"] #modeLanding .mode-landing-links {
+    height: auto !important;
+    padding: 0 2px !important;
+    margin: 8px auto !important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-nav-link {
+    grid-template-columns: 34px minmax(0,1fr) 24px !important;
+    gap: 9px !important;
+    min-height: 82px !important;
+    padding: 14px 6px !important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-nav-title {
+    font-size: clamp(23px, 6.2vw, 34px) !important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-nav-description {
+    font-size: 12px !important;
+  }
+  body[data-breakaway-screen="home"] #modeLanding .mode-nav-arrow {
+    font-size: 24px !important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  body[data-breakaway-screen="home"] #modeLanding .mode-nav-link,
+  body[data-breakaway-screen="home"] #modeLanding .mode-nav-arrow {
+    transition: none !important;
+  }
+}
