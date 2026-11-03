@@ -1,0 +1,13 @@
+{
+  "sourceRepository": "anthonyaccinelli/breakaway-coach",
+  "sourceCommit": "d3f64b8e7ac5a8c106eef94acc8ba72e559240c5",
+  "files": {
+    "js": "dist-lib/breakaway-coach.js",
+    "css": "dist-lib/breakaway-coach.css"
+  },
+  "integrity": {
+    "js": "sha256-zTlGyCy15DF9EIpzic74kjL7DeNapre2PP1C2gGlmjs=",
+    "css": "sha256-lDOldQxNMxP1UUHJvkDQuwrX48nPlWnFBMBgFgyNlX0="
+  },
+  "bundleCommit": "7b16d944fae7fe0f9735dbaa2745903bd1aa6a95"
+}
