@@ -4,6 +4,7 @@ import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
 import {findClassicRoute,registerClassicRoute,randomClassicSeed,isClassicSeed,validatedClassicRecipe,deriveUnregisteredClassicRoute} from './classic-route-registry';
 import {mountBetaSupport} from './beta-support';
 import {localHistoryDatabase} from './account-storage';
+import {coachRouteMiles} from './coach-route';
 import {mountCoach} from './vendor/breakaway-coach/breakaway-coach.js';
 import './vendor/breakaway-coach/breakaway-coach.css';
 import './style.css';
@@ -3347,11 +3348,16 @@ mountPedalkinRide();
 coachRuntime=mountCoach({
  launchMode:(_mode)=>{showBreakawayScreen('setup');},
  makeRoute:(seconds,structured)=>{
+  // Coach workouts are timed. Give faster riders route headroom, but do not
+  // accidentally restore a manually locked Classic seed and its old distance.
+  seedLock.checked=false;
+  userEnteredRouteSeed=false;
+  generatedGainIsAutoFilled=false;
   ($('generatedTerrain') as HTMLSelectElement).value=structured?'flat':'rolling';
   ($('generatedDifficulty') as HTMLSelectElement).value=structured?'0.55':'1';
-  ($('generatedMiles') as HTMLInputElement).value=String(Math.max(20,Math.min(150,Math.round(seconds/60*.65))));
+  ($('generatedMiles') as HTMLInputElement).value=String(coachRouteMiles(seconds));
   ($('generatedGain') as HTMLInputElement).value='';
-  ($('generatedSeed') as HTMLInputElement).value=String(Math.floor(Math.random()*900000000)+1000);
+  // generateClassicRoute allocates and saves a fresh, reproducible route seed.
   ($('generateRoute') as HTMLButtonElement).click();
  },
  setMode:(mode)=>{
