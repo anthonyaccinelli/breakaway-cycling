@@ -28,6 +28,6 @@ test('Coach shares recorded ride history but cannot command Survival or Quest',(
 test('Coach panel stays isolated and its banner lives in Classic Route Studio',()=>{
   assert.match(css,/\.coach-screen\{position:fixed/);
   assert.match(css,/#openBreakawayCoach\{display:none!important/);
-  assert.match(css,/\[data-ride-experience="classic"\]\[data-breakaway-screen="route"\]/);
+  assert.match(css,/\[data-ride-experience=classic\]\[data-breakaway-screen=route\]/);
   assert.match(route,/coachBanner\.hidden=survival/);
 });
