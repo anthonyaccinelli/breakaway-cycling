@@ -12,7 +12,7 @@ test('Pine Forest keeps exactly twelve unique species after replacing three',()=
  const entries=[...catalog.matchAll(/\{id:'([^']+)',name:'([^']+)'/g)];
  assert.equal(entries.length,12);
  assert.equal(new Set(entries.map(e=>e[1])).size,12);
- for(const [id,name] of [['dear','Dear'],['bob-moss','Bob Moss'],['hedgie','Hedgie']]){
+ for(const [id,name] of [['dear','Dear'],['mossgob','Mossgob'],['hedgie','Hedgie']]){
   assert(entries.some(e=>e[1]===id&&e[2]===name),name+' in first biome');
  }
  for(const removed of ['scampernut','foxfire','toadstoolie']){
@@ -20,7 +20,7 @@ test('Pine Forest keeps exactly twelve unique species after replacing three',()=
  }
 });
 test('All three original uploads are valid 64 x 64 transparent PNG sprites',async()=>{
- for(const name of ['dear','bob-moss','hedgie']){
+ for(const name of ['dear','mossgob','hedgie']){
   const png=await read('public/pedalkin/creatures/'+name+'.png');
   assert.deepEqual(png.subarray(0,8),Buffer.from([137,80,78,71,13,10,26,10]));
   assert.equal(png.readUInt32BE(16),64);

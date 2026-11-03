@@ -25,7 +25,7 @@ const COLORS=['#f6d58c','#9eca96','#6aad38','#989141','#c6744a','#f45853'];
 const clamp=(v:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,v));
 const bucket=(p:number)=>p<0?0:p<1?1:p<4?2:p<8?3:p<12?4:5;
 function loadCollection():SavedCreature[]{
- try{const x=JSON.parse(localStorage.getItem(STORAGE)||'[]');return Array.isArray(x)?x.filter(y=>typeof y?.id==='string'&&typeof y?.count==='number'):[];}catch{return [];}
+ try{const x=JSON.parse(localStorage.getItem(STORAGE)||'[]');return Array.isArray(x)?x.filter(y=>typeof y?.id==='string'&&typeof y?.count==='number').map(y=>y.id==='bob-moss'?{...y,id:'mossgob',name:'Mossgob'}:y):[];}catch{return [];}
 }
 export function mountSpokemonPlayable(options:{
  host:HTMLElement;slot:HTMLElement;active:()=>boolean;getScene:()=>Scene;
@@ -38,7 +38,7 @@ export function mountSpokemonPlayable(options:{
  const {host,slot,active,getScene,switchScene,onFinishRide}=options;
  let collection=loadCollection();
  let selectedBuddyId='';
- try{selectedBuddyId=localStorage.getItem(BUDDY_STORAGE)||'';}catch{}
+ try{selectedBuddyId=localStorage.getItem(BUDDY_STORAGE)||'';if(selectedBuddyId==='bob-moss')selectedBuddyId='mossgob';}catch{}
  if(!collection.some(c=>c.id===selectedBuddyId))selectedBuddyId=collection[0]?.id||'';
  const buddy=()=>collection.find(c=>c.id===selectedBuddyId);
  const setBuddy=(id:string)=>{

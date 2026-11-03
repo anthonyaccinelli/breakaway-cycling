@@ -7,6 +7,7 @@ import type {SpokemonSpecies} from './pedalkin-creatures';
 import {addWorkingCreatureSilhouette} from './pedalkin-creature-art';
 import {pixelateElevation} from './pedalkin-pixel-elevation';
 import {createSpokemonClassicWipe} from './spokemon-classic-wipe';
+import {openPedaldex} from './pedaldex';
 
 type PedalkinRideFrame={
  distanceMeters:number;
@@ -43,7 +44,7 @@ export function mountPedalkinRide():void {
  host.setAttribute('aria-label','Pedalkin ride');
  host.innerHTML=`
    <header class="pk-ride-nav" aria-label="Pedalkin ride navigation">
-     <span class="pk-ride-nav-name">SPOKEMON <small> / 03 RIDE</small></span>
+     <span class="pk-ride-nav-name">PEDALKIN <small> / 03 RIDE</small></span>
      <nav class="pk-ride-tabs" aria-label="Ride navigation">
        <button type="button" data-pk-nav="route">01 ROUTE</button>
        <button type="button" data-pk-nav="devices">02 DEVICES</button>
@@ -56,7 +57,7 @@ export function mountPedalkinRide():void {
    ${showPlaytestControls?'<div class="pk-demo-bar"><strong>DESIGN PLAYTEST · NO TRAINER / NO RECORDED RIDE</strong><div class="pk-demo-buttons"><button type="button" data-pk-demo="explore">Exploration</button><button type="button" data-pk-demo="encounter">Encounter</button><button type="button" data-pk-demo="pedal">Pedal 15 seconds</button><button type="button" data-pk-demo="escape">Let escape</button><button type="button" data-pk-demo="reset">Reset</button></div></div>':''}
    ${showPlaytestControls?'<div class="pk-profile-bar"><button type="button" data-pk-profile="toggle">Pause preview</button><input type="range" data-pk-profile="seek" min="0" max="1000" value="0" aria-label="Preview rider position along elevation profile"/><span class="pk-profile-status">0.0 / 25.0 km · Fast-forward playtest</span></div>':''}
    <div class="pk-ride-stage"><div class="pk-svg-slot" role="region" aria-label="Pedalkin 03 Ride screen"></div>
-     <button type="button" class="pk-hitspot pk-journal" aria-label="Open creature journal" data-pk-action="journal"></button>
+     <button type="button" class="pk-hitspot pk-journal" aria-label="Open Pedaldex" data-pk-action="journal"></button>
      <button type="button" class="pk-hitspot pk-buddy" aria-label="Choose buddy" data-pk-action="buddy"></button>
      <button type="button" class="pk-hitspot pk-buddy-art" aria-label="Select the creature in your Buddy window" data-pk-action="buddy"></button>
      <button type="button" class="pk-hitspot pk-stats" aria-label="Open ride stats" data-pk-action="stats"></button>
@@ -497,6 +498,9 @@ export function mountPedalkinRide():void {
       svg.querySelector('defs')?.appendChild(style) || svg.insertBefore(style,svg.firstChild);
      }
     }
+    child?.querySelectorAll('text,tspan').forEach(node=>{
+     if(node.textContent?.trim().toUpperCase()==='JOURNAL')node.textContent='PEDALDEX';
+    });
     playable?.paint();
     onReady?.();
    });
@@ -529,6 +533,9 @@ export function mountPedalkinRide():void {
   // preserving the four legitimate metric panels at x=52.
   root.querySelectorAll<SVGTextElement>('text[transform^="translate(2013 "]')
    .forEach(node=>node.parentElement?.remove());
+  root.querySelectorAll('text,tspan').forEach(node=>{
+    if(node.textContent?.trim().toUpperCase()==='JOURNAL')node.textContent='PEDALDEX';
+   });
   slot.replaceChildren(document.importNode(root,true));
   const svg=slot.querySelector<SVGSVGElement>('svg');
   // Use the supplied artboards without shifting any original SVG geometry.
@@ -647,7 +654,7 @@ export function mountPedalkinRide():void {
  });
  host.querySelectorAll<HTMLButtonElement>('[data-pk-action]').forEach(button=>button.addEventListener('click',()=>{
   switch(button.dataset.pkAction){
-   case 'journal':popupOpen('SPOKEMON JOURNAL',exactArtwork?(playable?.getCollection().map(c=>c.name+' ×'+c.count).join('\n')||'No Spokemon collected yet.'):PINE_FOREST_SPOKEMON.map((c,i)=>(i+1)+'. '+c.name).join('\n'));break;
+   case 'journal':openPedaldex(()=>playable?.getCollection()||[]);break;
    case 'buddy':{
     if(!exactArtwork||!playable){popupOpen('YOUR BUDDY','Befriend your first Spokemon to choose a companion.');break;}
     const captured=playable.getCollection();
@@ -720,7 +727,7 @@ export function mountPedalkinRide():void {
   isTransitioning:()=>classicWipe?.isRunning()===true,
   canPaintDuringTransition:()=>classicWipe?.hasSwapped()===true,
   onFinishRide:finishThroughNative,
-  onCollection:(items)=>popupOpen('YOUR COLLECTION',items.length?items.map(c=>c.name+' ×'+c.count).join('\n')+'\n\n'+items.length+' of '+PINE_FOREST_SPOKEMON.length+' species discovered.':'No Spokemon collected yet. Keep riding to find a friend.')
+  onCollection:()=>openPedaldex(()=>playable?.getCollection()||[])
  });
  function sync(){
   const on=active();host.hidden=!on;
