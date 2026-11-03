@@ -3131,7 +3131,11 @@ modeLanding.querySelector('#modeDevices')!.addEventListener('click',()=>{
 });
 modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
 modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
-modeLanding.querySelector('#choosePedalkin')!.addEventListener('click',()=>chooseRideExperience('pedalkin'));
+// Pedalkin now ships independently. Keep the legacy engine temporarily as a
+// rollback path while the standalone launch and hardware are validated.
+modeLanding.querySelector('#choosePedalkin')!.addEventListener('click',()=>{
+ window.location.assign('https://pedalkin-preview.vercel.app/');
+});
 modeHomeButton.addEventListener('click',()=>{if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');});
 const questIntroAudio=new Audio('/audio/cycle-quest/largo.mp3');questIntroAudio.hidden=true;questIntroAudio.dataset.questMusic='largo.mp3';document.body.append(questIntroAudio);
 const questIntroMusic=createQuestIntroMusic(questIntroAudio);
