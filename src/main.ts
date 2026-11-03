@@ -8,6 +8,7 @@ import {mountCoach} from './coach';
 import './style.css';
 import './route-seed.css';
 import './homepage-fit.css';
+import './homepage-links.css';
 import {bindFullscreenButton} from './ride-fullscreen';
 import './ride-fullscreen.css';
 import {timeWeightedPower, slewGrade} from './trainer-smoothing';
@@ -3010,7 +3011,26 @@ let rideExperience:RideExperience='classic';
 const modeLanding=document.createElement('section');
 modeLanding.id='modeLanding';
 modeLanding.className='mode-landing';
-modeLanding.innerHTML='<div class="mode-landing-brand"><span>RIDE BREAKAWAY</span><div class="mode-landing-meta"><small>CREATE. CONNECT. RIDE.</small></div></div><div class="mode-landing-intro"><span>YOUR RIDE. YOUR RULES.</span><h1>CHOOSE YOUR RIDE.</h1><p>Classic: ride freely or train with Breakaway Coach. Survival: escape the undead. Cycle Quest: adventure and level up.</p></div><div class="mode-landing-cards"><button type="button" id="chooseClassic" class="mode-card mode-card-classic mode-card-art" aria-label="Start Classic — free rides, routes, and training plans with Breakaway Coach"><img src="/branding/home-classic.png" alt="" width="1500" height="1500" decoding="async" draggable="false"></button><button type="button" id="chooseSurvival" class="mode-card mode-card-survival mode-card-art" aria-label="Start Survival — choose game mode, difficulty, and threat"><img src="/branding/home-survival.png" alt="" width="1500" height="1500" decoding="async" draggable="false"></button><button type="button" id="chooseCycleQuest" class="mode-card mode-card-quest mode-card-art" aria-label="Start your quest — Cycle Quest private beta"><img src="/branding/home-cycle-quest.png" alt="" width="1500" height="1500" decoding="async" draggable="false"></button></div><p class="mode-landing-footer">SMART TRAINER REQUIRED · YOUR PROGRESS AND SETTINGS SAVE ON THIS DEVICE</p><div class="mode-device-shortcut"><button type="button" id="modeDevices">CONNECT DEVICES</button><span>Optional — connect now or after choosing a mode.</span></div>';
+modeLanding.innerHTML = `
+  <div class="mode-landing-brand"><span>RIDE BREAKAWAY</span><div class="mode-landing-meta"><small>CREATE. CONNECT. RIDE.</small></div></div>
+  <div class="mode-landing-intro"><span>YOUR RIDE. YOUR RULES.</span><h1>CHOOSE YOUR RIDE.</h1><p>Four ways to ride. One platform. Find your next adventure.</p></div>
+  <nav class="mode-landing-cards mode-landing-links" aria-label="Choose a ride experience">
+    <button type="button" id="chooseClassic" class="mode-nav-link" aria-label="Classic and Coach — free rides and structured training">
+      <span class="mode-nav-number" aria-hidden="true">01</span><span class="mode-nav-copy"><strong class="mode-nav-title">Classic + Coach</strong><span class="mode-nav-description">Ride freely, explore routes, or train with Breakaway Coach.</span></span><span class="mode-nav-arrow" aria-hidden="true">↗</span>
+    </button>
+    <button type="button" id="chooseSurvival" class="mode-nav-link" aria-label="Survival — outride the undead">
+      <span class="mode-nav-number" aria-hidden="true">02</span><span class="mode-nav-copy"><strong class="mode-nav-title">Survival</strong><span class="mode-nav-description">Stay ahead of the threat. Every pedal stroke counts.</span></span><span class="mode-nav-arrow" aria-hidden="true">↗</span>
+    </button>
+    <button type="button" id="chooseCycleQuest" class="mode-nav-link" aria-label="Pedal Quest — a retro cycling RPG">
+      <span class="mode-nav-number" aria-hidden="true">03</span><span class="mode-nav-copy"><strong class="mode-nav-title">Pedal Quest</strong><span class="mode-nav-description">A 16-bit-inspired RPG adventure, powered by your ride.</span></span><span class="mode-nav-arrow" aria-hidden="true">↗</span>
+    </button>
+    <button type="button" id="choosePedalkin" class="mode-nav-link" aria-label="Pedalkin — ride, explore and befriend creatures">
+      <span class="mode-nav-number" aria-hidden="true">04</span><span class="mode-nav-copy"><strong class="mode-nav-title">Pedalkin</strong><span class="mode-nav-description">Explore charming worlds and befriend wild creatures.</span></span><span class="mode-nav-arrow" aria-hidden="true">↗</span>
+    </button>
+  </nav>
+  <p class="mode-landing-footer">SMART TRAINERS OR COMPATIBLE SENSORS · YOUR PROGRESS AND SETTINGS SAVE ON THIS DEVICE</p>
+  <div class="mode-device-shortcut"><button type="button" id="modeDevices">CONNECT DEVICES</button><span>Optional — connect now or after choosing a mode.</span></div>
+`;
 // Reuse the live badge already connected by startRiderPresence. Moving the
 // same node preserves updates without creating another presence connection.
 const homePresenceBadge=document.getElementById('liveRiders');
@@ -3111,13 +3131,7 @@ modeLanding.querySelector('#modeDevices')!.addEventListener('click',()=>{
 });
 modeLanding.querySelector('#chooseClassic')!.addEventListener('click',()=>chooseRideExperience('classic'));
 modeLanding.querySelector('#chooseSurvival')!.addEventListener('click',()=>chooseRideExperience('survival'));
-const pedalkinCard=document.createElement('button');
-pedalkinCard.type='button';pedalkinCard.id='choosePedalkin';
-pedalkinCard.className='mode-card mode-card-pedalkin';
-pedalkinCard.setAttribute('aria-label','Explore Pedalkin — cozy creature collecting cycling game, route studio first draft');
-pedalkinCard.innerHTML='<span class="pk-mode-top">✳ A NEW LITTLE ADVENTURE</span><strong>PEDALKIN</strong><span class="pk-mode-scene" aria-hidden="true">♣　♠　✿　♣</span><span class="pk-mode-bottom">EXPLORE · RIDE · BEFRIEND</span>';
-modeLanding.querySelector('.mode-landing-cards')!.append(pedalkinCard);
-pedalkinCard.addEventListener('click',()=>chooseRideExperience('pedalkin'));
+modeLanding.querySelector('#choosePedalkin')!.addEventListener('click',()=>chooseRideExperience('pedalkin'));
 modeHomeButton.addEventListener('click',()=>{if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');});
 const questIntroAudio=new Audio('/audio/cycle-quest/largo.mp3');questIntroAudio.hidden=true;questIntroAudio.dataset.questMusic='largo.mp3';document.body.append(questIntroAudio);
 const questIntroMusic=createQuestIntroMusic(questIntroAudio);
