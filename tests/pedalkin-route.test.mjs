@@ -8,9 +8,10 @@ const cockpit=await readFile(new URL('../src/classic-cockpit.ts',import.meta.url
 const classicCss=await readFile(new URL('../src/classic-route-reference.css',import.meta.url),'utf8');
 const pedalkinCss=await readFile(new URL('../src/pedalkin-classic-route.css',import.meta.url),'utf8');
 
-test('Pedalkin is a selectable separate mode with navigable deep-link',()=>{
+test('Homepage launches independent Pedalkin while legacy deep-links remain recoverable',()=>{
  assert.match(main,/type RideExperience='classic'\|'survival'\|'cyclequest'\|'pedalkin'/);
- assert.match(main,/chooseRideExperience\('pedalkin'\)/);
+ assert.match(main,/querySelector\('#choosePedalkin'\).*addEventListener\('click',/);
+ assert.match(main,/window\.location\.assign\('https:\/\/pedalkin-preview\.vercel\.app\/'\)/);
  assert.match(main,/pedalkinPreview/);
  assert.match(main,/breakawayMode==='pedalkin'/);
 });
