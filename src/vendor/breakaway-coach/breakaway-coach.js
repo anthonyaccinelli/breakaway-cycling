@@ -1,6 +1,6 @@
-const Ae = "breakaway.coach.profile.v1", xt = "breakaway.coach.history.v1", $e = { ftp: 200, hours: 5, days: 3, restDay: 6, goal: "fitness", experience: "beginner" };
-function xe(e) {
-  const t = e && typeof e == "object" ? e : {}, n = (a, i, o, d) => typeof a == "number" && Number.isFinite(a) ? Math.min(o, Math.max(i, a)) : d;
+const Ae = "breakaway.coach.profile.v1", Ot = "breakaway.coach.history.v1", $e = { ftp: 200, hours: 5, days: 3, restDay: 6, goal: "fitness", experience: "beginner" };
+function Ne(e) {
+  const t = e && typeof e == "object" ? e : {}, n = (a, r, o, d) => typeof a == "number" && Number.isFinite(a) ? Math.min(o, Math.max(r, a)) : d;
   return {
     ftp: Math.round(n(t.ftp, 75, 550, $e.ftp)),
     hours: n(t.hours, 1, 20, $e.hours),
@@ -11,8 +11,8 @@ function xe(e) {
   };
 }
 const W = (e, t, n, a) => ({ name: e, minutes: t, low: n, high: a });
-function kt(e) {
-  const t = xe(e), n = t.experience === "beginner", a = Math.max(20, Math.min(n ? 45 : t.experience === "intermediate" ? 75 : 110, Math.round(t.hours * 60 / t.days) - 15));
+function Tt(e) {
+  const t = Ne(e), n = t.experience === "beginner", a = Math.max(20, Math.min(n ? 45 : t.experience === "intermediate" ? 75 : 110, Math.round(t.hours * 60 / t.days) - 15));
   return [
     {
       id: "recovery",
@@ -61,58 +61,58 @@ function kt(e) {
 function X(e) {
   return Math.round(e.segments.reduce((t, n) => t + n.minutes * 60, 0));
 }
-function Ke(e, t) {
+function Ve(e, t) {
   const n = X(e), a = Math.max(0, Math.min(n, t));
-  let i = 0;
+  let r = 0;
   for (let o = 0; o < e.segments.length; o++) {
-    const d = e.segments[o], s = i + d.minutes * 60;
+    const d = e.segments[o], s = r + d.minutes * 60;
     if (a < s || o === e.segments.length - 1)
-      return { segment: d, index: o, remaining: Math.max(0, s - a), progress: Math.min(1, Math.max(0, (a - i) / (s - i))), total: n, done: t >= n };
-    i = s;
+      return { segment: d, index: o, remaining: Math.max(0, s - a), progress: Math.min(1, Math.max(0, (a - r) / (s - r))), total: n, done: t >= n };
+    r = s;
   }
   throw Error("The workout must have at least one interval");
 }
-function ln(e, t) {
-  const n = Math.max(0, Math.round(t.minutes * 60)), a = Math.floor(n / 60) + ":" + String(n % 60).padStart(2, "0"), i = Math.round(e * t.low), o = Math.round(e * t.high), d = De(e, t);
+function dn(e, t) {
+  const n = Math.max(0, Math.round(t.minutes * 60)), a = Math.floor(n / 60) + ":" + String(n % 60).padStart(2, "0"), r = Math.round(e * t.low), o = Math.round(e * t.high), d = xe(e, t);
   return {
     duration: a,
-    lowWatts: i,
+    lowWatts: r,
     highWatts: o,
     target: d,
-    range: i + "–" + o + " W",
+    range: r + "–" + o + " W",
     ftpRange: Math.round(t.low * 100) + "–" + Math.round(t.high * 100) + "% FTP"
   };
 }
-function De(e, t, n = 1) {
+function xe(e, t, n = 1) {
   const a = (t.low + t.high) / 2;
   return Math.max(30, Math.min(1e3, Math.round(e * a * n)));
 }
-function dn(e, t, n, a = 1) {
+function un(e, t, n, a = 1) {
   return Number.isFinite(e) && e >= t * n.low * a * 0.95 && e <= t * n.high * a * 1.05;
 }
-function Gn(e) {
+function Vn(e) {
   return ["structured", "guided"];
 }
 function Rn(e, t = !1) {
-  const n = xe(e), a = n.days === 2 ? [1, 4] : n.days === 3 ? [1, 3, 6] : n.days === 4 ? [1, 2, 4, 6] : n.days === 5 ? [0, 1, 3, 4, 6] : n.days === 6 ? [0, 1, 2, 3, 4, 6] : [0, 1, 2, 3, 4, 5, 6];
+  const n = Ne(e), a = n.days === 2 ? [1, 4] : n.days === 3 ? [1, 3, 6] : n.days === 4 ? [1, 2, 4, 6] : n.days === 5 ? [0, 1, 3, 4, 6] : n.days === 6 ? [0, 1, 2, 3, 4, 6] : [0, 1, 2, 3, 4, 5, 6];
   if (n.days < 7 && a.includes(n.restDay)) {
     const o = Array.from({ length: 7 }, (d, s) => s).filter((d) => d !== n.restDay && !a.includes(d)).sort((d, s) => Math.abs(d - n.restDay) - Math.abs(s - n.restDay))[0];
     o !== void 0 && a.splice(a.indexOf(n.restDay), 1, o), a.sort((d, s) => d - s);
   }
-  const i = n.experience === "beginner" ? "tempo" : n.goal === "race" ? "vo2" : "sweetspot";
+  const r = n.experience === "beginner" ? "tempo" : n.goal === "race" ? "vo2" : "sweetspot";
   return Array.from({ length: 7 }, (o, d) => {
     const s = a.indexOf(d);
     if (s < 0) return { day: d, workoutId: null, reason: "Rest or optional easy movement" };
-    const m = t ? s === 0 ? "recovery" : "endurance" : s === 0 ? i : s === a.length - 1 ? "endurance" : s % 3 === 0 ? "tempo" : s % 2 === 0 ? "recovery" : "endurance";
+    const m = t ? s === 0 ? "recovery" : "endurance" : s === 0 ? r : s === a.length - 1 ? "endurance" : s % 3 === 0 ? "tempo" : s % 2 === 0 ? "recovery" : "endurance";
     return { day: d, workoutId: m, reason: t ? "Reduced intensity after a difficult session" : "Planned training session" };
   });
 }
-function Ot(e, t, n = [], a = []) {
-  const i = xe(e), o = n.some((s) => Number.isFinite(s.start) && s.start <= t && t - s.start <= 36 * 36e5 && Number.isFinite(s.elapsed) && s.elapsed >= 1800 && s.avgPower !== null && Number.isFinite(s.avgPower) && s.avgPower >= i.ftp * 0.8), d = a.some((s) => Number.isFinite(s.date) && s.date <= t && t - s.date <= 48 * 36e5 && s.rpe !== null && s.rpe >= 9);
+function Lt(e, t, n = [], a = []) {
+  const r = Ne(e), o = n.some((s) => Number.isFinite(s.start) && s.start <= t && t - s.start <= 36 * 36e5 && Number.isFinite(s.elapsed) && s.elapsed >= 1800 && s.avgPower !== null && Number.isFinite(s.avgPower) && s.avgPower >= r.ftp * 0.8), d = a.some((s) => Number.isFinite(s.date) && s.date <= t && t - s.date <= 48 * 36e5 && s.rpe !== null && s.rpe >= 9);
   return { demandingRide: o, veryHardFeedback: d, fatigued: o || d };
 }
-function un(e, t, n = [], a = [], i) {
-  const o = xe(e), d = t.getTime(), s = new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime(), m = (i == null ? void 0 : i.find((l) => l.day === t.getDay())) ?? Rn(o, !1)[t.getDay()], y = n.filter((l) => Number.isFinite(l.start) && l.start <= d && Number.isFinite(l.elapsed) && l.elapsed > 0 && l.start >= d - 7 * 864e5), v = y.some((l) => l.start >= s && l.elapsed >= 900), { demandingRide: S, veryHardFeedback: I } = Ot(o, d, y, a);
+function hn(e, t, n = [], a = [], r) {
+  const o = Ne(e), d = t.getTime(), s = new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime(), m = (r == null ? void 0 : r.find((l) => l.day === t.getDay())) ?? Rn(o, !1)[t.getDay()], y = n.filter((l) => Number.isFinite(l.start) && l.start <= d && Number.isFinite(l.elapsed) && l.elapsed > 0 && l.start >= d - 7 * 864e5), v = y.some((l) => l.start >= s && l.elapsed >= 900), { demandingRide: S, veryHardFeedback: I } = Lt(o, d, y, a);
   if (v) return {
     workoutId: null,
     status: "completed",
@@ -137,15 +137,15 @@ function un(e, t, n = [], a = [], i) {
   return {
     workoutId: m.workoutId,
     status: "planned",
-    reason: i && m.reason ? "Event-based plan: " + m.reason : "Your " + o.days + "-day weekly schedule calls for this session to support " + f[o.goal] + ". The recommendation uses your rider profile and basic scheduling rules."
+    reason: r && m.reason ? "Event-based plan: " + m.reason : "Your " + o.days + "-day weekly schedule calls for this session to support " + f[o.goal] + ". The recommendation uses your rider profile and basic scheduling rules."
   };
 }
-function Tt(e, t = 30) {
+function Mt(e, t = 30) {
   const n = e.segments.reduce((v, S) => v + S.minutes, 0), a = Math.max(12, Math.min(t, n));
   if (n <= a) return e;
-  const i = e.segments.length;
-  if (i >= a) return e;
-  const o = a - i, d = e.segments.map((v) => Math.max(0, v.minutes - 1)), s = d.reduce((v, S) => v + S, 0), m = e.segments.map((v, S) => ({
+  const r = e.segments.length;
+  if (r >= a) return e;
+  const o = a - r, d = e.segments.map((v) => Math.max(0, v.minutes - 1)), s = d.reduce((v, S) => v + S, 0), m = e.segments.map((v, S) => ({
     ...v,
     minutes: Math.max(1, Math.floor((1 + (s ? d[S] / s * o : 0)) * 2) / 2)
   }));
@@ -160,64 +160,64 @@ function Tt(e, t = 30) {
     description: "Shortened version: " + e.description
   };
 }
-function jn(e) {
+function Kn(e) {
   return e === null ? "Rate how the session felt so future recommendations have more context." : e >= 9 ? "That felt very hard. Consider recovery or rest next; do not stack another demanding workout." : e >= 7 ? "Challenging session completed. Check your fatigue before the next hard effort." : e <= 3 ? "Comfortable effort. Keep building consistency rather than chasing extra intensity." : "Good training. Keep the next session aligned with your weekly plan.";
 }
-const We = (e) => typeof e == "number" && Number.isFinite(e), et = (e) => {
+const We = (e) => typeof e == "number" && Number.isFinite(e), tt = (e) => {
   if (e == null || e === "") return null;
   const t = Number(e);
   return We(t) ? t : null;
 }, te = (e, t = 1e8) => {
-  const n = et(e);
+  const n = tt(e);
   return n !== null && n >= 0 && n <= t ? n : null;
 }, ue = (e, t = 1e8) => {
-  const n = et(e);
+  const n = tt(e);
   return n !== null && n > 0 && n <= t ? n : null;
-}, ht = (e) => {
+}, gt = (e) => {
   if (e instanceof Date) return Number.isFinite(e.getTime()) ? e.getTime() : null;
   if (typeof e == "number") return Number.isFinite(e) && e > 1e11 ? e : null;
   if (typeof e != "string" || !e.trim()) return null;
   const t = Date.parse(e);
   return Number.isFinite(t) ? t : null;
 };
-function hn(...e) {
+function pn(...e) {
   for (const t of e) {
-    const n = et(t);
+    const n = tt(t);
     if (n !== null) return n;
   }
   return null;
 }
-function Wt(e) {
+function Yt(e) {
   const t = String(e ?? "").trim().toLowerCase().replace(/[\s_-]/g, "");
   return ["ride", "cycling", "biking", "2", "virtualride", "virtualcycling", "ebikeride", "mountainbikeride", "gravelride", "handcycle", "velomobile", "e-mountainbikeride", "emtbride"].includes(t);
 }
-function Kn(e) {
+function _n(e) {
   return typeof e == "string" && e.trim() ? e.trim().slice(0, 120) : "Cycling activity";
 }
-function Vn(e) {
-  const t = ue(e.duration, 604800), n = ht(e.start);
+function zn(e) {
+  const t = ue(e.duration, 604800), n = gt(e.start);
   if (n === null || n < 9466848e5 || n > Date.now() + 864e5 || t === null || t < 60) throw Error("Invalid ride date or duration.");
   if (!["FIT", "TCX", "GPX", "CSV"].includes(e.source)) throw Error("Unknown recording format.");
-  const a = te(e.avgPower, 2500), i = te(e.avgHeartRate, 240), o = te(e.avgCadence, 250), d = te(e.best20minWatts, 2e3), s = te(e.distanceMeters, 1e7), m = te(e.elevationMeters, 1e5), y = ue(e.movingSeconds, 7 * 86400);
+  const a = te(e.avgPower, 2500), r = te(e.avgHeartRate, 240), o = te(e.avgCadence, 250), d = te(e.best20minWatts, 2e3), s = te(e.distanceMeters, 1e7), m = te(e.elevationMeters, 1e5), y = ue(e.movingSeconds, 7 * 86400);
   return {
     key: e.stravaId ? "strava:" + e.stravaId : "ride:" + Math.round(n / 1e3) + ":" + Math.round(t),
     stravaId: e.stravaId ? String(e.stravaId).slice(0, 30) : null,
-    name: Kn(e.name),
+    name: _n(e.name),
     start: n,
     duration: Math.round(t),
     movingSeconds: y === null ? null : Math.round(Math.min(t, y)),
     distanceMeters: s,
     elevationMeters: m,
     avgPower: a,
-    avgHeartRate: i,
+    avgHeartRate: r,
     avgCadence: o,
     best20minWatts: d,
     source: e.source,
     indoor: !!e.indoor
   };
 }
-function Yt(e, t) {
-  return Vn({
+function Bt(e, t) {
+  return zn({
     name: t.name || "Cycling activity",
     start: t.start || 0,
     duration: t.duration || 0,
@@ -235,51 +235,51 @@ function Yt(e, t) {
 }
 function He(e, ...t) {
   for (const n of t) {
-    const a = ht(e[n]);
+    const a = gt(e[n]);
     if (a !== null) return a;
   }
   return null;
 }
-function An(e) {
-  let t = [], n = 0, a = 0, i = 0, o = 0;
+function Dn(e) {
+  let t = [], n = 0, a = 0, r = 0, o = 0;
   for (let d = 1; d < e.length; d++) {
     const s = e[d - 1], m = e[d], y = (m.t - s.t) / 1e3;
     if (!(!We(y) || y <= 0)) {
       if (y > 10) {
-        t = [], n = 0, a = 0, i = 0;
+        t = [], n = 0, a = 0, r = 0;
         continue;
       }
       if (!(!We(s.power) || s.power < 0 || s.power > 2e3)) {
-        for (t.push({ duration: y, power: s.power }), a += y, i += y * s.power; a > 1200 && n < t.length; ) {
+        for (t.push({ duration: y, power: s.power }), a += y, r += y * s.power; a > 1200 && n < t.length; ) {
           const v = t[n], S = a - 1200;
-          v.duration <= S + 1e-8 ? (a -= v.duration, i -= v.duration * v.power, n++) : (v.duration -= S, a -= S, i -= S * v.power);
+          v.duration <= S + 1e-8 ? (a -= v.duration, r -= v.duration * v.power, n++) : (v.duration -= S, a -= S, r -= S * v.power);
         }
-        n > 200 && (t = t.slice(n), n = 0), a >= 1199.9 && (o = Math.max(o, i / a));
+        n > 200 && (t = t.slice(n), n = 0), a >= 1199.9 && (o = Math.max(o, r / a));
       }
     }
   }
   return o > 0 ? Math.round(o) : null;
 }
-function _n(e, t = "Activity.fit", n, a = null) {
+function Xn(e, t = "Activity.fit", n, a = null) {
   var Y;
-  const i = e.sessions || e.sessionMesgs || (e.session ? [e.session] : []), o = Array.isArray(i) ? i[0] : null;
+  const r = e.sessions || e.sessionMesgs || (e.session ? [e.session] : []), o = Array.isArray(r) ? r[0] : null;
   if (!o) throw Error("FIT activity has no session.");
   const d = o.sport ?? e.sport ?? ((Y = e.file_id) == null ? void 0 : Y.sport);
-  if (!Wt(d)) throw Error("Not a cycling activity.");
+  if (!Yt(d)) throw Error("Not a cycling activity.");
   const s = e.records || e.recordMesgs || [], m = Array.isArray(s) ? s : [];
   if (m.length > 16e4) throw Error("FIT activity has too many samples.");
-  const y = He(o, "start_time", "startTime") ?? He(e, "start_time", "startTime") ?? (m.length ? He(m[0], "timestamp") : null), v = He(o, "timestamp") ?? (m.length ? He(m[m.length - 1], "timestamp") : null), S = hn(o.total_elapsed_time, o.totalElapsedTime, o.total_timer_time, o.totalTimerTime), I = S && S > 0 ? S : y !== null && v !== null ? (v - y) / 1e3 : 0, f = m.map((D) => ({ t: He(D, "timestamp") ?? NaN, power: hn(D.power, D.watts) ?? NaN })).filter((D) => We(D.t));
-  let l = 0, T = 0, E = 0, N = 0, R = 0, x = 0;
-  for (const D of m) {
-    const k = te(D.power ?? D.watts, 2500);
+  const y = He(o, "start_time", "startTime") ?? He(e, "start_time", "startTime") ?? (m.length ? He(m[0], "timestamp") : null), v = He(o, "timestamp") ?? (m.length ? He(m[m.length - 1], "timestamp") : null), S = pn(o.total_elapsed_time, o.totalElapsedTime, o.total_timer_time, o.totalTimerTime), I = S && S > 0 ? S : y !== null && v !== null ? (v - y) / 1e3 : 0, f = m.map((A) => ({ t: He(A, "timestamp") ?? NaN, power: pn(A.power, A.watts) ?? NaN })).filter((A) => We(A.t));
+  let l = 0, T = 0, E = 0, x = 0, R = 0, N = 0;
+  for (const A of m) {
+    const k = te(A.power ?? A.watts, 2500);
     k !== null && (l += k, T++);
-    const ce = ue(D.heart_rate ?? D.heartRate, 240);
-    ce !== null && (E += ce, N++);
-    const he = ue(D.cadence, 250);
-    he !== null && (R += he, x++);
+    const ce = ue(A.heart_rate ?? A.heartRate, 240);
+    ce !== null && (E += ce, x++);
+    const he = ue(A.cadence, 250);
+    he !== null && (R += he, N++);
   }
   const P = String(o.sub_sport ?? o.subSport ?? "").toLowerCase();
-  return Yt("FIT", {
+  return Bt("FIT", {
     name: n || t,
     start: y ?? 0,
     duration: I,
@@ -289,71 +289,71 @@ function _n(e, t = "Activity.fit", n, a = null) {
     distanceMeters: te(o.total_distance ?? o.totalDistance, 1e7),
     elevationMeters: te(o.total_ascent ?? o.totalAscent, 1e5),
     avgPower: te(o.avg_power ?? o.avgPower, 2500) ?? (T ? l / T : null),
-    avgHeartRate: ue(o.avg_heart_rate ?? o.avgHeartRate, 240) ?? (N ? E / N : null),
-    avgCadence: ue(o.avg_cadence ?? o.avgCadence, 250) ?? (x ? R / x : null),
-    best20minWatts: An(f)
+    avgHeartRate: ue(o.avg_heart_rate ?? o.avgHeartRate, 240) ?? (x ? E / x : null),
+    avgCadence: ue(o.avg_cadence ?? o.avgCadence, 250) ?? (N ? R / N : null),
+    best20minWatts: Dn(f)
   });
 }
-const st = (e, t) => Array.from(e.getElementsByTagNameNS("*", t));
+const rt = (e, t) => Array.from(e.getElementsByTagNameNS("*", t));
 function Ee(e, ...t) {
   var n;
   for (const a of t) {
-    const i = e.getElementsByTagNameNS("*", a)[0];
-    if ((n = i == null ? void 0 : i.textContent) != null && n.trim()) return i.textContent.trim();
+    const r = e.getElementsByTagNameNS("*", a)[0];
+    if ((n = r == null ? void 0 : r.textContent) != null && n.trim()) return r.textContent.trim();
   }
   return null;
 }
-function zn(e, ...t) {
+function Zn(e, ...t) {
   const n = Ee(e, ...t);
-  return n ? ht(n) : null;
+  return n ? gt(n) : null;
 }
-const pn = (e) => e === null ? null : et(e);
-function Xn(e, t) {
+const gn = (e) => e === null ? null : tt(e);
+function $n(e, t) {
   if (e.lat === null || e.lon === null || t.lat === null || t.lon === null) return 0;
-  const n = Math.PI / 180, a = (t.lat - e.lat) * n, i = (t.lon - e.lon) * n, o = Math.sin(a / 2) ** 2 + Math.cos(e.lat * n) * Math.cos(t.lat * n) * Math.sin(i / 2) ** 2;
+  const n = Math.PI / 180, a = (t.lat - e.lat) * n, r = (t.lon - e.lon) * n, o = Math.sin(a / 2) ** 2 + Math.cos(e.lat * n) * Math.cos(t.lat * n) * Math.sin(r / 2) ** 2;
   return 12742e3 * Math.asin(Math.min(1, Math.sqrt(o)));
 }
-function Zn(e, t = "Activity.gpx", n, a = null) {
+function Jn(e, t = "Activity.gpx", n, a = null) {
   var R;
   if (/<!DOCTYPE|<!ENTITY/i.test(e)) throw Error("XML DTD or entity declarations are not supported.");
-  const i = new DOMParser().parseFromString(e, "application/xml");
-  if (!i.documentElement || st(i.documentElement, "parsererror").length) throw Error("Invalid activity XML.");
-  const o = /\.tcx$/i.test(t), d = st(i.documentElement, o ? "Trackpoint" : "trkpt");
+  const r = new DOMParser().parseFromString(e, "application/xml");
+  if (!r.documentElement || rt(r.documentElement, "parsererror").length) throw Error("Invalid activity XML.");
+  const o = /\.tcx$/i.test(t), d = rt(r.documentElement, o ? "Trackpoint" : "trkpt");
   if (d.length < 2 || d.length > 16e4) throw Error("Activity needs timestamped ride samples.");
   if (o) {
-    const x = st(i.documentElement, "Activity");
-    if (x.length !== 1 || !Wt(x[0].getAttribute("Sport"))) throw Error("Not a single cycling TCX activity.");
+    const N = rt(r.documentElement, "Activity");
+    if (N.length !== 1 || !Yt(N[0].getAttribute("Sport"))) throw Error("Not a single cycling TCX activity.");
   }
   const s = [];
-  for (const x of d) {
-    const P = zn(x, o ? "Time" : "time");
+  for (const N of d) {
+    const P = Zn(N, o ? "Time" : "time");
     if (P === null) continue;
-    const Y = o ? st(x, "Position")[0] : null;
+    const Y = o ? rt(N, "Position")[0] : null;
     s.push({
       t: P,
-      hr: ue(Ee(x, "HeartRateBpm", "Value", "hr"), 240),
-      power: te(Ee(x, "Watts", "watts", "PowerInWatts", "power"), 2500) ?? NaN,
-      cad: ue(Ee(x, "Cadence", "cad", "RunCadence"), 250),
-      ele: et(Ee(x, "AltitudeMeters", "ele")),
-      distance: te(Ee(x, "DistanceMeters", "distance"), 1e7),
-      lat: pn(o ? Y ? Ee(Y, "LatitudeDegrees") : null : x.getAttribute("lat")),
-      lon: pn(o ? Y ? Ee(Y, "LongitudeDegrees") : null : x.getAttribute("lon"))
+      hr: ue(Ee(N, "HeartRateBpm", "Value", "hr"), 240),
+      power: te(Ee(N, "Watts", "watts", "PowerInWatts", "power"), 2500) ?? NaN,
+      cad: ue(Ee(N, "Cadence", "cad", "RunCadence"), 250),
+      ele: tt(Ee(N, "AltitudeMeters", "ele")),
+      distance: te(Ee(N, "DistanceMeters", "distance"), 1e7),
+      lat: gn(o ? Y ? Ee(Y, "LatitudeDegrees") : null : N.getAttribute("lat")),
+      lon: gn(o ? Y ? Ee(Y, "LongitudeDegrees") : null : N.getAttribute("lon"))
     });
   }
   if (s.length < 2) throw Error("No timestamped GPS/trackpoint data.");
-  s.sort((x, P) => x.t - P.t);
+  s.sort((N, P) => N.t - P.t);
   let m = 0, y = 0;
-  for (let x = 1; x < s.length; x++) {
-    const P = s[x - 1], Y = s[x], D = Y.distance !== null && P.distance !== null && Y.distance >= P.distance ? Y.distance - P.distance : Xn(P, Y);
-    D >= 0 && D < 5e3 && (m += D), P.ele !== null && Y.ele !== null && Y.ele > P.ele && Y.ele - P.ele < 200 && (y += Y.ele - P.ele);
+  for (let N = 1; N < s.length; N++) {
+    const P = s[N - 1], Y = s[N], A = Y.distance !== null && P.distance !== null && Y.distance >= P.distance ? Y.distance - P.distance : $n(P, Y);
+    A >= 0 && A < 5e3 && (m += A), P.ele !== null && Y.ele !== null && Y.ele > P.ele && Y.ele - P.ele < 200 && (y += Y.ele - P.ele);
   }
   const v = (s[s.length - 1].t - s[0].t) / 1e3;
   let S = 0, I = 0, f = 0, l = 0, T = 0, E = 0;
-  for (const x of s)
-    We(x.power) && (S += x.power, I++), x.hr !== null && (f += x.hr, l++), x.cad !== null && (T += x.cad, E++);
-  const N = Ee(i.documentElement, "name");
-  return Yt(o ? "TCX" : "GPX", {
-    name: n || N || t,
+  for (const N of s)
+    We(N.power) && (S += N.power, I++), N.hr !== null && (f += N.hr, l++), N.cad !== null && (T += N.cad, E++);
+  const x = Ee(r.documentElement, "name");
+  return Bt(o ? "TCX" : "GPX", {
+    name: n || x || t,
     start: s[0].t,
     duration: v,
     stravaId: a,
@@ -363,45 +363,45 @@ function Zn(e, t = "Activity.gpx", n, a = null) {
     avgPower: I ? S / I : null,
     avgHeartRate: l ? f / l : null,
     avgCadence: E ? T / E : null,
-    best20minWatts: An(s.filter((x) => We(x.power)).map((x) => ({ t: x.t, power: x.power })))
+    best20minWatts: Dn(s.filter((N) => We(N.power)).map((N) => ({ t: N.t, power: N.power })))
   });
 }
-function $n(e, t = 1e5) {
+function Qn(e, t = 1e5) {
   var d;
   if (e.length > 32 * 1024 * 1024) throw Error("CSV index is too large.");
   const n = [];
-  let a = [], i = "", o = !1;
+  let a = [], r = "", o = !1;
   for (let s = 0; s < e.length; s++) {
     const m = e[s];
     if (m === '"')
-      o && e[s + 1] === '"' ? (i += '"', s++) : o = !o;
+      o && e[s + 1] === '"' ? (r += '"', s++) : o = !o;
     else if (m === "," && !o)
-      a.push(i), i = "";
+      a.push(r), r = "";
     else if ((m === `
 ` || m === "\r") && !o) {
       if (m === "\r" && e[s + 1] === `
-` && s++, a.push(i), i = "", a.some((y) => y.trim()) && n.push(a), a = [], n.length > t) throw Error("Too many activities in CSV.");
-    } else i += m;
+` && s++, a.push(r), r = "", a.some((y) => y.trim()) && n.push(a), a = [], n.length > t) throw Error("Too many activities in CSV.");
+    } else r += m;
   }
   if (o) throw Error("Unclosed quoted field in CSV.");
-  return a.push(i), a.some((s) => s.trim()) && n.push(a), (d = n[0]) != null && d[0] && (n[0][0] = n[0][0].replace(/^\uFEFF/, "")), n;
+  return a.push(r), a.some((s) => s.trim()) && n.push(a), (d = n[0]) != null && d[0] && (n[0][0] = n[0][0].replace(/^\uFEFF/, "")), n;
 }
-function Jn(e) {
-  const t = $n(e), n = (t.shift() || []).map((o) => o.toLowerCase().replace(/\s/g, "").replace(/[^a-z0-9]/g, "")), a = (o, ...d) => {
+function ea(e) {
+  const t = Qn(e), n = (t.shift() || []).map((o) => o.toLowerCase().replace(/\s/g, "").replace(/[^a-z0-9]/g, "")), a = (o, ...d) => {
     for (const s of d) {
       const m = n.indexOf(s);
       if (m >= 0) return o[m] || "";
     }
     return "";
-  }, i = [];
+  }, r = [];
   for (const o of t) {
-    if (!Wt(a(o, "activitytype", "type", "sporttype"))) continue;
-    const d = ht(a(o, "activitydate", "startdate", "startdatetime"));
+    if (!Yt(a(o, "activitytype", "type", "sporttype"))) continue;
+    const d = gt(a(o, "activitydate", "startdate", "startdatetime"));
     if (d === null) continue;
     const s = ue(a(o, "elapsedtime", "movingtime"), 7 * 86400);
     if (s !== null)
       try {
-        const m = a(o, "activityid") || null, y = a(o, "filename") || null, v = Yt("CSV", {
+        const m = a(o, "activityid") || null, y = a(o, "filename") || null, v = Bt("CSV", {
           name: a(o, "activityname", "name") || "Ride",
           start: d,
           duration: s,
@@ -414,49 +414,49 @@ function Jn(e) {
           avgHeartRate: te(a(o, "averageheartrate"), 240),
           avgCadence: te(a(o, "averagecadence"), 250)
         });
-        i.push({ ride: v, file: y });
+        r.push({ ride: v, file: y });
       } catch {
       }
   }
-  return i;
+  return r;
 }
-function Qn(e, t) {
+function ta(e, t) {
   if (e.stravaId && t.stravaId && e.stravaId === t.stravaId) return !0;
   const n = Math.min(300, Math.max(90, Math.min(e.duration, t.duration) * 0.07));
   return Math.abs(e.start - t.start) > 12e4 || Math.abs(e.duration - t.duration) > n ? !1 : e.distanceMeters !== null && t.distanceMeters !== null ? Math.abs(e.distanceMeters - t.distanceMeters) <= Math.max(500, Math.min(e.distanceMeters, t.distanceMeters) * 0.08) : !0;
 }
-const gn = (e) => ({ FIT: 4, TCX: 3, GPX: 2, CSV: 1 })[e];
-function ea(e, t) {
-  const n = (d) => [d.avgPower, d.best20minWatts, d.avgHeartRate, d.avgCadence, d.distanceMeters, d.elevationMeters].filter((s) => s !== null).length, a = n(t) > n(e) || n(t) === n(e) && gn(t.source) > gn(e.source), i = a ? t : e, o = a ? e : t;
+const mn = (e) => ({ FIT: 4, TCX: 3, GPX: 2, CSV: 1 })[e];
+function na(e, t) {
+  const n = (d) => [d.avgPower, d.best20minWatts, d.avgHeartRate, d.avgCadence, d.distanceMeters, d.elevationMeters].filter((s) => s !== null).length, a = n(t) > n(e) || n(t) === n(e) && mn(t.source) > mn(e.source), r = a ? t : e, o = a ? e : t;
   return {
-    ...i,
+    ...r,
     key: e.key,
     stravaId: e.stravaId ?? t.stravaId,
-    name: e.source === "CSV" && e.name !== "Ride" ? e.name : i.name,
-    avgPower: i.avgPower ?? o.avgPower,
-    avgHeartRate: i.avgHeartRate ?? o.avgHeartRate,
-    avgCadence: i.avgCadence ?? o.avgCadence,
-    best20minWatts: i.best20minWatts ?? o.best20minWatts,
-    distanceMeters: i.distanceMeters ?? o.distanceMeters,
-    elevationMeters: i.elevationMeters ?? o.elevationMeters,
-    movingSeconds: i.movingSeconds ?? o.movingSeconds
+    name: e.source === "CSV" && e.name !== "Ride" ? e.name : r.name,
+    avgPower: r.avgPower ?? o.avgPower,
+    avgHeartRate: r.avgHeartRate ?? o.avgHeartRate,
+    avgCadence: r.avgCadence ?? o.avgCadence,
+    best20minWatts: r.best20minWatts ?? o.best20minWatts,
+    distanceMeters: r.distanceMeters ?? o.distanceMeters,
+    elevationMeters: r.elevationMeters ?? o.elevationMeters,
+    movingSeconds: r.movingSeconds ?? o.movingSeconds
   };
 }
-function Dn(e, t) {
+function An(e, t) {
   const n = [...e];
-  let a = 0, i = 0, o = 0;
+  let a = 0, r = 0, o = 0;
   for (const d of t) {
-    const s = n.findIndex((m) => Qn(m, d));
+    const s = n.findIndex((m) => ta(m, d));
     if (s >= 0) {
       o++;
-      const m = ea(n[s], d);
-      JSON.stringify(m) !== JSON.stringify(n[s]) && (n[s] = m, i++);
+      const m = na(n[s], d);
+      JSON.stringify(m) !== JSON.stringify(n[s]) && (n[s] = m, r++);
     } else
       n.push(d), a++;
   }
-  return n.sort((d, s) => s.start - d.start), { rides: n, added: a, updated: i, duplicates: o };
+  return n.sort((d, s) => s.start - d.start), { rides: n, added: a, updated: r, duplicates: o };
 }
-function ta(e, t = Date.now()) {
+function aa(e, t = Date.now()) {
   var d;
   const n = Array.from({ length: 8 }, (s, m) => {
     const y = new Date(t);
@@ -466,10 +466,10 @@ function ta(e, t = Date.now()) {
     m.hours += s.duration / 3600, m.rides++;
     break;
   }
-  const a = n.reduce((s, m) => s + m.hours, 0) / 8, i = e.filter((s) => s.start <= t && s.start > t - 56 * 864e5), o = e.filter((s) => s.start > t - 120 * 864e5 && s.start <= t).reduce((s, m) => m.best20minWatts !== null && (s === null || m.best20minWatts > s) ? m.best20minWatts : s, null);
+  const a = n.reduce((s, m) => s + m.hours, 0) / 8, r = e.filter((s) => s.start <= t && s.start > t - 56 * 864e5), o = e.filter((s) => s.start > t - 120 * 864e5 && s.start <= t).reduce((s, m) => m.best20minWatts !== null && (s === null || m.best20minWatts > s) ? m.best20minWatts : s, null);
   return {
     total: e.length,
-    recent: i.length,
+    recent: r.length,
     weeklyHours: Math.round(a * 10) / 10,
     weeks: n,
     suggestedFtp: o !== null && o > 100 ? Math.round(o * 0.95) : null,
@@ -478,60 +478,60 @@ function ta(e, t = Date.now()) {
     allHours: Math.round(e.reduce((s, m) => s + m.duration / 3600, 0))
   };
 }
-const na = "breakaway.account.owner.v1";
-let aa = "";
-function oa(e) {
-  let t = aa;
+const oa = "breakaway.account.owner.v1";
+let sa = "";
+function ia(e) {
+  let t = sa;
   try {
-    t || (t = localStorage.getItem(na) || "");
+    t || (t = localStorage.getItem(oa) || "");
   } catch {
   }
   return t ? e + "-" + t : e;
 }
-const sa = "breakaway-coach-training-history-v1", Ie = "rides", ia = 1, Nn = 600 * 1024 * 1024, Fe = 32 * 1024 * 1024, mn = 32 * 1024 * 1024, Lt = 1e4, Pt = new TextDecoder("utf-8", { fatal: !1 });
-function Bt() {
+const ra = "breakaway-coach-training-history-v1", Ce = "rides", ca = 1, xn = 600 * 1024 * 1024, Fe = 32 * 1024 * 1024, yn = 32 * 1024 * 1024, Pt = 1e4, Ht = new TextDecoder("utf-8", { fatal: !1 });
+function qt() {
   return new Promise((e, t) => {
     if (!("indexedDB" in window)) {
       t(Error("This browser does not support local history storage."));
       return;
     }
-    const n = indexedDB.open(oa(sa), ia);
+    const n = indexedDB.open(ia(ra), ca);
     n.onupgradeneeded = () => {
-      n.result.objectStoreNames.contains(Ie) || n.result.createObjectStore(Ie, { keyPath: "key" });
+      n.result.objectStoreNames.contains(Ce) || n.result.createObjectStore(Ce, { keyPath: "key" });
     }, n.onsuccess = () => e(n.result), n.onerror = () => t(n.error || Error("Could not open local history database."));
   });
 }
-async function xn() {
-  const e = await Bt();
+async function Nn() {
+  const e = await qt();
   try {
     return await new Promise((t, n) => {
-      const a = e.transaction(Ie, "readonly"), i = a.objectStore(Ie).getAll();
-      i.onsuccess = () => t(i.result.sort((o, d) => d.start - o.start)), i.onerror = () => n(i.error || Error("Could not read history."));
+      const a = e.transaction(Ce, "readonly"), r = a.objectStore(Ce).getAll();
+      r.onsuccess = () => t(r.result.sort((o, d) => d.start - o.start)), r.onerror = () => n(r.error || Error("Could not read history."));
     });
   } finally {
     e.close();
   }
 }
-async function ra(e) {
+async function la(e) {
   if (e.length > 15e3) throw Error("Local activity limit reached. Contact support before importing more rides.");
-  const t = await Bt();
+  const t = await qt();
   try {
     return await new Promise((n, a) => {
-      const i = t.transaction(Ie, "readwrite"), o = i.objectStore(Ie);
+      const r = t.transaction(Ce, "readwrite"), o = r.objectStore(Ce);
       o.clear();
       for (const d of e) o.put(d);
-      i.oncomplete = () => n(), i.onerror = () => a(i.error || Error("Could not save imported activities.")), i.onabort = () => a(i.error || Error("Activity import was rolled back."));
+      r.oncomplete = () => n(), r.onerror = () => a(r.error || Error("Could not save imported activities.")), r.onabort = () => a(r.error || Error("Activity import was rolled back."));
     });
   } finally {
     t.close();
   }
 }
-async function ca() {
-  const e = await Bt();
+async function da() {
+  const e = await qt();
   try {
     return await new Promise((t, n) => {
-      const a = e.transaction(Ie, "readwrite");
-      a.objectStore(Ie).clear(), a.oncomplete = () => t(), a.onerror = () => n(a.error || Error("Unable to clear history."));
+      const a = e.transaction(Ce, "readwrite");
+      a.objectStore(Ce).clear(), a.oncomplete = () => t(), a.onerror = () => n(a.error || Error("Unable to clear history."));
     });
   } finally {
     e.close();
@@ -545,8 +545,8 @@ function Se(e, t) {
   if (t < 0 || t + 4 > e.byteLength) throw Error("Truncated ZIP file.");
   return e.getUint32(t, !0);
 }
-function la(e) {
-  if (e.byteLength > Nn) throw Error("This archive exceeds the 600 MB preview limit. Import smaller batches of FIT, TCX, or GPX files.");
+function ua(e) {
+  if (e.byteLength > xn) throw Error("This archive exceeds the 600 MB preview limit. Import smaller batches of FIT, TCX, or GPX files.");
   const t = new DataView(e.buffer, e.byteOffset, e.byteLength);
   let n = -1;
   for (let m = e.length - 22; m >= Math.max(0, e.length - 22 - 65535); m--)
@@ -555,25 +555,25 @@ function la(e) {
       break;
     }
   if (n < 0) throw Error("Not a valid ZIP archive or its directory is missing.");
-  const a = me(t, n + 10), i = Se(t, n + 12), o = Se(t, n + 16);
-  if (a === 65535 || o === 4294967295 || i === 4294967295 || me(t, n + 4) !== 0) throw Error("Multi-disk or ZIP64 archives are not supported in this preview.");
-  if (a > Lt || o + i > e.length) throw Error("ZIP directory exceeds safe limits.");
+  const a = me(t, n + 10), r = Se(t, n + 12), o = Se(t, n + 16);
+  if (a === 65535 || o === 4294967295 || r === 4294967295 || me(t, n + 4) !== 0) throw Error("Multi-disk or ZIP64 archives are not supported in this preview.");
+  if (a > Pt || o + r > e.length) throw Error("ZIP directory exceeds safe limits.");
   const d = [];
   let s = o;
   for (let m = 0; m < a; m++) {
     if (Se(t, s) !== 33639248) throw Error("Invalid ZIP directory entry.");
-    const y = me(t, s + 8), v = me(t, s + 10), S = Se(t, s + 16), I = Se(t, s + 20), f = Se(t, s + 24), l = me(t, s + 28), T = me(t, s + 30), E = me(t, s + 32), N = Se(t, s + 42), R = s + 46 + l + T + E;
+    const y = me(t, s + 8), v = me(t, s + 10), S = Se(t, s + 16), I = Se(t, s + 20), f = Se(t, s + 24), l = me(t, s + 28), T = me(t, s + 30), E = me(t, s + 32), x = Se(t, s + 42), R = s + 46 + l + T + E;
     if (R > e.length) throw Error("Truncated ZIP entry.");
-    const x = Pt.decode(e.subarray(s + 46, s + 46 + l));
-    if (s = R, N === 4294967295) continue;
-    if (Se(t, N) !== 67324752) throw Error("Invalid ZIP member offset.");
-    const P = N + 30 + me(t, N + 26) + me(t, N + 28);
+    const N = Ht.decode(e.subarray(s + 46, s + 46 + l));
+    if (s = R, x === 4294967295) continue;
+    if (Se(t, x) !== 67324752) throw Error("Invalid ZIP member offset.");
+    const P = x + 30 + me(t, x + 26) + me(t, x + 28);
     if (P + I > e.length) throw Error("Truncated ZIP member data.");
-    d.push({ name: x, compressed: I, expanded: f, method: v, crc: S, start: P, encrypted: !!(y & 1) });
+    d.push({ name: N, compressed: I, expanded: f, method: v, crc: S, start: P, encrypted: !!(y & 1) });
   }
   return d;
 }
-const da = (() => {
+const ha = (() => {
   const e = new Uint32Array(256);
   for (let t = 0; t < 256; t++) {
     let n = t;
@@ -582,9 +582,9 @@ const da = (() => {
   }
   return e;
 })();
-function ua(e) {
+function pa(e) {
   let t = 4294967295;
-  for (const n of e) t = da[(t ^ n) & 255] ^ t >>> 8;
+  for (const n of e) t = ha[(t ^ n) & 255] ^ t >>> 8;
   return (t ^ 4294967295) >>> 0;
 }
 async function On(e, t, n) {
@@ -595,20 +595,20 @@ async function On(e, t, n) {
   } catch {
     throw Error("This browser cannot expand " + t + " files. Try a recent Chrome or Edge.");
   }
-  const i = a.getReader(), o = [];
+  const r = a.getReader(), o = [];
   let d = 0;
   try {
     for (; ; ) {
-      const { value: y, done: v } = await i.read();
+      const { value: y, done: v } = await r.read();
       if (v) break;
       if (y) {
         if (d += y.byteLength, d > n)
-          throw await i.cancel(), Error("Decompressed activity exceeds the safe file size limit.");
+          throw await r.cancel(), Error("Decompressed activity exceeds the safe file size limit.");
         o.push(y);
       }
     }
   } finally {
-    i.releaseLock();
+    r.releaseLock();
   }
   const s = new Uint8Array(d);
   let m = 0;
@@ -616,69 +616,69 @@ async function On(e, t, n) {
     s.set(y, m), m += y.length;
   return s;
 }
-async function yn(e, t) {
+async function vn(e, t) {
   if (t.encrypted) throw Error("Encrypted archive entries are unsupported.");
   if (t.expanded > Fe) throw Error("Activity is larger than the 32 MB per-file limit.");
   if (t.method !== 0 && t.method !== 8) throw Error("Unsupported ZIP compression method: " + t.method);
   const n = e.subarray(t.start, t.start + t.compressed), a = t.method === 0 ? new Uint8Array(n) : await On(n, "deflate-raw", Fe);
-  if (a.length !== t.expanded || ua(a) !== t.crc) throw Error("ZIP member failed integrity verification.");
+  if (a.length !== t.expanded || pa(a) !== t.crc) throw Error("ZIP member failed integrity verification.");
   return a;
 }
-const vn = (e) => /\.(fit|tcx|gpx)(\.gz)?$/i.test(e), fn = (e) => /(^|\/)activities\.csv$/i.test(e), Ve = (e) => e.trim().replace(/\\/g, "/").replace(/^\.?\//, "").toLowerCase(), ha = () => new Promise((e) => setTimeout(e, 0));
-async function pa(e, t) {
+const fn = (e) => /\.(fit|tcx|gpx)(\.gz)?$/i.test(e), bn = (e) => /(^|\/)activities\.csv$/i.test(e), Ke = (e) => e.trim().replace(/\\/g, "/").replace(/^\.?\//, "").toLowerCase(), ga = () => new Promise((e) => setTimeout(e, 0));
+async function ma(e, t) {
   return /\.gz$/i.test(e) ? On(t, "gzip", Fe) : t;
 }
-async function ga(e, t = () => {
+async function ya(e, t = () => {
 }) {
   if (!e.length) throw Error("Choose an activity archive or individual ride files.");
-  if (e.length > Lt) throw Error("Select fewer than 10,000 files at a time.");
+  if (e.length > Pt) throw Error("Select fewer than 10,000 files at a time.");
   const n = [], a = [];
-  let i = 0;
+  let r = 0;
   for (const l of e)
     if (/\.zip$/i.test(l.name)) {
-      if (i++, l.size > Nn) throw Error("This ZIP archive exceeds the 600 MB preview limit.");
+      if (r++, l.size > xn) throw Error("This ZIP archive exceeds the 600 MB preview limit.");
       const T = new Uint8Array(await l.arrayBuffer());
-      for (const E of la(T)) {
-        const N = Ve(E.name);
-        fn(N) && E.expanded <= mn ? a.push({ name: E.name, bytes: () => yn(T, E) }) : vn(N) && /(^|\/)activities\//i.test(N) && E.expanded <= Fe && n.push({ name: E.name, bytes: () => yn(T, E) });
+      for (const E of ua(T)) {
+        const x = Ke(E.name);
+        bn(x) && E.expanded <= yn ? a.push({ name: E.name, bytes: () => vn(T, E) }) : fn(x) && /(^|\/)activities\//i.test(x) && E.expanded <= Fe && n.push({ name: E.name, bytes: () => vn(T, E) });
       }
-    } else fn(l.name) && l.size <= mn ? a.push({ name: l.name, bytes: async () => new Uint8Array(await l.arrayBuffer()) }) : vn(l.name) && l.size <= Fe && n.push({ name: l.name, bytes: async () => new Uint8Array(await l.arrayBuffer()) });
+    } else bn(l.name) && l.size <= yn ? a.push({ name: l.name, bytes: async () => new Uint8Array(await l.arrayBuffer()) }) : fn(l.name) && l.size <= Fe && n.push({ name: l.name, bytes: async () => new Uint8Array(await l.arrayBuffer()) });
   if (!n.length && !a.length) throw Error("No supported cycling recordings or activities.csv were found.");
-  if (n.length > Lt) throw Error("There are too many activity files in this archive.");
+  if (n.length > Pt) throw Error("There are too many activity files in this archive.");
   const o = [], d = [];
   let s = 0, m = 0, y = 0;
   for (const l of a)
     try {
-      o.push(...Jn(Pt.decode(await l.bytes())));
+      o.push(...ea(Ht.decode(await l.bytes())));
     } catch (T) {
       d.push("activities.csv: " + String(T instanceof Error ? T.message : T));
     }
   const v = /* @__PURE__ */ new Map();
-  for (const l of o) l.file && (v.set(Ve(l.file), l), v.set(Ve(l.file).split("/").pop() || "", l));
+  for (const l of o) l.file && (v.set(Ke(l.file), l), v.set(Ke(l.file).split("/").pop() || "", l));
   const S = [], I = n.length;
   t({ done: y, total: I, current: "Reading activity files", accepted: 0, skipped: s });
   for (const l of n) {
     try {
-      const T = await pa(l.name, await l.bytes());
+      const T = await ma(l.name, await l.bytes());
       if (T.byteLength > Fe) throw Error("Activity exceeds 32 MB.");
-      const E = v.get(Ve(l.name)) || v.get(Ve(l.name).split("/").pop() || ""), N = l.name.replace(/^.*\//, "").replace(/\.(fit|gpx|tcx)(\.gz)?$/i, "");
+      const E = v.get(Ke(l.name)) || v.get(Ke(l.name).split("/").pop() || ""), x = l.name.replace(/^.*\//, "").replace(/\.(fit|gpx|tcx)(\.gz)?$/i, "");
       let R;
       if (/\.fit(\.gz)?$/i.test(l.name)) {
-        const x = "/coach-fit-decoder.js", { decodeFIT: P } = await import(
+        const N = "/coach-fit-decoder.js", { decodeFIT: P } = await import(
           /* @vite-ignore */
-          x
+          N
         );
-        R = _n(await P(T), N, E == null ? void 0 : E.ride.name, (E == null ? void 0 : E.ride.stravaId) ?? null);
-      } else R = Zn(Pt.decode(T), N.replace(/\.gz$/i, ""), E == null ? void 0 : E.ride.name, (E == null ? void 0 : E.ride.stravaId) ?? null);
+        R = Xn(await P(T), x, E == null ? void 0 : E.ride.name, (E == null ? void 0 : E.ride.stravaId) ?? null);
+      } else R = Jn(Ht.decode(T), x.replace(/\.gz$/i, ""), E == null ? void 0 : E.ride.name, (E == null ? void 0 : E.ride.stravaId) ?? null);
       S.push(R), m++;
     } catch (T) {
       s++, d.length < 15 && d.push(l.name.slice(-80) + ": " + String(T instanceof Error ? T.message : T));
     }
-    y++, (y % 5 === 0 || y === I) && (t({ done: y, total: I, current: l.name.slice(-70), accepted: m, skipped: s }), await ha());
+    y++, (y % 5 === 0 || y === I) && (t({ done: y, total: I, current: l.name.slice(-70), accepted: m, skipped: s }), await ga());
   }
-  return { rides: Dn([], S.concat(o.map((l) => l.ride))).rides, read: m, skipped: s, errors: d, csvRides: o.length, archives: i };
+  return { rides: An([], S.concat(o.map((l) => l.ride))).rides, read: m, skipped: s, errors: d, csvRides: o.length, archives: r };
 }
-const ma = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }, A = (e) => e.replace(/[&<>"']/g, (t) => ma[t]), ee = (e) => {
+const va = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }, D = (e) => e.replace(/[&<>"']/g, (t) => va[t]), ee = (e) => {
   try {
     return JSON.parse(localStorage.getItem(e) || "null");
   } catch {
@@ -690,63 +690,63 @@ const ma = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   } catch {
     return !1;
   }
-}, Ne = (e) => [e.getFullYear(), String(e.getMonth() + 1).padStart(2, "0"), String(e.getDate()).padStart(2, "0")].join("-"), lt = (e) => {
+}, ke = (e) => [e.getFullYear(), String(e.getMonth() + 1).padStart(2, "0"), String(e.getDate()).padStart(2, "0")].join("-"), Qe = (e) => {
   if (typeof e != "string") return "";
   const t = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(e);
   if (!t) return "";
-  const n = Number(t[1]), a = Number(t[2]), i = Number(t[3]), o = new Date(n, a - 1, i);
-  return o.getFullYear() !== n || o.getMonth() + 1 !== a || o.getDate() !== i ? "" : [t[1], String(a).padStart(2, "0"), String(i).padStart(2, "0")].join("-");
+  const n = Number(t[1]), a = Number(t[2]), r = Number(t[3]), o = new Date(n, a - 1, r);
+  return o.getFullYear() !== n || o.getMonth() + 1 !== a || o.getDate() !== r ? "" : [t[1], String(a).padStart(2, "0"), String(r).padStart(2, "0")].join("-");
 };
-function ya(e, t) {
-  let n = [], a = null, i = !1;
+function fa(e, t) {
+  let n = [], a = null, r = !1;
   e.innerHTML = '<div class="coach-section-top"><span class="coach-tag">05 / RIDER HISTORY</span><span class="coach-tag">YOUR FILES · YOUR DEVICE</span></div><h2>BRING YOUR HISTORY.</h2><p class="coach-small">Import your Strava account export or original cycling recordings. No Strava account connection, API, or server upload.</p><div class="coach-history-import-zone" id="coachImportZone" tabindex="0" role="group" aria-label="Choose a Strava archive or ride files"><div class="coach-upload-icon">⇧</div><strong>DROP A STRAVA ZIP OR RIDE FILES HERE</strong><span>ZIP · activities.csv · FIT · TCX · GPX · FIT.GZ · TCX.GZ · GPX.GZ</span><label for="coachImportFiles" class="coach-upload-button">CHOOSE FILES</label><input id="coachImportFiles" type="file" multiple accept=".zip,.csv,.fit,.tcx,.gpx,.gz" hidden></div><div class="coach-import-stage" id="coachImportStage" aria-live="polite"></div><div id="coachHistoryStats"><p class="coach-small">Loading saved activities…</p></div><p class="coach-small coach-history-privacy">The browser reads activity files locally. Only summarized ride metrics are saved in this browser’s IndexedDB; GPS tracks and original files are not retained. Imported history is not uploaded, synced or used by a hosted AI model.</p><div class="coach-history-footer"><button type="button" id="coachHistoryClear">CLEAR IMPORTED HISTORY</button><a href="https://support.strava.com/en-us/articles/15401919-how-do-i-export-my-strava-data" rel="noopener noreferrer" target="_blank">How to export from Strava ↗</a></div>';
   const o = (l) => e.querySelector("#" + l), d = o("coachImportFiles"), s = o("coachImportStage"), m = o("coachImportZone"), y = o("coachHistoryClear");
   function v() {
-    var E, N;
-    const l = ta(n), T = l.weeks.map((R, x) => ({ hours: R.hours, week: new Date(R.start).toLocaleDateString(void 0, { month: "short", day: "numeric" }), height: Math.max(2, Math.round(R.hours / Math.max(1, ...l.weeks.map((P) => P.hours)) * 100)), index: x }));
-    o("coachHistoryStats").innerHTML = '<div class="coach-history-stats"><div><strong>' + l.total.toLocaleString() + "</strong><span>Historical rides</span></div><div><strong>" + l.weeklyHours.toFixed(1) + " h</strong><span>Avg / week · last 8 weeks</span></div><div><strong>" + l.powerRides.toLocaleString() + '</strong><span>Rides with power</span></div></div><div class="coach-history-bars" role="img" aria-label="Training hours in the last eight calendar weeks">' + T.map((R) => '<div class="coach-history-bar-wrap"><span>' + R.hours.toFixed(1) + 'h</span><div class="coach-history-bar-track"><div style="height:' + R.height + '%"></div></div><small>' + A(R.week) + "</small></div>").join("") + '</div><div class="coach-history-insights"><div><strong>RECENT TRAINING VOLUME</strong><p>' + l.weeklyHours.toFixed(1) + " hours per week on average over the past eight calendar weeks.</p></div><div><strong>POWER HISTORY</strong><p>" + (l.suggestedFtp === null ? "Not enough recent 20-minute recorded power for an FTP estimate." : "Candidate FTP ~" + l.suggestedFtp + " W, calculated as 95% of the best recorded 20-minute power in the last 120 days. Confirm with an FTP test.") + "</p></div></div>" + (l.total ? '<div class="coach-history-suggestions">' + (l.weeklyHours >= 1 ? '<button id="coachUseHours" type="button">USE ' + Math.min(20, Math.max(1, Math.round(l.weeklyHours * 2) / 2)) + " H/WEEK</button>" : "") + (l.suggestedFtp !== null ? '<button id="coachUseFtp" type="button">REVIEW FTP ' + l.suggestedFtp + " W</button>" : "") + "</div>" : "") + (l.total ? '<div class="coach-history-latest"><strong>LATEST IMPORTS</strong>' + n.slice(0, 5).map((R) => "<div><span>" + A(new Date(R.start).toLocaleDateString()) + " · " + A(R.name) + "</span><small>" + A(R.source) + " · " + Math.round(R.duration / 60) + " min</small></div>").join("") + "</div>" : '<p class="coach-small">No imported rides yet. Upload your Strava archive to see fitness history here.</p>'), (E = o("coachUseHours")) == null || E.addEventListener("click", () => {
+    var E, x;
+    const l = aa(n), T = l.weeks.map((R, N) => ({ hours: R.hours, week: new Date(R.start).toLocaleDateString(void 0, { month: "short", day: "numeric" }), height: Math.max(2, Math.round(R.hours / Math.max(1, ...l.weeks.map((P) => P.hours)) * 100)), index: N }));
+    o("coachHistoryStats").innerHTML = '<div class="coach-history-stats"><div><strong>' + l.total.toLocaleString() + "</strong><span>Historical rides</span></div><div><strong>" + l.weeklyHours.toFixed(1) + " h</strong><span>Avg / week · last 8 weeks</span></div><div><strong>" + l.powerRides.toLocaleString() + '</strong><span>Rides with power</span></div></div><div class="coach-history-bars" role="img" aria-label="Training hours in the last eight calendar weeks">' + T.map((R) => '<div class="coach-history-bar-wrap"><span>' + R.hours.toFixed(1) + 'h</span><div class="coach-history-bar-track"><div style="height:' + R.height + '%"></div></div><small>' + D(R.week) + "</small></div>").join("") + '</div><div class="coach-history-insights"><div><strong>RECENT TRAINING VOLUME</strong><p>' + l.weeklyHours.toFixed(1) + " hours per week on average over the past eight calendar weeks.</p></div><div><strong>POWER HISTORY</strong><p>" + (l.suggestedFtp === null ? "Not enough recent 20-minute recorded power for an FTP estimate." : "Candidate FTP ~" + l.suggestedFtp + " W, calculated as 95% of the best recorded 20-minute power in the last 120 days. Confirm with an FTP test.") + "</p></div></div>" + (l.total ? '<div class="coach-history-suggestions">' + (l.weeklyHours >= 1 ? '<button id="coachUseHours" type="button">USE ' + Math.min(20, Math.max(1, Math.round(l.weeklyHours * 2) / 2)) + " H/WEEK</button>" : "") + (l.suggestedFtp !== null ? '<button id="coachUseFtp" type="button">REVIEW FTP ' + l.suggestedFtp + " W</button>" : "") + "</div>" : "") + (l.total ? '<div class="coach-history-latest"><strong>LATEST IMPORTS</strong>' + n.slice(0, 5).map((R) => "<div><span>" + D(new Date(R.start).toLocaleDateString()) + " · " + D(R.name) + "</span><small>" + D(R.source) + " · " + Math.round(R.duration / 60) + " min</small></div>").join("") + "</div>" : '<p class="coach-small">No imported rides yet. Upload your Strava archive to see fitness history here.</p>'), (E = o("coachUseHours")) == null || E.addEventListener("click", () => {
       l.weeklyHours < 1 || (t.applySuggestion({ hours: Math.min(20, Math.max(1, Math.round(l.weeklyHours * 2) / 2)) }), s.textContent = "Weekly training hours updated in your Coach profile. You can edit them anytime.");
-    }), (N = o("coachUseFtp")) == null || N.addEventListener("click", () => {
+    }), (x = o("coachUseFtp")) == null || x.addEventListener("click", () => {
       l.suggestedFtp !== null && confirm("Apply the historical FTP estimate of " + l.suggestedFtp + " W to Coach? This is not a substitute for an FTP test.") && (t.applySuggestion({ ftp: l.suggestedFtp }), s.textContent = "FTP updated in Coach. Verify your training zones with a recent test.");
     });
   }
   async function S() {
     try {
-      n = await xn(), v();
+      n = await Nn(), v();
     } catch (l) {
       o("coachHistoryStats").textContent = "Could not open local history: " + String(l instanceof Error ? l.message : l);
     }
   }
   function I(l) {
-    const T = Dn(n, l.rides), E = T.added, N = T.updated;
-    s.innerHTML = '<div class="coach-import-result"><strong>READY TO SAVE · ' + E + " NEW RIDES</strong><p>" + l.read + " recordings parsed · " + l.csvRides + " CSV cycling rows · " + l.skipped + " files skipped · " + N + " existing rides enhanced · " + T.duplicates + " duplicates matched.</p>" + (l.errors.length ? "<details><summary>Import warnings (" + l.errors.length + " shown)</summary><ul>" + l.errors.map((R) => "<li>" + A(R) + "</li>").join("") + "</ul></details>" : "") + '<div class="coach-import-actions"><button type="button" id="coachConfirmImport">SAVE HISTORY TO THIS DEVICE</button><button type="button" id="coachCancelImport">CANCEL</button></div></div>', a = T.rides, o("coachConfirmImport").addEventListener("click", async () => {
-      if (!a || i) return;
-      i = !0;
-      const R = a, x = o("coachConfirmImport");
-      x.disabled = !0;
+    const T = An(n, l.rides), E = T.added, x = T.updated;
+    s.innerHTML = '<div class="coach-import-result"><strong>READY TO SAVE · ' + E + " NEW RIDES</strong><p>" + l.read + " recordings parsed · " + l.csvRides + " CSV cycling rows · " + l.skipped + " files skipped · " + x + " existing rides enhanced · " + T.duplicates + " duplicates matched.</p>" + (l.errors.length ? "<details><summary>Import warnings (" + l.errors.length + " shown)</summary><ul>" + l.errors.map((R) => "<li>" + D(R) + "</li>").join("") + "</ul></details>" : "") + '<div class="coach-import-actions"><button type="button" id="coachConfirmImport">SAVE HISTORY TO THIS DEVICE</button><button type="button" id="coachCancelImport">CANCEL</button></div></div>', a = T.rides, o("coachConfirmImport").addEventListener("click", async () => {
+      if (!a || r) return;
+      r = !0;
+      const R = a, N = o("coachConfirmImport");
+      N.disabled = !0;
       try {
-        await ra(R), n = R, a = null, s.textContent = "Saved " + E + " new rides and enhanced " + N + " activities on this device.", v(), window.dispatchEvent(new Event("breakaway:history-updated"));
+        await la(R), n = R, a = null, s.textContent = "Saved " + E + " new rides and enhanced " + x + " activities on this device.", v(), window.dispatchEvent(new Event("breakaway:history-updated"));
       } catch (P) {
         s.textContent = "Save failed (nothing was changed): " + String(P instanceof Error ? P.message : P);
       } finally {
-        i = !1;
+        r = !1;
       }
     }), o("coachCancelImport").addEventListener("click", () => {
       a = null, s.textContent = "Import canceled. Your saved history was not changed.";
     });
   }
   async function f(l) {
-    if (!(i || !l.length)) {
-      i = !0, a = null, y.disabled = !0, m.setAttribute("aria-busy", "true"), s.textContent = "Reading activity files locally…";
+    if (!(r || !l.length)) {
+      r = !0, a = null, y.disabled = !0, m.setAttribute("aria-busy", "true"), s.textContent = "Reading activity files locally…";
       try {
-        const T = await ga(l, (E) => {
+        const T = await ya(l, (E) => {
           s.textContent = "Reading " + E.done + " / " + E.total + " files · " + E.accepted + " cycling recordings · " + E.skipped + " skipped";
         });
         T.rides.length ? I(T) : s.textContent = "No valid cycling rides were found. " + (T.errors[0] || "Try a Strava archive or individual activity recordings.");
       } catch (T) {
         s.textContent = "Import could not finish: " + String(T instanceof Error ? T.message : T);
       } finally {
-        i = !1, y.disabled = !1, m.removeAttribute("aria-busy"), d.value = "";
+        r = !1, y.disabled = !1, m.removeAttribute("aria-busy"), d.value = "";
       }
     }
   }
@@ -764,19 +764,19 @@ function ya(e, t) {
   }), m.addEventListener("keydown", (l) => {
     l.target === m && l.key === "Enter" && (l.preventDefault(), d.click());
   }), y.addEventListener("click", async () => {
-    if (!i && confirm("Delete all historical rides imported into Breakaway Coach on this device? Your original Strava files are not affected.")) {
-      i = !0, y.disabled = !0;
+    if (!r && confirm("Delete all historical rides imported into Breakaway Coach on this device? Your original Strava files are not affected.")) {
+      r = !0, y.disabled = !0;
       try {
-        await ca(), a = null, n = [], s.textContent = "Imported history deleted from this device.", v(), window.dispatchEvent(new Event("breakaway:history-updated"));
+        await da(), a = null, n = [], s.textContent = "Imported history deleted from this device.", v(), window.dispatchEvent(new Event("breakaway:history-updated"));
       } catch (l) {
         s.textContent = "Delete failed: " + String(l instanceof Error ? l.message : l);
       } finally {
-        i = !1, y.disabled = !1;
+        r = !1, y.disabled = !1;
       }
     }
   }), S(), { reload: S };
 }
-const bn = "breakaway.coach.strength.settings.v1", wn = "breakaway.coach.strength.history.v1", Ln = { enabled: !1, equipment: ["bodyweight"], experience: "beginner", sessions: 1, minutes: 30, notes: "" }, Pn = [
+const wn = "breakaway.coach.strength.settings.v1", Sn = "breakaway.coach.strength.history.v1", Ln = { enabled: !1, equipment: ["bodyweight"], experience: "beginner", sessions: 1, minutes: 30, notes: "" }, Pn = [
   { id: "bodyweight", label: "Bodyweight", detail: "Floor space only" },
   { id: "dumbbells", label: "Dumbbells", detail: "Fixed or adjustable" },
   { id: "kettlebells", label: "Kettlebells", detail: "Single or paired" },
@@ -785,8 +785,8 @@ const bn = "breakaway.coach.strength.settings.v1", wn = "breakaway.coach.strengt
   { id: "bench", label: "Weight bench", detail: "Flat or adjustable" },
   { id: "pullup", label: "Pull-up bar", detail: "Safe, securely mounted" }
 ];
-function Qe(e) {
-  const t = e && typeof e == "object" ? e : {}, n = Array.isArray(t.equipment) ? t.equipment.filter((i) => Pn.some((o) => o.id === i)) : [], a = Array.from(/* @__PURE__ */ new Set(["bodyweight", ...n]));
+function et(e) {
+  const t = e && typeof e == "object" ? e : {}, n = Array.isArray(t.equipment) ? t.equipment.filter((r) => Pn.some((o) => o.id === r)) : [], a = Array.from(/* @__PURE__ */ new Set(["bodyweight", ...n]));
   return {
     enabled: t.enabled === !0,
     equipment: a,
@@ -796,7 +796,7 @@ function Qe(e) {
     notes: typeof t.notes == "string" ? t.notes.slice(0, 150) : ""
   };
 }
-const va = [
+const ba = [
   { id: "body-squat", name: "Tempo Bodyweight Squat", pattern: "Squat", equipment: ["bodyweight"], reps: "8–12", loadHint: "Bodyweight", instructions: "Move slowly with controlled range; stop if form deteriorates." },
   { id: "split-squat", name: "Supported Split Squat", pattern: "Squat", equipment: ["bodyweight"], reps: "8 / side", loadHint: "Bodyweight", instructions: "Hold a stable support for balance; lower only as far as controlled." },
   { id: "db-goblet", name: "Dumbbell Goblet Squat", pattern: "Squat", equipment: ["dumbbells"], reps: "6–10", loadHint: "Choose a manageable dumbbell", instructions: "Hold the dumbbell near the chest; maintain a stable trunk." },
@@ -823,16 +823,16 @@ const va = [
   { id: "kb-suitcase", name: "Kettlebell Suitcase Carry", pattern: "Core", equipment: ["kettlebells"], reps: "30 sec / side", loadHint: "Manageable kettlebell", instructions: "Stay tall, avoid leaning and take small controlled steps." },
   { id: "calf-raise", name: "Standing Calf Raise", pattern: "Calf", equipment: ["bodyweight"], reps: "10–15", loadHint: "Bodyweight", instructions: "Raise and lower heels smoothly, with stable support if needed." }
 ];
-function dt(e, t) {
-  const n = new Set(Qe(e).equipment);
-  return va.filter((a) => (!t || a.pattern === t) && a.equipment.every((i) => n.has(i)));
+function ht(e, t) {
+  const n = new Set(et(e).equipment);
+  return ba.filter((a) => (!t || a.pattern === t) && a.equipment.every((r) => n.has(r)));
 }
-const fa = (e, t, n) => {
-  const a = dt(e, t);
-  return n.map((i) => a.find((o) => o.id === i)).find(Boolean) || a[0];
+const wa = (e, t, n) => {
+  const a = ht(e, t);
+  return n.map((r) => a.find((o) => o.id === r)).find(Boolean) || a[0];
 };
-function Ht(e, t = "A", n = !1) {
-  const a = Qe(e), i = a.experience === "beginner", o = n ? 1 : i ? 2 : 3, d = ["Squat", "Hinge", "Push", "Pull", "Core"], s = {
+function Ft(e, t = "A", n = !1) {
+  const a = et(e), r = a.experience === "beginner", o = n ? 1 : r ? 2 : 3, d = ["Squat", "Hinge", "Push", "Pull", "Core"], s = {
     Squat: t === "A" ? ["bar-squat", "db-goblet", "kb-goblet", "body-squat"] : ["split-squat", "db-goblet", "kb-goblet", "body-squat", "bar-squat"],
     Hinge: t === "A" ? ["bar-rdl", "db-rdl", "kb-deadlift", "hip-bridge"] : ["single-bridge", "db-rdl", "kb-deadlift", "hip-bridge"],
     Push: t === "A" ? ["bar-bench", "db-press", "kb-press", "pushup"] : ["pushup", "db-press", "kb-press", "bar-bench"],
@@ -846,18 +846,18 @@ function Ht(e, t = "A", n = !1) {
     light: n,
     note: n ? "Recent fatigue suggests a very easy session or rest. Skip if sore or unwell." : "Leave about 2–3 repetitions in reserve and prioritize control over heavy loads.",
     exercises: d.map((m) => {
-      const y = fa(a, m, s[m]);
+      const y = wa(a, m, s[m]);
       return {
         ...y,
         sets: m === "Core" ? Math.max(1, o - 1) : o,
-        restSeconds: n ? 45 : i ? 60 : 90,
-        alternatives: dt(a, m).filter((v) => v.id !== y.id).map((v) => v.id)
+        restSeconds: n ? 45 : r ? 60 : 90,
+        alternatives: ht(a, m).filter((v) => v.id !== y.id).map((v) => v.id)
       };
     })
   };
 }
-function ba(e, t, n, a) {
-  const i = Qe(t), o = Math.round(Math.max(60, e.hours * 60)), d = n.map((f) => ({
+function Sa(e, t, n, a) {
+  const r = et(t), o = Math.round(Math.max(60, e.hours * 60)), d = n.map((f) => ({
     day: f.day,
     cyclingId: f.workoutId,
     cyclingMinutes: f.workoutId ? a(f.workoutId) : 0,
@@ -865,14 +865,14 @@ function ba(e, t, n, a) {
     strengthMinutes: 0,
     reason: f.reason
   }));
-  if (!i.enabled) {
-    let f = d.reduce((E, N) => E + N.cyclingMinutes, 0);
+  if (!r.enabled) {
+    let f = d.reduce((E, x) => E + x.cyclingMinutes, 0);
     if (f <= o) return { days: d, budgetMinutes: o, plannedMinutes: f, note: "Strength training is turned off." };
-    const l = (E) => E.cyclingId === "recovery" ? 0 : E.cyclingId === "endurance" ? 1 : E.cyclingId === "tempo" ? 2 : 3, T = [...d].filter((E) => E.cyclingId).sort((E, N) => l(E) - l(N));
+    const l = (E) => E.cyclingId === "recovery" ? 0 : E.cyclingId === "endurance" ? 1 : E.cyclingId === "tempo" ? 2 : 3, T = [...d].filter((E) => E.cyclingId).sort((E, x) => l(E) - l(x));
     for (const E of T) {
       if (f <= o) break;
-      const N = Math.min(Math.max(0, E.cyclingMinutes - 15), f - o);
-      E.cyclingMinutes -= N, f -= N;
+      const x = Math.min(Math.max(0, E.cyclingMinutes - 15), f - o);
+      E.cyclingMinutes -= x, f -= x;
     }
     for (const E of T) {
       if (f <= o) break;
@@ -887,16 +887,16 @@ function ba(e, t, n, a) {
   }
   const s = d.filter((f) => f.cyclingId && f.day !== e.restDay).sort((f, l) => (f.cyclingId === "endurance" || f.cyclingId === "recovery" ? -1 : 1) - (l.cyclingId === "endurance" || l.cyclingId === "recovery" ? -1 : 1)), m = [];
   for (const f of s) {
-    if (m.length >= i.sessions) break;
+    if (m.length >= r.sessions) break;
     m.some((l) => Math.abs(l.day - f.day) === 1) || m.push(f);
   }
   let y = 0;
   for (const f of m)
-    f.strength = y ? "B" : "A", f.strengthMinutes = i.minutes, y++;
+    f.strength = y ? "B" : "A", f.strengthMinutes = r.minutes, y++;
   let v = d.reduce((f, l) => f + l.cyclingMinutes + l.strengthMinutes, 0);
   if (v > o) {
     const f = [...d].filter((l) => l.cyclingId).sort((l, T) => {
-      const E = (N) => N.cyclingId === "recovery" ? 0 : N.cyclingId === "endurance" ? 1 : N.cyclingId === "tempo" ? 2 : 3;
+      const E = (x) => x.cyclingId === "recovery" ? 0 : x.cyclingId === "endurance" ? 1 : x.cyclingId === "tempo" ? 2 : 3;
       return E(l) - E(T);
     });
     for (const l of f) {
@@ -916,21 +916,21 @@ function ba(e, t, n, a) {
     }
   }
   const S = d.reduce((f, l) => f + l.cyclingMinutes + l.strengthMinutes, 0), I = d.filter((f) => f.strength).length;
-  return { days: d, budgetMinutes: o, plannedMinutes: S, note: I ? i.sessions > I ? "Limited time or available training days reduced strength frequency." : "Strength sessions are included in your total weekly time budget." : "Not enough available time or separate training days for strength. Consider increasing your weekly training time or lowering other sessions." };
+  return { days: d, budgetMinutes: o, plannedMinutes: S, note: I ? r.sessions > I ? "Limited time or available training days reduced strength frequency." : "Strength sessions are included in your total weekly time budget." : "Not enough available time or separate training days for strength. Consider increasing your weekly training time or lowering other sessions." };
 }
-function wa(e, t) {
-  let n = Qe(ee(bn) || Ln);
-  const a = ee(wn);
-  let i = Array.isArray(a) ? a.filter((b) => b && typeof b.routine == "string" && Array.isArray(b.sets)).slice(-150) : [], o = !1, d = "A", s = !1, m = 0, y = "", v = 30, S = [], I = Ht(n, "A", !1);
+function Ea(e, t) {
+  let n = et(ee(wn) || Ln);
+  const a = ee(Sn);
+  let r = Array.isArray(a) ? a.filter((b) => b && typeof b.routine == "string" && Array.isArray(b.sets)).slice(-150) : [], o = !1, d = "A", s = !1, m = 0, y = "", v = 30, S = [], I = Ft(n, "A", !1);
   const f = /* @__PURE__ */ new Set(), l = /* @__PURE__ */ new Map();
-  let T = null, E = 0, N = null;
+  let T = null, E = 0, x = null;
   const R = document.createElement("section");
   R.className = "coach-strength-overlay", R.id = "coachStrengthOverlay", R.hidden = !0, R.setAttribute("role", "dialog"), R.setAttribute("aria-modal", "true"), R.setAttribute("aria-label", "Guided strength session"), document.body.append(R);
-  function x() {
-    e.innerHTML = '<div class="coach-section-top"><span class="coach-tag">STRENGTH TRAINING</span><span class="coach-tag">OPTIONAL · LOCAL ONLY</span></div><h3>Train with what you own.</h3><p class="coach-small">Set your available equipment. Strength sessions share your weekly training time budget.</p><label class="coach-strength-toggle"><input id="strengthEnabled" type="checkbox" ' + (n.enabled ? "checked" : "") + '><span>Include strength in my training plan</span></label><span class="coach-label">AVAILABLE EQUIPMENT</span><div class="coach-equipment-grid">' + Pn.map((b) => '<label class="coach-gear-choice"><input type="checkbox" data-gear="' + b.id + '" ' + (n.equipment.includes(b.id) ? "checked" : "") + " " + (b.id === "bodyweight" ? "disabled" : "") + "><span><strong>" + A(b.label) + "</strong><small>" + A(b.detail) + "</small></span></label>").join("") + '</div><div class="coach-strength-fields"><label>EXPERIENCE<select id="strengthExperience"><option value="beginner">New to lifting</option><option value="intermediate">Some experience</option><option value="advanced">Experienced</option></select></label><label>SESSIONS / WEEK<select id="strengthSessions"><option value="1">1 session</option><option value="2">2 sessions</option></select></label><label>TIME / SESSION<select id="strengthMinutes"><option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option></select></label><label>AVAILABLE WEIGHTS (OPTIONAL)<input type="text" id="strengthWeights" maxlength="150" placeholder="e.g. 25 lb DB, 35 lb KB"></label></div><p id="strengthSaved" class="coach-small" role="status">Your strength setup is saved with your cycling settings using Save My Plan.</p>', e.querySelector("#strengthExperience").value = n.experience, e.querySelector("#strengthSessions").value = String(n.sessions), e.querySelector("#strengthMinutes").value = String(n.minutes), e.querySelector("#strengthWeights").value = n.notes;
+  function N() {
+    e.innerHTML = '<div class="coach-section-top"><span class="coach-tag">STRENGTH TRAINING</span><span class="coach-tag">OPTIONAL · LOCAL ONLY</span></div><h3>Train with what you own.</h3><p class="coach-small">Set your available equipment. Strength sessions share your weekly training time budget.</p><label class="coach-strength-toggle"><input id="strengthEnabled" type="checkbox" ' + (n.enabled ? "checked" : "") + '><span>Include strength in my training plan</span></label><span class="coach-label">AVAILABLE EQUIPMENT</span><div class="coach-equipment-grid">' + Pn.map((b) => '<label class="coach-gear-choice"><input type="checkbox" data-gear="' + b.id + '" ' + (n.equipment.includes(b.id) ? "checked" : "") + " " + (b.id === "bodyweight" ? "disabled" : "") + "><span><strong>" + D(b.label) + "</strong><small>" + D(b.detail) + "</small></span></label>").join("") + '</div><div class="coach-strength-fields"><label>EXPERIENCE<select id="strengthExperience"><option value="beginner">New to lifting</option><option value="intermediate">Some experience</option><option value="advanced">Experienced</option></select></label><label>SESSIONS / WEEK<select id="strengthSessions"><option value="1">1 session</option><option value="2">2 sessions</option></select></label><label>TIME / SESSION<select id="strengthMinutes"><option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option></select></label><label>AVAILABLE WEIGHTS (OPTIONAL)<input type="text" id="strengthWeights" maxlength="150" placeholder="e.g. 25 lb DB, 35 lb KB"></label></div><p id="strengthSaved" class="coach-small" role="status">Your strength setup is saved with your cycling settings using Save My Plan.</p>', e.querySelector("#strengthExperience").value = n.experience, e.querySelector("#strengthSessions").value = String(n.sessions), e.querySelector("#strengthMinutes").value = String(n.minutes), e.querySelector("#strengthWeights").value = n.notes;
   }
   function P() {
-    const b = Array.from(e.querySelectorAll("[data-gear]")).filter((M) => M.checked).map((M) => M.dataset.gear), C = Qe({
+    const b = Array.from(e.querySelectorAll("[data-gear]")).filter((M) => M.checked).map((M) => M.dataset.gear), C = et({
       enabled: e.querySelector("#strengthEnabled").checked,
       equipment: b,
       experience: e.querySelector("#strengthExperience").value,
@@ -938,12 +938,12 @@ function wa(e, t) {
       minutes: Number(e.querySelector("#strengthMinutes").value),
       notes: e.querySelector("#strengthWeights").value
     });
-    return de(bn, C) ? (n = C, x(), e.querySelector("#strengthSaved").textContent = "Equipment settings saved.", !0) : (e.querySelector("#strengthSaved").textContent = "Local storage unavailable. Nothing saved.", !1);
+    return de(wn, C) ? (n = C, N(), e.querySelector("#strengthSaved").textContent = "Equipment settings saved.", !0) : (e.querySelector("#strengthSaved").textContent = "Local storage unavailable. Nothing saved.", !1);
   }
   function Y() {
     T !== null && window.clearInterval(T), T = null, E = 0;
   }
-  function D(b) {
+  function A(b) {
     T !== null && window.clearInterval(T), E = Date.now() + b * 1e3;
     const C = () => {
       const M = Math.max(0, Math.ceil((E - Date.now()) / 1e3)), O = R.querySelector("#strengthRestLabel");
@@ -955,11 +955,11 @@ function wa(e, t) {
   function ce() {
     if (!o) return;
     const b = R.scrollTop, C = S.reduce((M, O) => M + O.sets, 0);
-    if (R.innerHTML = '<div class="coach-strength-session"><header class="coach-strength-session-head"><div><span>BREAKAWAY COACH / STRENGTH</span><h2>' + A(I.title) + "</h2><p>" + v + " min planned · " + f.size + " / " + C + ' sets logged</p></div><button type="button" id="strengthExit">← BACK TO COACH</button></header><div class="coach-strength-session-note">' + A(I.note) + ' Warm up for 5 minutes. Stop or modify anything painful; use a load you can control.</div><div class="coach-strength-progress"><div style="width:' + Math.round(100 * f.size / Math.max(C, 1)) + '%"></div></div><div class="coach-strength-rest"><span id="strengthRestLabel">Rest as needed between sets.</span><button type="button" id="strengthRestStart">START 60s REST</button></div><div class="coach-strength-list">' + S.map((M, O) => {
-      const c = dt(n, M.pattern);
-      return '<section class="coach-strength-exercise"><div class="coach-strength-exercise-header"><div><small>' + (O + 1) + " / " + S.length + " · " + A(M.pattern.toUpperCase()) + "</small><h3>" + A(M.name) + '</h3></div><label>SWAP EXERCISE<select data-strength-sub="' + O + '">' + c.map((F) => '<option value="' + F.id + '" ' + (F.id === M.id ? "selected" : "") + ">" + A(F.name) + "</option>").join("") + "</select></label></div><p>" + A(M.instructions) + '</p><p class="coach-strength-dose">' + M.sets + " sets · " + A(M.reps) + " · Rest " + M.restSeconds + "s · " + A(M.loadHint) + '</p><div class="coach-strength-sets">' + Array.from({ length: M.sets }, (F, q) => {
+    if (R.innerHTML = '<div class="coach-strength-session"><header class="coach-strength-session-head"><div><span>BREAKAWAY COACH / STRENGTH</span><h2>' + D(I.title) + "</h2><p>" + v + " min planned · " + f.size + " / " + C + ' sets logged</p></div><button type="button" id="strengthExit">← BACK TO COACH</button></header><div class="coach-strength-session-note">' + D(I.note) + ' Warm up for 5 minutes. Stop or modify anything painful; use a load you can control.</div><div class="coach-strength-progress"><div style="width:' + Math.round(100 * f.size / Math.max(C, 1)) + '%"></div></div><div class="coach-strength-rest"><span id="strengthRestLabel">Rest as needed between sets.</span><button type="button" id="strengthRestStart">START 60s REST</button></div><div class="coach-strength-list">' + S.map((M, O) => {
+      const c = ht(n, M.pattern);
+      return '<section class="coach-strength-exercise"><div class="coach-strength-exercise-header"><div><small>' + (O + 1) + " / " + S.length + " · " + D(M.pattern.toUpperCase()) + "</small><h3>" + D(M.name) + '</h3></div><label>SWAP EXERCISE<select data-strength-sub="' + O + '">' + c.map((F) => '<option value="' + F.id + '" ' + (F.id === M.id ? "selected" : "") + ">" + D(F.name) + "</option>").join("") + "</select></label></div><p>" + D(M.instructions) + '</p><p class="coach-strength-dose">' + M.sets + " sets · " + D(M.reps) + " · Rest " + M.restSeconds + "s · " + D(M.loadHint) + '</p><div class="coach-strength-sets">' + Array.from({ length: M.sets }, (F, q) => {
         const Z = k(O, q);
-        return '<div class="coach-strength-set"><span>SET ' + (q + 1) + '</span><input aria-label="Repetitions: set ' + (q + 1) + " " + A(M.name) + '" data-reps="' + Z + '" maxlength="30" placeholder="' + A(M.reps) + '"><input aria-label="Weight: set ' + (q + 1) + " " + A(M.name) + '" data-load="' + Z + '" maxlength="32" placeholder="Load (lb / kg / BW)"><button type="button" aria-pressed="' + f.has(Z) + '" data-check="' + Z + '">' + (f.has(Z) ? "✓ DONE" : "MARK DONE") + "</button></div>";
+        return '<div class="coach-strength-set"><span>SET ' + (q + 1) + '</span><input aria-label="Repetitions: set ' + (q + 1) + " " + D(M.name) + '" data-reps="' + Z + '" maxlength="30" placeholder="' + D(M.reps) + '"><input aria-label="Weight: set ' + (q + 1) + " " + D(M.name) + '" data-load="' + Z + '" maxlength="32" placeholder="Load (lb / kg / BW)"><button type="button" aria-pressed="' + f.has(Z) + '" data-check="' + Z + '">' + (f.has(Z) ? "✓ DONE" : "MARK DONE") + "</button></div>";
       }).join("") + "</div></section>";
     }).join("") + '</div><div class="coach-strength-complete"><label>SESSION EFFORT<select id="strengthRpe"><option value="">Select effort</option><option value="3">Easy</option><option value="5">Moderate</option><option value="7">Hard</option><option value="9">Very hard</option></select></label><button type="button" id="strengthFinish">FINISH & SAVE SESSION →</button><p id="strengthSessionError" role="status"></p></div></div>', R.querySelectorAll("[data-reps],[data-load]").forEach((M) => {
       const O = M.hasAttribute("data-reps") ? "reps" : "load";
@@ -983,7 +983,7 @@ function wa(e, t) {
     if (!C.hasAttribute("data-strength-sub")) return;
     const M = Number(C.dataset.strengthSub), O = S[M];
     if (!O) return;
-    const c = dt(n, O.pattern).find((F) => F.id === C.value);
+    const c = ht(n, O.pattern).find((F) => F.id === C.value);
     if (c) {
       S[M] = { ...c, sets: O.sets, restSeconds: O.restSeconds, alternatives: O.alternatives };
       for (let F = 0; F < O.sets; F++) {
@@ -998,7 +998,7 @@ function wa(e, t) {
     if (!(C instanceof Element)) return;
     if (C.closest("#strengthExit")) {
       if (f.size && !confirm("Leave without saving your sets?")) return;
-      V();
+      K();
       return;
     }
     const M = C.closest("[data-check]");
@@ -1006,13 +1006,13 @@ function wa(e, t) {
       const c = M.dataset.check;
       if (f.has(c) ? f.delete(c) : f.add(c), f.has(c)) {
         const F = Number(c.split(":")[0]);
-        D(((O = S[F]) == null ? void 0 : O.restSeconds) || 60);
+        A(((O = S[F]) == null ? void 0 : O.restSeconds) || 60);
       }
       ce();
       return;
     }
     if (C.closest("#strengthRestStart")) {
-      D(60);
+      A(60);
       return;
     }
     C.closest("#strengthFinish") && he();
@@ -1038,19 +1038,19 @@ function wa(e, t) {
       plannedSets: b.length,
       rpe: y ? Number(y) : null,
       sets: b
-    }, M = i.concat(C).slice(-150);
-    if (!de(wn, M)) {
+    }, M = r.concat(C).slice(-150);
+    if (!de(Sn, M)) {
       R.querySelector("#strengthSessionError").textContent = "Could not save. Check local browser storage.";
       return;
     }
-    i = M, V(), t.finished();
+    r = M, K(), t.finished();
   }
-  function V() {
-    Y(), o = !1, R.hidden = !0, N == null || N.focus(), N = null;
+  function K() {
+    Y(), o = !1, R.hidden = !0, x == null || x.focus(), x = null;
   }
   function ye(b = "A", C = !1, M) {
     var O;
-    return n.enabled ? (d = b, v = Math.min(n.minutes, Math.max(15, M || n.minutes)), s = C || v < 20, I = Ht(n, d, s), S = I.exercises, v < n.minutes && (S = S.map((c) => ({ ...c, sets: Math.max(1, Math.min(c.sets, v < 25 ? 1 : 2)) }))), N = document.activeElement instanceof HTMLElement ? document.activeElement : null, o = !0, f.clear(), l.clear(), y = "", m = Date.now(), Y(), R.hidden = !1, ce(), R.scrollTop = 0, (O = R.querySelector("#strengthExit")) == null || O.focus(), !0) : !1;
+    return n.enabled ? (d = b, v = Math.min(n.minutes, Math.max(15, M || n.minutes)), s = C || v < 20, I = Ft(n, d, s), S = I.exercises, v < n.minutes && (S = S.map((c) => ({ ...c, sets: Math.max(1, Math.min(c.sets, v < 25 ? 1 : 2)) }))), x = document.activeElement instanceof HTMLElement ? document.activeElement : null, o = !0, f.clear(), l.clear(), y = "", m = Date.now(), Y(), R.hidden = !1, ce(), R.scrollTop = 0, (O = R.querySelector("#strengthExit")) == null || O.focus(), !0) : !1;
   }
   return R.addEventListener("keydown", (b) => {
     if (!o) return;
@@ -1065,33 +1065,33 @@ function wa(e, t) {
     if (!C.length) return;
     const M = C[0], O = C[C.length - 1];
     b.shiftKey && document.activeElement === M ? (b.preventDefault(), O.focus()) : !b.shiftKey && document.activeElement === O && (b.preventDefault(), M.focus());
-  }), x(), {
+  }), N(), {
     get settings() {
       return n;
     },
     get history() {
-      return i;
+      return r;
     },
     open: ye,
-    close: V,
-    renderSettings: x,
+    close: K,
+    renderSettings: N,
     saveSettings: P,
     get active() {
       return o;
     },
     completedToday() {
-      return i.some((b) => Ne(new Date(b.date)) === Ne(/* @__PURE__ */ new Date()));
+      return r.some((b) => ke(new Date(b.date)) === ke(/* @__PURE__ */ new Date()));
     }
   };
 }
-function Sa(e, t, n, a) {
-  const i = [];
+function ka(e, t, n, a) {
+  const r = [];
   for (let o = 0; o < 7; o++) {
     const d = new Date(e.getFullYear(), e.getMonth(), e.getDate() + o), s = t.find((T) => T.day === d.getDay()), m = o === 0 && a.status === "completed";
     let y = s != null && s.cyclingId && s.cyclingMinutes > 0 ? s.cyclingId : null;
     o === 0 && (m || a.status === "rest" || !y ? y = null : a.workoutId && (y = a.workoutId));
     const v = n.find((T) => T.id === y), S = (s == null ? void 0 : s.cyclingId) === y ? s.cyclingMinutes : 0, I = v ? Math.max(0, S || Math.round(v.segments.reduce((T, E) => T + E.minutes, 0))) : 0, f = o === 0 ? "Today" : new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(d), l = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
-    i.push({
+    r.push({
       date: d,
       key: l,
       isToday: o === 0,
@@ -1107,89 +1107,94 @@ function Sa(e, t, n, a) {
       reason: o === 0 ? a.reason : (s == null ? void 0 : s.reason) || "Scheduled recovery day"
     });
   }
-  return i;
+  return r;
 }
-const Sn = "breakaway.coach.moved-workouts.v1", Ea = (e, t) => Object.prototype.hasOwnProperty.call(e, t);
-function ka(e) {
+const ct = "breakaway.coach.moved-workouts.v1", Hn = (e, t) => Object.prototype.hasOwnProperty.call(e, t);
+function Fn(e) {
   const t = {};
   if (!e || typeof e != "object" || Array.isArray(e)) return t;
   for (const [n, a] of Object.entries(e).slice(-365)) {
-    if (lt(n) !== n || !a || typeof a != "object") continue;
-    const i = a;
-    i.cyclingId !== null && (typeof i.cyclingId != "string" || !/^[a-z0-9_-]{1,80}$/i.test(i.cyclingId)) || typeof i.cyclingMinutes != "number" || !Number.isInteger(i.cyclingMinutes) || i.cyclingMinutes < 0 || i.cyclingMinutes > 1440 || i.cyclingId === null == (i.cyclingMinutes === 0) && (t[n] = { cyclingId: i.cyclingId, cyclingMinutes: i.cyclingMinutes });
+    if (Qe(n) !== n || !a || typeof a != "object") continue;
+    const r = a;
+    r.cyclingId !== null && (typeof r.cyclingId != "string" || !/^[a-z0-9_-]{1,80}$/i.test(r.cyclingId)) || typeof r.cyclingMinutes != "number" || !Number.isInteger(r.cyclingMinutes) || r.cyclingMinutes < 0 || r.cyclingMinutes > 1440 || r.cyclingId === null == (r.cyclingMinutes === 0) && (t[n] = { cyclingId: r.cyclingId, cyclingMinutes: r.cyclingMinutes });
   }
   return t;
 }
 function En(e, t, n) {
-  return Ea(n, e) ? { ...t, ...n[e], reason: "Manually rescheduled by you. " + t.reason } : t;
+  return Hn(n, e) ? { ...t, ...n[e], reason: "Manually rescheduled by you. " + t.reason } : t;
 }
-function Ta(e, t, n, a, i) {
-  return t === n || lt(t) !== t || lt(n) !== n || !a.cyclingId || a.cyclingMinutes <= 0 ? e : {
+function Ta(e, t, n, a, r) {
+  return t === n || Qe(t) !== t || Qe(n) !== n || !a.cyclingId || a.cyclingMinutes <= 0 ? e : {
     ...e,
-    [t]: { cyclingId: i.cyclingId, cyclingMinutes: i.cyclingMinutes },
+    [t]: { cyclingId: r.cyclingId, cyclingMinutes: r.cyclingMinutes },
     [n]: { cyclingId: a.cyclingId, cyclingMinutes: a.cyclingMinutes }
   };
 }
-const Ma = /* @__PURE__ */ new Set(["tempo", "sweetspot", "vo2"]), Je = (e) => !!e.rideId && (Ma.has(e.rideId) || e.rideMinutes >= 120 && e.rideId !== "recovery"), kn = (e) => {
+function Ma(e, t, n) {
+  if (Qe(t) !== t) return e;
+  const a = Fn({ [t]: n });
+  return Hn(a, t) ? { ...e, [t]: a[t] } : e;
+}
+const Ia = /* @__PURE__ */ new Set(["tempo", "sweetspot", "vo2"]), Je = (e) => !!e.rideId && (Ia.has(e.rideId) || e.rideMinutes >= 120 && e.rideId !== "recovery"), kn = (e) => {
   const [t, n, a] = e.split("-").map(Number);
   return Date.UTC(t, n - 1, a) / 864e5;
 };
-function Mt(e) {
-  const t = [...e].sort((a, i) => a.key.localeCompare(i.key)), n = /* @__PURE__ */ new Set();
+function It(e) {
+  const t = [...e].sort((a, r) => a.key.localeCompare(r.key)), n = /* @__PURE__ */ new Set();
   for (let a = 1; a < t.length; a++) {
-    const i = t[a - 1], o = t[a];
-    kn(o.key) - kn(i.key) === 1 && Je(i) && Je(o) && n.add(i.key + "|" + o.key);
+    const r = t[a - 1], o = t[a];
+    kn(o.key) - kn(r.key) === 1 && Je(r) && Je(o) && n.add(r.key + "|" + o.key);
   }
   return n;
 }
 const Tn = (e, t, n) => {
-  const a = e.find((o) => o.key === t), i = e.find((o) => o.key === n);
-  return e.map((o) => o.key === t ? { ...o, rideId: i.rideId, rideMinutes: i.rideMinutes } : o.key === n ? { ...o, rideId: a.rideId, rideMinutes: a.rideMinutes } : o);
+  const a = e.find((o) => o.key === t), r = e.find((o) => o.key === n);
+  return e.map((o) => o.key === t ? { ...o, rideId: r.rideId, rideMinutes: r.rideMinutes } : o.key === n ? { ...o, rideId: a.rideId, rideMinutes: a.rideMinutes } : o);
 };
-function Ia(e, t, n) {
-  const a = e.find((S) => S.key === t), i = e.find((S) => S.key === n);
-  if (!a || !i || !a.rideId || t === n) return { warning: null, suggestedKey: null };
-  const o = Mt(e), d = Tn(e, t, n), s = [...Mt(d)].filter((S) => !o.has(S)), m = d.filter((S) => [t, n].includes(S.key) && Je(S) && S.strengthMinutes >= 30 && !e.some((I) => I.key === S.key && Je(I) && I.strengthMinutes >= 30));
+function Ca(e, t, n) {
+  const a = e.find((S) => S.key === t), r = e.find((S) => S.key === n);
+  if (!a || !r || !a.rideId || t === n) return { warning: null, suggestedKey: null };
+  const o = It(e), d = Tn(e, t, n), s = [...It(d)].filter((S) => !o.has(S)), m = d.filter((S) => [t, n].includes(S.key) && Je(S) && S.strengthMinutes >= 30 && !e.some((I) => I.key === S.key && Je(I) && I.strengthMinutes >= 30));
   if (!s.length && !m.length) return { warning: null, suggestedKey: null };
   const y = [
     s.length ? "This change creates demanding rides on consecutive days (" + s.map((S) => S.split("|").join(" and ")).join("; ") + ")." : "",
     m.length ? "It also places a demanding ride on a strength-training day." : ""
   ].filter(Boolean).join(" "), v = e.filter((S) => S.key !== t && S.key !== n && !S.rideId && !S.completedRide && !S.eventDay && S.key >= t).find((S) => {
     const I = Tn(e, t, S.key);
-    return [...Mt(I)].every((f) => o.has(f)) && !I.some((f) => f.key === S.key && Je(f) && f.strengthMinutes >= 30);
+    return [...It(I)].every((f) => o.has(f)) && !I.some((f) => f.key === S.key && Je(f) && f.strengthMinutes >= 30);
   });
   return {
     warning: y + " Consider an easier day between demanding efforts when possible. You can keep your selected move if needed.",
     suggestedKey: (v == null ? void 0 : v.key) || null
   };
 }
-const Hn = 864e5;
+const Wn = 864e5;
 function _e(e) {
   return [e.getFullYear(), String(e.getMonth() + 1).padStart(2, "0"), String(e.getDate()).padStart(2, "0")].join("-");
 }
-const Ca = (e, t) => Number.isFinite(e.start) && e.start <= t && e.start >= t - 14 * Hn && Number.isFinite(e.elapsed) && e.elapsed >= 900;
-function It(e) {
+const Ra = (e, t) => Number.isFinite(e.start) && e.start <= t && e.start >= t - 14 * Wn && Number.isFinite(e.elapsed) && e.elapsed >= 900;
+function Ct(e) {
   return Math.max(0, Math.round(e.elapsed / 60));
 }
-function Ra(e) {
-  var ce, he, V, ye;
-  const { now: t, week: n, today: a, ftp: i, ftpKnown: o } = e, d = _e(t), s = t.getTime(), m = new Set(e.skipped), y = e.rides.filter((b) => Ca(b, s)), v = new Date(t.getFullYear(), t.getMonth(), t.getDate() - t.getDay()), S = [];
+function Da(e) {
+  var ce, he, K, ye;
+  const { now: t, week: n, today: a, ftp: r, ftpKnown: o } = e, d = _e(t), s = t.getTime(), m = new Set(e.skipped), y = e.rides.filter((b) => Ra(b, s)), v = new Date(t.getFullYear(), t.getMonth(), t.getDate() - t.getDay()), S = [];
   for (let b = 0; b < 14; b++) {
-    const C = new Date(v.getFullYear(), v.getMonth(), v.getDate() + b), M = _e(C), O = C.getDay(), c = ((ce = e.planForDate) == null ? void 0 : ce.call(e, C)) ?? n.find((se) => se.day === O), F = (he = e.event) != null && he.startDate && /^\d{4}-\d{2}-\d{2}$/.test(e.event.startDate) ? /* @__PURE__ */ new Date(e.event.startDate + "T12:00:00") : null, q = F ? Math.round((new Date(C.getFullYear(), C.getMonth(), C.getDate(), 12).getTime() - F.getTime()) / Hn) : -1, Z = q >= 0 && q < Math.max(1, ((V = e.event) == null ? void 0 : V.stages) || 1) ? q + 1 : 0, j = c != null && c.cyclingId && c.cyclingMinutes > 0 ? c.cyclingId : null, ve = j ? c.cyclingMinutes : 0, Ye = C.getTime(), fe = y.filter((se) => _e(new Date(se.start)) === M), Oe = fe.reduce((se, Re) => se + It(Re), 0), Ce = Ye < new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime(), Le = M === d;
+    const C = new Date(v.getFullYear(), v.getMonth(), v.getDate() + b), M = _e(C), O = C.getDay(), c = ((ce = e.planForDate) == null ? void 0 : ce.call(e, C)) ?? n.find((se) => se.day === O), F = (he = e.event) != null && he.startDate && /^\d{4}-\d{2}-\d{2}$/.test(e.event.startDate) ? /* @__PURE__ */ new Date(e.event.startDate + "T12:00:00") : null, q = F ? Math.round((new Date(C.getFullYear(), C.getMonth(), C.getDate(), 12).getTime() - F.getTime()) / Wn) : -1, Z = q >= 0 && q < Math.max(1, ((K = e.event) == null ? void 0 : K.stages) || 1) ? q + 1 : 0, j = c != null && c.cyclingId && c.cyclingMinutes > 0 ? c.cyclingId : null, ve = j ? c.cyclingMinutes : 0, Ye = C.getTime(), fe = y.filter((se) => _e(new Date(se.start)) === M), Oe = fe.reduce((se, De) => se + Ct(De), 0), Re = Ye < new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime(), Le = M === d;
     let oe = j, le = ve, re = j ? "planned" : "rest", pe = (c == null ? void 0 : c.reason) || "Recovery day";
-    if ((Ce || Le) && fe.length)
+    if ((Re || Le) && fe.length)
       oe = null, le = 0, re = "completed", pe = "A ride was recorded on this date. Coach does not prescribe a duplicate session.";
     else if (Z)
       oe = null, le = 0, re = "event", pe = "Event stage " + Z + " of " + Math.max(1, ((ye = e.event) == null ? void 0 : ye.stages) || 1) + ". No additional indoor workout is prescribed. Follow your event pacing and fueling plan.";
-    else if ((Ce || Le) && m.has(M))
+    else if ((Re || Le) && m.has(M))
       oe = null, le = 0, re = "skipped", pe = "You skipped this session. Coach will not stack it onto a later day.";
-    else if (Ce)
+    else if (Re)
       oe = null, le = 0, re = j ? "missed" : "rest", pe = j ? "This scheduled ride was not recorded and has not been rescheduled." : "Scheduled rest day.";
     else if (Le)
       oe = a.workoutId, re = a.status === "completed" ? "completed" : oe ? a.status === "recovery" ? "recovery" : "planned" : "rest", le = oe ? oe === "recovery" && j !== "recovery" ? Math.min(ve || e.recoveryMinutes, e.recoveryMinutes) : ve : 0, pe = a.reason;
     else if (j) {
-      const se = new Date(C.getFullYear(), C.getMonth(), C.getDate(), 9).getTime(), Re = y.some(($) => $.start < se && se - $.start <= 36 * 36e5 && (It($) >= 120 || o && $.avgPower !== null && Number.isFinite($.avgPower) && $.elapsed >= 1800 && $.avgPower >= i * 0.8)), ke = e.feedback.some(($) => Number.isFinite($.date) && $.date < se && se - $.date <= 48 * 36e5 && $.rpe !== null && $.rpe >= 9);
-      (Re || ke) && j !== "recovery" && (oe = "recovery", le = Math.min(ve, e.recoveryMinutes), re = "recovery", pe = ke ? "Very hard recent workout feedback prompted a recovery spin instead of the planned workout." : "A demanding or long ride was recorded before this session. Coach replaced it with easier recovery riding.");
+      const se = new Date(C.getFullYear(), C.getMonth(), C.getDate(), 9).getTime(), De = y.some(($) => $.start < se && se - $.start <= 36 * 36e5 && (Ct($) >= 120 || o && $.avgPower !== null && Number.isFinite($.avgPower) && $.elapsed >= 1800 && $.avgPower >= r * 0.8)), Te = e.feedback.some(($) => Number.isFinite($.date) && $.date < se && se - $.date <= 48 * 36e5 && $.rpe !== null && $.rpe >= 9);
+      (De || Te) && j !== "recovery" && (oe = "recovery", le = Math.min(ve, e.recoveryMinutes), re = "recovery", pe = Te ? "Very hard recent workout feedback prompted a recovery spin instead of the planned workout." : "A demanding or long ride was recorded before this session. Coach replaced it with easier recovery riding.");
     }
     S.push({
       key: M,
@@ -1207,16 +1212,16 @@ function Ra(e) {
       strengthMinutes: Z ? 0 : (c == null ? void 0 : c.strengthMinutes) || 0
     });
   }
-  const f = S.filter((b) => b.date.getTime() <= s && b.date.getTime() >= v.getTime()).filter((b) => y.some((C) => _e(new Date(C.start)) === b.key)), l = f.reduce((b, C) => b + y.filter((M) => _e(new Date(M.start)) === C.key).reduce((M, O) => M + It(O), 0), 0), T = f.reduce((b, C) => b + C.originalMinutes, 0), E = Math.max(0, l - T), N = S.slice(0, 7).reduce((b, C) => b + C.originalMinutes + C.strengthMinutes, 0), R = Math.max(0, e.budgetMinutes - N), x = S.slice(0, 7).filter((b) => b.status === "recovery" && b.date.getTime() >= new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime()).reduce((b, C) => b + Math.max(0, C.originalMinutes - C.minutes), 0);
-  let P = Math.max(0, E - R - x);
-  const Y = new Date(v.getFullYear(), v.getMonth(), v.getDate() + 7).getTime(), D = S.filter((b) => b.date.getTime() >= new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime() && b.date.getTime() < Y && b.workoutId && b.status !== "completed" && b.status !== "skipped").sort((b, C) => {
+  const f = S.filter((b) => b.date.getTime() <= s && b.date.getTime() >= v.getTime()).filter((b) => y.some((C) => _e(new Date(C.start)) === b.key)), l = f.reduce((b, C) => b + y.filter((M) => _e(new Date(M.start)) === C.key).reduce((M, O) => M + Ct(O), 0), 0), T = f.reduce((b, C) => b + C.originalMinutes, 0), E = Math.max(0, l - T), x = S.slice(0, 7).reduce((b, C) => b + C.originalMinutes + C.strengthMinutes, 0), R = Math.max(0, e.budgetMinutes - x), N = S.slice(0, 7).filter((b) => b.status === "recovery" && b.date.getTime() >= new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime()).reduce((b, C) => b + Math.max(0, C.originalMinutes - C.minutes), 0);
+  let P = Math.max(0, E - R - N);
+  const Y = new Date(v.getFullYear(), v.getMonth(), v.getDate() + 7).getTime(), A = S.filter((b) => b.date.getTime() >= new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime() && b.date.getTime() < Y && b.workoutId && b.status !== "completed" && b.status !== "skipped").sort((b, C) => {
     const M = (O) => O.workoutId === "recovery" ? 0 : O.workoutId === "endurance" ? 1 : 2;
     return M(b) - M(C) || b.date.getTime() - C.date.getTime();
   });
-  for (const b of D) {
+  for (const b of A) {
     if (P <= 0) break;
     const C = Math.max(0, b.minutes - 15), M = Math.min(C, P);
-    M <= 0 || (b.minutes -= M, P -= M, b.minutes !== b.originalMinutes && (b.status = b.status === "recovery" ? "recovery" : "shortened", b.changed = !0, b.reason += " Additional riding exceeded your remaining weekly time by " + (E - R - x) + " minutes, so Coach shortened this session by " + M + " minutes. Strength and rest days stay unchanged."));
+    M <= 0 || (b.minutes -= M, P -= M, b.minutes !== b.originalMinutes && (b.status = b.status === "recovery" ? "recovery" : "shortened", b.changed = !0, b.reason += " Additional riding exceeded your remaining weekly time by " + (E - R - N) + " minutes, so Coach shortened this session by " + M + " minutes. Strength and rest days stay unchanged."));
   }
   const k = S.filter((b) => b.date.getTime() < Y && (b.changed || b.status === "skipped" && m.has(b.key))).map((b) => ({
     key: b.key,
@@ -1234,11 +1239,11 @@ const Aa = (e) => {
   if (t) return Math.round((Number(t[1]) * 3600 + Number(t[2]) * 60 + Number(t[3])) / 60);
   const n = e.match(/\b(\d{1,2}):([0-5]\d)\b/);
   if (n) return Number(n[1]) * 60 + Number(n[2]);
-  const a = e.match(/\b(\d+(?:\.\d+)?)\s*(?:hours?|hrs?|hr|h)\b/i), i = e.match(/\b(\d+(?:\.\d+)?)\s*(?:minutes?|mins?|min)\b/i), o = (a ? Number(a[1]) * 60 : 0) + (i ? Number(i[1]) : 0);
+  const a = e.match(/\b(\d+(?:\.\d+)?)\s*(?:hours?|hrs?|hr|h)\b/i), r = e.match(/\b(\d+(?:\.\d+)?)\s*(?:minutes?|mins?|min)\b/i), o = (a ? Number(a[1]) * 60 : 0) + (r ? Number(r[1]) : 0);
   return o > 0 ? Math.round(o) : null;
 };
 function Mn(e) {
-  const t = e.trim().slice(0, 3e3), n = Aa(t), a = /\b(steady|base|endurance|easy aerobic|consistent|continuous)\b/i.test(t), i = t.match(/\b(?:heart[\s-]*rate|hr)?\s*(?:between|from)\s*(\d{2,3})\s*(?:and|to|[-–—])\s*(\d{2,3})\s*(?:bpm)?\b/i), o = t.match(/\b(?:heart[\s-]*rate|hr)?\s*(\d{2,3})\s*(?:-|–|—|to)\s*(\d{2,3})\s*bpm\b/i), d = t.match(/\b(\d{2,4})\s*(?:-|–|—|to)\s*(\d{2,4})\s*(?:w|watts)\b/i), s = i || o;
+  const t = e.trim().slice(0, 3e3), n = Aa(t), a = /\b(steady|base|endurance|easy aerobic|consistent|continuous)\b/i.test(t), r = t.match(/\b(?:heart[\s-]*rate|hr)?\s*(?:between|from)\s*(\d{2,3})\s*(?:and|to|[-–—])\s*(\d{2,3})\s*(?:bpm)?\b/i), o = t.match(/\b(?:heart[\s-]*rate|hr)?\s*(\d{2,3})\s*(?:-|–|—|to)\s*(\d{2,3})\s*bpm\b/i), d = t.match(/\b(\d{2,4})\s*(?:-|–|—|to)\s*(\d{2,4})\s*(?:w|watts)\b/i), s = r || o;
   let m = null;
   if (s) {
     const I = Number(s[1]), f = Number(s[2]);
@@ -1262,8 +1267,8 @@ function Mn(e) {
     ready: v
   };
 }
-const Ct = "Ride for 2 hours at a steady pace. Keep heart rate between 103 and 114 bpm.", In = "breakaway.coach.imported-workouts.v1", it = (e) => e === null ? "—" : Math.floor(e / 60) + ":" + String(e % 60).padStart(2, "0") + ":00";
-function Da(e) {
+const Rt = "Ride for 2 hours at a steady pace. Keep heart rate between 103 and 114 bpm.", In = "breakaway.coach.imported-workouts.v1", lt = (e) => e === null ? "—" : Math.floor(e / 60) + ":" + String(e % 60).padStart(2, "0") + ":00";
+function xa(e) {
   e.innerHTML = `
     <div class="ci-head">
       <div><span class="ci-eyebrow">WORKOUT STUDIO / BREAKAWAY COACH</span><h2>Turn a workout into a ride.</h2>
@@ -1326,25 +1331,25 @@ function Da(e) {
       </section>
     </div>
   `;
-  const t = (y) => e.querySelector("#" + y), n = t("ciDescription"), a = t("ciImage"), i = t("ciImagePreview");
-  let o = null, d = Mn(Ct);
-  n.value = Ct;
+  const t = (y) => e.querySelector("#" + y), n = t("ciDescription"), a = t("ciImage"), r = t("ciImagePreview");
+  let o = null, d = Mn(Rt);
+  n.value = Rt;
   const s = (y) => {
     for (const v of ["Text", "Image", "File"])
       t("ciTab" + v).setAttribute("aria-selected", String(v === y)), t("ciPanel" + v).hidden = v !== y;
   };
   t("ciTabText").addEventListener("click", () => s("Text")), t("ciTabImage").addEventListener("click", () => s("Image")), t("ciTabFile").addEventListener("click", () => s("File")), t("ciBackToText").addEventListener("click", () => s("Text")), t("ciExample").addEventListener("click", () => {
-    n.value = Ct, m();
+    n.value = Rt, m();
   });
   function m() {
     d = Mn(n.value);
     const y = d.target, v = (y == null ? void 0 : y.kind) === "heart-rate", S = (y == null ? void 0 : y.kind) === "power", I = v ? y.minBpm + "–" + y.maxBpm : S ? y.lowWatts + "–" + y.highWatts : "—", f = v ? "BPM" : S ? "WATTS" : "MISSING";
-    t("ciTitle").textContent = d.title, t("ciSubtitle").textContent = d.pace === "steady" ? "One continuous steady cycling interval" : "One continuous cycling interval", t("ciDuration").textContent = it(d.durationMinutes), t("ciTarget").textContent = I, t("ciTargetUnit").textContent = "TARGET " + f, t("ciTimelineTarget").textContent = I + " " + f, t("ciTimelineType").textContent = v ? "Heart-rate target" : S ? "Power target" : "Intensity not specified", t("ciTimelineMinutes").textContent = d.durationMinutes !== null ? d.durationMinutes + " MIN" : "TIME MISSING", t("ciTimelineMiddle").textContent = d.durationMinutes !== null ? it(Math.floor(d.durationMinutes / 2)) : "—", t("ciTimelineEnd").textContent = it(d.durationMinutes), t("ciTrainerMode").textContent = v ? "SIM / manual resistance" : S ? "Power guidance / ERG optional" : "Intensity not specified", t("ciStructure").textContent = "One " + (d.pace === "steady" ? "steady " : "") + "block", t("ciWarnings").innerHTML = d.warnings.map((l) => "<li>" + A(l) + "</li>").join(""), t("ciStatus").textContent = d.ready ? "READY TO REVIEW" : "NEEDS DETAILS", t("ciStatus").classList.toggle("is-incomplete", !d.ready), t("ciSave").disabled = !d.ready, t("ciTimeline").setAttribute("aria-label", "Continuous cycling workout lasting " + it(d.durationMinutes) + " with target " + I + " " + f), t("ciSaveStatus").textContent = "";
+    t("ciTitle").textContent = d.title, t("ciSubtitle").textContent = d.pace === "steady" ? "One continuous steady cycling interval" : "One continuous cycling interval", t("ciDuration").textContent = lt(d.durationMinutes), t("ciTarget").textContent = I, t("ciTargetUnit").textContent = "TARGET " + f, t("ciTimelineTarget").textContent = I + " " + f, t("ciTimelineType").textContent = v ? "Heart-rate target" : S ? "Power target" : "Intensity not specified", t("ciTimelineMinutes").textContent = d.durationMinutes !== null ? d.durationMinutes + " MIN" : "TIME MISSING", t("ciTimelineMiddle").textContent = d.durationMinutes !== null ? lt(Math.floor(d.durationMinutes / 2)) : "—", t("ciTimelineEnd").textContent = lt(d.durationMinutes), t("ciTrainerMode").textContent = v ? "SIM / manual resistance" : S ? "Power guidance / ERG optional" : "Intensity not specified", t("ciStructure").textContent = "One " + (d.pace === "steady" ? "steady " : "") + "block", t("ciWarnings").innerHTML = d.warnings.map((l) => "<li>" + D(l) + "</li>").join(""), t("ciStatus").textContent = d.ready ? "READY TO REVIEW" : "NEEDS DETAILS", t("ciStatus").classList.toggle("is-incomplete", !d.ready), t("ciSave").disabled = !d.ready, t("ciTimeline").setAttribute("aria-label", "Continuous cycling workout lasting " + lt(d.durationMinutes) + " with target " + I + " " + f), t("ciSaveStatus").textContent = "";
   }
   n.addEventListener("input", m), a.addEventListener("change", () => {
     var v;
     const y = (v = a.files) == null ? void 0 : v[0];
-    if (o && (URL.revokeObjectURL(o), o = null), i.hidden = !0, i.removeAttribute("src"), !y) {
+    if (o && (URL.revokeObjectURL(o), o = null), r.hidden = !0, r.removeAttribute("src"), !y) {
       t("ciImageStatus").textContent = "No file selected";
       return;
     }
@@ -1352,7 +1357,7 @@ function Da(e) {
       t("ciImageStatus").textContent = "Please select a JPG, PNG or WebP under 8 MB.";
       return;
     }
-    o = URL.createObjectURL(y), i.src = o, i.hidden = !1, t("ciImageStatus").textContent = y.name + " · image preview only";
+    o = URL.createObjectURL(y), r.src = o, r.hidden = !1, t("ciImageStatus").textContent = y.name + " · image preview only";
   }), t("ciSave").addEventListener("click", () => {
     if (d.ready)
       try {
@@ -1363,22 +1368,22 @@ function Da(e) {
       }
   }), m();
 }
-const Rt = "breakaway.coach.morning.v1", ze = "breakaway.coach.ftp-known.v1", rt = (e, t, n) => typeof e == "number" && Number.isFinite(e) && Number.isInteger(e) && e >= t && e <= n ? e : null;
+const Dt = "breakaway.coach.morning.v1", ze = "breakaway.coach.ftp-known.v1", dt = (e, t, n) => typeof e == "number" && Number.isFinite(e) && Number.isInteger(e) && e >= t && e <= n ? e : null;
 function At(e, t) {
   if (!e || typeof e != "object") return null;
   const n = e, a = typeof n.date == "string" ? /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(n.date) : null;
   if ((a ? [a[1], a[2].padStart(2, "0"), a[3].padStart(2, "0")].join("-") : null) !== t || !["tired", "okay", "great"].includes(String(n.feeling))) return null;
   for (const [o, d, s] of [["bodyBattery", 0, 100], ["sleepScore", 0, 100], ["hrvMs", 1, 300]])
-    if (n[o] !== null && n[o] !== void 0 && rt(n[o], d, s) === null) return null;
+    if (n[o] !== null && n[o] !== void 0 && dt(n[o], d, s) === null) return null;
   return {
     date: t,
     feeling: n.feeling,
-    bodyBattery: rt(n.bodyBattery, 0, 100),
-    sleepScore: rt(n.sleepScore, 0, 100),
-    hrvMs: rt(n.hrvMs, 1, 300)
+    bodyBattery: dt(n.bodyBattery, 0, 100),
+    sleepScore: dt(n.sleepScore, 0, 100),
+    hrvMs: dt(n.hrvMs, 1, 300)
   };
 }
-function Fn(e) {
+function Yn(e) {
   if (!e) return { label: "Not checked in", detail: "Morning check-in is optional. Coach is using your schedule and recent rides.", suggestEasy: !1 };
   if (e.feeling === "tired") return { label: "Check your energy", detail: "You reported feeling tired. Consider an easy session; Body Battery, Sleep Score and HRV alone are not diagnostic.", suggestEasy: !0 };
   const t = [e.bodyBattery, e.sleepScore, e.hrvMs].filter((n) => n !== null).length;
@@ -1389,34 +1394,34 @@ function Fn(e) {
   };
 }
 function Na(e, t) {
-  return !Fn(t).suggestEasy || e.status !== "planned" || !e.workoutId || e.workoutId === "recovery" ? e : { workoutId: "recovery", status: "recovery", reason: "You reported feeling tired during your morning check-in. Coach suggests an easier recovery spin instead of your planned session. This is a training suggestion, not a medical assessment." };
+  return !Yn(t).suggestEasy || e.status !== "planned" || !e.workoutId || e.workoutId === "recovery" ? e : { workoutId: "recovery", status: "recovery", reason: "You reported feeling tired during your morning check-in. Coach suggests an easier recovery spin instead of your planned session. This is a training suggestion, not a medical assessment." };
 }
-function xa(e, t, n = !1) {
+function Oa(e, t, n = !1) {
   return n ? { color: "green", label: "Training complete", detail: "You have already ridden today. No additional prescribed workout is needed." } : !e && !t.demandingRide && !t.veryHardFeedback ? { color: "neutral", label: "Check-in optional", detail: "Coach has no reported fatigue today, but no check-in or personal recovery baseline is available. Follow the plan if you feel well, and adjust as needed." } : (e == null ? void 0 : e.feeling) === "tired" && (t.demandingRide || t.veryHardFeedback) ? { color: "red", label: "Recovery recommended", detail: "You reported fatigue and recent training was demanding. Coach recommends rest or gentle recovery rather than another hard effort." } : (e == null ? void 0 : e.feeling) === "tired" || t.demandingRide || t.veryHardFeedback ? { color: "yellow", label: "Take it easy", detail: (e == null ? void 0 : e.feeling) === "tired" ? "You reported fatigue. Coach suggests a lighter session based on your check-in." : "Recent demanding training suggests a lighter session. Coach uses recorded effort, not Garmin score cutoffs." } : { color: "green", label: "Follow your plan", detail: (e == null ? void 0 : e.feeling) === "great" ? "You feel good today. Follow your planned session without adding extra intensity." : "No fatigue flag was found in available inputs. Missing Garmin data does not mean you are fully recovered." };
 }
-const Cn = "breakaway.coach.event-goal.v1", Oa = { discipline: "general", name: "", date: "", distanceKm: null, elevationM: null, durationMinutes: null, stages: 1, priority: "A", objective: "finish", terrain: "road" }, ut = { general: "General cycling fitness", criterium: "Criterium", road: "Road race", tt: "Time trial", xco: "Mountain bike XCO / short track", xcm: "Mountain bike marathon", gravel: "Gravel race", cyclocross: "Cyclocross", "gran-fondo": "Gran Fondo / century", ultra: "Ultra-endurance", "stage-race": "Multi-day stage race" }, Dt = (e, t) => e === "" || e === null || e === void 0 ? null : Number.isFinite(Number(e)) && Number(e) > 0 && Number(e) <= t ? Number(e) : null;
+const Cn = "breakaway.coach.event-goal.v1", La = { discipline: "general", name: "", date: "", distanceKm: null, elevationM: null, durationMinutes: null, stages: 1, priority: "A", objective: "finish", terrain: "road" }, pt = { general: "General cycling fitness", criterium: "Criterium", road: "Road race", tt: "Time trial", xco: "Mountain bike XCO / short track", xcm: "Mountain bike marathon", gravel: "Gravel race", cyclocross: "Cyclocross", "gran-fondo": "Gran Fondo / century", ultra: "Ultra-endurance", "stage-race": "Multi-day stage race" }, xt = (e, t) => e === "" || e === null || e === void 0 ? null : Number.isFinite(Number(e)) && Number(e) > 0 && Number(e) <= t ? Number(e) : null;
 function Nt(e) {
-  const t = e && typeof e == "object" ? e : {}, n = Object.hasOwn(ut, String(t.discipline)) ? t.discipline : "general", a = typeof t.date == "string" && /^\d{4}-\d{2}-\d{2}$/.test(t.date) && !Number.isNaN((/* @__PURE__ */ new Date(t.date + "T12:00:00")).getTime()) && (/* @__PURE__ */ new Date(t.date + "T12:00:00")).toISOString().slice(0, 10) === t.date ? t.date : "";
+  const t = e && typeof e == "object" ? e : {}, n = Object.hasOwn(pt, String(t.discipline)) ? t.discipline : "general", a = typeof t.date == "string" && /^\d{4}-\d{2}-\d{2}$/.test(t.date) && !Number.isNaN((/* @__PURE__ */ new Date(t.date + "T12:00:00")).getTime()) && (/* @__PURE__ */ new Date(t.date + "T12:00:00")).toISOString().slice(0, 10) === t.date ? t.date : "";
   return {
     discipline: n,
     name: typeof t.name == "string" ? t.name.trim().slice(0, 100) : "",
     date: a,
-    distanceKm: Dt(t.distanceKm, 5e3),
-    elevationM: Dt(t.elevationM, 1e5),
-    durationMinutes: Dt(t.durationMinutes, 3e4),
+    distanceKm: xt(t.distanceKm, 5e3),
+    elevationM: xt(t.elevationM, 1e5),
+    durationMinutes: xt(t.durationMinutes, 3e4),
     stages: n === "stage-race" ? Math.max(2, Math.min(30, Math.round(Number(t.stages) || 2))) : 1,
     priority: ["A", "B", "C"].includes(String(t.priority)) ? t.priority : "A",
     objective: t.objective === "perform" ? "perform" : "finish",
     terrain: ["road", "gravel", "trail", "mixed"].includes(String(t.terrain)) ? t.terrain : "road"
   };
 }
-function Ft(e, t) {
+function Wt(e, t) {
   if (!e.date || e.discipline === "general") return { phase: "foundation", weeksLeft: null, description: "Build consistency, comfortable endurance and repeatable training habits." };
-  const n = /* @__PURE__ */ new Date(e.date + "T12:00:00"), a = new Date(t.getFullYear(), t.getMonth(), t.getDate(), 12), i = Math.round((n.getTime() - a.getTime()) / 864e5), o = e.discipline === "stage-race" ? Math.max(2, e.stages) : 1, d = Math.max(0, Math.ceil(i / 7)), s = i < -(o - 1) ? "post-event" : i <= 0 ? "event" : i <= 7 ? "taper" : i <= 28 ? "specific" : i <= 70 ? "build" : "base";
+  const n = /* @__PURE__ */ new Date(e.date + "T12:00:00"), a = new Date(t.getFullYear(), t.getMonth(), t.getDate(), 12), r = Math.round((n.getTime() - a.getTime()) / 864e5), o = e.discipline === "stage-race" ? Math.max(2, e.stages) : 1, d = Math.max(0, Math.ceil(r / 7)), s = r < -(o - 1) ? "post-event" : r <= 0 ? "event" : r <= 7 ? "taper" : r <= 28 ? "specific" : r <= 70 ? "build" : "base";
   return { phase: s, weeksLeft: d, description: { base: "Build a sustainable aerobic foundation before race-specific sessions.", build: "Develop the power and endurance needed for your event.", specific: "Practice efforts that resemble your event while managing fatigue.", taper: "Reduce accumulated fatigue; preserve fitness and arrive ready.", event: "Event day: follow your pacing, fueling and safety plan.", "post-event": "Recover after the event before setting a new primary goal." }[s] };
 }
-function La(e, t, n) {
-  const { phase: a } = Ft(t, n), o = [...e.days === 2 ? [1, 4] : e.days === 3 ? [1, 3, 6] : e.days === 4 ? [1, 2, 4, 6] : e.days === 5 ? [0, 1, 3, 4, 6] : [0, 1, 2, 3, 4, 6]];
+function Pa(e, t, n) {
+  const { phase: a } = Wt(t, n), o = [...e.days === 2 ? [1, 4] : e.days === 3 ? [1, 3, 6] : e.days === 4 ? [1, 2, 4, 6] : e.days === 5 ? [0, 1, 3, 4, 6] : [0, 1, 2, 3, 4, 6]];
   if (o.includes(e.restDay)) {
     const I = Array.from({ length: 7 }, (f, l) => l).find((f) => f !== e.restDay && !o.includes(f));
     I !== void 0 && o.splice(o.indexOf(e.restDay), 1, I);
@@ -1426,26 +1431,26 @@ function La(e, t, n) {
   return Array.from({ length: 7 }, (I, f) => {
     const l = o.indexOf(f);
     if (l < 0) return { day: f, workoutId: null, reason: "Scheduled recovery day" };
-    const T = S ? l === 0 ? "recovery" : "endurance" : l === o.length - 1 ? "endurance" : l === 0 ? v ? y : "endurance" : l === 2 && v && d && e.experience === "advanced" ? "tempo" : l % 2 === 0 ? "recovery" : "endurance", E = a === "foundation" ? "General development" : ut[t.discipline] + " · " + a;
+    const T = S ? l === 0 ? "recovery" : "endurance" : l === o.length - 1 ? "endurance" : l === 0 ? v ? y : "endurance" : l === 2 && v && d && e.experience === "advanced" ? "tempo" : l % 2 === 0 ? "recovery" : "endurance", E = a === "foundation" ? "General development" : pt[t.discipline] + " · " + a;
     return { day: f, workoutId: T, reason: E + " preparation. " + (S ? "Keep the session easy and avoid chasing workload." : v ? "Match the event demands while maintaining recovery." : "Build consistent aerobic training.") };
   });
 }
 function Xe() {
-  const e = ee(xt);
+  const e = ee(Ot);
   return Array.isArray(e) ? e.filter((t) => t && typeof t.workout == "string" && typeof t.date == "string").slice(-150) : [];
 }
-const ct = (e) => {
+const ut = (e) => {
   const t = Math.max(0, Math.ceil(e));
   return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
 }, Ze = (e, t) => e.querySelector("#" + t);
-function Ha(e) {
-  let n = xe(ee(Ae) || $e), a = Nt(ee(Cn) || Oa), i = kt(n), o = "endurance", d = !1, s = null, m = "", y = null, v = [], S = null, I = [], f = ka(ee(Sn)), l = null, T = null, E = null, N = "structured";
+function Fa(e) {
+  let n = Ne(ee(Ae) || $e), a = Nt(ee(Cn) || La), r = Tt(n), o = "endurance", d = !1, s = null, m = "", y = null, v = [], S = null, I = [], f = Fn(ee(ct)), l = null, T = null, E = null, x = "structured";
   const R = "breakaway.coach.skipped-days.v1";
-  function x() {
-    const r = ee(R);
-    return Array.isArray(r) ? [...new Set(r.map(lt).filter(Boolean))].slice(-90) : [];
+  function N() {
+    const i = ee(R);
+    return Array.isArray(i) ? [...new Set(i.map(Qe).filter(Boolean))].slice(-90) : [];
   }
-  let P = ee(ze) === !0 || ee(ze) === null && !!ee(Ae), Y = [], D = null, k = null, ce = "", he = 0, V = !1, ye = null, b = 130;
+  let P = ee(ze) === !0 || ee(ze) === null && !!ee(Ae), Y = [], A = null, k = null, ce = "", he = 0, K = !1, ye = null, b = 130;
   const C = document.getElementById("screenRoute"), M = document.createElement("section");
   M.id = "breakawayCoachScreen", M.className = "coach-screen coach-v2", M.hidden = !0, M.innerHTML = `
 <header class="coach-top">
@@ -1527,7 +1532,7 @@ function Ha(e) {
           <button type="button" id="coachSkipToday" class="coach-subtle-link">Skip today's session</button>
         </div>
         <div id="coachSwapPanel" class="coach-swap-panel" hidden>
-          <p>Prefer something else? Choosing a different workout is optional and won't rewrite your weekly plan.</p>
+          <p>Select a replacement to save it for today. Your other training days stay unchanged.</p>
           <div id="coachSwapList" class="coach-swap-list"></div>
         </div>
       </section>
@@ -1588,7 +1593,7 @@ function Ha(e) {
         <h3>What are you training for?</h3>
         <p class="coach-small">Your event changes the training emphasis. No race planned? Choose general cycling fitness.</p>
         <div class="coach-fields">
-          <label>EVENT OR GOAL TYPE<select id="coachEventDiscipline">${Object.entries(ut).map(([r, u]) => '<option value="' + r + '">' + u + "</option>").join("")}</select></label>
+          <label>EVENT OR GOAL TYPE<select id="coachEventDiscipline">${Object.entries(pt).map(([i, u]) => '<option value="' + i + '">' + u + "</option>").join("")}</select></label>
           <label>EVENT NAME (OPTIONAL)<input id="coachEventName" type="text" maxlength="100" placeholder="e.g. Five-day gravel stage race"></label>
           <label>FIRST DAY OF EVENT (IF KNOWN)<input id="coachEventDate" type="date"></label>
           <label>YOUR PRIORITY<select id="coachEventPriority"><option value="A">A — primary goal</option><option value="B">B — preparation event</option><option value="C">C — training event</option></select></label>
@@ -1635,23 +1640,23 @@ function Ha(e) {
 `, document.body.append(M);
   const O = document.createElement("aside");
   O.id = "breakawayCoachHud", O.className = "coach-hud", O.hidden = !0, O.setAttribute("aria-label", "Live Breakaway Coach"), O.innerHTML = '<div class="coach-hud-top"><strong>◆ BREAKAWAY COACH</strong><span id="coachHudState">WAITING FOR PEDALS</span><button type="button" id="coachMinimize" aria-label="Minimize coaching panel">−</button></div><div class="coach-hud-core"><div><small>ACTUAL</small><strong id="coachActual">—<span> W</span></strong></div><div><small>TARGET</small><strong id="coachTarget">—<span> W</span></strong></div><div><small>REMAINING</small><strong id="coachRemaining">—</strong></div></div><div class="coach-interval-line"><span id="coachInterval">WARM UP</span><span id="coachSessionClock">0:00</span></div><div class="coach-progress"><div id="coachProgressBar"></div></div><p id="coachPrompt" aria-live="polite">Connect a trainer, then start pedaling.</p><div class="coach-hud-actions"><button type="button" id="coachLighter">−5% EFFORT</button><button type="button" id="coachHarder">+5% EFFORT</button><button type="button" id="coachEnd">END COACHING</button></div>', document.body.append(O);
-  const c = (r) => Ze(M, r), F = (r) => Ze(O, r), q = c("coachControl"), Z = ["today", "plan", "history", "settings", "import"];
-  function j(r, u = !1) {
-    M.querySelectorAll("[data-coach-tab]").forEach((p) => {
-      const g = p.dataset.coachTab === r;
-      p.setAttribute("aria-selected", String(g)), p.tabIndex = g ? 0 : -1, g && u && p.focus();
-    }), M.querySelectorAll("[data-coach-view]").forEach((p) => {
-      p.hidden = p.dataset.coachView !== r;
-    }), M.scrollTop = 0, r === "history" && mt();
+  const c = (i) => Ze(M, i), F = (i) => Ze(O, i), q = c("coachControl"), Z = ["today", "plan", "history", "settings", "import"];
+  function j(i, u = !1) {
+    M.querySelectorAll("[data-coach-tab]").forEach((g) => {
+      const p = g.dataset.coachTab === i;
+      g.setAttribute("aria-selected", String(p)), g.tabIndex = p ? 0 : -1, p && u && g.focus();
+    }), M.querySelectorAll("[data-coach-view]").forEach((g) => {
+      g.hidden = g.dataset.coachView !== i;
+    }), M.scrollTop = 0, i === "history" && vt();
   }
-  M.querySelectorAll("[data-coach-tab]").forEach((r) => {
-    r.addEventListener("click", () => j(r.dataset.coachTab)), r.addEventListener("keydown", (u) => {
-      const p = Z.indexOf(r.dataset.coachTab);
-      let g = -1;
-      u.key === "ArrowRight" && (g = (p + 1) % Z.length), u.key === "ArrowLeft" && (g = (p + Z.length - 1) % Z.length), u.key === "Home" && (g = 0), u.key === "End" && (g = Z.length - 1), g >= 0 && (u.preventDefault(), j(Z[g], !0));
+  M.querySelectorAll("[data-coach-tab]").forEach((i) => {
+    i.addEventListener("click", () => j(i.dataset.coachTab)), i.addEventListener("keydown", (u) => {
+      const g = Z.indexOf(i.dataset.coachTab);
+      let p = -1;
+      u.key === "ArrowRight" && (p = (g + 1) % Z.length), u.key === "ArrowLeft" && (p = (g + Z.length - 1) % Z.length), u.key === "Home" && (p = 0), u.key === "End" && (p = Z.length - 1), p >= 0 && (u.preventDefault(), j(Z[p], !0));
     });
-  }), M.querySelectorAll("[data-navigate-coach]").forEach((r) => r.addEventListener("click", () => {
-    const u = r.dataset.navigateCoach;
+  }), M.querySelectorAll("[data-navigate-coach]").forEach((i) => i.addEventListener("click", () => {
+    const u = i.dataset.navigateCoach;
     Z.includes(u) && j(u, !0);
   }));
   function ve() {
@@ -1659,117 +1664,117 @@ function Ha(e) {
       O.hidden = !1;
       return;
     }
-    M.hidden = !1, document.body.classList.add("coach-planning"), j("today"), le(), c("coachFtpKnown").dispatchEvent(new Event("change")), P || (N = "guided", q.value = "guided");
-    const r = At(ee(Rt), Ne(/* @__PURE__ */ new Date()));
-    if (r) {
-      c("coachFeeling").value = r.feeling;
-      for (const [u, p] of [["coachBattery", r.bodyBattery], ["coachSleep", r.sleepScore], ["coachHrv", r.hrvMs]]) c(u).value = p === null ? "" : String(p);
+    M.hidden = !1, document.body.classList.add("coach-planning"), j("today"), le(), c("coachFtpKnown").dispatchEvent(new Event("change")), P || (x = "guided", q.value = "guided");
+    const i = At(ee(Dt), ke(/* @__PURE__ */ new Date()));
+    if (i) {
+      c("coachFeeling").value = i.feeling;
+      for (const [u, g] of [["coachBattery", i.bodyBattery], ["coachSleep", i.sleepScore], ["coachHrv", i.hrvMs]]) c(u).value = g === null ? "" : String(g);
     } else {
       c("coachFeeling").value = "okay";
       for (const u of ["coachBattery", "coachSleep", "coachHrv"]) c(u).value = "";
     }
-    ne(), mt(), window.scrollTo(0, 0);
+    ne(), vt(), window.scrollTo(0, 0);
   }
   function Ye() {
     M.hidden = !0, document.body.classList.remove("coach-planning");
   }
-  C == null || C.addEventListener("click", (r) => {
-    const u = r.target;
+  C == null || C.addEventListener("click", (i) => {
+    const u = i.target;
     u instanceof Element && u.closest("#openBreakawayCoach") && ve();
   }), c("coachBack").addEventListener("click", Ye);
-  function fe(r = /* @__PURE__ */ new Date()) {
-    return ba(
+  function fe(i = /* @__PURE__ */ new Date()) {
+    return Sa(
       n,
-      (D == null ? void 0 : D.settings) || Ln,
-      a.discipline === "general" ? Rn(n, !1) : La(n, a, r),
-      (u) => Math.round(X(i.find((p) => p.id === u) || i[0]) / 60)
+      (A == null ? void 0 : A.settings) || Ln,
+      a.discipline === "general" ? Rn(n, !1) : Pa(n, a, i),
+      (u) => Math.round(X(r.find((g) => g.id === u) || r[0]) / 60)
     );
   }
   function Oe() {
-    const r = Y.map((w) => ({ start: w.start, elapsed: w.elapsed, avgPower: w.avgPower })), u = v.filter((w) => !r.some((L) => Math.abs(L.start - w.start) < 12e4)).map((w) => ({ start: w.start, elapsed: w.duration, avgPower: w.avgPower, source: "import" })), p = r.concat(u), g = Xe().filter((w) => w.mode === "classic" && w.elapsedSeconds > 0).map((w) => ({
+    const i = Y.map((w) => ({ start: w.start, elapsed: w.elapsed, avgPower: w.avgPower })), u = v.filter((w) => !i.some((L) => Math.abs(L.start - w.start) < 12e4)).map((w) => ({ start: w.start, elapsed: w.duration, avgPower: w.avgPower, source: "import" })), g = i.concat(u), p = Xe().filter((w) => w.mode === "classic" && w.elapsedSeconds > 0).map((w) => ({
       start: Date.parse(w.date) - w.elapsedSeconds * 1e3,
       elapsed: w.elapsedSeconds,
       avgPower: w.averageWatts,
       source: "classic"
-    })).filter((w) => Number.isFinite(w.start) && !p.some((L) => Math.abs(L.start - w.start) < 12e4));
-    return p.concat(g);
+    })).filter((w) => Number.isFinite(w.start) && !g.some((L) => Math.abs(L.start - w.start) < 12e4));
+    return g.concat(p);
   }
-  function Ce() {
-    return Xe().map((r) => ({ date: Date.parse(r.date), rpe: r.rpe }));
+  function Re() {
+    return Xe().map((i) => ({ date: Date.parse(i.date), rpe: i.rpe }));
   }
   function Le() {
-    const r = Ce().concat(((D == null ? void 0 : D.history) || []).map((u) => ({ date: Date.parse(u.date), rpe: u.rpe })));
-    return Ot(n, Date.now(), P ? Oe() : Oe().map((u) => ({ ...u, avgPower: null })), r).fatigued;
+    const i = Re().concat(((A == null ? void 0 : A.history) || []).map((u) => ({ date: Date.parse(u.date), rpe: u.rpe })));
+    return Lt(n, Date.now(), P ? Oe() : Oe().map((u) => ({ ...u, avgPower: null })), i).fatigued;
   }
   function oe() {
-    const r = c("coachEventDiscipline").value;
-    c("coachEventStagesWrap").hidden = r !== "stage-race", c("coachEventStages").disabled = r !== "stage-race", r === "stage-race" && Number(c("coachEventStages").value) < 2 && (c("coachEventStages").value = "2"), c("coachEventStageHint").hidden = r !== "stage-race", c("coachGeneralFocusWrap").hidden = r !== "general";
-    const u = Nt({ discipline: r, date: c("coachEventDate").value }), p = Ft(u, /* @__PURE__ */ new Date());
-    c("coachGoalPhaseSummary").textContent = u.discipline === "general" ? "General fitness: build a sustainable weekly routine." : p.weeksLeft === null ? "Set an event date to calculate training phases." : p.weeksLeft + " weeks remaining · " + p.phase.toUpperCase() + " phase. " + p.description;
+    const i = c("coachEventDiscipline").value;
+    c("coachEventStagesWrap").hidden = i !== "stage-race", c("coachEventStages").disabled = i !== "stage-race", i === "stage-race" && Number(c("coachEventStages").value) < 2 && (c("coachEventStages").value = "2"), c("coachEventStageHint").hidden = i !== "stage-race", c("coachGeneralFocusWrap").hidden = i !== "general";
+    const u = Nt({ discipline: i, date: c("coachEventDate").value }), g = Wt(u, /* @__PURE__ */ new Date());
+    c("coachGoalPhaseSummary").textContent = u.discipline === "general" ? "General fitness: build a sustainable weekly routine." : g.weeksLeft === null ? "Set an event date to calculate training phases." : g.weeksLeft + " weeks remaining · " + g.phase.toUpperCase() + " phase. " + g.description;
   }
   function le() {
     c("coachFtp").value = String(n.ftp), c("coachFtpKnown").value = P ? "yes" : "no", c("coachHours").value = String(n.hours), c("coachDays").value = String(n.days), c("coachRestDay").value = String(n.restDay), c("coachExperience").value = n.experience, c("coachGoal").value = n.goal, c("coachEventDiscipline").value = a.discipline, c("coachEventName").value = a.name, c("coachEventDate").value = a.date, c("coachEventPriority").value = a.priority, c("coachEventObjective").value = a.objective, c("coachEventTerrain").value = a.terrain;
-    for (const [r, u] of [["coachEventDistance", a.distanceKm === null ? null : Math.round(a.distanceKm / 1.609344 * 10) / 10], ["coachEventDuration", a.durationMinutes], ["coachEventElevation", a.elevationM === null ? null : Math.round(a.elevationM / 0.3048)], ["coachEventStages", a.stages]]) c(r).value = u === null ? "" : String(u);
+    for (const [i, u] of [["coachEventDistance", a.distanceKm === null ? null : Math.round(a.distanceKm / 1.609344 * 10) / 10], ["coachEventDuration", a.durationMinutes], ["coachEventElevation", a.elevationM === null ? null : Math.round(a.elevationM / 0.3048)], ["coachEventStages", a.stages]]) c(i).value = u === null ? "" : String(u);
     oe();
   }
   function re() {
     if (y) return y;
-    const r = i.find((w) => w.id === o) || i[0];
+    const i = r.find((w) => w.id === o) || r[0];
     if (d) {
       const w = s;
-      return w !== null && w >= 15 && w * 60 < X(r) ? Tt(r, w) : r;
+      return w !== null && w >= 15 && w * 60 < X(i) ? Mt(i, w) : i;
     }
-    const u = fe().days.find((w) => w.day === (/* @__PURE__ */ new Date()).getDay()), p = D != null && D.settings.enabled && (u == null ? void 0 : u.cyclingId) === r.id && u.cyclingMinutes > 0 ? u.cyclingMinutes : 1 / 0, g = Math.min(E ?? 1 / 0, p);
-    return Number.isFinite(g) && g >= 15 && g * 60 < X(r) ? Tt(r, g) : r;
+    const u = fe().days.find((w) => w.day === (/* @__PURE__ */ new Date()).getDay()), g = A != null && A.settings.enabled && (u == null ? void 0 : u.cyclingId) === i.id && u.cyclingMinutes > 0 ? u.cyclingMinutes : 1 / 0, p = Math.min(E ?? 1 / 0, g);
+    return Number.isFinite(p) && p >= 15 && p * 60 < X(i) ? Mt(i, p) : i;
   }
-  function pe(r) {
-    const u = re(), p = u.segments[r];
-    if (!p) return;
-    const g = ln(n.ftp, p);
-    c("coachIntervalDetails").innerHTML = '<div class="coach-interval-identity"><span class="coach-interval-kicker">BLOCK ' + (r + 1) + " / " + u.segments.length + "</span><strong>" + A(p.name) + "</strong><small>" + g.ftpRange + '</small></div><div class="coach-interval-numbers"><div><span>DURATION</span><strong>' + g.duration + "</strong></div><div><span>POWER RANGE</span><strong>" + g.range + "</strong></div><div><span>ERG TARGET</span><strong>" + g.target + " W</strong></div></div>", c("coachSegments").querySelectorAll("[data-coach-segment]").forEach((w) => {
-      w.setAttribute("aria-pressed", String(Number(w.dataset.coachSegment) === r));
+  function pe(i) {
+    const u = re(), g = u.segments[i];
+    if (!g) return;
+    const p = dn(n.ftp, g);
+    c("coachIntervalDetails").innerHTML = '<div class="coach-interval-identity"><span class="coach-interval-kicker">BLOCK ' + (i + 1) + " / " + u.segments.length + "</span><strong>" + D(g.name) + "</strong><small>" + p.ftpRange + '</small></div><div class="coach-interval-numbers"><div><span>DURATION</span><strong>' + p.duration + "</strong></div><div><span>POWER RANGE</span><strong>" + p.range + "</strong></div><div><span>ERG TARGET</span><strong>" + p.target + " W</strong></div></div>", c("coachSegments").querySelectorAll("[data-coach-segment]").forEach((w) => {
+      w.setAttribute("aria-pressed", String(Number(w.dataset.coachSegment) === i));
     });
   }
-  const se = c("coachSegments"), Re = (r) => {
-    const u = r.target;
+  const se = c("coachSegments"), De = (i) => {
+    const u = i.target;
     if (!(u instanceof Element)) return;
-    const p = u.closest("[data-coach-segment]");
-    p && se.contains(p) && pe(Number(p.dataset.coachSegment));
+    const g = u.closest("[data-coach-segment]");
+    g && se.contains(g) && pe(Number(g.dataset.coachSegment));
   };
-  se.addEventListener("pointerover", Re), se.addEventListener("focusin", Re), se.addEventListener("click", Re);
-  function ke() {
-    const r = c("coachCalendarStrip"), u = c("coachCalendarDetails"), p = I.findIndex((U) => U.key === S);
-    r.innerHTML = I.map((U, Be) => {
-      const bt = U.reason.startsWith("Event stage "), ge = U.rideName || (U.completedRide ? "Ride completed" : bt ? "Event day" : null), Te = U.isToday && (D == null ? void 0 : D.completedToday()) === !0, _ = U.strength ? Te ? "✓ Strength completed" : "Full Body Strength " + U.strength : null, ae = [ge, _].filter(Boolean);
-      return '<button type="button" class="coach-calendar-pill' + (U.isToday ? " is-today" : "") + '" data-calendar-index="' + Be + '" draggable="' + !!(U.rideId && !U.completedRide) + '" aria-expanded="' + (U.key === S) + '" aria-controls="coachCalendarDetails" aria-label="' + A(U.title + ": " + (ae.join(", ") || "Rest day") + ". " + (U.key === S ? "Collapse details." : "Expand details.")) + '"><span class="coach-calendar-date">' + A(U.label) + '</span><span class="coach-calendar-activity">' + A(ge || (_ ? "" : "Rest day")) + "</span>" + (_ ? '<span class="coach-calendar-strength">' + A(_) + "</span>" : "") + '<span class="coach-calendar-chevron" aria-hidden="true">' + (U.key === S ? "⌃" : "⌄") + "</span></button>";
+  se.addEventListener("pointerover", De), se.addEventListener("focusin", De), se.addEventListener("click", De);
+  function Te() {
+    const i = c("coachCalendarStrip"), u = c("coachCalendarDetails"), g = I.findIndex((U) => U.key === S);
+    i.innerHTML = I.map((U, Be) => {
+      const ot = U.reason.startsWith("Event stage "), ge = U.rideName || (U.completedRide ? "Ride completed" : ot ? "Event day" : null), Me = U.isToday && (A == null ? void 0 : A.completedToday()) === !0, _ = U.strength ? Me ? "✓ Strength completed" : "Full Body Strength " + U.strength : null, ae = [ge, _].filter(Boolean);
+      return '<button type="button" class="coach-calendar-pill' + (U.isToday ? " is-today" : "") + '" data-calendar-index="' + Be + '" draggable="' + !!(U.rideId && !U.completedRide) + '" aria-expanded="' + (U.key === S) + '" aria-controls="coachCalendarDetails" aria-label="' + D(U.title + ": " + (ae.join(", ") || "Rest day") + ". " + (U.key === S ? "Collapse details." : "Expand details.")) + '"><span class="coach-calendar-date">' + D(U.label) + '</span><span class="coach-calendar-activity">' + D(ge || (_ ? "" : "Rest day")) + "</span>" + (_ ? '<span class="coach-calendar-strength">' + D(_) + "</span>" : "") + '<span class="coach-calendar-chevron" aria-hidden="true">' + (U.key === S ? "⌃" : "⌄") + "</span></button>";
     }).join("");
-    const g = I[p];
-    if (u.hidden = !g, !g) {
+    const p = I[g];
+    if (u.hidden = !p, !p) {
       u.innerHTML = "";
       return;
     }
-    u.setAttribute("aria-label", "Workouts for " + g.title);
-    const w = g.rideId ? i.find((U) => U.id === g.rideId) : null, L = w ? '<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>' + A(w.name) + "</strong><p>" + g.rideMinutes + " min · " + A(w.description) + "</p><p>" + A(g.reason) + '</p></div><div class="coach-calendar-session-actions"><button type="button" data-calendar-action="ride" data-calendar-index="' + p + '">' + (g.isToday ? "VIEW TODAY’S RIDE" : "USE THIS RIDE TODAY (OPTIONAL)") + ' →</button><button type="button" data-calendar-action="move" data-calendar-index="' + p + '">' + (l === g.key ? "CANCEL MOVE" : "MOVE WORKOUT") + "</button></div></div>" : g.completedRide ? '<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>Ride completed today</strong><p>Coach will account for your recorded ride.</p></div></div>' : "", G = g.isToday && (D == null ? void 0 : D.completedToday()) === !0, ie = g.strength ? '<div class="coach-calendar-session"><div><span class="coach-calendar-type">' + (G ? "STRENGTH · COMPLETED" : "STRENGTH · NO TRAINER NEEDED") + "</span><strong>Full Body Strength " + g.strength + "</strong><p>" + g.strengthMinutes + " min · Exercises matched to your saved equipment</p></div>" + (G ? "" : '<button type="button" data-calendar-action="strength" data-calendar-index="' + p + '">' + (g.isToday ? "START STRENGTH" : "START STRENGTH TODAY (OPTIONAL)") + " →</button>") + "</div>" : "", K = g.reason.startsWith("Event stage "), z = !L && !ie ? '<div class="coach-calendar-session"><div><span class="coach-calendar-type">' + (K ? "EVENT DAY" : "RECOVERY") + "</span><strong>" + (K ? "Race or stage day" : "Rest day") + "</strong><p>" + (K ? A(g.reason) : "No workout is scheduled. Recovery is part of your plan.") + "</p></div></div>" : "";
-    u.innerHTML = '<div class="coach-calendar-detail-head"><div><span class="coach-calendar-type">DAY DETAILS</span><h3>' + A(g.title) + '</h3></div><button type="button" class="coach-calendar-close" data-calendar-action="close" aria-label="Close calendar day details">✕</button></div><div class="coach-calendar-detail-grid">' + L + ie + z + "</div>" + (l ? '<p class="coach-move-hint">Select a destination day above. Cycling sessions swap if both days have rides; strength stays put.</p>' : "");
+    u.setAttribute("aria-label", "Workouts for " + p.title);
+    const w = p.rideId ? r.find((U) => U.id === p.rideId) : null, L = w ? '<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>' + D(w.name) + "</strong><p>" + p.rideMinutes + " min · " + D(w.description) + "</p><p>" + D(p.reason) + '</p></div><div class="coach-calendar-session-actions"><button type="button" data-calendar-action="ride" data-calendar-index="' + g + '">' + (p.isToday ? "VIEW TODAY’S RIDE" : "USE THIS RIDE TODAY (OPTIONAL)") + ' →</button><button type="button" data-calendar-action="move" data-calendar-index="' + g + '">' + (l === p.key ? "CANCEL MOVE" : "MOVE WORKOUT") + "</button></div></div>" : p.completedRide ? '<div class="coach-calendar-session"><div><span class="coach-calendar-type">CYCLING</span><strong>Ride completed today</strong><p>Coach will account for your recorded ride.</p></div></div>' : "", G = p.isToday && (A == null ? void 0 : A.completedToday()) === !0, ie = p.strength ? '<div class="coach-calendar-session"><div><span class="coach-calendar-type">' + (G ? "STRENGTH · COMPLETED" : "STRENGTH · NO TRAINER NEEDED") + "</span><strong>Full Body Strength " + p.strength + "</strong><p>" + p.strengthMinutes + " min · Exercises matched to your saved equipment</p></div>" + (G ? "" : '<button type="button" data-calendar-action="strength" data-calendar-index="' + g + '">' + (p.isToday ? "START STRENGTH" : "START STRENGTH TODAY (OPTIONAL)") + " →</button>") + "</div>" : "", V = p.reason.startsWith("Event stage "), z = !L && !ie ? '<div class="coach-calendar-session"><div><span class="coach-calendar-type">' + (V ? "EVENT DAY" : "RECOVERY") + "</span><strong>" + (V ? "Race or stage day" : "Rest day") + "</strong><p>" + (V ? D(p.reason) : "No workout is scheduled. Recovery is part of your plan.") + "</p></div></div>" : "";
+    u.innerHTML = '<div class="coach-calendar-detail-head"><div><span class="coach-calendar-type">DAY DETAILS</span><h3>' + D(p.title) + '</h3></div><button type="button" class="coach-calendar-close" data-calendar-action="close" aria-label="Close calendar day details">✕</button></div><div class="coach-calendar-detail-grid">' + L + ie + z + "</div>" + (l ? '<p class="coach-move-hint">Select a destination day above. Cycling sessions swap if both days have rides; strength stays put.</p>' : "");
   }
-  c("coachCalendarStrip").addEventListener("click", (r) => {
+  c("coachCalendarStrip").addEventListener("click", (i) => {
     var w;
-    const u = r.target;
+    const u = i.target;
     if (!(u instanceof Element)) return;
-    const p = u.closest("[data-calendar-index]");
-    if (!p) return;
-    const g = I[Number(p.dataset.calendarIndex)];
-    if (g) {
-      if (l && g.key !== l) {
-        $(l, g.key);
+    const g = u.closest("[data-calendar-index]");
+    if (!g) return;
+    const p = I[Number(g.dataset.calendarIndex)];
+    if (p) {
+      if (l && p.key !== l) {
+        $(l, p.key);
         return;
       }
-      S = S === g.key ? null : g.key, ke(), (w = c("coachCalendarStrip").querySelectorAll("[data-calendar-index]")[Number(p.dataset.calendarIndex)]) == null || w.focus();
+      S = S === p.key ? null : p.key, Te(), (w = c("coachCalendarStrip").querySelectorAll("[data-calendar-index]")[Number(g.dataset.calendarIndex)]) == null || w.focus();
     }
   });
-  function $(r, u, p = !1) {
+  function $(i, u, g = !1) {
     var G;
-    if (!p) {
+    if (!g) {
       const ie = I.map((z) => ({
         key: z.key,
         rideId: z.rideId,
@@ -1777,26 +1782,26 @@ function Ha(e) {
         strengthMinutes: z.strengthMinutes,
         completedRide: z.completedRide,
         eventDay: z.reason.startsWith("Event stage ")
-      })), K = Ia(ie, r, u);
-      if (K.warning) {
-        T = { from: r, to: u, suggestedKey: K.suggestedKey };
+      })), V = Ca(ie, i, u);
+      if (V.warning) {
+        T = { from: i, to: u, suggestedKey: V.suggestedKey };
         const z = c("coachMoveRecoveryWarning");
-        z.innerHTML = "<strong>RECOVERY CHECK</strong><p>" + A(K.warning) + "</p>" + (K.suggestedKey ? '<button type="button" data-move-decision="suggested">MOVE TO ' + A(K.suggestedKey) + " INSTEAD</button>" : "") + '<button type="button" data-move-decision="proceed">MOVE ANYWAY</button><button type="button" data-move-decision="cancel">KEEP CURRENT PLAN</button>', z.hidden = !1, z.scrollIntoView({ block: "nearest", behavior: "smooth" }), (G = z.querySelector('[data-move-decision="cancel"]')) == null || G.focus();
+        z.innerHTML = "<strong>RECOVERY CHECK</strong><p>" + D(V.warning) + "</p>" + (V.suggestedKey ? '<button type="button" data-move-decision="suggested">MOVE TO ' + D(V.suggestedKey) + " INSTEAD</button>" : "") + '<button type="button" data-move-decision="proceed">MOVE ANYWAY</button><button type="button" data-move-decision="cancel">KEEP CURRENT PLAN</button>', z.hidden = !1, z.scrollIntoView({ block: "nearest", behavior: "smooth" }), (G = z.querySelector('[data-move-decision="cancel"]')) == null || G.focus();
         return;
       }
     }
     T = null, c("coachMoveRecoveryWarning").hidden = !0;
-    const g = I.find((ie) => ie.key === r), w = I.find((ie) => ie.key === u);
-    if (!g || !w || !g.rideId || g.completedRide || w.completedRide || g.reason.startsWith("Event stage ") || w.reason.startsWith("Event stage ")) return;
+    const p = I.find((ie) => ie.key === i), w = I.find((ie) => ie.key === u);
+    if (!p || !w || !p.rideId || p.completedRide || w.completedRide || p.reason.startsWith("Event stage ") || w.reason.startsWith("Event stage ")) return;
     const L = Ta(
       f,
-      r,
+      i,
       u,
-      { cyclingId: g.rideId, cyclingMinutes: g.rideMinutes },
+      { cyclingId: p.rideId, cyclingMinutes: p.rideMinutes },
       { cyclingId: w.rideId, cyclingMinutes: w.rideMinutes }
     );
     if (L !== f) {
-      if (!de(Sn, L)) {
+      if (!de(ct, L)) {
         alert("Unable to save this calendar change. Check browser storage.");
         return;
       }
@@ -1804,101 +1809,101 @@ function Ha(e) {
     }
   }
   const be = document.createElement("section");
-  be.id = "coachMoveRecoveryWarning", be.className = "coach-move-recovery-warning", be.setAttribute("role", "alert"), be.setAttribute("aria-label", "Recovery-aware scheduling warning"), be.hidden = !0, c("coachCalendarDetails").after(be), be.addEventListener("click", (r) => {
+  be.id = "coachMoveRecoveryWarning", be.className = "coach-move-recovery-warning", be.setAttribute("role", "alert"), be.setAttribute("aria-label", "Recovery-aware scheduling warning"), be.hidden = !0, c("coachCalendarDetails").after(be), be.addEventListener("click", (i) => {
     var w;
-    const u = r.target;
+    const u = i.target;
     if (!(u instanceof Element)) return;
-    const p = (w = u.closest("[data-move-decision]")) == null ? void 0 : w.dataset.moveDecision;
-    if (!p || !T) return;
-    const g = T;
-    if (p === "cancel") {
-      T = null, be.hidden = !0, l = null, ke();
+    const g = (w = u.closest("[data-move-decision]")) == null ? void 0 : w.dataset.moveDecision;
+    if (!g || !T) return;
+    const p = T;
+    if (g === "cancel") {
+      T = null, be.hidden = !0, l = null, Te();
       return;
     }
-    if (p === "suggested" && g.suggestedKey) {
-      T = null, be.hidden = !0, $(g.from, g.suggestedKey);
+    if (g === "suggested" && p.suggestedKey) {
+      T = null, be.hidden = !0, $(p.from, p.suggestedKey);
       return;
     }
-    p === "proceed" && $(g.from, g.to, !0);
+    g === "proceed" && $(p.from, p.to, !0);
   });
-  const tt = c("coachCalendarStrip");
-  tt.addEventListener("dragstart", (r) => {
-    const u = r.target;
+  const nt = c("coachCalendarStrip");
+  nt.addEventListener("dragstart", (i) => {
+    const u = i.target;
     if (!(u instanceof Element)) return;
-    const p = u.closest("[data-calendar-index]"), g = I[Number(p == null ? void 0 : p.dataset.calendarIndex)];
-    if (!(g != null && g.rideId) || g.completedRide) {
-      r.preventDefault();
+    const g = u.closest("[data-calendar-index]"), p = I[Number(g == null ? void 0 : g.dataset.calendarIndex)];
+    if (!(p != null && p.rideId) || p.completedRide) {
+      i.preventDefault();
       return;
     }
-    l = g.key, r.dataTransfer && (r.dataTransfer.effectAllowed = "move", r.dataTransfer.setData("text/plain", g.key));
-  }), tt.addEventListener("dragover", (r) => {
-    r.target instanceof Element && r.target.closest("[data-calendar-index]") && r.preventDefault();
-  }), tt.addEventListener("drop", (r) => {
-    r.preventDefault();
-    const u = r.target;
+    l = p.key, i.dataTransfer && (i.dataTransfer.effectAllowed = "move", i.dataTransfer.setData("text/plain", p.key));
+  }), nt.addEventListener("dragover", (i) => {
+    i.target instanceof Element && i.target.closest("[data-calendar-index]") && i.preventDefault();
+  }), nt.addEventListener("drop", (i) => {
+    i.preventDefault();
+    const u = i.target;
     if (!(u instanceof Element)) return;
-    const p = u.closest("[data-calendar-index]"), g = I[Number(p == null ? void 0 : p.dataset.calendarIndex)];
-    g && l && $(l, g.key);
-  }), tt.addEventListener("dragend", () => {
+    const g = u.closest("[data-calendar-index]"), p = I[Number(g == null ? void 0 : g.dataset.calendarIndex)];
+    p && l && $(l, p.key);
+  }), nt.addEventListener("dragend", () => {
     T || (l = null);
-  }), c("coachCalendarDetails").addEventListener("click", (r) => {
+  }), c("coachCalendarDetails").addEventListener("click", (i) => {
     var w;
-    const u = r.target;
+    const u = i.target;
     if (!(u instanceof Element)) return;
-    const p = u.closest("[data-calendar-action]");
-    if (!p) return;
-    if (p.dataset.calendarAction === "close") {
+    const g = u.closest("[data-calendar-action]");
+    if (!g) return;
+    if (g.dataset.calendarAction === "close") {
       const L = I.findIndex((G) => G.key === S);
-      S = null, ke(), L >= 0 && ((w = c("coachCalendarStrip").querySelectorAll("[data-calendar-index]")[L]) == null || w.focus());
+      S = null, Te(), L >= 0 && ((w = c("coachCalendarStrip").querySelectorAll("[data-calendar-index]")[L]) == null || w.focus());
       return;
     }
-    const g = I[Number(p.dataset.calendarIndex)];
-    if (g) {
-      if (p.dataset.calendarAction === "move" && g.rideId) {
-        l = l === g.key ? null : g.key, ke();
+    const p = I[Number(g.dataset.calendarIndex)];
+    if (p) {
+      if (g.dataset.calendarAction === "move" && p.rideId) {
+        l = l === p.key ? null : p.key, Te();
         return;
       }
-      p.dataset.calendarAction === "ride" && g.rideId ? (o = g.rideId, d = !0, s = g.rideMinutes, y = null, S = null, ne(), c("coachRecommendedName").scrollIntoView({ block: "center", behavior: "smooth" })) : p.dataset.calendarAction === "strength" && g.strength && pt(g.strength, g.strengthMinutes);
+      g.dataset.calendarAction === "ride" && p.rideId ? (o = p.rideId, d = !0, s = p.rideMinutes, y = null, S = null, ne(), c("coachRecommendedName").scrollIntoView({ block: "center", behavior: "smooth" })) : g.dataset.calendarAction === "strength" && p.strength && mt(p.strength, p.strengthMinutes);
     }
   });
   function ne() {
-    var rn, cn;
-    i = kt(n);
-    const r = /* @__PURE__ */ new Date(), u = Ne(r);
+    var cn, ln;
+    r = Tt(n);
+    const i = /* @__PURE__ */ new Date(), u = ke(i);
     u !== m && (m = u, d = !1, s = null, y = null, S = null);
-    const p = Oe(), g = Ce(), w = P ? p : p.map((h) => ({ ...h, avgPower: null })), L = At(ee(Rt), u), G = Fn(L), ie = xa(L, Ot(n, r.getTime(), w, g), p.some((h) => h.start >= new Date(r.getFullYear(), r.getMonth(), r.getDate()).getTime() && h.elapsed >= 900));
+    const g = Oe(), p = Re(), w = P ? g : g.map((h) => ({ ...h, avgPower: null })), L = At(ee(Dt), u), G = Yn(L), ie = Oa(L, Lt(n, i.getTime(), w, p), g.some((h) => h.start >= new Date(i.getFullYear(), i.getMonth(), i.getDate()).getTime() && h.elapsed >= 900));
     c("coachReadinessLabel").textContent = ie.label, c("coachReadinessLabel").setAttribute("data-day-color", ie.color), c("coachReadinessExplanation").textContent = ie.detail + " " + G.detail;
-    const K = fe(r), z = K.days.find((h) => h.day === r.getDay()), U = En(u, z, f), Be = un(
+    const V = fe(i), z = V.days.find((h) => h.day === i.getDay()), U = En(u, z, f), Be = hn(
       n,
-      r,
+      i,
       w,
-      g,
-      K.days.map((h) => ({
+      p,
+      V.days.map((h) => ({
         day: h.day,
-        workoutId: h.day === r.getDay() ? U.cyclingId : h.cyclingId,
-        reason: h.day === r.getDay() ? U.reason : h.reason
+        workoutId: h.day === i.getDay() ? U.cyclingId : h.cyclingId,
+        reason: h.day === i.getDay() ? U.reason : h.reason
       }))
-    ), bt = Object.prototype.hasOwnProperty.call(f, u), ge = Na(bt && Be.status !== "completed" ? { ...Be, workoutId: U.cyclingId, status: U.cyclingId ? "planned" : "rest", reason: U.reason } : Be, L), Te = Ra({
-      now: r,
-      week: K.days,
-      rides: p,
-      feedback: g,
-      skipped: x(),
+    ), ot = Object.prototype.hasOwnProperty.call(f, u), ge = ot && Be.status !== "completed" ? { ...Be, workoutId: U.cyclingId, status: U.cyclingId ? "planned" : "rest", reason: U.reason } : Na(Be, L), Me = Da({
+      now: i,
+      week: V.days,
+      rides: g,
+      feedback: p,
+      skipped: N(),
       ftp: n.ftp,
       ftpKnown: P,
-      budgetMinutes: K.budgetMinutes,
+      budgetMinutes: V.budgetMinutes,
       today: ge,
-      recoveryMinutes: Math.round(X(i.find((h) => h.id === "recovery")) / 60),
+      recoveryMinutes: Math.round(X(r.find((h) => h.id === "recovery")) / 60),
       planForDate: (h) => {
         const H = fe(h).days.find((B) => B.day === h.getDay());
-        return H ? En(Ne(h), H, f) : void 0;
+        return H ? En(ke(h), H, f) : void 0;
       },
       event: a.discipline !== "general" && a.date ? { startDate: a.date, stages: a.discipline === "stage-race" ? a.stages : 1 } : void 0
-    }), _ = Te.days.find((h) => h.key === u) ?? {
-      weekday: r.getDay(),
-      originalId: ((rn = K.days.find((h) => h.day === r.getDay())) == null ? void 0 : rn.cyclingId) ?? null,
+    }), _ = Me.days.find((h) => h.key === u) ?? {
+      weekday: i.getDay(),
+      originalId: ((cn = V.days.find((h) => h.day === i.getDay())) == null ? void 0 : cn.cyclingId) ?? null,
       workoutId: ge.workoutId,
-      minutes: ge.workoutId ? Math.round(X(i.find((h) => h.id === ge.workoutId) || i[0]) / 60) : 0,
+      minutes: ge.workoutId ? Math.round(X(r.find((h) => h.id === ge.workoutId) || r[0]) / 60) : 0,
       status: ge.status === "recovery" ? "recovery" : ge.workoutId ? "planned" : "rest",
       reason: ge.reason,
       strength: null,
@@ -1909,11 +1914,11 @@ function Ha(e) {
       workoutId: _.workoutId,
       status: _.status === "completed" ? "completed" : _.status === "recovery" ? "recovery" : _.status === "rest" || _.status === "skipped" ? "rest" : "planned",
       reason: _.reason
-    }, Bn = x().includes(u);
-    c("coachSkipToday").textContent = Bn ? "Undo skipped session" : "Skip today's session", I = Sa(r, K.days, i, ae).map((h) => {
-      const H = Te.days.find((J) => J.key === h.key);
+    }, Un = N().includes(u);
+    c("coachSkipToday").textContent = Un ? "Undo skipped session" : "Skip today's session", I = ka(i, V.days, r, ae).map((h) => {
+      const H = Me.days.find((J) => J.key === h.key);
       if (!H) return h;
-      const B = i.find((J) => J.id === H.workoutId);
+      const B = r.find((J) => J.id === H.workoutId);
       return {
         ...h,
         rideId: (B == null ? void 0 : B.id) || null,
@@ -1925,48 +1930,48 @@ function Ha(e) {
         completedRide: H.status === "completed",
         reason: H.reason
       };
-    }), ke();
-    const zt = (h) => {
+    }), Te();
+    const Xt = (h) => {
       var J, Q;
-      const H = ((J = i.find((Pe) => Pe.id === h.originalId)) == null ? void 0 : J.name) || (h.originalId ? "Planned ride" : "Rest day"), B = ((Q = i.find((Pe) => Pe.id === h.workoutId)) == null ? void 0 : Q.name) || (h.kind === "completed" ? "Ride recorded" : h.kind === "skipped" ? "Skipped" : h.kind === "missed" ? "Not completed" : h.kind === "event" ? "Race or event day" : "No ride scheduled");
-      return "<li><strong>" + A(h.key) + "</strong> · " + A(H) + " (" + h.beforeMinutes + " min) → " + A(B) + " (" + h.afterMinutes + " min)<p>" + A(h.reason) + "</p></li>";
-    }, qe = Te.changes.filter((h) => h.key >= u), Xt = c("coachAdaptiveToday");
-    Xt.hidden = qe.length === 0, Xt.innerHTML = qe.length ? "<strong>YOUR UPDATED TRAINING WEEK · " + qe.length + " CHANGE" + (qe.length === 1 ? "" : "S") + "</strong><p>Coach accounts for extra rides and recovery without adding make-up sessions.</p><ul>" + qe.map(zt).join("") + "</ul>" : "";
-    const wt = Te.changes.filter((h) => h.key <= Te.days[6].key), Zt = c("coachAdaptiveWeek");
-    Zt.hidden = wt.length === 0, Zt.innerHTML = wt.length ? "<strong>WHAT CHANGED IN YOUR WEEK</strong><p>Workout adjustments are date-specific. Your strength sessions and chosen rest day stay protected.</p><ul>" + wt.map(zt).join("") + "</ul>" : "", K.days[r.getDay()];
-    const St = !!_.strength, Et = (D == null ? void 0 : D.completedToday()) || !1, Me = St && !_.workoutId, $t = Le();
-    d || (o = ae.workoutId || "recovery", y = null), i.some((h) => h.id === o) || (o = "recovery", y = null);
-    const at = !d && (!ae.workoutId || Me);
-    c("coachRestState").hidden = !at, c("coachWorkoutControls").hidden = at, c("coachRecommendedName").textContent = at ? _.status === "event" ? "Race / event day" : Me ? "Strength training day" : ae.status === "completed" ? "Ride already completed" : "Rest day" : re().name, c("coachRecommendationLabel").textContent = d ? "YOUR CHOICE" : _.status === "event" ? "EVENT DAY" : Me ? "STRENGTH DAY" : ae.status === "recovery" ? "RECOVERY ADJUSTMENT" : ae.status === "rest" || ae.status === "completed" ? "REST RECOMMENDED" : "FROM YOUR PLAN", c("coachWhy").textContent = _.status === "event" && !d ? "Your event takes priority. There is no additional prescribed trainer ride today." : Me && !d ? "Your plan includes strength today. No cycling workout is scheduled." : at ? "Coach recommends rest today." : d ? "You chose an optional alternative for today. Coach originally recommended: " + ae.reason : "Why Coach chose this: " + ae.reason;
-    const ot = ((cn = K.days.find((h) => h.day === r.getDay())) == null ? void 0 : cn.cyclingId) || null, Jt = !d && ae.status === "recovery" && ot && ot !== ae.workoutId;
-    if (c("coachChangeDetail").hidden = !Jt, Jt) {
-      const h = i.find((Q) => Q.id === ot), H = i.find((Q) => Q.id === ae.workoutId), B = h ? Math.round(X(h) / 60) : null, J = H ? Math.round(X(H) / 60) : null;
-      c("coachChangeDetail").innerHTML = '<strong>WHY TODAY CHANGED</strong><div class="coach-change-pair"><span>ORIGINAL: ' + A((h == null ? void 0 : h.name) || ot) + (B === null ? "" : " · " + B + " min") + "</span><span>RECOMMENDED: " + A((H == null ? void 0 : H.name) || "Recovery spin") + (J === null ? "" : " · " + J + " min") + "</span></div><p>" + A(ae.reason) + "</p><p>See the updated training week for any changes to upcoming sessions. To ride the original workout today, select it under Swap workout.</p>";
+      const H = ((J = r.find((Pe) => Pe.id === h.originalId)) == null ? void 0 : J.name) || (h.originalId ? "Planned ride" : "Rest day"), B = ((Q = r.find((Pe) => Pe.id === h.workoutId)) == null ? void 0 : Q.name) || (h.kind === "completed" ? "Ride recorded" : h.kind === "skipped" ? "Skipped" : h.kind === "missed" ? "Not completed" : h.kind === "event" ? "Race or event day" : "No ride scheduled");
+      return "<li><strong>" + D(h.key) + "</strong> · " + D(H) + " (" + h.beforeMinutes + " min) → " + D(B) + " (" + h.afterMinutes + " min)<p>" + D(h.reason) + "</p></li>";
+    }, qe = Me.changes.filter((h) => h.key >= u), Zt = c("coachAdaptiveToday");
+    Zt.hidden = qe.length === 0, Zt.innerHTML = qe.length ? "<strong>YOUR UPDATED TRAINING WEEK · " + qe.length + " CHANGE" + (qe.length === 1 ? "" : "S") + "</strong><p>Coach accounts for extra rides and recovery without adding make-up sessions.</p><ul>" + qe.map(Xt).join("") + "</ul>" : "";
+    const St = Me.changes.filter((h) => h.key <= Me.days[6].key), $t = c("coachAdaptiveWeek");
+    $t.hidden = St.length === 0, $t.innerHTML = St.length ? "<strong>WHAT CHANGED IN YOUR WEEK</strong><p>Workout adjustments are date-specific. Your strength sessions and chosen rest day stay protected.</p><ul>" + St.map(Xt).join("") + "</ul>" : "", V.days[i.getDay()];
+    const Et = !!_.strength, kt = (A == null ? void 0 : A.completedToday()) || !1, Ie = Et && !_.workoutId, Jt = Le();
+    d || (o = ae.workoutId || "recovery", y = null), r.some((h) => h.id === o) || (o = "recovery", y = null);
+    const st = !d && (!ae.workoutId || Ie);
+    c("coachRestState").hidden = !st, c("coachWorkoutControls").hidden = st, c("coachRecommendedName").textContent = st ? _.status === "event" ? "Race / event day" : Ie ? "Strength training day" : ae.status === "completed" ? "Ride already completed" : "Rest day" : re().name, c("coachRecommendationLabel").textContent = d ? "YOUR CHOICE" : _.status === "event" ? "EVENT DAY" : Ie ? "STRENGTH DAY" : ae.status === "recovery" ? "RECOVERY ADJUSTMENT" : ae.status === "rest" || ae.status === "completed" ? "REST RECOMMENDED" : "FROM YOUR PLAN", c("coachWhy").textContent = _.status === "event" && !d ? "Your event takes priority. There is no additional prescribed trainer ride today." : Ie && !d ? "Your plan includes strength today. No cycling workout is scheduled." : st ? "Coach recommends rest today." : d ? "You chose an optional alternative for today. Coach originally recommended: " + ae.reason : "Why Coach chose this: " + ae.reason;
+    const it = ((ln = V.days.find((h) => h.day === i.getDay())) == null ? void 0 : ln.cyclingId) || null, Qt = !d && ae.status === "recovery" && it && it !== ae.workoutId;
+    if (c("coachChangeDetail").hidden = !Qt, Qt) {
+      const h = r.find((Q) => Q.id === it), H = r.find((Q) => Q.id === ae.workoutId), B = h ? Math.round(X(h) / 60) : null, J = H ? Math.round(X(H) / 60) : null;
+      c("coachChangeDetail").innerHTML = '<strong>WHY TODAY CHANGED</strong><div class="coach-change-pair"><span>ORIGINAL: ' + D((h == null ? void 0 : h.name) || it) + (B === null ? "" : " · " + B + " min") + "</span><span>RECOMMENDED: " + D((H == null ? void 0 : H.name) || "Recovery spin") + (J === null ? "" : " · " + J + " min") + "</span></div><p>" + D(ae.reason) + "</p><p>See the updated training week for any changes to upcoming sessions. To ride the original workout today, select it under Swap workout.</p>";
     }
-    c("coachRestReason").textContent = _.status === "event" ? _.reason : Me ? "Your strength session is ready above. No trainer needed. You can still pick an optional cycling workout." : ae.reason, c("coachUseRecommendation").hidden = !d;
-    const Ue = re(), qn = X(Ue);
-    c("coachWorkoutInfo").innerHTML = "<div><strong>" + A(Ue.category.toUpperCase()) + "</strong><span>" + Math.round(qn / 60) + " MINUTES · " + Ue.segments.length + " SEGMENTS</span></div><p>" + A(Ue.description) + "</p>" + (P ? "" : "<p><strong>FTP not yet established:</strong> displayed watt values are examples, not individualized targets. Keep the first ride conversational and use guided SIM mode, not ERG.</p>"), c("coachSegments").innerHTML = Ue.segments.map((h, H) => {
-      const B = h.low < 0.6 ? "#86b5da" : h.low < 0.8 ? "#63d8bd" : h.low < 1 ? "#f9be70" : "#fb7489", J = Math.max(24, Math.min(100, Math.round(h.high * 80))), Q = ln(n.ftp, h), Pe = h.name + " — " + Q.duration + " duration, " + Q.range + " power range, " + Q.target + " W ERG target (" + Q.ftpRange + ")";
-      return '<button type="button" class="coach-segment" data-coach-segment="' + H + '" aria-pressed="false" aria-label="' + A(Pe) + '" title="' + A(Pe) + '" style="flex:' + h.minutes + '"><span class="coach-segment-bar" aria-hidden="true" style="height:' + J + "%;background:" + B + '"></span></button>';
-    }).join(""), pe(0), q.value = N;
-    const Qt = Xe();
-    r.getDay();
-    const en = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"], Ge = Ft(a, r);
-    c("coachGoalHeadlineLabel").textContent = a.discipline === "general" ? "Balanced cycling fitness" : a.name || ut[a.discipline], c("coachGoalHeadlineMeta").textContent = a.discipline === "general" ? "Build consistency and endurance" : (Ge.phase === "event" ? "Event underway" : Ge.phase === "post-event" ? "Event completed" : Ge.weeksLeft === null ? "Set an event date" : Ge.weeksLeft + " weeks to go") + " · " + Ge.phase.toUpperCase() + " PHASE", c("coachHeaderFtp").textContent = P ? "FTP " + n.ftp + " W" : "FTP NOT SET";
-    const tn = !!ee(Ae);
-    c("coachFirstRun").hidden = tn, c("coachStartLabel").textContent = tn ? "CONNECT MY TRAINER" : "SET UP MY PLAN TO START", c("coachProfileSummary").innerHTML = "<div><strong>" + (P ? n.ftp + " W" : "Not set") + "</strong><span>FTP</span></div><div><strong>" + n.hours + " h</strong><span>Per week</span></div><div><strong>" + n.days + " days</strong><span>Training days</span></div>";
-    const nn = I.slice(1).flatMap((h) => {
+    c("coachRestReason").textContent = _.status === "event" ? _.reason : Ie ? "Your strength session is ready above. No trainer needed. You can still pick an optional cycling workout." : ae.reason, c("coachUseRecommendation").hidden = !d && !ot;
+    const Ue = re(), Gn = X(Ue);
+    c("coachWorkoutInfo").innerHTML = "<div><strong>" + D(Ue.category.toUpperCase()) + "</strong><span>" + Math.round(Gn / 60) + " MINUTES · " + Ue.segments.length + " SEGMENTS</span></div><p>" + D(Ue.description) + "</p>" + (P ? "" : "<p><strong>FTP not yet established:</strong> displayed watt values are examples, not individualized targets. Keep the first ride conversational and use guided SIM mode, not ERG.</p>"), c("coachSegments").innerHTML = Ue.segments.map((h, H) => {
+      const B = h.low < 0.6 ? "#86b5da" : h.low < 0.8 ? "#63d8bd" : h.low < 1 ? "#f9be70" : "#fb7489", J = Math.max(24, Math.min(100, Math.round(h.high * 80))), Q = dn(n.ftp, h), Pe = h.name + " — " + Q.duration + " duration, " + Q.range + " power range, " + Q.target + " W ERG target (" + Q.ftpRange + ")";
+      return '<button type="button" class="coach-segment" data-coach-segment="' + H + '" aria-pressed="false" aria-label="' + D(Pe) + '" title="' + D(Pe) + '" style="flex:' + h.minutes + '"><span class="coach-segment-bar" aria-hidden="true" style="height:' + J + "%;background:" + B + '"></span></button>';
+    }).join(""), pe(0), q.value = x;
+    const en = Xe();
+    i.getDay();
+    const tn = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"], Ge = Wt(a, i);
+    c("coachGoalHeadlineLabel").textContent = a.discipline === "general" ? "Balanced cycling fitness" : a.name || pt[a.discipline], c("coachGoalHeadlineMeta").textContent = a.discipline === "general" ? "Build consistency and endurance" : (Ge.phase === "event" ? "Event underway" : Ge.phase === "post-event" ? "Event completed" : Ge.weeksLeft === null ? "Set an event date" : Ge.weeksLeft + " weeks to go") + " · " + Ge.phase.toUpperCase() + " PHASE", c("coachHeaderFtp").textContent = P ? "FTP " + n.ftp + " W" : "FTP NOT SET";
+    const nn = !!ee(Ae);
+    c("coachFirstRun").hidden = nn, c("coachStartLabel").textContent = nn ? "CONNECT MY TRAINER" : "SET UP MY PLAN TO START", c("coachProfileSummary").innerHTML = "<div><strong>" + (P ? n.ftp + " W" : "Not set") + "</strong><span>FTP</span></div><div><strong>" + n.hours + " h</strong><span>Per week</span></div><div><strong>" + n.days + " days</strong><span>Training days</span></div>";
+    const an = I.slice(1).flatMap((h) => {
       const H = [];
       return h.rideId && h.rideMinutes > 0 && H.push({ key: h.key, weekday: h.date.getDay(), name: h.rideName || "Cycling ride", type: "ride", id: h.rideId, minutes: h.rideMinutes }), h.strength && h.strengthMinutes > 0 && H.push({ key: h.key, weekday: h.date.getDay(), name: "Full Body Strength " + h.strength, type: "strength", id: h.strength, minutes: h.strengthMinutes }), H;
     }).slice(0, 3);
-    c("coachNextUp").innerHTML = nn.length ? nn.map(
-      (h) => '<button type="button" class="coach-upcoming-item" data-upcoming-key="' + h.key + '" data-upcoming-type="' + h.type + '" data-upcoming-workout="' + A(h.id) + '"><strong>' + en[h.weekday] + "</strong><span>" + A(h.name) + "<small>" + h.minutes + " min · " + (h.type === "ride" ? "Ride" : "Strength") + " · " + h.key + '</small></span><span aria-hidden="true">→</span></button>'
-    ).join("") : '<p class="coach-small">No more workouts in your next seven days. Rest or review your plan.</p>', c("coachPlanLibrary").innerHTML = i.map((h) => {
+    c("coachNextUp").innerHTML = an.length ? an.map(
+      (h) => '<button type="button" class="coach-upcoming-item" data-upcoming-key="' + h.key + '" data-upcoming-type="' + h.type + '" data-upcoming-workout="' + D(h.id) + '"><strong>' + tn[h.weekday] + "</strong><span>" + D(h.name) + "<small>" + h.minutes + " min · " + (h.type === "ride" ? "Ride" : "Strength") + " · " + h.key + '</small></span><span aria-hidden="true">→</span></button>'
+    ).join("") : '<p class="coach-small">No more workouts in your next seven days. Rest or review your plan.</p>', c("coachPlanLibrary").innerHTML = r.map((h) => {
       const H = Math.round(X(h) / 60);
-      return '<button type="button" class="coach-library-item" data-library-workout="' + A(h.id) + '"><span><strong>' + A(h.name) + "</strong><small>" + A(h.category) + " · " + H + ' min</small></span><span aria-hidden="true">→</span></button>';
+      return '<button type="button" class="coach-library-item" data-library-workout="' + D(h.id) + '"><span><strong>' + D(h.name) + "</strong><small>" + D(h.category) + " · " + H + ' min</small></span><span aria-hidden="true">→</span></button>';
     }).join("");
-    const an = I.map((h) => {
-      const H = Te.days.find((Q) => Q.key === h.key), B = !!h.rideId && h.rideMinutes > 0, J = B ? i.find((Q) => Q.id === h.rideId) : void 0;
+    const on = I.map((h) => {
+      const H = Me.days.find((Q) => Q.key === h.key), B = !!h.rideId && h.rideMinutes > 0, J = B ? r.find((Q) => Q.id === h.rideId) : void 0;
       return {
         key: h.key,
         weekday: h.date.getDay(),
@@ -1980,138 +1985,157 @@ function Ha(e) {
         changed: (H == null ? void 0 : H.changed) ?? !1,
         missingWorkout: B && !J
       };
-    }), Un = an.reduce((h, H) => h + H.minutes + H.strengthMinutes, 0);
-    c("coachPlanBudget").textContent = "Next 7 days cycling + strength: " + (Un / 60).toFixed(1) + " h · Weekly time goal: " + (K.budgetMinutes / 60).toFixed(1) + " h · " + K.note, c("coachWeek").innerHTML = an.map((h) => {
-      const H = h.key < u, B = h.workoutId && h.name && h.minutes > 0 && !H ? '<button type="button" data-day-workout="' + A(h.workoutId) + '" data-day-key="' + h.key + '"><span><strong>🚴 ' + A(h.name) + "</strong><small>" + h.minutes + " min · " + (h.changed ? "Adjusted · " : "") + 'Classic cycling</small></span><span aria-hidden="true">→</span></button>' : h.missingWorkout ? '<span class="coach-day-warning">Workout missing from library — review your setup</span>' : h.status === "completed" ? '<span class="coach-day-rest">✓ Ride recorded</span>' : h.status === "skipped" ? '<span class="coach-day-rest">Skipped by you · not rescheduled</span>' : h.status === "missed" ? '<span class="coach-day-rest">Not completed · not rescheduled</span>' : h.status === "event" ? '<span class="coach-day-event">🏁 Event day · no indoor session scheduled</span>' : "", J = h.strength && !H ? '<button type="button" class="coach-day-strength" data-strength-day="' + h.weekday + '" data-strength-variation="' + h.strength + '"><span><strong>▥ Full Body Strength ' + h.strength + "</strong><small>" + h.strengthMinutes + " min" + (h.key === u ? "" : " · Start today (optional)") + " · " + A(((D == null ? void 0 : D.settings.equipment) || []).filter((Q) => Q !== "bodyweight").join(", ") || "Bodyweight") + '</small></span><span aria-hidden="true">→</span></button>' : h.strength ? '<span class="coach-day-rest">Strength was scheduled</span>' : "";
-      return '<div class="coach-day-row ' + (h.key === u ? "coach-week-today" : "") + '"><span class="coach-day-label">' + en[h.weekday] + "<small>" + A(h.key.slice(5)) + '</small></span><div class="coach-day-items">' + (B + J || '<span class="coach-day-rest">Rest day</span>') + (h.changed ? '<small class="coach-adaptive-inline">' + A(h.reason) + "</small>" : "") + "</div></div>";
+    }), jn = on.reduce((h, H) => h + H.minutes + H.strengthMinutes, 0);
+    c("coachPlanBudget").textContent = "Next 7 days cycling + strength: " + (jn / 60).toFixed(1) + " h · Weekly time goal: " + (V.budgetMinutes / 60).toFixed(1) + " h · " + V.note, c("coachWeek").innerHTML = on.map((h) => {
+      const H = h.key < u, B = h.workoutId && h.name && h.minutes > 0 && !H ? '<button type="button" data-day-workout="' + D(h.workoutId) + '" data-day-key="' + h.key + '"><span><strong>🚴 ' + D(h.name) + "</strong><small>" + h.minutes + " min · " + (h.changed ? "Adjusted · " : "") + 'Classic cycling</small></span><span aria-hidden="true">→</span></button>' : h.missingWorkout ? '<span class="coach-day-warning">Workout missing from library — review your setup</span>' : h.status === "completed" ? '<span class="coach-day-rest">✓ Ride recorded</span>' : h.status === "skipped" ? '<span class="coach-day-rest">Skipped by you · not rescheduled</span>' : h.status === "missed" ? '<span class="coach-day-rest">Not completed · not rescheduled</span>' : h.status === "event" ? '<span class="coach-day-event">🏁 Event day · no indoor session scheduled</span>' : "", J = h.strength && !H ? '<button type="button" class="coach-day-strength" data-strength-day="' + h.weekday + '" data-strength-variation="' + h.strength + '"><span><strong>▥ Full Body Strength ' + h.strength + "</strong><small>" + h.strengthMinutes + " min" + (h.key === u ? "" : " · Start today (optional)") + " · " + D(((A == null ? void 0 : A.settings.equipment) || []).filter((Q) => Q !== "bodyweight").join(", ") || "Bodyweight") + '</small></span><span aria-hidden="true">→</span></button>' : h.strength ? '<span class="coach-day-rest">Strength was scheduled</span>' : "";
+      return '<div class="coach-day-row ' + (h.key === u ? "coach-week-today" : "") + '"><span class="coach-day-label">' + tn[h.weekday] + "<small>" + D(h.key.slice(5)) + '</small></span><div class="coach-day-items">' + (B + J || '<span class="coach-day-rest">Rest day</span>') + (h.changed ? '<small class="coach-adaptive-inline">' + D(h.reason) + "</small>" : "") + "</div></div>";
     }).join("");
-    const je = c("coachStrengthToday"), on = c("coachViewToday").querySelector(".coach-today-grid"), sn = c("coachViewToday").querySelector(".coach-today-side");
-    if (Me ? on.insertBefore(je, on.firstElementChild) : sn.insertBefore(je, sn.firstElementChild), je.classList.toggle("coach-strength-primary", Me), je.hidden = !St, St) {
-      const h = Ht(D.settings, _.strength, $t);
-      je.innerHTML = '<div class="coach-section-top"><span class="coach-tag">TODAY · STRENGTH</span><span class="coach-tag">' + (Et ? "COMPLETED" : "NO TRAINER NEEDED") + "</span></div><h3>" + A(h.title) + "</h3><p>" + _.strengthMinutes + " minutes · " + h.exercises.length + " movements · Matched to your available equipment." + ($t ? " Recent fatigue suggests going easy or skipping." : "") + '</p><button type="button" id="coachStartStrength" ' + (Et ? "disabled" : "") + ">" + (Et ? "✓ SESSION LOGGED" : "START STRENGTH WORKOUT →") + "</button>";
+    const je = c("coachStrengthToday"), sn = c("coachViewToday").querySelector(".coach-today-grid"), rn = c("coachViewToday").querySelector(".coach-today-side");
+    if (Ie ? sn.insertBefore(je, sn.firstElementChild) : rn.insertBefore(je, rn.firstElementChild), je.classList.toggle("coach-strength-primary", Ie), je.hidden = !Et, Et) {
+      const h = Ft(A.settings, _.strength, Jt);
+      je.innerHTML = '<div class="coach-section-top"><span class="coach-tag">TODAY · STRENGTH</span><span class="coach-tag">' + (kt ? "COMPLETED" : "NO TRAINER NEEDED") + "</span></div><h3>" + D(h.title) + "</h3><p>" + _.strengthMinutes + " minutes · " + h.exercises.length + " movements · Matched to your available equipment." + (Jt ? " Recent fatigue suggests going easy or skipping." : "") + '</p><button type="button" id="coachStartStrength" ' + (kt ? "disabled" : "") + ">" + (kt ? "✓ SESSION LOGGED" : "START STRENGTH WORKOUT →") + "</button>";
     }
-    c("coachStrengthHistory").innerHTML = D != null && D.history.length ? '<div class="coach-strength-history">' + D.history.slice(-6).reverse().map((h) => "<div><span><strong>" + A(h.routine) + "</strong><br>" + new Date(h.date).toLocaleDateString() + "</span><small>" + h.completedSets + "/" + h.plannedSets + " sets · " + h.minutes + " min</small></div>").join("") + "</div>" : '<p class="coach-small">Completed strength training sessions will appear here.</p>', c("coachHistory").innerHTML = Qt.length ? Qt.slice(-5).reverse().map((h) => '<div class="coach-history-row"><strong>' + A(h.workout) + "</strong><span>" + new Date(h.date).toLocaleDateString() + " · " + Math.round(h.elapsedSeconds / 60) + " min · " + A(h.mode.toUpperCase()) + "</span></div>").join("") : '<p class="coach-small">Your coached rides will appear here.</p>', c("coachSuggestion").textContent = Me ? "Your strength workout is ready. No smart trainer needed." : D != null && D.settings.enabled ? "Your next workout is ready. Cycling and strength fit within your weekly time." : "Your next workout is ready. Coach considers your schedule and recent riding.", c("coachSwapList").innerHTML = i.filter((h) => h.id !== "preview").map((h) => '<button type="button" data-swap-workout="' + A(h.id) + '"><span><strong>' + A(h.name) + "</strong><small>" + A(h.category) + " · " + Math.round(X(h) / 60) + ' min</small></span><span aria-hidden="true">→</span></button>').join("");
+    c("coachStrengthHistory").innerHTML = A != null && A.history.length ? '<div class="coach-strength-history">' + A.history.slice(-6).reverse().map((h) => "<div><span><strong>" + D(h.routine) + "</strong><br>" + new Date(h.date).toLocaleDateString() + "</span><small>" + h.completedSets + "/" + h.plannedSets + " sets · " + h.minutes + " min</small></div>").join("") + "</div>" : '<p class="coach-small">Completed strength training sessions will appear here.</p>', c("coachHistory").innerHTML = en.length ? en.slice(-5).reverse().map((h) => '<div class="coach-history-row"><strong>' + D(h.workout) + "</strong><span>" + new Date(h.date).toLocaleDateString() + " · " + Math.round(h.elapsedSeconds / 60) + " min · " + D(h.mode.toUpperCase()) + "</span></div>").join("") : '<p class="coach-small">Your coached rides will appear here.</p>', c("coachSuggestion").textContent = Ie ? "Your strength workout is ready. No smart trainer needed." : A != null && A.settings.enabled ? "Your next workout is ready. Cycling and strength fit within your weekly time." : "Your next workout is ready. Coach considers your schedule and recent riding.", c("coachSwapList").innerHTML = r.filter((h) => h.id !== "preview").map((h) => '<button type="button" data-swap-workout="' + D(h.id) + '"><span><strong>' + D(h.name) + "</strong><small>" + D(h.category) + " · " + Math.round(X(h) / 60) + ' min</small></span><span aria-hidden="true">→</span></button>').join("");
   }
-  function qt(r, u) {
-    i.some((p) => p.id === r) && (o = r, d = !0, s = null, y = null, c("coachSwapPanel").hidden = !0, c("coachSwapToggle").setAttribute("aria-expanded", "false"), ne(), c("coachAnswer").textContent = u);
+  function Ut(i, u) {
+    const g = r.find((w) => w.id === i);
+    if (!g) return;
+    const p = Ma(f, ke(/* @__PURE__ */ new Date()), {
+      cyclingId: i,
+      cyclingMinutes: Math.round(X(g) / 60)
+    });
+    if (p === f || !de(ct, p)) {
+      c("coachStatus").textContent = "Could not save your replacement workout. Check browser storage.";
+      return;
+    }
+    f = p, o = i, d = !1, s = null, y = null, c("coachSwapPanel").hidden = !0, c("coachSwapToggle").setAttribute("aria-expanded", "false"), ne(), c("coachAnswer").textContent = u, c("coachStatus").textContent = "Saved for today. Your calendar and workout are updated.";
   }
   c("coachSkipToday").addEventListener("click", () => {
-    const r = Ne(/* @__PURE__ */ new Date()), u = new Set(x());
-    if (u.has(r) ? u.delete(r) : u.add(r), !de(R, Array.from(u).slice(-90))) {
+    const i = ke(/* @__PURE__ */ new Date()), u = new Set(N());
+    if (u.has(i) ? u.delete(i) : u.add(i), !de(R, Array.from(u).slice(-90))) {
       c("coachStatus").textContent = "Could not save the skipped session. Check browser storage.";
       return;
     }
     d = !1, s = null, y = null, ne();
   }), c("coachSwapToggle").addEventListener("click", () => {
-    const r = c("coachSwapPanel");
-    r.hidden = !r.hidden, c("coachSwapToggle").setAttribute("aria-expanded", String(!r.hidden));
+    const i = c("coachSwapPanel");
+    i.hidden = !i.hidden, c("coachSwapToggle").setAttribute("aria-expanded", String(!i.hidden));
   }), c("coachBrowseOptional").addEventListener("click", () => {
     c("coachSwapPanel").hidden = !1, c("coachSwapToggle").setAttribute("aria-expanded", "true");
   }), c("coachUseRecommendation").addEventListener("click", () => {
+    const i = ke(/* @__PURE__ */ new Date());
+    if (Object.prototype.hasOwnProperty.call(f, i)) {
+      const u = { ...f };
+      if (delete u[i], !de(ct, u)) {
+        c("coachStatus").textContent = "Could not restore the original recommendation. Check browser storage.";
+        return;
+      }
+      f = u;
+    }
     d = !1, s = null, y = null, ne(), c("coachAnswer").textContent = "Back to your Coach recommendation.";
-  }), c("coachSwapList").addEventListener("click", (r) => {
-    const u = r.target;
+  }), c("coachSwapList").addEventListener("click", (i) => {
+    const u = i.target;
     if (!(u instanceof Element)) return;
-    const p = u.closest("[data-swap-workout]");
-    p != null && p.dataset.swapWorkout && qt(p.dataset.swapWorkout, "Workout swapped for today. Your weekly plan has not changed.");
-  }), M.querySelectorAll("[data-coach-question]").forEach((r) => r.addEventListener("click", () => {
-    const u = r.dataset.coachQuestion;
-    if (u === "tired") qt("recovery", "Easy recovery selected for today. Rest instead if you feel unusually fatigued or unwell.");
+    const g = u.closest("[data-swap-workout]");
+    g != null && g.dataset.swapWorkout && Ut(g.dataset.swapWorkout, "Replacement workout saved for today. Other days are unchanged.");
+  }), M.querySelectorAll("[data-coach-question]").forEach((i) => i.addEventListener("click", () => {
+    const u = i.dataset.coachQuestion;
+    if (u === "tired") Ut("recovery", "Easy recovery selected for today. Rest instead if you feel unusually fatigued or unwell.");
     else if (u === "short") {
-      const p = re(), g = Math.max(15, Math.min(30, Math.floor(X(p) / 60 * 0.65))), w = Tt(p, g);
-      w === p ? c("coachAnswer").textContent = "This workout is already brief. You can swap to Recovery Spin or take a rest day." : (y = w, d = !0, ne(), c("coachAnswer").textContent = "Shorter session prepared. Coach kept the power ranges and reduced interval durations.");
+      const g = re(), p = Math.max(15, Math.min(30, Math.floor(X(g) / 60 * 0.65))), w = Mt(g, p);
+      w === g ? c("coachAnswer").textContent = "This workout is already brief. You can swap to Recovery Spin or take a rest day." : (y = w, d = !0, ne(), c("coachAnswer").textContent = "Shorter session prepared. Coach kept the power ranges and reduced interval durations.");
     } else {
-      const p = fe(), g = un(n, /* @__PURE__ */ new Date(), Oe(), Ce(), p.days.map((w) => ({ day: w.day, workoutId: w.cyclingId, reason: w.reason })));
-      c("coachAnswer").textContent = g.reason + (d ? " You have selected an alternative for today." : "");
+      const g = fe(), p = hn(n, /* @__PURE__ */ new Date(), Oe(), Re(), g.days.map((w) => ({ day: w.day, workoutId: w.cyclingId, reason: w.reason })));
+      c("coachAnswer").textContent = p.reason + (d ? " You have selected an alternative for today." : "");
     }
   }));
-  function pt(r, u) {
-    if (D != null && D.settings.enabled) {
+  function mt(i, u) {
+    if (A != null && A.settings.enabled) {
       if (e.isRiding()) {
         alert("Finish your active cycling session before starting strength training.");
         return;
       }
-      D.open(r, Le(), u);
+      A.open(i, Le(), u);
     }
   }
-  c("coachWeek").addEventListener("click", (r) => {
-    const u = r.target;
+  c("coachWeek").addEventListener("click", (i) => {
+    const u = i.target;
     if (!(u instanceof Element)) return;
-    const p = u.closest("[data-strength-variation]");
-    if (p) {
-      const w = Number(p.dataset.strengthDay), G = fe().days[w];
-      G != null && G.strength && pt(G.strength, G.strengthMinutes);
+    const g = u.closest("[data-strength-variation]");
+    if (g) {
+      const w = Number(g.dataset.strengthDay), G = fe().days[w];
+      G != null && G.strength && mt(G.strength, G.strengthMinutes);
       return;
     }
-    const g = u.closest("[data-day-workout]");
-    if (g != null && g.dataset.dayWorkout) {
-      const w = I.find((L) => L.key === g.dataset.dayKey);
-      o = g.dataset.dayWorkout, d = !0, s = (w == null ? void 0 : w.rideMinutes) ?? null, y = null, ne(), j("today");
+    const p = u.closest("[data-day-workout]");
+    if (p != null && p.dataset.dayWorkout) {
+      const w = I.find((L) => L.key === p.dataset.dayKey);
+      o = p.dataset.dayWorkout, d = !0, s = (w == null ? void 0 : w.rideMinutes) ?? null, y = null, ne(), j("today");
     }
-  }), c("coachStrengthToday").addEventListener("click", (r) => {
-    const u = r.target;
+  }), c("coachStrengthToday").addEventListener("click", (i) => {
+    const u = i.target;
     if (!(u instanceof Element) || !u.closest("#coachStartStrength")) return;
-    const g = fe().days[(/* @__PURE__ */ new Date()).getDay()];
-    g != null && g.strength && pt(g.strength, g.strengthMinutes);
-  }), c("coachPlanLibrary").addEventListener("click", (r) => {
-    const u = r.target.closest("[data-library-workout]");
+    const p = fe().days[(/* @__PURE__ */ new Date()).getDay()];
+    p != null && p.strength && mt(p.strength, p.strengthMinutes);
+  }), c("coachPlanLibrary").addEventListener("click", (i) => {
+    const u = i.target.closest("[data-library-workout]");
     u != null && u.dataset.libraryWorkout && (o = u.dataset.libraryWorkout, d = !0, s = null, y = null, ne(), j("today"));
-  }), c("coachNextUp").addEventListener("click", (r) => {
-    const u = r.target.closest("[data-upcoming-workout]");
+  }), c("coachNextUp").addEventListener("click", (i) => {
+    const u = i.target.closest("[data-upcoming-workout]");
     if (u != null && u.dataset.upcomingWorkout)
       if (u.dataset.upcomingType === "strength")
         j("plan", !0);
       else {
-        const p = I.find((g) => g.key === u.dataset.upcomingKey);
-        o = u.dataset.upcomingWorkout, d = !0, s = (p == null ? void 0 : p.rideMinutes) ?? null, y = null, ne(), j("today");
+        const g = I.find((p) => p.key === u.dataset.upcomingKey);
+        o = u.dataset.upcomingWorkout, d = !0, s = (g == null ? void 0 : g.rideMinutes) ?? null, y = null, ne(), j("today");
       }
   }), q.addEventListener("change", () => {
-    N = q.value, !P && N === "structured" && (N = "guided", q.value = "guided", c("coachStatus").textContent = "Set a reliable FTP in My Setup before selecting automatic ERG. Ride by feel is available now.");
+    x = q.value, !P && x === "structured" && (x = "guided", q.value = "guided", c("coachStatus").textContent = "Set a reliable FTP in My Setup before selecting automatic ERG. Ride by feel is available now.");
   }), c("coachFtpKnown").addEventListener("change", () => {
-    const r = c("coachFtpKnown").value === "yes";
-    c("coachFtp").disabled = !r, c("coachFtpHelp").textContent = r ? "Enter the FTP from your latest reliable assessment." : "No FTP required for your first demo. Indoor rides will default to guided SIM, not automatic ERG watt targets.";
+    const i = c("coachFtpKnown").value === "yes";
+    c("coachFtp").disabled = !i, c("coachFtpHelp").textContent = i ? "Enter the FTP from your latest reliable assessment." : "No FTP required for your first demo. Indoor rides will default to guided SIM, not automatic ERG watt targets.";
   });
-  function gt(r, u, p) {
-    const g = c(r);
-    if (!g.value.trim()) return null;
-    const w = Number(g.value);
-    if (!Number.isInteger(w) || w < u || w > p) throw Error(r + " must be a whole number from " + u + " to " + p + ".");
+  function yt(i, u, g) {
+    const p = c(i);
+    if (!p.value.trim()) return null;
+    const w = Number(p.value);
+    if (!Number.isInteger(w) || w < u || w > g) throw Error(i + " must be a whole number from " + u + " to " + g + ".");
     return w;
   }
   c("coachSaveCheckin").addEventListener("click", () => {
     try {
-      const r = /* @__PURE__ */ new Date(), u = Ne(r), p = {
+      const i = /* @__PURE__ */ new Date(), u = ke(i), g = {
         date: u,
         feeling: c("coachFeeling").value,
-        bodyBattery: gt("coachBattery", 0, 100),
-        sleepScore: gt("coachSleep", 0, 100),
-        hrvMs: gt("coachHrv", 1, 300)
-      }, g = At(p, u);
-      if (!g || !de(Rt, g)) throw Error("Could not save check-in. Verify browser storage.");
+        bodyBattery: yt("coachBattery", 0, 100),
+        sleepScore: yt("coachSleep", 0, 100),
+        hrvMs: yt("coachHrv", 1, 300)
+      }, p = At(g, u);
+      if (!p || !de(Dt, p)) throw Error("Could not save check-in. Verify browser storage.");
       c("coachCheckinFeedback").textContent = "Saved for today. Your recommendation has been refreshed.", ne();
-    } catch (r) {
-      c("coachCheckinFeedback").textContent = r instanceof Error ? r.message : "Invalid check-in.";
+    } catch (i) {
+      c("coachCheckinFeedback").textContent = i instanceof Error ? i.message : "Invalid check-in.";
     }
   }), c("coachEventDiscipline").addEventListener("change", oe), c("coachEventDate").addEventListener("change", oe), c("coachSaveProfile").addEventListener("click", () => {
-    const r = Nt({ discipline: c("coachEventDiscipline").value, name: c("coachEventName").value, date: c("coachEventDate").value, priority: c("coachEventPriority").value, objective: c("coachEventObjective").value, terrain: c("coachEventTerrain").value, distanceKm: c("coachEventDistance").value ? Number(c("coachEventDistance").value) * 1.609344 : "", durationMinutes: c("coachEventDuration").value, elevationM: c("coachEventElevation").value ? Number(c("coachEventElevation").value) * 0.3048 : "", stages: c("coachEventStages").value });
-    if (c("coachEventDate").value && !r.date) {
+    const i = Nt({ discipline: c("coachEventDiscipline").value, name: c("coachEventName").value, date: c("coachEventDate").value, priority: c("coachEventPriority").value, objective: c("coachEventObjective").value, terrain: c("coachEventTerrain").value, distanceKm: c("coachEventDistance").value ? Number(c("coachEventDistance").value) * 1.609344 : "", durationMinutes: c("coachEventDuration").value, elevationM: c("coachEventElevation").value ? Number(c("coachEventElevation").value) * 0.3048 : "", stages: c("coachEventStages").value });
+    if (c("coachEventDate").value && !i.date) {
       c("coachSettingsFeedback").textContent = "Please enter a valid event date.";
       return;
     }
     const u = [["coachEventDistance", "event distance"], ["coachEventElevation", "total climbing"], ["coachEventDuration", "estimated riding time"]];
-    r.discipline === "stage-race" && u.push(["coachEventStages", "number of stages"]);
-    const p = u.find(([w]) => !c(w).checkValidity());
-    if (p) {
-      const w = c(p[0]);
-      c("coachSettingsFeedback").textContent = "Please check " + p[1] + ": " + (w.validationMessage || "enter a valid value") + ".", w.focus();
+    i.discipline === "stage-race" && u.push(["coachEventStages", "number of stages"]);
+    const g = u.find(([w]) => !c(w).checkValidity());
+    if (g) {
+      const w = c(g[0]);
+      c("coachSettingsFeedback").textContent = "Please check " + g[1] + ": " + (w.validationMessage || "enter a valid value") + ".", w.focus();
       return;
     }
-    if (!de(Cn, r)) {
+    if (!de(Cn, i)) {
       c("coachSettingsFeedback").textContent = "Could not save your event goal. Check browser storage.";
       return;
     }
-    a = r;
-    const g = xe({
+    a = i;
+    const p = Ne({
       ftp: Number(c("coachFtp").value),
       hours: Number(c("coachHours").value),
       days: Number(c("coachDays").value),
@@ -2119,11 +2143,11 @@ function Ha(e) {
       experience: c("coachExperience").value,
       goal: c("coachGoal").value
     });
-    if (!(D != null && D.saveSettings())) {
+    if (!(A != null && A.saveSettings())) {
       c("coachSettingsFeedback").textContent = "Could not save strength equipment. Check your browser storage and try again.";
       return;
     }
-    if (n = g, P = c("coachFtpKnown").value === "yes", !de(Ae, n)) {
+    if (n = p, P = c("coachFtpKnown").value === "yes", !de(Ae, n)) {
       c("coachSettingsFeedback").textContent = "Strength equipment saved, but cycling settings could not be stored. Enable browser storage and retry.";
       return;
     }
@@ -2131,139 +2155,139 @@ function Ha(e) {
       c("coachSettingsFeedback").textContent = "Could not save FTP status. Check browser storage.";
       return;
     }
-    P || (N = "guided"), q.value = N, d = !1, s = null, y = null, le(), ne(), c("coachSettingsFeedback").textContent = "✓ Saved! Your cycling, strength, and weekly plan are updated.", j("today", !0), c("coachAnswer").textContent = "Your plan is saved. Coach has prepared today’s recommendation.";
+    P || (x = "guided"), q.value = x, d = !1, s = null, y = null, le(), ne(), c("coachSettingsFeedback").textContent = "✓ Saved! Your cycling, strength, and weekly plan are updated.", j("today", !0), c("coachAnswer").textContent = "Your plan is saved. Coach has prepared today’s recommendation.";
   });
-  function Ut() {
-    (k == null ? void 0 : k.control) === "structured" && !V && e.setMode("sim");
+  function Gt() {
+    (k == null ? void 0 : k.control) === "structured" && !K && e.setMode("sim");
   }
-  async function mt() {
-    const r = c("coachPlatformHistory");
+  async function vt() {
+    const i = c("coachPlatformHistory");
     try {
       Y = await e.getPlatformRides();
       try {
-        v = await xn();
+        v = await Nn();
       } catch {
         v = [];
       }
-      const u = Y.filter((w) => Number.isFinite(w.start) && w.start >= Date.now() - 7 * 864e5 && w.start <= Date.now()), p = u.reduce((w, L) => w + Math.max(0, L.elapsed), 0) / 3600, g = ["classic", "survival", "cyclequest"];
-      r.innerHTML = '<p class="coach-small">' + Y.length + " locally saved rides · " + p.toFixed(1) + " hours in the last 7 days. All three riding modes contribute to your training history. Only Classic uses prescribed workouts.</p>" + g.map((w) => '<div class="coach-history-row"><strong>' + { classic: "CLASSIC", survival: "SURVIVAL", cyclequest: "CYCLE QUEST" }[w] + "</strong><span>" + u.filter((L) => L.mode === w).length + " rides · " + (u.filter((L) => L.mode === w).reduce((L, G) => L + G.elapsed, 0) / 3600).toFixed(1) + " hours this week</span></div>").join("") + '<p class="coach-small">Older rides without a mode label count toward total hours. A potential hard-game-day alert uses duration and average power, not a clinical recovery assessment.</p>', ne();
+      const u = Y.filter((w) => Number.isFinite(w.start) && w.start >= Date.now() - 7 * 864e5 && w.start <= Date.now()), g = u.reduce((w, L) => w + Math.max(0, L.elapsed), 0) / 3600, p = ["classic", "survival", "cyclequest"];
+      i.innerHTML = '<p class="coach-small">' + Y.length + " locally saved rides · " + g.toFixed(1) + " hours in the last 7 days. All three riding modes contribute to your training history. Only Classic uses prescribed workouts.</p>" + p.map((w) => '<div class="coach-history-row"><strong>' + { classic: "CLASSIC", survival: "SURVIVAL", cyclequest: "CYCLE QUEST" }[w] + "</strong><span>" + u.filter((L) => L.mode === w).length + " rides · " + (u.filter((L) => L.mode === w).reduce((L, G) => L + G.elapsed, 0) / 3600).toFixed(1) + " hours this week</span></div>").join("") + '<p class="coach-small">Older rides without a mode label count toward total hours. A potential hard-game-day alert uses duration and average power, not a clinical recovery assessment.</p>', ne();
     } catch (u) {
-      r.textContent = "Local ride history could not be loaded: " + String(u instanceof Error ? u.message : u);
+      i.textContent = "Local ride history could not be loaded: " + String(u instanceof Error ? u.message : u);
     }
   }
-  function yt() {
-    k && k.elapsed > 0 && !V && _t(k, null), Ut(), k = null, V = !1, vt(), O.hidden = !0, Ye();
+  function ft() {
+    k && k.elapsed > 0 && !K && zt(k, null), Gt(), k = null, K = !1, bt(), O.hidden = !0, Ye();
   }
-  F("coachEnd").addEventListener("click", yt), F("coachMinimize").addEventListener("click", () => {
+  F("coachEnd").addEventListener("click", ft), F("coachMinimize").addEventListener("click", () => {
     O.classList.toggle("coach-hud-minimized"), F("coachMinimize").textContent = O.classList.contains("coach-hud-minimized") ? "+" : "−";
   });
-  function Gt(r) {
-    k && (k.adjusted = Math.round(Math.min(1.25, Math.max(0.7, k.adjusted + r)) * 100) / 100, k.control === "structured" && !V && e.setTarget(De(k.ftp, Ke(k.workout, k.elapsed).segment, k.adjusted)), ft());
+  function jt(i) {
+    k && (k.adjusted = Math.round(Math.min(1.25, Math.max(0.7, k.adjusted + i)) * 100) / 100, k.control === "structured" && !K && e.setTarget(xe(k.ftp, Ve(k.workout, k.elapsed).segment, k.adjusted)), wt());
   }
-  F("coachLighter").addEventListener("click", () => Gt(-0.05)), F("coachHarder").addEventListener("click", () => Gt(0.05));
-  function jt(r, u, p, g = !1) {
+  F("coachLighter").addEventListener("click", () => jt(-0.05)), F("coachHarder").addEventListener("click", () => jt(0.05));
+  function Vt(i, u, g, p = !1) {
     if (k || e.isRiding()) {
       c("coachStatus").textContent = "Finish the current ride or coaching session before starting a new one.";
       return;
     }
-    const L = Gn().includes(p) ? p : "structured";
-    k = { workout: r, mode: u, control: L, ftp: n.ftp, elapsed: 0, adjusted: 1, measured: 0, inRange: 0, sumWatts: 0, countWatts: 0, done: !1, previousIndex: -1 }, ce = "", V = g, Ye(), O.hidden = !1, O.classList.remove("coach-hud-minimized"), F("coachMinimize").textContent = "−", g || (e.setMode(L === "structured" ? "target" : "sim"), L === "structured" && e.setTarget(De(n.ftp, r.segments[0])), e.makeRoute(X(r), L === "structured"), e.launchMode("classic")), ft();
+    const L = Vn().includes(g) ? g : "structured";
+    k = { workout: i, mode: u, control: L, ftp: n.ftp, elapsed: 0, adjusted: 1, measured: 0, inRange: 0, sumWatts: 0, countWatts: 0, done: !1, previousIndex: -1 }, ce = "", K = p, Ye(), O.hidden = !1, O.classList.remove("coach-hud-minimized"), F("coachMinimize").textContent = "−", p || (e.setMode(L === "structured" ? "target" : "sim"), L === "structured" && e.setTarget(xe(n.ftp, i.segments[0])), e.makeRoute(X(i), L === "structured"), e.launchMode("classic")), wt();
   }
   c("coachStartClassic").addEventListener("click", () => {
     if (!ee(Ae)) {
       j("settings", !0);
       return;
     }
-    !P && N === "structured" && (N = "guided", q.value = "guided", c("coachStatus").textContent = "FTP is not set. Starting guided ride-by-feel instead of automatic watt targets."), jt(re(), "classic", N);
+    !P && x === "structured" && (x = "guided", q.value = "guided", c("coachStatus").textContent = "FTP is not set. Starting guided ride-by-feel instead of automatic watt targets."), Vt(re(), "classic", x);
   });
-  let nt = null;
+  let at = null;
   const we = document.createElement("div");
-  we.id = "coachDemoControls", we.hidden = !0, we.innerHTML = '<label>SIMULATED POWER <input id="coachDemoPower" type="range" min="0" max="450" step="5" value="130"></label><span id="coachDemoWatts">130 W</span><button type="button" id="coachDemoStop">STOP DEMO</button>', O.append(we), nt = we.querySelector("#coachDemoPower"), nt.addEventListener("input", () => {
-    b = Number(nt.value), Ze(we, "coachDemoWatts").textContent = b + " W";
+  we.id = "coachDemoControls", we.hidden = !0, we.innerHTML = '<label>SIMULATED POWER <input id="coachDemoPower" type="range" min="0" max="450" step="5" value="130"></label><span id="coachDemoWatts">130 W</span><button type="button" id="coachDemoStop">STOP DEMO</button>', O.append(we), at = we.querySelector("#coachDemoPower"), at.addEventListener("input", () => {
+    b = Number(at.value), Ze(we, "coachDemoWatts").textContent = b + " W";
   }), Ze(we, "coachDemoStop").addEventListener("click", () => {
-    yt(), ve();
+    ft(), ve();
   });
   function Kt() {
-    const r = kt(n).find((p) => p.id === "preview");
-    b = 130, nt.value = "130", jt(r, "classic", N, !0), vt(), we.hidden = !1;
+    const i = Tt(n).find((g) => g.id === "preview");
+    b = 130, at.value = "130", Vt(i, "classic", x, !0), bt(), we.hidden = !1;
     let u = performance.now();
     ye = window.setInterval(() => {
-      const p = performance.now(), g = Math.min(1.5, (p - u) / 1e3);
-      u = p, Vt(g, b, 85, !0);
+      const g = performance.now(), p = Math.min(1.5, (g - u) / 1e3);
+      u = g, _t(p, b, 85, !0);
     }, 250);
   }
   c("coachDemo").addEventListener("click", Kt), c("coachFirstRunDemo").addEventListener("click", Kt);
-  function vt() {
+  function bt() {
     ye !== null && window.clearInterval(ye), ye = null, we.hidden = !0;
   }
-  function ft(r = null) {
+  function wt(i = null) {
     if (!k) return;
-    const u = k.workout, p = Ke(u, k.elapsed), g = p.done || k.done, w = De(k.ftp, p.segment, k.adjusted);
-    F("coachHudState").textContent = V ? "SIMULATED DEMO" : g ? "WORKOUT COMPLETE" : k.elapsed === 0 ? "WAITING FOR PEDALS" : k.control === "structured" ? "ERG CONTROL" : k.control === "guided" ? "GUIDED SIM" : "RECORD ONLY", F("coachActual").innerHTML = (r === null ? "—" : String(Math.round(r))) + "<span> W</span>", F("coachTarget").innerHTML = String(w) + "<span> W</span>", F("coachRemaining").textContent = g ? "DONE" : ct(p.remaining), F("coachInterval").textContent = p.segment.name.toUpperCase() + " · " + Math.round(p.segment.low * 100) + "–" + Math.round(p.segment.high * 100) + "% FTP", F("coachSessionClock").textContent = ct(k.elapsed) + " / " + ct(X(u)), F("coachProgressBar").style.width = Math.round(k.elapsed / X(u) * 100) + "%";
+    const u = k.workout, g = Ve(u, k.elapsed), p = g.done || k.done, w = xe(k.ftp, g.segment, k.adjusted);
+    F("coachHudState").textContent = K ? "SIMULATED DEMO" : p ? "WORKOUT COMPLETE" : k.elapsed === 0 ? "WAITING FOR PEDALS" : k.control === "structured" ? "ERG CONTROL" : k.control === "guided" ? "GUIDED SIM" : "RECORD ONLY", F("coachActual").innerHTML = (i === null ? "—" : String(Math.round(i))) + "<span> W</span>", F("coachTarget").innerHTML = String(w) + "<span> W</span>", F("coachRemaining").textContent = p ? "DONE" : ut(g.remaining), F("coachInterval").textContent = g.segment.name.toUpperCase() + " · " + Math.round(g.segment.low * 100) + "–" + Math.round(g.segment.high * 100) + "% FTP", F("coachSessionClock").textContent = ut(k.elapsed) + " / " + ut(X(u)), F("coachProgressBar").style.width = Math.round(k.elapsed / X(u) * 100) + "%";
     let L = "Connect a trainer, then start pedaling.";
-    V ? L = "SIMULATED telemetry only — no physical trainer or ride record." : g ? L = "Workout complete! Finish your ride when ready." : k.elapsed > 0 && r !== null && (L = dn(r, k.ftp, p.segment, k.adjusted) ? "On target. Smooth and controlled." : r < k.ftp * p.segment.low * k.adjusted ? "Below target. Build effort gradually." : "Above target. Ease back to your prescribed effort."), F("coachPrompt").textContent = L;
+    K ? L = "SIMULATED telemetry only — no physical trainer or ride record." : p ? L = "Workout complete! Finish your ride when ready." : k.elapsed > 0 && i !== null && (L = un(i, k.ftp, g.segment, k.adjusted) ? "On target. Smooth and controlled." : i < k.ftp * g.segment.low * k.adjusted ? "Below target. Build effort gradually." : "Above target. Ease back to your prescribed effort."), F("coachPrompt").textContent = L;
   }
-  function Vt(r, u, p, g) {
-    if (!k || k.done || !Number.isFinite(r) || r <= 0 || !g && !V || !V && (!Number.isFinite(p) || p < 10)) return;
-    const w = Ke(k.workout, k.elapsed);
-    k.previousIndex !== w.index && (k.previousIndex = w.index, k.control === "structured" && !V && e.setTarget(De(k.ftp, w.segment, k.adjusted)));
-    const L = Math.min(3, r, X(k.workout) - k.elapsed);
+  function _t(i, u, g, p) {
+    if (!k || k.done || !Number.isFinite(i) || i <= 0 || !p && !K || !K && (!Number.isFinite(g) || g < 10)) return;
+    const w = Ve(k.workout, k.elapsed);
+    k.previousIndex !== w.index && (k.previousIndex = w.index, k.control === "structured" && !K && e.setTarget(xe(k.ftp, w.segment, k.adjusted)));
+    const L = Math.min(3, i, X(k.workout) - k.elapsed);
     if (L <= 0) return;
-    Number.isFinite(u) && u >= 0 && (k.sumWatts += u * L, k.countWatts += L, k.measured += L, dn(u, k.ftp, w.segment, k.adjusted) && (k.inRange += L)), k.elapsed += L;
-    const G = Ke(k.workout, k.elapsed);
-    G.index !== w.index && k.control === "structured" && !V && e.setTarget(De(k.ftp, G.segment, k.adjusted)), k.elapsed >= X(k.workout) && (k.done = !0, k.control === "structured" && !V && e.setTarget(Math.max(30, Math.round(k.ftp * 0.45))), V && vt()), (performance.now() - he > 250 || k.done) && (he = performance.now(), ft(u));
+    Number.isFinite(u) && u >= 0 && (k.sumWatts += u * L, k.countWatts += L, k.measured += L, un(u, k.ftp, w.segment, k.adjusted) && (k.inRange += L)), k.elapsed += L;
+    const G = Ve(k.workout, k.elapsed);
+    G.index !== w.index && k.control === "structured" && !K && e.setTarget(xe(k.ftp, G.segment, k.adjusted)), k.elapsed >= X(k.workout) && (k.done = !0, k.control === "structured" && !K && e.setTarget(Math.max(30, Math.round(k.ftp * 0.45))), K && bt()), (performance.now() - he > 250 || k.done) && (he = performance.now(), wt(u));
   }
-  function _t(r, u) {
-    const p = Xe(), g = {
-      id: (/* @__PURE__ */ new Date()).toISOString() + ":" + r.workout.id,
+  function zt(i, u) {
+    const g = Xe(), p = {
+      id: (/* @__PURE__ */ new Date()).toISOString() + ":" + i.workout.id,
       date: (/* @__PURE__ */ new Date()).toISOString(),
-      workoutId: r.workout.id,
-      workout: r.workout.name,
-      mode: r.mode,
-      control: r.control,
-      elapsedSeconds: Math.round(r.elapsed),
-      plannedSeconds: X(r.workout),
-      measuredSeconds: Math.round(r.measured),
-      inRangeSeconds: Math.round(r.inRange),
-      averageWatts: r.countWatts ? Math.round(r.sumWatts / r.countWatts) : null,
+      workoutId: i.workout.id,
+      workout: i.workout.name,
+      mode: i.mode,
+      control: i.control,
+      elapsedSeconds: Math.round(i.elapsed),
+      plannedSeconds: X(i.workout),
+      measuredSeconds: Math.round(i.measured),
+      inRangeSeconds: Math.round(i.inRange),
+      averageWatts: i.countWatts ? Math.round(i.sumWatts / i.countWatts) : null,
       rpe: u,
-      complete: r.done
+      complete: i.done
     };
-    return p.push(g), de(xt, p.slice(-150)), g;
+    return g.push(p), de(Ot, g.slice(-150)), p;
   }
-  function Wn() {
-    if (!k || V) return null;
-    const r = k;
-    if (Ut(), k = null, O.hidden = !0, r.elapsed < 5) return null;
-    ce = _t(r, null).id;
-    const p = document.createElement("section");
-    p.className = "coach-finish-review";
-    const g = r.measured ? Math.round(r.inRange / r.measured * 100) : null;
-    return p.innerHTML = "<h2>BREAKAWAY COACH / SESSION REVIEW</h2><p><strong>" + A(r.workout.name) + "</strong> · " + Math.round(r.elapsed / 60) + " minutes of " + Math.round(X(r.workout) / 60) + " planned</p><p>" + (g === null ? "No coached power adherence available." : "Time in prescribed power range: " + g + "% of measured time.") + '</p><p>How hard did the workout feel? Rate your overall effort.</p><div class="coach-rpe-buttons"><button type="button" data-coach-rpe="2">Easy</button><button type="button" data-coach-rpe="5">Moderate</button><button type="button" data-coach-rpe="8">Hard</button><button type="button" data-coach-rpe="10">Maximal</button></div><p id="coachReviewMessage">Feedback stays in this browser and informs your next suggested week.</p>', p.querySelectorAll("[data-coach-rpe]").forEach((w) => w.addEventListener("click", () => {
+  function Bn() {
+    if (!k || K) return null;
+    const i = k;
+    if (Gt(), k = null, O.hidden = !0, i.elapsed < 5) return null;
+    ce = zt(i, null).id;
+    const g = document.createElement("section");
+    g.className = "coach-finish-review";
+    const p = i.measured ? Math.round(i.inRange / i.measured * 100) : null;
+    return g.innerHTML = "<h2>BREAKAWAY COACH / SESSION REVIEW</h2><p><strong>" + D(i.workout.name) + "</strong> · " + Math.round(i.elapsed / 60) + " minutes of " + Math.round(X(i.workout) / 60) + " planned</p><p>" + (p === null ? "No coached power adherence available." : "Time in prescribed power range: " + p + "% of measured time.") + '</p><p>How hard did the workout feel? Rate your overall effort.</p><div class="coach-rpe-buttons"><button type="button" data-coach-rpe="2">Easy</button><button type="button" data-coach-rpe="5">Moderate</button><button type="button" data-coach-rpe="8">Hard</button><button type="button" data-coach-rpe="10">Maximal</button></div><p id="coachReviewMessage">Feedback stays in this browser and informs your next suggested week.</p>', g.querySelectorAll("[data-coach-rpe]").forEach((w) => w.addEventListener("click", () => {
       const L = Number(w.dataset.coachRpe), G = Xe(), ie = G.slice().reverse().find((z) => z.id === ce);
       if (!ie) return;
-      ie.rpe = L, de(xt, G);
-      const K = Ze(p, "coachReviewMessage");
-      K.textContent = jn(L), p.querySelectorAll("[data-coach-rpe]").forEach((z) => z.setAttribute("aria-pressed", String(z === w)));
-    })), p;
+      ie.rpe = L, de(Ot, G);
+      const V = Ze(g, "coachReviewMessage");
+      V.textContent = Kn(L), g.querySelectorAll("[data-coach-rpe]").forEach((z) => z.setAttribute("aria-pressed", String(z === w)));
+    })), g;
   }
-  function Yn() {
+  function qn() {
     if (!k) return null;
-    const r = Ke(k.workout, k.elapsed);
-    return { name: k.workout.name, mode: k.mode, control: k.control, remaining: ct(r.remaining), target: De(k.ftp, r.segment, k.adjusted), done: k.done };
+    const i = Ve(k.workout, k.elapsed);
+    return { name: k.workout.name, mode: k.mode, control: k.control, remaining: ut(i.remaining), target: xe(k.ftp, i.segment, k.adjusted), done: k.done };
   }
   return window.addEventListener("breakaway:history-updated", () => {
-    mt();
-  }), D = wa(c("coachStrengthSettings"), { finished: () => {
+    vt();
+  }), A = Ea(c("coachStrengthSettings"), { finished: () => {
     ne(), j("history");
-  } }), Da(c("coachImportRoot")), le(), ne(), ya(c("coachHistoryImport"), { applySuggestion: (r) => {
-    n = xe({ ...n, ...r }), de(Ae, n), le(), ne();
-  } }), { tick: Vt, finish: Wn, endCoaching: yt, snapshot: Yn, get mode() {
+  } }), xa(c("coachImportRoot")), le(), ne(), fa(c("coachHistoryImport"), { applySuggestion: (i) => {
+    n = Ne({ ...n, ...i }), de(Ae, n), le(), ne();
+  } }), { tick: _t, finish: Bn, endCoaching: ft, snapshot: qn, get mode() {
     return (k == null ? void 0 : k.mode) || null;
   }, get active() {
     return !!k;
   } };
 }
 export {
-  Ha as mountCoach
+  Fa as mountCoach
 };
