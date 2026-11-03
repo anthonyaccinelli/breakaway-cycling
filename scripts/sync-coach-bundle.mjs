@@ -8,7 +8,7 @@
  * Usage: GH_TOKEN=... node scripts/sync-coach-bundle.mjs <full-Coach-source-commit>
  */
 import {createHash} from 'node:crypto';
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {writeFile,mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
 
@@ -28,7 +28,7 @@ async function githubJson(apiPath){
 async function contents(path,ref){
  const payload=await githubJson('repos/'+REPO+'/contents/'+path+'?ref='+encodeURIComponent(ref));
  if(payload.encoding!=='base64'||typeof payload.content!=='string')throw Error('Unexpected GitHub Contents API response for '+path);
- return Buffer.from(payload.content.replace(/\\s/g,''),'base64');
+ return Buffer.from(payload.content.replace(/\s/g,''),'base64');
 }
 const branch=await githubJson('repos/'+REPO+'/git/ref/heads/coach-bundle');
 const bundleCommit=branch?.object?.sha;
