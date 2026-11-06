@@ -17,7 +17,7 @@
   "rewrites": [
     {
       "source": "/spindlkin/",
-      "destination": "https://pedalkin-preview.vercel.app/"
+      "destination": "https://pedalkin-preview.vercel.app/index.html"
     },
     {
       "source": "/spindlkin/:path*",
