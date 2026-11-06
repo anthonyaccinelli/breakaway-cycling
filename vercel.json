@@ -16,6 +16,10 @@
   ],
   "rewrites": [
     {
+      "source": "/spindlkin/",
+      "destination": "https://pedalkin-preview.vercel.app/"
+    },
+    {
       "source": "/spindlkin/:path*",
       "destination": "https://pedalkin-preview.vercel.app/:path*"
     }
