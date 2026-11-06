@@ -6,5 +6,22 @@
     "api/cycle-quest.js": {
       "includeFiles": "cycle-quest/**"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/spindlkin",
+      "destination": "/spindlkin/",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/spindlkin/",
+      "destination": "https://pedalkin-preview.vercel.app/index.html"
+    },
+    {
+      "source": "/spindlkin/:path*",
+      "destination": "https://pedalkin-preview.vercel.app/:path*"
+    }
+  ]
 }
