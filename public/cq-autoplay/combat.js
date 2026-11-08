@@ -127,3 +127,62 @@ export function advanceBossBattle(battle,playerHP,damagePerSecond,dt,{watts=0,ca
  }
  return {battle:b,hp,killed:0,outcome};
 }
+
+// Turn state is plain save data. Resolve only elapsed riding time passed by the caller.
+export function guardBand(watts){
+ const center=Math.max(30,Math.round(watts)), margin=Math.max(10,Math.round(center/9));
+ return [center-margin,center+margin];
+}
+export function advanceTurnBattle(b,hp,damage,dt,{watts,cadence,potions,maxHP}){
+ b={...b};
+ let killed=0,outcome=null;
+ while(dt>1e-8&&!outcome){
+  const guard=b.turn==='guard', elapsed=b.turnTime||0;
+  let span=Math.min(dt,5-elapsed);
+  if(b.kind==='summit'){
+   const stopped=watts<10&&cadence<=0;
+   if(stopped)span=Math.min(span,Math.max(0,15-(b.stopped||0)));
+   b.stopped=stopped?(b.stopped||0)+span:0;
+  }
+  if(!guard){
+   if(!elapsed){
+    b.drinking=potions>0&&hp<maxHP*.25;
+    if(b.drinking){potions--;hp=Math.min(maxHP,hp+maxHP*.3);}
+    b.special=!b.drinking&&(b.charge||0)>=30-1e-8;
+    if(b.special)b.charge=0;
+   }
+   // Keep the usual encounter pace while concentrating damage into attack turns.
+   let budget=damage*2*(b.special?2:1)*span;
+   if(!b.drinking&&budget>0){
+    if(b.enemies){
+     b.enemies=b.enemies.map(enemy=>{
+      if(!budget||enemy.hp<=0)return enemy;
+      const hit=Math.min(budget,enemy.hp);budget-=hit;
+      if(hit===enemy.hp)killed++;
+      return {...enemy,hp:enemy.hp-hit};
+     });
+     b.hp=b.enemies.reduce((sum,e)=>sum+e.hp,0);
+     b.dps=b.enemies.reduce((sum,e)=>sum+(e.hp>0?e.dps:0),0);
+    }else b.hp=Math.max(0,b.hp-budget);
+    if(!b.hp)outcome='win';
+   }
+  }else{
+   b.guardWork+=watts*span;
+   if(watts>0)b.charge=Math.min(30,(b.charge||0)+span);
+  }
+  dt-=span;b.turnTime=elapsed+span;
+  if(!outcome&&b.stopped>=15)outcome='flee';
+  if(!outcome&&b.turnTime>=5-1e-8){
+   b.turnTime=0;
+   if(guard){
+    const [low,high]=guardBand(b.guardTarget),avg=b.guardWork/5;
+    const error=Math.max(low-avg,avg-high,0);
+    const incoming=b.dps*10,blocked=incoming*.5*Math.max(0,1-error/Math.max(1,(high-low)/2));
+    b.lastBlock=blocked;b.lastHit=incoming-blocked;hp=Math.max(1,hp-b.lastHit);
+    if(hp<=1)outcome='loss';
+    b.turn='attack';
+   }else{b.turn='guard';b.guardTarget=Math.max(30,watts);b.guardWork=0;b.drinking=false;b.special=false;}
+  }
+ }
+ return {battle:b,hp,killed,outcome,potions};
+}

@@ -4,6 +4,13 @@ function handleDemoAction(action){
  if(action==='claim'){choose('coins');return;}
  if(action==='win'||action==='lose'){if(s.battle)finish(action==='win');render();return;}
  levelUps.clear();levelUp=null;s.battle=null;s.reward=false;s.pendingReward=null;
+ if(['guard-test','special-test','potion-test'].includes(action)){
+  const battle=enemyGroup([makeBattle('enemy',{level:6,monsterId:'rat'})]);
+  s.hp=action==='potion-test'?Math.ceil(maxHP()*.2):maxHP();
+  if(action==='potion-test')s.potions=1;
+  battle.charge=action==='special-test'?25:0;
+  s.battle=battle;showEncounterView();render();return;
+ }
  const crab=/^crab-([123])$/.exec(action),ratCount={rat:1,'rats-2':2,rats:3}[action];
  const fixedRat=/^rat-level-(1|6|10)$/.exec(action);
  if(crab||ratCount||fixedRat||['headwind','bat','snake','new-mobs'].includes(action)||action==='mixed-rats'){
