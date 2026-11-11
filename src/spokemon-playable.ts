@@ -79,7 +79,8 @@ export function mountSpokemonPlayable(options:{
   '<div class="pk-game-toolbar-buttons"><button data-pk-control="simulate">START TEST RIDE</button>'+
   '<button data-pk-control="session">START / PAUSE REAL RIDE</button>'+
   '<button data-pk-control="encounter">FIND SPOKEMON</button>'+
-  '<button data-pk-control="collection">COLLECTION</button>'+ 
+  '<button data-pk-control="collection">COLLECTION</button>'+
+  '<button data-pk-control="export">EXPORT SPOKEMON SAVE</button>'+ 
   '<button data-pk-control="fullscreen">FULL SCREEN</button>'+
   '<button data-pk-control="finish">SAVE & FINISH REAL RIDE</button></div>'+
   '<label data-pk-demo-power>TEST POWER <output data-pk-game-watts>165 W</output><input data-pk-control="watts" type="range" min="60" max="310" value="165"></label>'+
@@ -438,6 +439,17 @@ export function mountSpokemonPlayable(options:{
   else if(action==='session'){if(ready())document.getElementById('start')?.click();}
   else if(action==='encounter')encounter();
   else if(action==='collection')journal();
+  else if(action==='export'){
+   const keys=['spokemon-caught-v1','spokemon-buddy-v1','spokemon-input-choice-v1'];
+   const data:Record<string,string|null>={};
+   for(const key of keys)data[key]=localStorage.getItem(key);
+   const payload=JSON.stringify({format:'spokemon-portable-save',version:1,exportedAt:new Date().toISOString(),data},null,2);
+   const url=URL.createObjectURL(new Blob([payload],{type:'application/json'}));
+   const link=document.createElement('a');link.href=url;
+   link.download='spokemon-save-'+new Date().toISOString().slice(0,10)+'.json';
+   document.body.append(link);link.click();link.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
    else if(action==='fullscreen'){
     if(document.fullscreenElement)void document.exitFullscreen?.();
     else if(host.requestFullscreen)void host.requestFullscreen();
