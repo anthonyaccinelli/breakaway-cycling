@@ -42,11 +42,11 @@ _Last updated: 2026-11-02. Repository: `anthonyaccinelli/breakaway-cycling`._
 - First biome creature artwork/names approved: **Dear, Bob Moss, Hedgie** (left-to-right from user art). These replace three preexisting entries; verify image paths and catalog entries in source before claiming live.
 
 ## Device detection and cadence-only support — current requested work
-- Support cyclists with **Bluetooth speed + cadence sensors and no smart trainer resistance/power data**.
+- Support **Bluetooth cadence-only sensors** without speed, trainer resistance, or power; also support speed+cadence sensors.
 - Offer the appropriate input/goal mode after detection: **power (watts)** for compatible measured-power devices and **cadence (rpm)** for speed/cadence-only setups.
-- Do not require FTMS/resistance or invented watts to play cadence mode; keep supported BLE connection paths separate from trainer control. Auto-detection and a visible manual override/fallback are recommended.
+- Do not require FTMS/resistance, a speed sensor, or invented watts to play cadence mode. When wheel speed is unavailable, the ride engine estimates virtual speed from crank cadence (80 rpm = 12 mph, clamped at 160 rpm). Display/label this as **estimated distance**, not measured; stop progression when cadence packets are stale. Measured wheel speed continues to take priority when available. Auto-detection and a visible manual override/fallback are recommended.
 - Cadence requirements must be meaningful and temperament-dependent. Display clearly labeled `rpm` targets instead of watt targets for cadence-only riders.
-- User requested a **working web-browser play test demonstrating the menu choice** before production deployment. **Verify whether implemented; do not assume this request shipped.** Test sensors, denied Bluetooth permissions, missing power, reconnects, and device switching.
+- Power/Cadence play-test feature was merged via PR #78. Cadence-only actual-ride support is proposed on branch `spokemon-cadence-only-20261102`; **not merged or production-verified** at time of this update. Test sensors, denied Bluetooth permissions, missing power, reconnects, and device switching.
 - A browser cannot guarantee discovery without user-granted Bluetooth permissions; capability detection should gracefully degrade.
 
 ## Reported bugs / regression checklist
@@ -60,7 +60,7 @@ _Last updated: 2026-11-02. Repository: `anthonyaccinelli/breakaway-cycling`._
 8. Captured buddy not populating creature window; buddy card not clickable.
 9. Trust and Patience windows persisting in Explore.
 10. Companion leveling and XP feedback too subtle or absent.
-11. Cadence-only device choice/play test incomplete or not verified.
+11. Test cadence-only real sensor pairing and distance estimate on hardware; verify that wheel-speed devices still use measured speed and stale cadence pauses progression.
 
 **Status rule:** A user report of a bug is not evidence it remains unfixed today. For every issue record commit, reproduction, fix, test result, and preview/main deployment before marking complete.
 
