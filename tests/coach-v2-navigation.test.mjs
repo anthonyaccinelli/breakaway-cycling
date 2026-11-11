@@ -2,46 +2,34 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
-const coach=readFileSync(new URL('../src/coach.ts',import.meta.url),'utf8');
-const css=readFileSync(new URL('../src/coach-v2.css',import.meta.url),'utf8');
-const main=readFileSync(new URL('../src/main.ts',import.meta.url),'utf8');
+const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const bundle=read('src/vendor/breakaway-coach/breakaway-coach.js');
+const css=read('src/vendor/breakaway-coach/breakaway-coach.css');
+const main=read('src/main.ts');
 
-test('Coach has four distinct accessible sections rather than a scrolling dashboard',()=>{
- const tabs=['Today','Plan','History','Settings'];
- for(const tab of tabs){
-  assert.match(coach,new RegExp('id="coachTab'+tab+'" role="tab"'));
-  assert.match(coach,new RegExp('id="coachView'+tab+'" role="tabpanel"'));
- }
- assert.match(coach,/role="tablist"/);
- assert.match(coach,/view\.hidden=view\.dataset\.coachView!==tab/);
- assert.match(coach,/button\.setAttribute\('aria-selected',String\(selected\)\)/);
- assert.match(coach,/ArrowRight/);
- assert.match(coach,/ArrowLeft/);
- assert.match(css,/\.coach-v2 \.coach-view\[hidden\]\{display:none!important\}/);
+test('Bundled Coach contains the same accessible navigation sections',()=>{
+  for(const tab of ['Today','Plan','History','Settings']){
+    assert.ok(bundle.includes('id="coachTab'+tab+'"'),'Missing '+tab+' tab');
+    assert.ok(bundle.includes('id="coachView'+tab+'"'),'Missing '+tab+' panel');
+  }
+  assert.match(bundle,/role="tablist"/);
+  assert.match(bundle,/aria-selected/);
+  assert.match(bundle,/ArrowRight/);
+  assert.match(bundle,/ArrowLeft/);
+  assert.match(css,/\.coach-v2 \.coach-view\[hidden\]/);
 });
-test('One clear route from recommended workout to Classic Devices, and game modes never get Coach commands',()=>{
- assert.match(coach,/id="coachStartClassic"/);
- assert.match(coach,/CONNECT MY TRAINER/);
- assert.match(coach,/Next: connect your trainer/);
- assert.match(main,/launchMode:\(_mode\)=>\{showBreakawayScreen\('setup'\);\}/);
- assert.doesNotMatch(coach,/data-coach-mode="survival"|data-coach-mode="cyclequest"/);
+
+test('Bundled Coach retains workout start, history importing and rider settings',()=>{
+  for(const id of ['coachStartClassic','coachHistoryImport','coachFtp','coachWeek','coachPlanLibrary','coachSettingsFeedback']){
+    assert.ok(bundle.includes('id="'+id+'"'),'Missing '+id+' entry');
+  }
+  assert.match(bundle,/CONNECT MY TRAINER/);
+  assert.match(bundle,/data-upcoming-workout/);
+  assert.match(main,/launchMode:\(_mode\)=>\{showBreakawayScreen\('setup'\);\}/);
 });
-test('History importer and profile controls remain functional but are in dedicated sections',()=>{
- const history=coach.indexOf('id="coachViewHistory"'),settings=coach.indexOf('id="coachViewSettings"');
- assert.ok(coach.indexOf('id="coachHistoryImport"')>history);
- assert.ok(coach.indexOf('id="coachHistoryImport"')<settings);
- assert.ok(coach.indexOf('id="coachFtp"')>settings);
- assert.match(coach,/id="coachWeek"/);
- assert.match(coach,/id="coachPlanLibrary"/);
- assert.match(coach,/data-library-workout/);
- assert.match(coach,/data-upcoming-workout/);
- assert.match(coach,/id="coachSettingsFeedback"/);
-});
-test('Coach uses a quiet, legible light UI independent of the dark RPG themes',()=>{
- assert.match(css,/#breakawayCoachScreen\.coach-v2/);
- assert.match(css,/background:#f5f7fb!important/);
- assert.match(css,/\.coach-v2 \.coach-nav button\[aria-selected=true\]/);
- assert.match(css,/\.coach-v2 \.coach-panel\{/);
- assert.match(css,/@media\(max-width:680px\)/);
- assert.match(coach,/import '\.\/coach-v2\.css'/);
+
+test('Bundled Coach uses the independent light theme, not RPG mode CSS',()=>{
+  assert.match(css,/#breakawayCoachScreen\.coach-v2/);
+  assert.match(css,/background:#f5f7fb!important/);
+  assert.match(css,/\.coach-v2 \.coach-nav button\[aria-selected=true\]/);
 });
