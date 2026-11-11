@@ -1,0 +1,431 @@
+/* Version 2: the complete Illustrator handheld is the permanent art layer.
+   Only interactive data values and clickable targets sit above it.
+   All coordinates reference the actual 1920x1080 uploaded SVG. */
+body.pk-v2-route-active {background:#21484e!important;overflow:hidden!important}
+body.pk-v2-route-active #screenRoute .cr-reference,
+body.pk-v2-route-active #screenRoute>.sc-masthead,
+body.pk-v2-route-active #screenRoute>#routeStudio,
+body.pk-v2-route-active #modeHomeButton,
+body.pk-v2-route-active #accountGlobalMenu{visibility:hidden!important;pointer-events:none!important}
+body.pk-v2-route-active #screenRoute{isolation:auto!important}
+.pk-v2-shell[hidden]{display:none!important}
+.pk-v2-shell{
+ position:fixed!important;inset:0!important;z-index:1500!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ background:#21484e!important;overflow:hidden!important;
+}
+.pk-v2-stage{
+ position:relative;display:block;flex:none;aspect-ratio:16/9;
+ width:min(100vw,calc(100dvh * 16 / 9));max-width:100vw;max-height:100dvh;
+ container-type:inline-size;
+ overflow:hidden;
+}
+.pk-v2-stage,.pk-v2-stage *{box-sizing:border-box!important}
+.pk-v2-art{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
+.pk-v2-live{position:absolute;inset:0;font:500 0.91cqw Arial,Helvetica,sans-serif;color:#0f292f}
+.pk-v2-live :is(input,select){
+ position:absolute!important;display:block!important;min-width:0!important;min-height:0!important;
+ padding:0 0.7cqw!important;margin:0!important;border:0!important;
+ border-radius:0.2cqw!important;box-shadow:none!important;
+ font:500 0.9cqw/1.1 Arial,Helvetica,sans-serif!important;
+ background:#f3f4f6!important;color:#15191f!important;-webkit-text-fill-color:#15191f!important;
+ color-scheme:light!important;
+}
+.pk-v2-live :is(input,select):focus-visible{outline:0.16cqw solid #fbc5ab!important;outline-offset:0.06cqw!important}
+.pk-v2-miles{left:30.56%;top:30.1%;width:9.02%;height:4.28%}
+.pk-v2-biome{left:40.23%;top:30.1%;width:9.06%;height:4.28%;cursor:pointer}
+.pk-v2-gain{left:30.65%;top:37.61%;width:18.68%;height:4.27%}
+.pk-v2-seed{left:30.61%;top:44.73%;width:14.8%;height:4.28%}
+/* Cover the bitmap's old checkbox and label once, then draw one real label.
+   The real underlying lockGeneratedSeed still owns the persisted state. */
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-lock-control{
+ position:absolute!important;left:45.7%!important;top:44.35%!important;
+ width:4.46%!important;height:4.0%!important;min-width:0!important;
+ padding:0 0.12cqw 0 0.80cqw!important;margin:0!important;
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ gap:0.30cqw!important;background:#ffffff!important;color:#0f292f!important;
+ font:600 0.78cqw/1 Arial,Helvetica,sans-serif!important;
+ white-space:nowrap!important;overflow:hidden!important;z-index:7!important;
+ pointer-events:auto!important;cursor:pointer!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-lock-control input.pk-v2-lock{
+ position:static!important;display:block!important;flex:0 0 0.92cqw!important;
+ width:0.92cqw!important;height:0.92cqw!important;min-width:0!important;min-height:0!important;
+ margin:0!important;padding:0!important;border:0.06cqw solid #64717b!important;
+ border-radius:0.12cqw!important;background:#fff!important;
+ appearance:auto!important;accent-color:#0f292f!important;
+ box-shadow:none!important;cursor:pointer!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-lock-control span{
+ display:inline-block!important;flex:none!important;color:#0f292f!important;
+ font:inherit!important;line-height:1!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-lock-control:focus-within{
+ outline:0.12cqw solid #fbc5ab!important;outline-offset:0.06cqw!important;
+}
+/* Match the Illustrator preview card: source artwork is at x=967..1339,
+   while the route facts start near x=992. The former 59.6% left position
+   placed this white overlay halfway OUTSIDE the console screen. */
+.pk-v2-route-stats{
+ position:absolute;left:51.65%;top:35.45%;width:17.95%;height:13.5%;
+ padding:0.14cqw 0.14cqw 0.14cqw 0.2cqw!important;
+ background:#fff!important;color:#172028!important;
+ font:500 0.85cqw/1.42 Arial,Helvetica,sans-serif!important;
+ text-align:left!important;white-space:nowrap!important;
+ overflow:hidden!important;letter-spacing:0!important;text-shadow:none!important;
+ border:0!important;box-shadow:none!important;
+}
+.pk-v2-route-stats>div{
+ display:block!important;width:100%!important;max-width:100%!important;
+ margin:0!important;padding:0!important;min-width:0!important;
+ white-space:nowrap!important;overflow:hidden!important;
+ text-overflow:ellipsis!important;line-height:1.42!important;
+}
+.pk-v2-route-stats b{font-weight:750;color:#10191d}
+.pk-v2-live-chart{
+ position:absolute;left:30.69%;top:60.88%;width:38.52%;height:7.65%;
+ background:#f3f4f6!important;overflow:hidden;border:0!important;
+}
+.pk-v2-live-chart svg{width:100%!important;height:100%!important;display:block!important;background:transparent!important}
+.pk-v2-live-chart svg polyline{stroke:#0f292f!important;stroke-width:2!important}
+.pk-v2-live-chart .studio-scrub-marker{stroke:#fbc5ab!important}
+.pk-v2-scrub{
+ position:absolute;left:31.0%;top:69.59%;width:28%;height:2.5%;
+ display:flex;align-items:center;padding-left:0.4cqw;
+ background:#f3f4f6;color:#0f292f!important;
+ font:500 0.82cqw/1 Arial,Helvetica,sans-serif!important;
+ white-space:nowrap!important;overflow:hidden;
+}
+.pk-v2-live button.pk-v2-hit,
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-hit {
+ position:absolute!important;appearance:none!important;
+ margin:0!important;padding:0!important;min-height:0!important;min-width:0!important;
+ border:0!important;border-radius:0!important;background:transparent!important;
+ background-image:none!important;box-shadow:none!important;text-shadow:none!important;
+ cursor:pointer!important;color:transparent!important;
+ opacity:1!important;transform:none!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-hit:hover{box-shadow:inset 0 0 0 0.13cqw #fbc5ab!important}
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-hit:focus-visible{
+ outline:0.18cqw dashed #fbc5ab!important;outline-offset:0.09cqw!important;
+}
+.pk-v2-upload{left:50.15%;top:21.42%;width:19.62%;height:4.34%}
+/* All six controls share the same two-row, three-column grid.
+   An opaque cover hides the six differently sized buttons baked into the
+   Illustrator screenshot; the full console SVG underneath stays unchanged. */
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid{
+ position:absolute!important;left:30.51%!important;top:50.15%!important;
+ width:39.17%!important;height:9.04%!important;max-width:39.17%!important;
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;
+ column-gap:0.34cqw!important;row-gap:0.35cqw!important;
+ padding:0.08cqw!important;margin:0!important;
+ background:#ffffff!important;border:0!important;border-radius:0!important;
+ overflow:hidden!important;z-index:8!important;pointer-events:auto!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid>button.pk-v2-hit{
+ position:static!important;display:flex!important;align-items:center!important;
+ justify-content:center!important;min-width:0!important;min-height:0!important;
+ width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;
+ margin:0!important;padding:0 0.18cqw!important;
+ border:0.055cqw solid #d9dfe7!important;border-radius:0.32cqw!important;
+ background:#f3f4f6!important;color:#0f292f!important;
+ box-shadow:none!important;transform:none!important;
+ font:700 0.77cqw/1.05 Arial,Helvetica,sans-serif!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+ cursor:pointer!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid>button:nth-child(-n+3){
+ background:#0f292f!important;color:#fff!important;border-color:#0f292f!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid>button:hover{
+ filter:brightness(1.11)!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid>button:focus-visible{
+ outline:0.13cqw solid #fbc5ab!important;outline-offset:-0.14cqw!important;
+}
+.pk-v2-next{left:30.6%;top:74.3%;width:39.0%;height:4.5%}
+.pk-v2-nav-route{left:26.96%;top:5.22%;width:10.96%;height:7%}
+.pk-v2-nav-devices{left:38.63%;top:5.22%;width:10.96%;height:7%}
+.pk-v2-nav-ride{left:50.4%;top:5.22%;width:10.96%;height:7%}
+.pk-v2-nav-overlay{left:62.08%;top:5.22%;width:10.96%;height:7%}
+
+/* Pixel-positioned live overlays: enforce the exact inner LCD boundaries.
+   The screenshot showed old global layout styles making stats extend outside
+   the white route-preview card; these win over all inherited app styles. */
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ overflow:hidden!important;pointer-events:none!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live :is(input,select,button){
+ pointer-events:auto!important;box-sizing:border-box!important;max-width:none!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-route-stats{
+ position:absolute!important;
+ left:51.65%!important;top:35.50%!important;
+ width:17.55%!important;height:13.55%!important;
+ max-width:17.55%!important;max-height:13.55%!important;
+ padding:0.12cqw 0.22cqw!important;margin:0!important;
+ background:#fff!important;color:#172028!important;
+ font:500 0.82cqw/1.4 Arial,Helvetica,sans-serif!important;
+ white-space:nowrap!important;text-align:left!important;
+ overflow:hidden!important;clip-path:inset(0)!important;
+ z-index:2!important;box-sizing:border-box!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-route-stats>div{
+ box-sizing:border-box!important;display:flex!important;flex-wrap:nowrap!important;
+ align-items:baseline!important;gap:0.15cqw!important;
+ width:100%!important;max-width:100%!important;
+ height:1.40cqw!important;min-height:0!important;
+ margin:0!important;padding:0!important;
+ color:#172028!important;background:#fff!important;
+ font:inherit!important;line-height:1.4!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-route-stats b{
+ display:inline-block!important;flex:0 1 auto!important;min-width:0!important;
+ max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;
+ color:#10191d!important;font-weight:700!important;font-family:Arial,Helvetica,sans-serif!important;font-size:inherit!important;
+ white-space:nowrap!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-live-chart{
+ position:absolute!important;left:30.69%!important;top:60.88%!important;
+ width:38.52%!important;height:7.65%!important;
+ max-width:38.52%!important;max-height:7.65%!important;
+ overflow:hidden!important;contain:paint!important;z-index:2!important;
+ background:#f3f4f6!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-live-chart>svg{
+ width:100%!important;height:100%!important;overflow:hidden!important;
+ max-width:100%!important;max-height:100%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-scrub{
+ position:absolute!important;left:31%!important;top:69.59%!important;
+ width:28%!important;height:2.5%!important;
+ max-width:28%!important;max-height:2.5%!important;
+ overflow:hidden!important;contain:paint!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live :is(.pk-v2-miles,.pk-v2-biome,.pk-v2-gain,.pk-v2-seed){
+ overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+ padding-inline:0.35cqw!important;
+}
+
+/* Input overlays occupy every pixel of their existing gray SVG fields.
+   Pixel coordinates measured from the actual user Illustrator artboard
+   (1920 × 1080); no separate inset input or spinner sub-controls. */
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > :is(input.pk-v2-miles,select.pk-v2-biome,input.pk-v2-gain,input.pk-v2-seed){
+ position:absolute!important;
+ display:block!important;
+ box-sizing:border-box!important;
+ margin:0!important;
+ padding:0 0.55cqw!important;
+ border:0!important;
+ border-radius:0.30cqw!important;
+ background:#f3f4f6!important;
+ color:#0f292f!important;
+ -webkit-text-fill-color:#0f292f!important;
+ font:500 1.06cqw/1.15 Arial,Helvetica,sans-serif!important;
+ text-align:left!important;
+ box-shadow:none!important;
+ outline-offset:-0.12cqw!important;
+ overflow:hidden!important;
+ pointer-events:auto!important;
+ cursor:text!important;
+ opacity:1!important;
+ z-index:6!important;
+ min-width:0!important;min-height:0!important;
+ max-width:none!important;max-height:none!important;
+ -webkit-appearance:none!important;
+ appearance:none!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-miles{
+ left:30.511%!important;top:30.054%!important;width:8.985%!important;height:4.28%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > select.pk-v2-biome{
+ left:40.195%!important;top:30.054%!important;width:8.985%!important;height:4.28%!important;
+ cursor:pointer!important;
+ appearance:auto!important;-webkit-appearance:menulist!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-gain{
+ left:30.62%!important;top:37.34%!important;width:18.79%!important;height:4.17%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-seed{
+ left:30.57%!important;top:44.43%!important;width:15.20%!important;height:4.12%!important;
+}
+/* No browser-generated numeric stepper can obscure the usable field. */
+body.pk-v2-route-active #screenRoute .pk-v2-live input[type=number]{
+ -moz-appearance:textfield!important;
+ appearance:textfield!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live input[type=number]::-webkit-inner-spin-button,
+body.pk-v2-route-active #screenRoute .pk-v2-live input[type=number]::-webkit-outer-spin-button{
+ -webkit-appearance:none!important;appearance:none!important;
+ display:none!important;margin:0!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-lock-control{
+ left:46.0%!important;top:44.4%!important;width:4.08%!important;height:4.12%!important;
+ padding:0 0.12cqw!important;
+}
+/* The navigation is traced directly to the existing rounded buttons.
+   No extra yellow or square highlight on mouse hover. */
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-route:hover,
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-devices:hover,
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-ride:hover,
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-overlay:hover{
+ box-shadow:none!important;
+ background:transparent!important;
+ filter:none!important;
+ border:0!important;
+ outline:none!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live :is(
+ button.pk-v2-nav-route,
+ button.pk-v2-nav-devices,
+ button.pk-v2-nav-ride,
+ button.pk-v2-nav-overlay
+):focus-visible{
+ border-radius:1.95cqw!important;
+ outline:0.14cqw solid #0f292f!important;
+ outline-offset:-0.20cqw!important;
+}
+
+
+/* 2026-11-01: measured directly from the new user Illustrator artboard.
+   The 01 Route image is the untampered, pixel-accurate base layer. */
+body.pk-v2-route-active #screenRoute .pk-v2-live > input.pk-v2-miles{
+ left:31.3542%!important;top:29.6296%!important;width:8.5938%!important;height:4.0741%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live > select.pk-v2-biome{
+ left:40.625%!important;top:29.7222%!important;width:8.5417%!important;height:4.0741%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live > input.pk-v2-gain{
+ left:31.3542%!important;top:36.7593%!important;width:18.4896%!important;height:4.0741%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live > input.pk-v2-seed{
+ left:31.4063%!important;top:43.6111%!important;width:12.0833%!important;height:3.9815%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-lock-control{
+ left:44.72%!important;top:43.5185%!important;width:5.00%!important;height:4.0741%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-route-stats{
+ left:51.83%!important;top:33.8%!important;width:17.35%!important;height:12.5%!important;
+ padding:0!important;font:700 .81cqw/1.4 "Spokemon Minecraft",monospace!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-route-stats>div{
+ height:1.27cqw!important;line-height:1.32!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-route-stats b{
+ font-family:"Spokemon Minecraft",monospace!important;font-weight:700!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-live-chart{
+ left:31.6667%!important;top:58.9815%!important;width:36.7708%!important;height:7.1296%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-scrub{
+ left:31.4063%!important;top:67.5%!important;width:25.7%!important;height:3.1481%!important;
+ font-family:"Spokemon Minecraft",monospace!important;
+}
+/* Artwork already contains the exact six-button typography, fills and borders.
+   Keep the transparent hit targets aligned to the *existing* vector buttons. */
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid{
+ left:31.3021%!important;top:48.8889%!important;
+ width:37.5%!important;height:9.1667%!important;
+ background:transparent!important;padding:0!important;
+ column-gap:.37cqw!important;row-gap:.47cqw!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid>button.pk-v2-hit,
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid>button:nth-child(-n+3){
+ background:transparent!important;color:transparent!important;
+ border:0!important;border-radius:.30cqw!important;
+ box-shadow:none!important;font-size:0!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live .pk-v2-actions-grid>button:hover{
+ filter:none!important;box-shadow:inset 0 0 0 .12cqw #fbc5ab!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-next{
+ left:31.3542%!important;top:71.7593%!important;width:37.5%!important;height:4.0741%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-route{
+ left:27.80%!important;top:5.40%!important;width:10.85%!important;height:7.38%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-devices{
+ left:38.93%!important;top:5.40%!important;width:10.85%!important;height:7.38%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-ride{
+ left:50.20%!important;top:5.40%!important;width:10.85%!important;height:7.38%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live button.pk-v2-nav-overlay{
+ left:61.35%!important;top:5.40%!important;width:10.85%!important;height:7.38%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-live :is(input,select){
+ font-family:"Spokemon Minecraft",monospace!important;font-weight:700!important;
+ background:#f3f4f6!important;
+}
+
+
+/* 2026-11-01 precision pass: the previous appended selectors were less
+   specific than the older .pk-v2-stage rules, so the browser kept the
+   oversized / left-shifted inputs. These target exactly those selectors.
+   Dimensions are read from the user's Illustrator rectangles, in 1920x1080. */
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-miles{
+ left:31.3854%!important;top:29.6574%!important;width:8.5833%!important;height:4.0833%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > select.pk-v2-biome{
+ left:40.6354%!important;top:29.6574%!important;width:8.5833%!important;height:4.0833%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-gain{
+ left:31.3854%!important;top:36.6944%!important;width:18.5%!important;height:4.0833%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > input.pk-v2-seed{
+ left:31.3854%!important;top:43.5185%!important;width:12.12%!important;height:4.0833%!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live > :is(input.pk-v2-miles,select.pk-v2-biome,input.pk-v2-gain,input.pk-v2-seed){
+ padding:0 .42cqw!important;margin:0!important;border:0!important;
+ border-radius:.28cqw!important;
+ background:#f3f4f6!important;
+ font:700 .90cqw/1 "Spokemon Minecraft",monospace!important;
+ text-align:left!important;
+ box-shadow:none!important;
+ outline-offset:-.10cqw!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-lock-control{
+ left:44.71%!important;top:43.52%!important;width:5.18%!important;height:4.08%!important;
+ background:#fff!important;z-index:9!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-route-stats{
+ position:absolute!important;
+ left:52.03%!important;top:33.20%!important;width:16.45%!important;height:12.32%!important;
+ padding:0!important;margin:0!important;border:0!important;
+ background:#fff!important;box-shadow:none!important;
+ color:#10292f!important;overflow:hidden!important;
+ font:700 .84cqw/1.12 "Spokemon Minecraft",monospace!important;
+ display:flex!important;flex-direction:column!important;z-index:4!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-route-stats>div{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ flex:0 0 1.12cqw!important;height:1.12cqw!important;min-height:0!important;
+ margin:0!important;padding:0!important;gap:.2cqw!important;
+ font:inherit!important;line-height:1.12!important;
+ width:100%!important;overflow:hidden!important;
+ white-space:nowrap!important;background:#fff!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-route-stats b{
+ font:inherit!important;font-weight:800!important;flex:0 1 auto!important;
+ min-width:0!important;max-width:100%!important;overflow:hidden!important;
+ text-overflow:ellipsis!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-live-chart{
+ left:31.6276%!important;top:58.9426%!important;width:36.8229%!important;height:7.3611%!important;
+ max-width:36.8229%!important;max-height:7.3611%!important;
+ padding:0!important;margin:0!important;border:0!important;overflow:hidden!important;
+ background:#f3f4f6!important;z-index:4!important;
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-live-chart svg{
+ display:block!important;width:100%!important;height:100%!important;
+ max-width:100%!important;max-height:100%!important;
+ preserveAspectRatio:none; /* preserveAspectRatio is already set on the cloned SVG */
+}
+body.pk-v2-route-active #screenRoute .pk-v2-stage .pk-v2-live .pk-v2-scrub{
+ left:31.85%!important;top:67.40%!important;width:25.4%!important;height:2.65%!important;
+ padding-left:0!important;background:#f3f4f6!important;
+ font:700 .65cqw/1 "Spokemon Minecraft",monospace!important;
+}
