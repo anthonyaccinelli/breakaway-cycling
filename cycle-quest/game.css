@@ -2328,3 +2328,118 @@ body {
   top: 18%;
   height: 52% !important;
 }
+
+
+/* Chapter 1 text-adventure layout: the true elevation SVG remains the
+   default center panel; only a triggered story scene replaces it. */
+#cq-preview .cq-route.cq-story-open {
+  background: #0d1716;
+}
+#cq-preview .cq-route.cq-story-open > .cq-windowtitle,
+#cq-preview .cq-route.cq-story-open > .cq-profile,
+#cq-preview .cq-route.cq-story-open > .cq-axis,
+#cq-preview .cq-route.cq-story-open > .cq-routefoot {
+  visibility: hidden;
+}
+#cq-preview .cq-route.cq-story-open > .cq-event {
+  background: #0d1716 !important;
+  color: #f5edd8;
+  text-shadow: none;
+  overflow-y: auto;
+  text-align: left;
+  padding: clamp(12px,2vw,28px);
+  scrollbar-color: #607e68 #0d1716;
+}
+#cq-preview .cq-story-text {
+  max-width: 76ch;
+  margin: auto;
+  font-family: "VT323", monospace;
+}
+#cq-preview .cq-story-text h3 {
+  color: #afcfac;
+  text-align: left;
+}
+#cq-preview .cq-story-text p {
+  color: #f3edda;
+  text-align: left;
+  font-size: clamp(17px,1.8vw,23px);
+  line-height: 1.25;
+  margin: 7px 0;
+}
+#cq-preview .cq-story-text .cq-eventactions {
+  margin: 14px 0 8px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+#cq-preview .cq-story-text .cq-sub { color: #c3cdbd; }
+#cq-preview .cq-smallprofile .cq-mini-story {
+  height: 100%;
+  width: 100%;
+  background: #0d1716;
+  border: 1px solid #607b61;
+  color: #f5edd8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 5px 12px;
+  text-align: center;
+  overflow: hidden;
+  font: 22px/1 "VT323", monospace;
+}
+#cq-preview .cq-smallprofile .cq-mini-story strong {
+  color: #afcfac;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+}
+#cq-preview .cq-smallprofile .cq-mini-story p {
+  color: #f5edd8;
+  font-size: clamp(17px,2.5cqw,25px);
+  line-height: 1.02;
+  margin: 0;
+  max-height: 72px;
+  overflow: hidden;
+}
+.cq-story-journal {
+  width: min(790px,92vw);
+  max-height: 82dvh;
+  overflow-y: auto;
+}
+.cq-story-journal .cq-story-text {
+  padding: 12px 0 20px;
+  border-bottom: 1px solid #617969;
+  color: #f5edd8;
+}
+.cq-story-journal .cq-story-text p { color: #eee6d0; font-size: 22px; }
+.cq-story-journal .cq-story-text h3 { color: #afcfac; font-size: 26px; }
+.cq-story-journal .cq-story-text button { font-size: 20px; }
+
+/* Compact text battles keep each enemy readable without illustration assets. */
+#cq-preview .cq-mini-battle.cq-text-battle {
+ display:flex;flex-direction:column;background:#0d1716;border:1px solid #607b61;
+ gap:5px;text-align:center;overflow:hidden;padding:5px 9px;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading {font-size:18px;color:#d6e4d1}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading > span:last-child {font-size:16px}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group {
+ display:flex;flex:1;gap:5px;min-height:0;align-items:stretch;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-card {
+ position:static;display:flex;flex:1;flex-direction:column;align-items:center;
+ justify-content:center;gap:3px;min-width:0;min-height:0;height:auto;
+ padding:3px 5px;border:1px solid #607b61;background:#112423;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-name {
+ display:block;position:static;font-size:clamp(13px,1.7cqw,20px);line-height:1;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-hp {
+ display:block;position:static;font-size:clamp(12px,1.5cqw,17px);
+ line-height:1;color:#f5edd8;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-enemymeter {
+ order:initial;display:block;width:100%;height:7px;min-height:7px;
+ margin:0;background:#1b3732;
+}
