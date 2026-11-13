@@ -2415,3 +2415,31 @@ body {
 .cq-story-journal .cq-story-text p { color: #eee6d0; font-size: 22px; }
 .cq-story-journal .cq-story-text h3 { color: #afcfac; font-size: 26px; }
 .cq-story-journal .cq-story-text button { font-size: 20px; }
+
+/* Compact text battles keep each enemy readable without illustration assets. */
+#cq-preview .cq-mini-battle.cq-text-battle {
+ display:flex;flex-direction:column;background:#0d1716;border:1px solid #607b61;
+ gap:5px;text-align:center;overflow:hidden;padding:5px 9px;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading {font-size:18px;color:#d6e4d1}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading > span:last-child {font-size:16px}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group {
+ display:flex;flex:1;gap:5px;min-height:0;align-items:stretch;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-card {
+ position:static;display:flex;flex:1;flex-direction:column;align-items:center;
+ justify-content:center;gap:3px;min-width:0;min-height:0;height:auto;
+ padding:3px 5px;border:1px solid #607b61;background:#112423;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-name {
+ display:block;position:static;font-size:clamp(13px,1.7cqw,20px);line-height:1;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-hp {
+ display:block;position:static;font-size:clamp(12px,1.5cqw,17px);
+ line-height:1;color:#f5edd8;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-enemymeter {
+ order:initial;display:block;width:100%;height:7px;min-height:7px;
+ margin:0;background:#1b3732;
+}
