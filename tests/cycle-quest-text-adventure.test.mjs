@@ -38,6 +38,7 @@ test('overlay calls the actual elevation SVG when it is not Story or combat',asy
  const game=await readFile(new URL('../cycle-quest/game.js',import.meta.url),'utf8');
  assert(game.includes('overlayContentMode({battle:!!s.battle'));
  assert(game.includes("el.innerHTML=elevationSVG(displayed,sample,w,h,progress)"));
- assert(game.includes("if(compact)return ''; // The 170px battle panel is text-first"));
+ assert(game.includes("if(compact){"));
+ assert(game.includes("cq-text-group"));
  assert(game.includes("$('.cq-route').classList.toggle('cq-story-open'"));
 });
