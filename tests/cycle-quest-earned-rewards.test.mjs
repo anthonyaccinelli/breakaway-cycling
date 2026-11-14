@@ -1,6 +1,6 @@
 import {storyRoute} from '../cycle-quest/story-chapters.js';
 import {generateRoute} from '../cycle-quest/routes.js';
-import {bikeFor,multiplier,visitShop,roadsideReward} from '../cycle-quest/bike-parts.js';
+import {bikeFor,multiplier,visitShop,exploreRoadside} from '../cycle-quest/bike-parts.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -9,7 +9,7 @@ import {battleRewards,validPendingReward,sessionMetrics} from '../cycle-quest/re
 const game=await readFile(new URL('../cycle-quest/game.js',import.meta.url),'utf8');
 function fn(name){const start=game.indexOf('function '+name+'('),end=game.indexOf('\nfunction ',start+1);assert(start>=0&&end>start);return game.slice(start,end);}
 function fixture(state={}){
- const c={bikeFor,multiplier,roadsideReward:r=>roadsideReward(r,()=>.9),storyRoute,generateRoute,lastLiveDistance:0,music:{endBattle(){}},externalSaveChanged:false,s:{xp:0,hp:50,coins:0,chapter:1,miles:50,rideSeconds:9000,rideMiles:100,...state},levelUps:{enqueue(){}},message:'',rewardChoice:null,parentSend(){},shareCard(){},render(){},saved:null,save(){c.saved=JSON.parse(JSON.stringify(c.s));},fmt:Math.round,battleRewards};
+ const c={bikeFor,multiplier,storyRoute,generateRoute,lastLiveDistance:0,music:{endBattle(){}},externalSaveChanged:false,s:{xp:0,hp:50,coins:0,chapter:1,miles:50,rideSeconds:9000,rideMiles:100,...state},levelUps:{enqueue(){}},message:'',rewardChoice:null,parentSend(){},shareCard(){},render(){},saved:null,save(){c.saved=JSON.parse(JSON.stringify(c.s));},fmt:Math.round,battleRewards};
  c.MAX_XP=10000000;vm.createContext(c);vm.runInContext(['level','cost','threshold','maxHP','atk','award','restoreRewardState','finish','choose'].map(fn).join('\n'),c);return c;
 }
 test('one/two/three defeated enemies immediately earn 150/300/450 XP and automatic coins',()=>{
@@ -75,8 +75,24 @@ test('shop milestones persist and only stronger parts are fitted',()=>{
  assert.equal(visitShop(reloaded),'');assert.equal(reloaded.coins,125);
  assert(multiplier(rider.bike,0)>1);assert(multiplier(rider.bike,2)>1);
 });
-test('rare finds and mechanic repairs use existing rider and bike state',()=>{
- const rider={rideMiles:0};const rolls=[.04,.01,.8];
- const reward=roadsideReward(rider,()=>rolls.shift());
- assert(reward.repair);assert.equal(rider.bike.tiers[3],1);
+test('roadside distance survives reload and standing still cannot roll a find',()=>{
+ const rider={rideMiles:0};assert.equal(exploreRoadside(rider,0),null);
+ assert.equal(exploreRoadside(rider,3,()=>0),null);
+ const resumed=JSON.parse(JSON.stringify(rider));
+ assert.equal(exploreRoadside(resumed,0),null);
+ const rolls=[0,.1,.1,.8];
+ const result=exploreRoadside(resumed,1,()=>rolls.shift());
+ assert(result.repair);assert.deepEqual(resumed.bike.tiers,[0,0,0,1]);
+ assert.equal(resumed.bike.roadsideRemaining,4);
+});
+test('exploration loot auto-equips an eligible part without a battle',()=>{
+ const rider={rideMiles:1,bike:{tiers:[50,50,0,50],shopStop:0,roadsideRemaining:.5}};
+ const result=exploreRoadside(rider,.5,()=>.75);
+ assert.equal(result.repair,false);assert.equal(rider.bike.tiers[2],1);
+});
+test('roadside rolls only occur in the active pedaling exploration branch',()=>{
+ const block=game.slice(game.indexOf('if(!s.battle&&!s.reward&&!levelUp&&running){s.rideMiles'),game.indexOf('if(running){let remaining=dt;'));
+ assert.match(block,/else if\(power>0&&m.cadence>0&&warmupSeconds<=0\)/);
+ assert.match(block,/else if\(s.mode!=='boss'&&delta>0\)\{\s*const find=exploreRoadside/);
+ assert.equal(fn('finish').includes('exploreRoadside'),false);
 });

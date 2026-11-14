@@ -1,4 +1,4 @@
-import {slots,bikeFor,multiplier,visitShop,roadsideReward} from '/api/cycle-quest?asset=bike-parts.js';
+import {slots,bikeFor,multiplier,visitShop,exploreRoadside} from '/api/cycle-quest?asset=bike-parts.js';
 import {createQuestMusic} from '/api/cycle-quest?asset=music.js';
 import {readCharacter,MAX_XP} from '/api/cycle-quest?asset=save-state.js';
 import {escapeHTML as safeText,formatClock,rewardButtons} from '/api/cycle-quest?asset=ui-utils.js';
@@ -65,6 +65,7 @@ async function finishQuestSummary(retry=false){
  }catch(error){download.disabled=true;message='Could not capture the full ride summary. Please try again.';parentSend({type:'quest-summary',lines,image:null});summaryDialog.querySelector('#cq-summary-retry').hidden=false;const note=document.createElement('p');note.textContent=message;body.append(note);console.error('Summary image capture failed',error);}finally{summaryCapturing=false;}
 }
 
+let roadsideNotice='',roadsideNoticeUntil=0;
 let floating=null,floatingMarkup='';
 let s=fresh(),view='ride',running=false,saveTick=0,message='The road ahead is yours.',power=0;
 function level(xp=s.xp){let L=1;while(xp>=cost(L)){xp-=cost(L);L++;if(L>100000)break;}return L;}
@@ -165,10 +166,9 @@ function finish(win){
   const rewards=battleRewards(b);
   if(s.session){if(b.kind==='enemy'&&!Array.isArray(b.enemies))s.session.monsters++;else if(b.kind!=='enemy')s.session.bosses++;}
   award(rewards.xp);s.coins+=rewards.coins;
-  const event=roadsideReward(s);if(event.repair)s.hp=maxHP();
   if(b.kind==='boss'&&!b.practice){s.chapter++;s.miles=0;s.boss=null;if(s.chapter<=10){s.route=storyRoute(s.chapter,generateRoute);s.routeMiles=0;lastLiveDistance=0;parentSend({type:'route',route:s.route,restoreMiles:0});}else{s.mode='training';parentSend({type:'story-complete'});}}
   if(b.kind!=='enemy')shareCard(b.kind==='summit'?'SUMMIT BOSS DEFEATED':'CHAPTER BOSS DEFEATED',[b.name,'XP EARNED  +'+rewards.xp,'LEVEL '+level()]);
-  message=(s.chapter>10&&b.kind==='boss'?'STORY COMPLETE · Ten bosses defeated! ':'VICTORY! ')+ '+'+rewards.xp+' XP · +'+rewards.coins+' coins. '+event.text;
+  message=(s.chapter>10&&b.kind==='boss'?'STORY COMPLETE · Ten bosses defeated! ':'VICTORY! ')+ '+'+rewards.xp+' XP · +'+rewards.coins+' coins.';
  }else{s.hp=maxHP();message='Battle lost. No bonus XP. HP fully restored. '+(b.kind==='boss'?'The same boss awaits your next attempt.':'Keep riding.');}
  save();
 }
@@ -264,7 +264,7 @@ function renderRideReadouts(session, L, remaining) {
   setStat("overlay-power", displayedPower() + " W");
   setStat("overlay-hr", live.heartRate + " BPM");
   setStat("overlay-speed", live.speed.toFixed(1) + " MPH");
-  $(".cq-overlayfoot").innerHTML = "<span>" + (s.battle ? safeText(s.battle.name) + " \xB7 " + fmt(s.battle.hp) + " HP" : s.reward ? "+" + (s.pendingReward?.xp || 0) + " XP EARNED \xB7 CHOOSE A REWARD" : " +1 XP / SEC PEDALING") + "</span><span>ATTACK " + fmt(atk()) + " \xB7 " + fmt(s.coins || 0) + " COINS</span>";
+  $(".cq-overlayfoot").innerHTML = "<span>" + (s.battle ? safeText(s.battle.name) + " \xB7 " + fmt(s.battle.hp) + " HP" : s.reward ? "+" + (s.pendingReward?.xp || 0) + " XP EARNED \xB7 CHOOSE A REWARD" : performance.now()<roadsideNoticeUntil?safeText(roadsideNotice):" +1 XP / SEC PEDALING") + "</span><span>ATTACK " + fmt(atk()) + " \xB7 " + fmt(s.coins || 0) + " COINS</span>";
 }
 function battleLevelLabel(b){const levels=b.enemies?.map(e=>e.level)||[b.level];const low=Math.min(...levels),high=Math.max(...levels);return 'LV '+low+(high!==low?'–'+high:'');}
 function eventMarkup() {
@@ -383,7 +383,15 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==
    }
   }
  }else{for(const c of (Array.isArray(m.climbs)?m.climbs:[])){const id=Math.round(c.end);if(!summitChoices.has(id))summitChoices.set(id,Math.random()<.25);if(previousDistance<c.end&&m.distanceM>=c.end&&summitChoices.get(id)&&!summitSeen.has(id)&&!s.battle&&!s.reward&&!levelUp){summitSeen.add(id);encounter('summit');if(s.battle?.kind==='summit'){s.battle.category=c.category;}}}}
- if(!s.battle&&!s.reward&&!levelUp&&running){s.rideMiles+=delta/METERS_PER_MILE;const receipt=visitShop(s);if(receipt){message=receipt;save();}if(s.mode==='adventure')s.miles=Math.min(100,s.miles+delta/METERS_PER_MILE);if(s.mode==='adventure'&&s.route?.storyChapter===s.chapter&&m.distanceM>=s.route.distance-.01)s.miles=100;s.routeMiles=m.distanceM/METERS_PER_MILE;if(s.miles>=100&&s.mode==='adventure'&&s.chapter<=10&&warmupSeconds<=0){encounter('boss');}else if(power>0&&m.cadence>0&&warmupSeconds<=0){if(!s.battle){s.nextEncounter=Math.max(0,s.nextEncounter-dt);if(s.nextEncounter<=0)encounter('enemy');}}}
+ if(!s.battle&&!s.reward&&!levelUp&&running){s.rideMiles+=delta/METERS_PER_MILE;const receipt=visitShop(s);if(receipt){message=receipt;save();}if(s.mode==='adventure')s.miles=Math.min(100,s.miles+delta/METERS_PER_MILE);if(s.mode==='adventure'&&s.route?.storyChapter===s.chapter&&m.distanceM>=s.route.distance-.01)s.miles=100;s.routeMiles=m.distanceM/METERS_PER_MILE;if(s.miles>=100&&s.mode==='adventure'&&s.chapter<=10&&warmupSeconds<=0){encounter('boss');}else if(power>0&&m.cadence>0&&warmupSeconds<=0){if(!s.battle){s.nextEncounter=Math.max(0,s.nextEncounter-dt);if(s.nextEncounter<=0)encounter('enemy');
+   else if(s.mode!=='boss'&&delta>0){
+    const find=exploreRoadside(s,delta/METERS_PER_MILE);
+    if(find){
+     if(find.repair)s.hp=maxHP();
+     roadsideNotice=find.text;roadsideNoticeUntil=performance.now()+8000;
+     message=find.text;save();
+    }
+   }}}}
 
  if(running){let remaining=dt;while(remaining>0){const part=Math.min(.1,remaining);step(part);remaining-=part;}}
  if(!s.route?.endless&&s.summitDoneEnd!=null&&!s.pendingSummit&&!s.battle)parentSend({type:'summit-resolved'});
