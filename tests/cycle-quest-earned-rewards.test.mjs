@@ -1,5 +1,6 @@
 import {storyRoute} from '../cycle-quest/story-chapters.js';
 import {generateRoute} from '../cycle-quest/routes.js';
+import {bikeFor,multiplier,visitShop,roadsideReward} from '../cycle-quest/bike-parts.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -8,29 +9,29 @@ import {battleRewards,validPendingReward,sessionMetrics} from '../cycle-quest/re
 const game=await readFile(new URL('../cycle-quest/game.js',import.meta.url),'utf8');
 function fn(name){const start=game.indexOf('function '+name+'('),end=game.indexOf('\nfunction ',start+1);assert(start>=0&&end>start);return game.slice(start,end);}
 function fixture(state={}){
- const c={storyRoute,generateRoute,lastLiveDistance:0,music:{endBattle(){}},externalSaveChanged:false,s:{xp:0,hp:50,coins:0,chapter:1,miles:50,rideSeconds:9000,rideMiles:100,...state},levelUps:{enqueue(){}},message:'',rewardChoice:null,parentSend(){},shareCard(){},render(){},saved:null,save(){c.saved=JSON.parse(JSON.stringify(c.s));},fmt:Math.round,battleRewards};
+ const c={bikeFor,multiplier,roadsideReward:r=>roadsideReward(r,()=>.9),storyRoute,generateRoute,lastLiveDistance:0,music:{endBattle(){}},externalSaveChanged:false,s:{xp:0,hp:50,coins:0,chapter:1,miles:50,rideSeconds:9000,rideMiles:100,...state},levelUps:{enqueue(){}},message:'',rewardChoice:null,parentSend(){},shareCard(){},render(){},saved:null,save(){c.saved=JSON.parse(JSON.stringify(c.s));},fmt:Math.round,battleRewards};
  c.MAX_XP=10000000;vm.createContext(c);vm.runInContext(['level','cost','threshold','maxHP','atk','award','restoreRewardState','finish','choose'].map(fn).join('\n'),c);return c;
 }
-test('one/two/three defeated enemies immediately earn 150/300/450 XP and scale both choices',()=>{
+test('one/two/three defeated enemies immediately earn 150/300/450 XP and automatic coins',()=>{
  for(const count of [1,2,3]){
   const c=fixture({battle:{kind:'enemy',enemies:Array(count).fill({}),reward:150*count}});
-  vm.runInContext('finish(true)',c);assert.equal(c.s.xp,150*count);assert.equal(c.s.pendingReward.hp,25*count);assert.equal(c.s.pendingReward.coins,25*count);assert.equal(c.s.reward,true);assert.equal(c.saved.xp,150*count);
+  vm.runInContext('finish(true)',c);assert.equal(c.s.xp,150*count);assert.equal(c.s.pendingReward,null);assert.equal(c.s.coins,25*count);assert.equal(c.s.reward,false);assert.equal(c.saved.xp,150*count);
   vm.runInContext('choose("coins");choose("coins");finish(true)',c);assert.equal(c.s.coins,25*count);assert.equal(c.s.xp,150*count);assert.equal(c.s.pendingReward,null);
  }
 });
-test('healing choice caps at max HP, never replaces earned XP, and loss grants no coins or XP',()=>{
- const c=fixture({hp:80,battle:{kind:'enemy',enemies:[{},{}],reward:300}});vm.runInContext('finish(true);choose("heal")',c);assert.equal(c.s.hp,100);assert.equal(c.s.xp,300);assert.equal(c.s.coins,0);
+test('victory credits coins without input and loss grants no coins or XP',()=>{
+ const c=fixture({hp:80,battle:{kind:'enemy',enemies:[{},{}],reward:300}});vm.runInContext('finish(true);choose("heal")',c);assert.equal(c.s.hp,80);assert.equal(c.s.xp,300);assert.equal(c.s.coins,50);
  const lost=fixture({hp:1,battle:{kind:'enemy',enemies:[{},{},{}],reward:450}});vm.runInContext('finish(false);choose("coins")',lost);assert.equal(lost.s.xp,0);assert.equal(lost.s.coins,0);assert.equal(lost.s.hp,100);assert.equal(lost.s.reward,false);
 });
-test('boss and summit XP are automatic with a separate choice; chapter progression happens once',()=>{
+test('boss and summit XP are automatic with coins; chapter progression happens once',()=>{
  for(const kind of ['boss','summit']){
-  const c=fixture({battle:{kind,reward:1000},boss:{name:'guardian'}});vm.runInContext('finish(true)',c);assert.equal(c.s.xp,1000);assert.equal(c.s.pendingReward.coins,25);assert.equal(c.s.chapter,kind==='boss'?2:1);vm.runInContext('choose("coins")',c);assert.equal(c.s.xp,1000);assert.equal(c.s.coins,25);
+  const c=fixture({battle:{kind,reward:1000},boss:{name:'guardian'}});vm.runInContext('finish(true)',c);assert.equal(c.s.xp,1000);assert.equal(c.s.coins,25);assert.equal(c.s.chapter,kind==='boss'?2:1);vm.runInContext('choose("coins")',c);assert.equal(c.s.xp,1000);assert.equal(c.s.coins,25);
  }
 });
 test('victory survives reload without a duplicate XP grant; legacy pending reward migrates once',()=>{
  const c=fixture({battle:{kind:'enemy',enemies:[{},{},{}],reward:450}});vm.runInContext('finish(true)',c);
  const restored=fixture(c.saved);vm.runInContext('restoreRewardState();choose("coins")',restored);assert.equal(restored.s.xp,450);assert.equal(restored.s.coins,75);
- const legacy=fixture({reward:true,coins:undefined});vm.runInContext('restoreRewardState();restoreRewardState()',legacy);assert.equal(legacy.s.xp,150);assert.equal(legacy.s.coins,0);assert(validPendingReward(legacy.s.pendingReward));
+ const legacy=fixture({reward:true,coins:undefined});vm.runInContext('restoreRewardState();restoreRewardState()',legacy);assert.equal(legacy.s.xp,150);assert.equal(legacy.s.coins,25);assert.equal(legacy.s.pendingReward,null);
 });
 test('level gains fully heal including multiple levels; ordinary XP does not heal',()=>{
  const c=fixture({xp:590,hp:5});vm.runInContext('award(5)',c);assert.equal(c.s.hp,5);vm.runInContext('award(2400)',c);assert.equal(c.s.hp,c.maxHP());assert(c.s.hp>110);
@@ -52,7 +53,7 @@ test('earned XP cannot cross the save validator limit and make the next load fai
 test('mixed-level victory grants the summed 800 XP once and never scales by rider level',()=>{
  for(const xp of [0,24000,100000]){
   const c=fixture({xp,battle:{kind:'enemy',enemies:[{level:1},{level:6},{level:10}],reward:800}});
-  vm.runInContext('finish(true);finish(true)',c);assert.equal(c.s.xp,xp+800);assert.equal(c.s.pendingReward.hp,75);assert.equal(c.s.pendingReward.coins,75);
+  vm.runInContext('finish(true);finish(true)',c);assert.equal(c.s.xp,xp+800);assert.equal(c.s.pendingReward,null);assert.equal(c.s.coins,75);
   const restored=fixture(c.saved);vm.runInContext('restoreRewardState();choose("coins")',restored);assert.equal(restored.s.xp,xp+800);assert.equal(restored.s.coins,75);
  }
 });
@@ -62,6 +63,20 @@ test('Boss Mode victory awards rewards without unlocking chapters or changing mi
 });
 test('the tenth chapter boss ends Story without dropping the route or losing the reward',()=>{
  const route=storyRoute(10,generateRoute),c=fixture({mode:'adventure',chapter:10,miles:100,route,routeMiles:100,battle:{kind:'boss',reward:9825}});
- vm.runInContext('finish(true)',c);assert.equal(c.s.chapter,11);assert.equal(c.s.mode,'training');assert.equal(c.s.route,route);assert.equal(c.s.routeMiles,100);assert.equal(c.s.reward,true);assert.match(c.message,/STORY COMPLETE/);
+ vm.runInContext('finish(true)',c);assert.equal(c.s.chapter,11);assert.equal(c.s.mode,'training');assert.equal(c.s.route,route);assert.equal(c.s.routeMiles,100);assert.equal(c.s.reward,false);assert.match(c.message,/STORY COMPLETE/);
  vm.runInContext('choose("coins")',c);assert.equal(c.s.reward,false);assert.equal(c.s.chapter,11);
+});
+
+test('shop milestones persist and only stronger parts are fitted',()=>{
+ const rider={coins:300,rideMiles:19};bikeFor(rider);
+ assert.equal(visitShop(rider),'');rider.rideMiles=20;assert(visitShop(rider));
+ assert.equal(rider.coins,0);assert.deepEqual(rider.bike.tiers,[1,1,1,0]);
+ const reloaded=JSON.parse(JSON.stringify(rider));reloaded.coins=125;
+ assert.equal(visitShop(reloaded),'');assert.equal(reloaded.coins,125);
+ assert(multiplier(rider.bike,0)>1);assert(multiplier(rider.bike,2)>1);
+});
+test('rare finds and mechanic repairs use existing rider and bike state',()=>{
+ const rider={rideMiles:0};const rolls=[.04,.01,.8];
+ const reward=roadsideReward(rider,()=>rolls.shift());
+ assert(reward.repair);assert.equal(rider.bike.tiers[3],1);
 });

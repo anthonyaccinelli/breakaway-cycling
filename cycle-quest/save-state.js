@@ -1,3 +1,4 @@
+import {validBike} from '/api/cycle-quest?asset=bike-parts.js';
 import {COMBAT_VERSION,MAX_ENEMY_LEVEL} from '/api/cycle-quest?asset=combat.js';
 import {migrateCombatSave} from '/api/cycle-quest?asset=combat-save.js';
 import {validLedger} from '/api/cycle-quest?asset=workouts.js';
@@ -50,7 +51,7 @@ export function validCharacter(state){
   &&nonnegative(state.xp)&&state.xp<=MAX_XP&&nonnegative(state.hp)
   &&nonnegative(state.miles)&&state.miles<=100&&Number.isInteger(state.chapter)&&state.chapter>=1
   &&optional(state.bossWarmupRemaining,n=>nonnegative(n)&&n<=600)
-  &&optional(state.narrative,validNarrative)&&optional(state.bossModeComplete,n=>typeof n==='boolean')
+  &&optional(state.bike,validBike)&&optional(state.narrative,validNarrative)&&optional(state.bossModeComplete,n=>typeof n==='boolean')
   &&['adventure','training','boss'].includes(state.mode)&&nonnegative(state.rideSeconds)&&nonnegative(state.rideMiles)&&nonnegative(state.nextEncounter)
   &&typeof state.reward==='boolean'&&optional(state.coins,n=>Number.isSafeInteger(n)&&n>=0)
   &&(!state.pendingReward||(state.reward&&validPendingReward(state.pendingReward)))
