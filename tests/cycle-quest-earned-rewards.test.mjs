@@ -1,6 +1,6 @@
 import {storyRoute} from '../cycle-quest/story-chapters.js';
 import {generateRoute} from '../cycle-quest/routes.js';
-import {bikeFor,multiplier,changePart,exploreRoadside} from '../cycle-quest/bike-parts.js';
+import {bikeFor,multiplier,changePart,exploreRoadside,partBonus,validBike} from '../cycle-quest/bike-parts.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -68,14 +68,24 @@ test('the tenth chapter boss ends Story without dropping the route or losing the
 });
 
 
-test('manual purchases preserve coins on rides and require explicit equipment selection',()=>{
- const rider={coins:500,rideMiles:20};const bike=bikeFor(rider);
- assert(changePart(rider,1,'buy'));assert.equal(rider.coins,400);
- assert.equal(bike.equipped[0],0);assert.equal(bike.tiers[0],0);
- assert(changePart(rider,1,'equip'));assert.equal(bike.tiers[0],1);
- assert(changePart(rider,1,'upgrade'));assert.equal(bike.tiers[0],2);
- assert.equal(rider.coins,0);assert.equal(changePart(rider,1,'upgrade'),false);
- assert.equal(changePart(rider,1,'buy'),false);
+test('chapter grades and rider levels gate purchases and preserve favorite upgrades',()=>{
+ const rider={coins:5000,xp:0,chapter:1,rideMiles:20};const bike=bikeFor(rider);
+ assert.equal(changePart(rider,1,'buy',2),false);
+ assert(changePart(rider,1,'buy',1));assert.equal(rider.coins,4200);
+ assert.equal(bike.equipped[0],0);
+ assert(changePart(rider,1,'equip'));assert.equal(partBonus(bike,1),24);
+ assert(changePart(rider,1,'upgrade'));assert.equal(partBonus(bike,1),32);
+ assert.equal(changePart(rider,1,'upgrade'),false);
+ rider.chapter=2;assert(changePart(rider,1,'promote',2));
+ assert.equal(partBonus(bike,1),56);assert.equal(bike.owned[1],1);
+ assert(validBike(JSON.parse(JSON.stringify(bike))));
+ rider.coins=0;assert.equal(changePart(rider,2,'buy'),false);
+});
+test('legacy bike tiers migrate with their existing bonuses',()=>{
+ const rider={bike:{tiers:[3,2,1,0],shopStop:1}};
+ const bike=bikeFor(rider);
+ assert(validBike(bike));assert.equal(partBonus(bike,0),24);
+ assert.equal(partBonus(bike,3),16);
 });
 test('loot is stored and mechanics repair without changing equipment',()=>{
  const rider={coins:0,rideMiles:0};const bike=bikeFor(rider);

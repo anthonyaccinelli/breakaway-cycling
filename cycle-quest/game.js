@@ -1,4 +1,4 @@
-import {slots,catalog,bikeFor,multiplier,partPrice,changePart,exploreRoadside} from '/api/cycle-quest?asset=bike-parts.js';
+import {slots,catalog,grades,unlockedGrade,riderLevel,partBonus,bikeFor,multiplier,partPrice,changePart,exploreRoadside} from '/api/cycle-quest?asset=bike-parts.js';
 import {createQuestMusic} from '/api/cycle-quest?asset=music.js';
 import {readCharacter,MAX_XP} from '/api/cycle-quest?asset=save-state.js';
 import {escapeHTML as safeText,formatClock,rewardButtons} from '/api/cycle-quest?asset=ui-utils.js';
@@ -124,17 +124,28 @@ function shopAvailable(){
  return !externalSaveChanged&&!running&&!s.battle&&!s.reward&&!(live.activityStartTime&&!live.routeComplete);
 }
 function renderShop(){
- const bike=bikeFor(s),available=shopAvailable();
+ const bike=bikeFor(s),available=shopAvailable(),grade=unlockedGrade(s);
  storyJournal.querySelector('h2').textContent='BIKE SHOP';
  storyJournal.querySelector('[data-close-journal]').textContent='CLOSE SHOP';
- storyJournal.querySelector('.cq-story-journal-content').innerHTML='<p>'+fmt(s.coins)+' COINS</p>'+
- (!available?'<p>Finish your ride to buy, upgrade, or equip parts.</p>':'<p>Choose your parts. Every part gains +8% base HP or attack per upgrade.</p>')+
+ const actionButton=(p,action,label,target=grade)=>{
+  const price=partPrice(bike,p.id,action,target);
+  return '<button type="button" data-part="'+p.id+'" data-part-action="'+action+'" data-grade="'+target+'" '+(!available||s.coins<price?'disabled':'')+'>'+label+' · '+fmt(price)+' coins</button>';
+ };
+ storyJournal.querySelector('.cq-story-journal-content').innerHTML='<p>'+fmt(s.coins)+' COINS · RIDER LEVEL '+level()+'</p>'+
+ '<p>'+grades.slice(1).map((name,i)=>name+' · '+(i+1<=grade?'Available':'Chapter '+(i+1))).join(' / ')+'</p>'+
+ (!available?'<p>Finish your ride to buy, upgrade, or equip parts.</p>':'<p>Each grade adds 24% base stats. Each upgrade adds 8%. Upgrade level is capped by rider level, up to 50.</p>')+
  slots.map((slot,i)=>'<h3>'+slot+' · '+(i<2?'HP':'ATTACK')+'</h3>'+catalog.filter(p=>p.slot===i).map(p=>{
-  const tier=bike.owned[p.id],equipped=bike.equipped[i]===p.id,price=partPrice(bike,p.id);
-  const action=tier===null?'buy':'upgrade';
-  return '<p><b>'+p.name+'</b> · '+(tier===null?'New · +8%':('Level '+tier+' · +'+tier*8+'%'))+(equipped?' · EQUIPPED':'')+'</p><div class="cq-eventactions">'+
-   (tier===50?'MAX LEVEL':'<button type="button" data-part="'+p.id+'" data-part-action="'+action+'" '+(!available||s.coins<price?'disabled':'')+'>'+ (tier===null?'Buy':'Upgrade to +'+(tier+1)*8+'%')+' · '+fmt(price)+' coins</button>')+
-   (tier!==null&&!equipped?'<button type="button" data-part="'+p.id+'" data-part-action="equip" '+(!available?'disabled':'')+'>Equip</button>':'')+'</div>';
+  const tier=bike.owned[p.id],equipped=bike.equipped[i]===p.id;
+  let actions='';
+  if(tier===null){
+   for(let g=1;g<=grade;g++)actions+=actionButton(p,'buy','Buy '+grades[g]+' · +'+g*24+'%',g);
+  }else{
+   if(tier<Math.min(50,riderLevel(s)))actions+=actionButton(p,'upgrade','Upgrade +'+tier+' → +'+(tier+1)+' · bonus '+partBonus(bike,p.id)+'% → '+(partBonus(bike,p.id)+8)+'%');
+   else actions+='<span>'+(tier>=50?'Maximum upgrade':'Next upgrade at rider level '+(tier+1))+'</span>';
+   for(let g=bike.grades[p.id]+1;g<=grade;g++)actions+=actionButton(p,'promote','Promote to '+grades[g]+' · bonus +'+(g*24+tier*8)+'%',g);
+   if(!equipped)actions+='<button type="button" data-part="'+p.id+'" data-part-action="equip" '+(!available?'disabled':'')+'>Equip</button>';
+  }
+  return '<p><b>'+p.name+'</b> · '+(tier===null?'Available to buy':grades[bike.grades[p.id]]+' +'+tier+' · +'+partBonus(bike,p.id)+'%')+(equipped?' · EQUIPPED':'')+'</p><div class="cq-eventactions">'+actions+'</div>';
  }).join('')).join('');
 }
 partsButton.onclick=()=>{renderShop();storyJournal.showModal();};
@@ -143,7 +154,7 @@ storyJournal.addEventListener('click',e=>{
  if(!button||!shopAvailable())return;
  if(localStorage.getItem(key)!==persistedSave){externalSaveChanged=true;renderShop();return;}
  const oldMax=maxHP();
- if(changePart(s,Number(button.dataset.part),button.dataset.partAction)){
+ if(changePart(s,Number(button.dataset.part),button.dataset.partAction,Number(button.dataset.grade)||1)){
   s.hp=Math.max(1,Math.min(maxHP(),s.hp+(maxHP()-oldMax)));
   save();render();renderShop();
  }
