@@ -1,4 +1,4 @@
-import {slots,bikeFor,multiplier,visitShop,exploreRoadside} from '/api/cycle-quest?asset=bike-parts.js';
+import {slots,catalog,bikeFor,multiplier,partPrice,changePart,exploreRoadside} from '/api/cycle-quest?asset=bike-parts.js';
 import {createQuestMusic} from '/api/cycle-quest?asset=music.js';
 import {readCharacter,MAX_XP} from '/api/cycle-quest?asset=save-state.js';
 import {escapeHTML as safeText,formatClock,rewardButtons} from '/api/cycle-quest?asset=ui-utils.js';
@@ -118,15 +118,37 @@ function renderStoryJournal(){
  storyJournal.querySelector('.cq-story-journal-content').innerHTML=entries.length?entries.map(storyMarkup).join(''):'<p>Your story will be recorded here as you ride.</p>';
 }
 const partsButton=document.createElement('button');
-partsButton.type='button';partsButton.textContent='Bike parts';
+partsButton.type='button';partsButton.textContent='Bike shop';
 $('#save-tools').before(partsButton);
-partsButton.onclick=()=>{
- const bike=bikeFor(s);
- storyJournal.querySelector('h2').textContent='BIKE PARTS';
- storyJournal.querySelector('.cq-story-journal-content').innerHTML=slots.map((name,i)=>'<p>'+name+' · Tier '+bike.tiers[i]+' · '+(i<2?'HP':'ATK')+' +'+bike.tiers[i]*8+'%</p>').join('')+'<p>'+fmt(s.coins)+' coins · next shop at '+(bike.shopStop+1)*20+' total miles</p>';
- storyJournal.showModal();
-};
-storyJournalButton.onclick=()=>{storyJournal.querySelector('h2').textContent='STORY JOURNAL · CHAPTER I';renderStoryJournal();storyJournal.showModal();};
+function shopAvailable(){
+ return !externalSaveChanged&&!running&&!s.battle&&!s.reward&&!(live.activityStartTime&&!live.routeComplete);
+}
+function renderShop(){
+ const bike=bikeFor(s),available=shopAvailable();
+ storyJournal.querySelector('h2').textContent='BIKE SHOP';
+ storyJournal.querySelector('[data-close-journal]').textContent='CLOSE SHOP';
+ storyJournal.querySelector('.cq-story-journal-content').innerHTML='<p>'+fmt(s.coins)+' COINS</p>'+
+ (!available?'<p>Finish your ride to buy, upgrade, or equip parts.</p>':'<p>Choose your parts. Every part gains +8% base HP or attack per upgrade.</p>')+
+ slots.map((slot,i)=>'<h3>'+slot+' · '+(i<2?'HP':'ATTACK')+'</h3>'+catalog.filter(p=>p.slot===i).map(p=>{
+  const tier=bike.owned[p.id],equipped=bike.equipped[i]===p.id,price=partPrice(bike,p.id);
+  const action=tier===null?'buy':'upgrade';
+  return '<p><b>'+p.name+'</b> · '+(tier===null?'New · +8%':('Level '+tier+' · +'+tier*8+'%'))+(equipped?' · EQUIPPED':'')+'</p><div class="cq-eventactions">'+
+   (tier===50?'MAX LEVEL':'<button type="button" data-part="'+p.id+'" data-part-action="'+action+'" '+(!available||s.coins<price?'disabled':'')+'>'+ (tier===null?'Buy':'Upgrade to +'+(tier+1)*8+'%')+' · '+fmt(price)+' coins</button>')+
+   (tier!==null&&!equipped?'<button type="button" data-part="'+p.id+'" data-part-action="equip" '+(!available?'disabled':'')+'>Equip</button>':'')+'</div>';
+ }).join('')).join('');
+}
+partsButton.onclick=()=>{renderShop();storyJournal.showModal();};
+storyJournal.addEventListener('click',e=>{
+ const button=e.target.closest('[data-part-action]');
+ if(!button||!shopAvailable())return;
+ if(localStorage.getItem(key)!==persistedSave){externalSaveChanged=true;renderShop();return;}
+ const oldMax=maxHP();
+ if(changePart(s,Number(button.dataset.part),button.dataset.partAction)){
+  s.hp=Math.max(1,Math.min(maxHP(),s.hp+(maxHP()-oldMax)));
+  save();render();renderShop();
+ }
+});
+storyJournalButton.onclick=()=>{storyJournal.querySelector('h2').textContent='STORY JOURNAL · CHAPTER I';storyJournal.querySelector('[data-close-journal]').textContent='CLOSE JOURNAL';renderStoryJournal();storyJournal.showModal();};
 function chooseStory(sceneId,choiceId){
  const n=narrativeState(),scene=chapterOneScene(sceneId);
  if(!scene||!n.seen.includes(sceneId)||n.choices[sceneId]||!scene.choices?.some(choice=>choice.id===choiceId))return;
@@ -383,7 +405,7 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==
    }
   }
  }else{for(const c of (Array.isArray(m.climbs)?m.climbs:[])){const id=Math.round(c.end);if(!summitChoices.has(id))summitChoices.set(id,Math.random()<.25);if(previousDistance<c.end&&m.distanceM>=c.end&&summitChoices.get(id)&&!summitSeen.has(id)&&!s.battle&&!s.reward&&!levelUp){summitSeen.add(id);encounter('summit');if(s.battle?.kind==='summit'){s.battle.category=c.category;}}}}
- if(!s.battle&&!s.reward&&!levelUp&&running){s.rideMiles+=delta/METERS_PER_MILE;const receipt=visitShop(s);if(receipt){message=receipt;save();}if(s.mode==='adventure')s.miles=Math.min(100,s.miles+delta/METERS_PER_MILE);if(s.mode==='adventure'&&s.route?.storyChapter===s.chapter&&m.distanceM>=s.route.distance-.01)s.miles=100;s.routeMiles=m.distanceM/METERS_PER_MILE;if(s.miles>=100&&s.mode==='adventure'&&s.chapter<=10&&warmupSeconds<=0){encounter('boss');}else if(power>0&&m.cadence>0&&warmupSeconds<=0){if(!s.battle){s.nextEncounter=Math.max(0,s.nextEncounter-dt);if(s.nextEncounter<=0)encounter('enemy');
+ if(!s.battle&&!s.reward&&!levelUp&&running){s.rideMiles+=delta/METERS_PER_MILE;if(s.mode==='adventure')s.miles=Math.min(100,s.miles+delta/METERS_PER_MILE);if(s.mode==='adventure'&&s.route?.storyChapter===s.chapter&&m.distanceM>=s.route.distance-.01)s.miles=100;s.routeMiles=m.distanceM/METERS_PER_MILE;if(s.miles>=100&&s.mode==='adventure'&&s.chapter<=10&&warmupSeconds<=0){encounter('boss');}else if(power>0&&m.cadence>0&&warmupSeconds<=0){if(!s.battle){s.nextEncounter=Math.max(0,s.nextEncounter-dt);if(s.nextEncounter<=0)encounter('enemy');
    else if(s.mode!=='boss'&&delta>0){
     const find=exploreRoadside(s,delta/METERS_PER_MILE);
     if(find){

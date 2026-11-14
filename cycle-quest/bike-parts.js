@@ -1,33 +1,50 @@
 export const slots=['Frame','Saddle','Chainring','Cassette'];
-const maxTier=50;
+export const catalog=[
+ ['Steel Frame','Trail Frame','Road Frame'],
+ ['Touring Saddle','Endurance Saddle','Race Saddle'],
+ ['Standard Chainring','Climbing Chainring','Race Chainring'],
+ ['Standard Cassette','Trail Cassette','Road Cassette']
+].flatMap((names,slot)=>names.map((name,variant)=>({id:slot*3+variant,name,slot})));
+const validTier=n=>Number.isInteger(n)&&n>=0&&n<=50;
 export function validBike(bike){
- return bike && Array.isArray(bike.tiers) && bike.tiers.length===slots.length
-  && bike.tiers.every(n=>Number.isInteger(n)&&n>=0&&n<=maxTier)
-  && (bike.roadsideRemaining===undefined || (Number.isFinite(bike.roadsideRemaining)&&bike.roadsideRemaining>=0&&bike.roadsideRemaining<=8))
-  && Number.isSafeInteger(bike.shopStop)&&bike.shopStop>=0;
+ if(!bike||!Array.isArray(bike.tiers)||bike.tiers.length!==4||!bike.tiers.every(validTier))return false;
+ if(bike.roadsideRemaining!==undefined&&(!Number.isFinite(bike.roadsideRemaining)||bike.roadsideRemaining<0||bike.roadsideRemaining>8))return false;
+ if(!Number.isSafeInteger(bike.shopStop)||bike.shopStop<0)return false;
+ if(bike.owned===undefined&&bike.equipped===undefined)return true;
+ if(!Array.isArray(bike.owned)||bike.owned.length!==12||!bike.owned.every(n=>n===null||validTier(n)))return false;
+ return Array.isArray(bike.equipped)&&bike.equipped.length===4&&bike.equipped.every((id,slot)=>
+  Number.isInteger(id)&&catalog[id]?.slot===slot&&bike.owned[id]!==null&&bike.tiers[slot]===bike.owned[id]);
 }
 export function bikeFor(rider){
- return rider.bike??={tiers:[0,0,0,0],shopStop:Math.floor(rider.rideMiles/20)};
+ const bike=rider.bike??={tiers:[0,0,0,0],shopStop:0};
+ if(!bike.owned){
+  bike.owned=catalog.map(part=>part.id%3===0?bike.tiers[part.slot]:null);
+  bike.equipped=slots.map((_,i)=>i*3);
+ }
+ return bike;
 }
 export function multiplier(bike,slot){
  return 1+.08*((bike?.tiers[slot]??0)+(bike?.tiers[slot+1]??0));
 }
-export function visitShop(rider){
- const bike=bikeFor(rider),stop=Math.floor(rider.rideMiles/20);
- if(stop<=bike.shopStop)return '';
- bike.shopStop=stop;
- const purchases=[];
- while(true){
-  const options=bike.tiers.map((n,i)=>({i,tier:n+1,price:100*(n+1)**2}))
-   .filter(p=>p.tier<=maxTier&&p.price<=rider.coins)
-   .sort((a,b)=>b.tier-a.tier||a.i-b.i);
-  if(!options.length)break;
-  const {i,tier,price}=options[0];
-  bike.tiers[i]=tier;rider.coins-=price;purchases.push(slots[i]+' '+tier);
- }
- return purchases.length?'Shop fitted '+purchases.join(', '):'Shop visited · coins saved.';
+export function partPrice(bike,id){
+ return 100*((bike.owned[id]??0)+1)**2;
 }
-// Sample the next find in active exploration miles so telemetry frequency has no effect.
+export function changePart(rider,id,action){
+ const part=catalog[id];
+ if(!part||!['buy','upgrade','equip'].includes(action))return false;
+ const bike=bikeFor(rider),owned=bike.owned[id];
+ if(action==='equip'){
+  if(owned===null)return false;
+  bike.equipped[part.slot]=id;bike.tiers[part.slot]=owned;
+  return true;
+ }
+ if(action==='buy'?owned!==null:owned===null||owned>=50)return false;
+ const price=partPrice(bike,id);
+ if(rider.coins<price)return false;
+ rider.coins-=price;bike.owned[id]=owned===null?1:owned+1;
+ if(bike.equipped[part.slot]===id)bike.tiers[part.slot]=bike.owned[id];
+ return true;
+}
 export function exploreRoadside(rider,miles,random=Math.random){
  if(!Number.isFinite(miles)||miles<=0)return null;
  const bike=bikeFor(rider);
@@ -36,15 +53,17 @@ export function exploreRoadside(rider,miles,random=Math.random){
  if(bike.roadsideRemaining>0)return null;
  bike.roadsideRemaining=4+4*random();
  const repair=random()<.5;
- const eligible=slots.map((_,i)=>i).filter(i=>bike.tiers[i]<maxTier);
- const upgrade=eligible.length>0&&(!repair||random()<.2);
  let text=repair?'Mechanic · full HP':'';
- if(upgrade){
-  const i=eligible[Math.floor(random()*eligible.length)];
-  bike.tiers[i]++;
-  text+=(repair?' + ':'Found ')+slots[i]+' T'+bike.tiers[i];
- }else if(!repair){
-  text='Found a part · equipped bike is stronger';
+ if(!repair||random()<.2){
+  const available=catalog.filter(p=>bike.owned[p.id]===null);
+  if(available.length){
+   const part=available[Math.floor(random()*available.length)];
+   bike.owned[part.id]=Math.min(50,bike.tiers[part.slot]+1);
+   text+=(repair?' + ':'Found ')+part.name+' · stored';
+  }else{
+   rider.coins+=50;
+   text+=(repair?' + ':'Salvaged parts · ')+'50 coins';
+  }
  }
  return {repair,text};
 }

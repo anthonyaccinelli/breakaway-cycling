@@ -1,6 +1,6 @@
 import {storyRoute} from '../cycle-quest/story-chapters.js';
 import {generateRoute} from '../cycle-quest/routes.js';
-import {bikeFor,multiplier,visitShop,exploreRoadside} from '../cycle-quest/bike-parts.js';
+import {bikeFor,multiplier,changePart,exploreRoadside} from '../cycle-quest/bike-parts.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -67,32 +67,31 @@ test('the tenth chapter boss ends Story without dropping the route or losing the
  vm.runInContext('choose("coins")',c);assert.equal(c.s.reward,false);assert.equal(c.s.chapter,11);
 });
 
-test('shop milestones persist and only stronger parts are fitted',()=>{
- const rider={coins:300,rideMiles:19};bikeFor(rider);
- assert.equal(visitShop(rider),'');rider.rideMiles=20;assert(visitShop(rider));
- assert.equal(rider.coins,0);assert.deepEqual(rider.bike.tiers,[1,1,1,0]);
- const reloaded=JSON.parse(JSON.stringify(rider));reloaded.coins=125;
- assert.equal(visitShop(reloaded),'');assert.equal(reloaded.coins,125);
- assert(multiplier(rider.bike,0)>1);assert(multiplier(rider.bike,2)>1);
+
+test('manual purchases preserve coins on rides and require explicit equipment selection',()=>{
+ const rider={coins:500,rideMiles:20};const bike=bikeFor(rider);
+ assert(changePart(rider,1,'buy'));assert.equal(rider.coins,400);
+ assert.equal(bike.equipped[0],0);assert.equal(bike.tiers[0],0);
+ assert(changePart(rider,1,'equip'));assert.equal(bike.tiers[0],1);
+ assert(changePart(rider,1,'upgrade'));assert.equal(bike.tiers[0],2);
+ assert.equal(rider.coins,0);assert.equal(changePart(rider,1,'upgrade'),false);
+ assert.equal(changePart(rider,1,'buy'),false);
 });
-test('roadside distance survives reload and standing still cannot roll a find',()=>{
- const rider={rideMiles:0};assert.equal(exploreRoadside(rider,0),null);
- assert.equal(exploreRoadside(rider,3,()=>0),null);
- const resumed=JSON.parse(JSON.stringify(rider));
- assert.equal(exploreRoadside(resumed,0),null);
+test('loot is stored and mechanics repair without changing equipment',()=>{
+ const rider={coins:0,rideMiles:0};const bike=bikeFor(rider);
+ bike.roadsideRemaining=1;
  const rolls=[0,.1,.1,.8];
- const result=exploreRoadside(resumed,1,()=>rolls.shift());
- assert(result.repair);assert.deepEqual(resumed.bike.tiers,[0,0,0,1]);
- assert.equal(resumed.bike.roadsideRemaining,4);
-});
-test('exploration loot auto-equips an eligible part without a battle',()=>{
- const rider={rideMiles:1,bike:{tiers:[50,50,0,50],shopStop:0,roadsideRemaining:.5}};
- const result=exploreRoadside(rider,.5,()=>.75);
- assert.equal(result.repair,false);assert.equal(rider.bike.tiers[2],1);
+ const result=exploreRoadside(rider,1,()=>rolls.shift());
+ assert(result.repair);assert.deepEqual(bike.tiers,[0,0,0,0]);
+ assert.equal(bike.owned.filter(n=>n!==null).length,5);
+ const saved=JSON.parse(JSON.stringify(rider));
+ assert.equal(exploreRoadside(saved,0),null);
+ assert.equal(saved.bike.roadsideRemaining,4);
 });
 test('roadside rolls only occur in the active pedaling exploration branch',()=>{
  const block=game.slice(game.indexOf('if(!s.battle&&!s.reward&&!levelUp&&running){s.rideMiles'),game.indexOf('if(running){let remaining=dt;'));
- assert.match(block,/else if\(power>0&&m.cadence>0&&warmupSeconds<=0\)/);
- assert.match(block,/else if\(s.mode!=='boss'&&delta>0\)\{\s*const find=exploreRoadside/);
+ assert(block.includes("else if(power>0&&m.cadence>0&&warmupSeconds<=0)"));
+ assert(block.includes("else if(s.mode!=='boss'&&delta>0)"));
  assert.equal(fn('finish').includes('exploreRoadside'),false);
+ assert.equal(game.includes('visitShop(s)'),false);
 });
