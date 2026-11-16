@@ -2443,3 +2443,13 @@ body {
  order:initial;display:block;width:100%;height:7px;min-height:7px;
  margin:0;background:#1b3732;
 }
+
+/* Cycle Quest battle HUD fixes: keep every enemy health bar in-flow and visible. */
+#cq-preview .cq-route > .cq-event:has(.cq-group),
+#cq-preview .cq-route > .cq-event:has(img.cq-enemyart) {min-height:0;max-height:min(62vh,520px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;}
+#cq-preview .cq-route > .cq-event:has(.cq-art-group) > .cq-group,
+#cq-preview .cq-route > .cq-event:has(img.cq-enemyart) > .cq-group {grid-column:2;grid-row:7;align-self:stretch;min-width:0;display:grid;gap:7px;width:100%;position:relative;clear:both;}
+#cq-preview .cq-group > div {display:block;position:relative;min-width:0;margin:0;padding:5px 0;}
+#cq-preview .cq-group .cq-enemymeter {display:block;width:100%;margin:4px 0 0;}
+#cq-preview .cq-reward-selected {border:3px solid #ffe777 !important;background:#66551a !important;color:#fff3ad !important;box-shadow:inset 0 0 0 1px #fff3ad,0 0 12px #ffe77799;outline:2px solid #ffe777;outline-offset:2px;}
+#cq-preview .cq-reward-selected::after {content:"  ✓ SELECTED";color:#ffe777;font-weight:700;}
