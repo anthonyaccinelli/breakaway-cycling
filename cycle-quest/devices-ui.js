@@ -3,12 +3,12 @@
  * preserving transient user activation for Web Bluetooth requestDevice.
  * Never sends a BluetoothDevice across postMessage or duplicates BLE logic.
  */
-export function mountQuestDevices({root,requestPage}){
- const game=root.querySelector('.cq-game');
- const section=document.createElement('section');
- section.className='cq-unified-devices';
- section.setAttribute('aria-label','Connect your trainer');
- section.innerHTML=`
+export function mountQuestDevices({ root, requestPage }) {
+  const game = root.querySelector('.cq-game');
+  const section = document.createElement('section');
+  section.className = 'cq-unified-devices';
+  section.setAttribute('aria-label', 'Connect your trainer');
+  section.innerHTML = `
    <div class="cq-dev-topline"><span><span class="cq-gold">CHAPTER I</span> &nbsp; EQUIPMENT CHECK</span><span>TRAINER SETUP</span></div>
    <div class="cq-dev-workbench">
     <div class="cq-dev-heading"><span class="cq-dev-number">2</span><div><h1>RIDE CONTROLS & DEVICES</h1><p>Connect your smart trainer to begin. HRM and Zwift Click are optional.</p></div></div>
@@ -45,61 +45,93 @@ export function mountQuestDevices({root,requestPage}){
     </div>
    </div>
    <div class="cq-dev-routebar"><span data-cq-status="message">Connect your smart trainer to begin the quest.</span><strong>✦ CYCLE QUEST</strong></div>`;
- const footer=game.querySelector('.cq-footer');
- footer.before(section);
- const bridge=()=>{try{return window.parent?.__cycleQuestDeviceBridge||null}catch{return null}};
- const action=(name,value)=>{
-   const b=bridge();
-   if(!b||typeof b.activate!=='function')return false;
-   try{return b.activate(name,value)===true}catch(e){console.warn('Cycle Quest trainer action failed',e);return false}
- };
- const select=name=>section.querySelector('[data-cq-input="'+name+'"]');
- let lastState=null;
- function sync(){
-  if(!game.isConnected||game.dataset.cqPage!=='devices')return;
-  const b=bridge();let state=null;
-  try{state=b?.snapshot?.()||null}catch{/* no snapshot available yet */}
-  if(!state){section.querySelector('[data-cq-status="message"]').textContent='Trainer controls unavailable. Reload Cycle Quest.';return;}
-  lastState=state;
-  const txt=(id,value)=>{const node=section.querySelector('[data-cq-status="'+id+'"]');if(node&&node.textContent!==value)node.textContent=value};
-  txt('trainer',state.trainer||'Not connected');
-  txt('hr',state.hr||'Not connected');
-  txt('click',state.click||'Not connected');
-  txt('bluetooth',state.bluetooth||'');
-  txt('readiness',state.ready?'TRAINER READY':'TRAINER REQUIRED');
-  txt('message',state.message||(state.ready?'Trainer connected. Ready to ride.':'Connect your smart trainer to start.'));
-  for(const key of ['weight','ftp','bikeWeight']){
-   const node=select(key);if(node&&document.activeElement!==node&&state[key]!=null&&node.value!==String(state[key]))node.value=String(state[key]);
+  const footer = game.querySelector('.cq-footer');
+  footer.before(section);
+  const bridge = () => {
+    try {
+      return window.parent?.__cycleQuestDeviceBridge || null;
+    } catch {
+      return null;
+    }
+  };
+  const action = (name, value) => {
+    const b = bridge();
+    if (!b || typeof b.activate !== 'function') return false;
+    try {
+      return b.activate(name, value) === true;
+    } catch (e) {
+      console.warn('Cycle Quest trainer action failed', e);
+      return false;
+    }
+  };
+  const select = name => section.querySelector('[data-cq-input="' + name + '"]');
+  let lastState = null;
+  function sync() {
+    if (!game.isConnected || game.dataset.cqPage !== 'devices') return;
+    const b = bridge();
+    let state = null;
+    try {
+      state = b?.snapshot?.() || null;
+    } catch {
+      /* no snapshot available yet */
+    }
+    if (!state) {
+      section.querySelector('[data-cq-status="message"]').textContent =
+        'Trainer controls unavailable. Reload Cycle Quest.';
+      return;
+    }
+    lastState = state;
+    const txt = (id, value) => {
+      const node = section.querySelector('[data-cq-status="' + id + '"]');
+      if (node && node.textContent !== value) node.textContent = value;
+    };
+    txt('trainer', state.trainer || 'Not connected');
+    txt('hr', state.hr || 'Not connected');
+    txt('click', state.click || 'Not connected');
+    txt('bluetooth', state.bluetooth || '');
+    txt('readiness', state.ready ? 'TRAINER READY' : 'TRAINER REQUIRED');
+    txt(
+      'message',
+      state.message ||
+        (state.ready ? 'Trainer connected. Ready to ride.' : 'Connect your smart trainer to start.')
+    );
+    for (const key of ['weight', 'ftp', 'bikeWeight']) {
+      const node = select(key);
+      if (node && document.activeElement !== node && state[key] != null && node.value !== String(state[key]))
+        node.value = String(state[key]);
+    }
+    const check = select('autoBluetooth');
+    if (check && document.activeElement !== check) check.checked = !!state.autoBluetooth;
+    section.querySelectorAll('[data-cq-drive]').forEach(node => {
+      const enabled = node.dataset.cqDrive === (state.drivetrainMode || 'traditional');
+      node.classList.toggle('cq-dev-selected', enabled);
+      node.setAttribute('aria-pressed', String(enabled));
+    });
+    const continueButton = section.querySelector('[data-cq-page-target="ride"]');
+    if (continueButton) continueButton.disabled = !state.ready;
   }
-  const check=select('autoBluetooth');if(check&&document.activeElement!==check)check.checked=!!state.autoBluetooth;
-  section.querySelectorAll('[data-cq-drive]').forEach(node=>{
-   const enabled=node.dataset.cqDrive===(state.drivetrainMode||'traditional');
-   node.classList.toggle('cq-dev-selected',enabled);
-   node.setAttribute('aria-pressed',String(enabled));
+  section.addEventListener('click', event => {
+    const button = event.target.closest('button');
+    if (!button) return;
+    if (button.dataset.cqDeviceAction) {
+      action(button.dataset.cqDeviceAction);
+      sync();
+    } else if (button.dataset.cqDrive) {
+      action('drivetrainMode', button.dataset.cqDrive);
+      sync();
+    } else if (button.dataset.cqPageTarget) {
+      if (button.dataset.cqPageTarget === 'ride' && !lastState?.ready) return;
+      requestPage(button.dataset.cqPageTarget);
+    }
   });
-  const continueButton=section.querySelector('[data-cq-page-target="ride"]');
-  if(continueButton)continueButton.disabled=!state.ready;
- }
- section.addEventListener('click',event=>{
-  const button=event.target.closest('button');if(!button)return;
-  if(button.dataset.cqDeviceAction){
-   action(button.dataset.cqDeviceAction);
-   sync();
-  } else if(button.dataset.cqDrive){
-   action('drivetrainMode',button.dataset.cqDrive);sync();
-  } else if(button.dataset.cqPageTarget){
-   if(button.dataset.cqPageTarget==='ride'&&!lastState?.ready)return;
-   requestPage(button.dataset.cqPageTarget);
-  }
- });
- section.addEventListener('change',event=>{
-  const field=event.target.closest('[data-cq-input]');
-  if(!field)return;
-  action(field.dataset.cqInput,field.type==='checkbox'?field.checked:field.value);
-  sync();
- });
- // Sync only while visible. Disconnected previews show genuine empty telemetry.
- const poll=window.setInterval(sync,750);
- window.addEventListener('pagehide',()=>window.clearInterval(poll),{once:true});
- return {sync,section};
+  section.addEventListener('change', event => {
+    const field = event.target.closest('[data-cq-input]');
+    if (!field) return;
+    action(field.dataset.cqInput, field.type === 'checkbox' ? field.checked : field.value);
+    sync();
+  });
+  // Sync only while visible. Disconnected previews show genuine empty telemetry.
+  const poll = window.setInterval(sync, 750);
+  window.addEventListener('pagehide', () => window.clearInterval(poll), { once: true });
+  return { sync, section };
 }

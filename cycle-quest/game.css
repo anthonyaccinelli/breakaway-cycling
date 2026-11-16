@@ -26,7 +26,9 @@ body {
   background: #102158;
   border: 1px solid #a4b5df;
   padding: 7px 10px;
-  font: 18px "VT323", monospace;
+  font:
+    18px 'VT323',
+    monospace;
   color: #fff;
 }
 #cq-preview label {
@@ -35,7 +37,7 @@ body {
   gap: 8px;
   font-size: 18px;
 }
-#cq-preview input[type=range] {
+#cq-preview input[type='range'] {
   width: 120px;
   accent-color: #ffe777;
 }
@@ -56,11 +58,7 @@ body {
 }
 #cq-preview .cq-route > .cq-event:has(.cq-levelup) {
   padding: 0;
-  background:
-    linear-gradient(
-      135deg,
-      #243c91,
-      #132057);
+  background: linear-gradient(135deg, #243c91, #132057);
   gap: 0;
   justify-content: stretch;
 }
@@ -71,12 +69,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 14px 16px 10px;
-  background:
-    linear-gradient(
-      135deg,
-      #294aab,
-      #152b74 45%,
-      #102052);
+  background: linear-gradient(135deg, #294aab, #152b74 45%, #102052);
   color: #fff;
   text-shadow: 2px 2px #080e35;
   overflow: hidden;
@@ -125,7 +118,9 @@ body {
   justify-content: center;
   align-items: center;
   border: 1px solid #a7b2d1;
-  box-shadow: inset 1px 1px #edf2ff66, inset -1px -1px #030719;
+  box-shadow:
+    inset 1px 1px #edf2ff66,
+    inset -1px -1px #030719;
   background: #152b7444;
   padding: 6px;
   min-height: 0;
@@ -206,11 +201,7 @@ body {
 #cq-preview .cq-route > .cq-event:not(:has(.cq-levelup)) {
   justify-content: center;
   gap: 12px;
-  background:
-    linear-gradient(
-      135deg,
-      #333f78,
-      #132057);
+  background: linear-gradient(135deg, #333f78, #132057);
 }
 #cq-preview .cq-route > .cq-event:not(:has(.cq-levelup)) h3 {
   font-size: clamp(25px, 3vw, 44px);
@@ -271,12 +262,12 @@ body {
   }
 }
 #cq-preview .cq-enemymeter i {
-  background: var(--enemy-health,#f21d38) !important;
+  background: var(--enemy-health, #f21d38) !important;
 }
 #cq-preview .cq-eventbar span:first-child,
 #cq-preview .cq-mini-enemyhp,
 #cq-preview .cq-group > div > span {
-  color: var(--enemy-health,#fff);
+  color: var(--enemy-health, #fff);
 }
 #cq-preview .cq-mini-battle .cq-rat-card {
   gap: 2px;
@@ -293,8 +284,10 @@ body {
   flex: none;
   width: 100%;
   color: #fff;
-  font: 700 clamp(13px, 1.25vw, 27px)/1.15 Georgia, serif;
-  letter-spacing: .13em;
+  font:
+    700 clamp(13px, 1.25vw, 27px)/1.15 Georgia,
+    serif;
+  letter-spacing: 0.13em;
   white-space: nowrap;
   text-align: center;
   text-shadow: none;
@@ -310,8 +303,10 @@ body {
   width: 96%;
   color: #fff;
   text-align: left;
-  font: 700 clamp(9px, .85vw, 16px)/1 Georgia, serif;
-  letter-spacing: .08em;
+  font:
+    700 clamp(9px, 0.85vw, 16px)/1 Georgia,
+    serif;
+  letter-spacing: 0.08em;
   white-space: nowrap;
   text-shadow: none;
 }
@@ -322,7 +317,9 @@ body {
   width: 100%;
   text-align: center;
   color: var(--enemy-health);
-  font: 700 clamp(10px, 1.1vw, 19px)/1 "VT323", monospace;
+  font:
+    700 clamp(10px, 1.1vw, 19px)/1 'VT323',
+    monospace;
   white-space: nowrap;
   text-shadow: 1px 2px #14204d;
 }
@@ -341,15 +338,12 @@ body {
   width: 30%;
 }
 #cq-preview {
-  --cq-ink:#f6f7ff;
-  --cq-soft:#b5c4ef;
-  --cq-gold:#ffe777;
-  --cq-navy:#060b20;
-  --cq-line:#9aadd8;
-  font-family:
-    "VT323",
-    "Courier New",
-    monospace;
+  --cq-ink: #f6f7ff;
+  --cq-soft: #b5c4ef;
+  --cq-gold: #ffe777;
+  --cq-navy: #060b20;
+  --cq-line: #9aadd8;
+  font-family: 'VT323', 'Courier New', monospace;
   color: var(--cq-ink);
   font-size: 21px;
   line-height: 1.15;
@@ -372,12 +366,7 @@ body {
   outline-offset: 3px;
 }
 #cq-preview .cq-game {
-  background:
-    radial-gradient(
-      ellipse at 35% 10%,
-      #162754 0%,
-      #080f28 60%,
-      #05091a 100%);
+  background: radial-gradient(ellipse at 35% 10%, #162754 0%, #080f28 60%, #05091a 100%);
   padding: 22px;
   border: 1px solid #3a4c77;
   box-shadow: 0 16px 45px #0004;
@@ -394,7 +383,9 @@ body {
 }
 #cq-preview .cq-kicker {
   display: block;
-  font: 10px/1.3 ui-monospace, monospace;
+  font:
+    10px/1.3 ui-monospace,
+    monospace;
   letter-spacing: 2px;
   color: #a8b8df;
   margin-bottom: 5px;
@@ -419,7 +410,7 @@ body {
   color: var(--cq-gold);
 }
 #cq-preview .cq-header nav .cq-active:before {
-  content: "\25b8  ";
+  content: '\25b8  ';
   color: #fff;
 }
 #cq-preview .cq-slot {
@@ -459,12 +450,7 @@ body {
 }
 #cq-preview .cq-window {
   position: relative;
-  background:
-    linear-gradient(
-      135deg,
-      #243c91 0%,
-      #152b74 38%,
-      #0d1955 100%);
+  background: linear-gradient(135deg, #243c91 0%, #152b74 38%, #0d1955 100%);
   border: 2px solid #a7b2d1;
   border-radius: 7px;
   box-shadow:
@@ -546,7 +532,7 @@ body {
 #cq-preview .cq-telemetry > div:nth-child(4n) {
   border-right: 0;
 }
-#cq-preview .cq-telemetry > div:nth-child(-n+4) {
+#cq-preview .cq-telemetry > div:nth-child(-n + 4) {
   border-bottom: 1px solid #6479ad66;
 }
 #cq-preview small {
@@ -594,25 +580,17 @@ body {
 #cq-preview .cq-meter i {
   display: block;
   height: 100%;
-  background:
-    linear-gradient(
-      90deg,
-      #459aaf,
-      #a4eeed);
+  background: linear-gradient(90deg, #459aaf, #a4eeed);
 }
 #cq-preview .cq-hpfill {
-  transition: width .25s;
+  transition: width 0.25s;
 }
 #cq-preview .cq-next {
   font-size: 16px;
   margin-top: 19px;
 }
 #cq-preview .cq-xpmeter i {
-  background:
-    linear-gradient(
-      90deg,
-      #7863c3,
-      #bfa4ff);
+  background: linear-gradient(90deg, #7863c3, #bfa4ff);
 }
 #cq-preview .cq-textbutton {
   background: none;
@@ -634,11 +612,7 @@ body {
   color: #b6c7f0;
 }
 #cq-preview .cq-chaptermeter i {
-  background:
-    linear-gradient(
-      90deg,
-      #bb993b,
-      #ffe68a);
+  background: linear-gradient(90deg, #bb993b, #ffe68a);
 }
 #cq-preview p {
   font-size: 17px;
@@ -676,7 +650,7 @@ body {
   background: #728de022;
 }
 #cq-preview .cq-choice.cq-active:before {
-  content: "\25b8";
+  content: '\25b8';
   position: absolute;
   left: 4px;
   color: #ffe777;
@@ -718,11 +692,7 @@ body {
 #cq-preview .cq-enemymeter i {
   display: block;
   height: 100%;
-  background:
-    linear-gradient(
-      90deg,
-      #b3486a,
-      #ff9baf);
+  background: linear-gradient(90deg, #b3486a, #ff9baf);
 }
 #cq-preview .cq-eventactions {
   display: flex;
@@ -756,7 +726,7 @@ body {
   margin-top: 20px;
   color: #8ea2ce;
   font-size: 13px;
-  letter-spacing: .5px;
+  letter-spacing: 0.5px;
 }
 #cq-preview .cq-footer b {
   color: #d9e2ff;
@@ -933,7 +903,7 @@ body {
   #cq-preview .cq-telemetry > div:nth-child(2n) {
     border-right: 0;
   }
-  #cq-preview .cq-telemetry > div:nth-last-child(-n+2) {
+  #cq-preview .cq-telemetry > div:nth-last-child(-n + 2) {
     border-bottom: 0;
   }
   #cq-preview .cq-side {
@@ -992,7 +962,7 @@ body {
     display: flex;
     flex-direction: column;
   }
-    #cq-preview .cq-game {
+  #cq-preview .cq-game {
     min-height: 0;
     flex: 1;
     display: flex;
@@ -1071,7 +1041,7 @@ body {
     min-height: 0;
     gap: 12px;
     display: grid;
-    grid-template-rows: minmax(190px, 1.35fr) minmax(100px, .8fr) minmax(100px, .7fr);
+    grid-template-rows: minmax(190px, 1.35fr) minmax(100px, 0.8fr) minmax(100px, 0.7fr);
   }
   #cq-preview .cq-side .cq-window {
     padding: 11px 14px;
@@ -1272,7 +1242,7 @@ body {
     padding: 6px 10px;
   }
   #cq-preview .cq-side {
-    grid-template-rows: minmax(180px, 1.3fr) minmax(92px, .8fr) minmax(100px, .8fr);
+    grid-template-rows: minmax(180px, 1.3fr) minmax(92px, 0.8fr) minmax(100px, 0.8fr);
   }
   #cq-preview .cq-footer {
     margin-top: 7px;
@@ -1578,7 +1548,7 @@ body {
   display: none;
 }
 #cq-preview .cq-mini-reward button b:before {
-  content: " ";
+  content: ' ';
 }
 @container (max-width:850px) {
   #cq-preview .cq-overlaygrid {
@@ -1630,21 +1600,11 @@ body {
 #cq-preview .cq-group-mini .cq-enemymeter {
   height: 5px;
 }
-#cq-preview .cq-game[data-biome=moor] {
-  background:
-    radial-gradient(
-      ellipse at 35% 10%,
-      #272449 0%,
-      #10122c 60%,
-      #08091b 100%);
+#cq-preview .cq-game[data-biome='moor'] {
+  background: radial-gradient(ellipse at 35% 10%, #272449 0%, #10122c 60%, #08091b 100%);
 }
-#cq-preview .cq-game[data-biome=moor] .cq-window {
-  background:
-    linear-gradient(
-      135deg,
-      #393762 0%,
-      #24234e 40%,
-      #17183b 100%);
+#cq-preview .cq-game[data-biome='moor'] .cq-window {
+  background: linear-gradient(135deg, #393762 0%, #24234e 40%, #17183b 100%);
 }
 #cq-preview .cq-save-tools {
   position: relative;
@@ -1656,7 +1616,9 @@ body {
   background: #102158;
   border: 1px solid #a4b5df;
   padding: 7px 10px;
-  font: 18px VT323, monospace;
+  font:
+    18px VT323,
+    monospace;
   white-space: nowrap;
 }
 #cq-preview .cq-save-tools summary::-webkit-details-marker {
@@ -1773,15 +1735,13 @@ body {
   width: calc(100% - 32px);
   box-sizing: border-box;
   color: #fff;
-  background:
-    linear-gradient(
-      135deg,
-      #243c91,
-      #0d1955);
+  background: linear-gradient(135deg, #243c91, #0d1955);
   border: 2px solid #a7b2d1;
   border-radius: 7px;
   padding: 24px;
-  font: 22px "VT323", monospace;
+  font:
+    22px 'VT323',
+    monospace;
 }
 .cq-route-dialog::backdrop {
   background: #02091dcc;
@@ -1814,7 +1774,9 @@ body {
   border: 1px solid #a4b5df;
   padding: 9px;
   color: #fff;
-  font: 21px "VT323", monospace;
+  font:
+    21px 'VT323',
+    monospace;
 }
 .cq-dialogactions {
   display: flex;
@@ -1826,7 +1788,7 @@ body {
   cursor: pointer;
 }
 .cq-route-dialog button:disabled {
-  opacity: .45;
+  opacity: 0.45;
 }
 .cq-route-dialog #route-summary {
   margin: 16px 0 8px;
@@ -1924,55 +1886,169 @@ body {
   margin-top: 16px;
 }
 
-.cq-boss-prompt{background:#102052;color:#ffe777;padding:8px;font-size:clamp(20px,2.5vw,34px);line-height:1.05;border:2px solid #a7b2d1}.cq-boss-prompt small{display:block;color:#fff;font-size:.65em}.cq-boss-prompt[data-phase="recover"]{color:#8fffa1}.cq-boss-prompt[data-phase="stagger"]{color:#fff}.cq-mini-battle .cq-boss-prompt{font-size:19px;padding:3px;flex-shrink:0}
+.cq-boss-prompt {
+  background: #102052;
+  color: #ffe777;
+  padding: 8px;
+  font-size: clamp(20px, 2.5vw, 34px);
+  line-height: 1.05;
+  border: 2px solid #a7b2d1;
+}
+.cq-boss-prompt small {
+  display: block;
+  color: #fff;
+  font-size: 0.65em;
+}
+.cq-boss-prompt[data-phase='recover'] {
+  color: #8fffa1;
+}
+.cq-boss-prompt[data-phase='stagger'] {
+  color: #fff;
+}
+.cq-mini-battle .cq-boss-prompt {
+  font-size: 19px;
+  padding: 3px;
+  flex-shrink: 0;
+}
 
 /* Compact text battles keep each enemy readable without illustration assets. */
 #cq-preview .cq-mini-battle.cq-text-battle {
- display:flex;flex-direction:column;background:#0d1716;border:1px solid #607b61;
- gap:5px;text-align:center;overflow:hidden;padding:5px 9px;
+  display: flex;
+  flex-direction: column;
+  background: #0d1716;
+  border: 1px solid #607b61;
+  gap: 5px;
+  text-align: center;
+  overflow: hidden;
+  padding: 5px 9px;
 }
-#cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading {font-size:18px;color:#d6e4d1}
-#cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading > span:last-child {font-size:16px}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading {
+  font-size: 18px;
+  color: #d6e4d1;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading > span:last-child {
+  font-size: 16px;
+}
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group {
- display:flex;flex:1;gap:5px;min-height:0;align-items:stretch;
+  display: flex;
+  flex: 1;
+  gap: 5px;
+  min-height: 0;
+  align-items: stretch;
 }
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-card {
- position:static;display:flex;flex:1;flex-direction:column;align-items:center;
- justify-content:center;gap:3px;min-width:0;min-height:0;height:auto;
- padding:3px 5px;border:1px solid #607b61;background:#112423;
+  position: static;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: 3px 5px;
+  border: 1px solid #607b61;
+  background: #112423;
 }
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-name {
- display:block;position:static;font-size:clamp(13px,1.7cqw,20px);line-height:1;
- white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;
+  display: block;
+  position: static;
+  font-size: clamp(13px, 1.7cqw, 20px);
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-hp {
- display:block;position:static;font-size:clamp(12px,1.5cqw,17px);
- line-height:1;color:#f5edd8;
+  display: block;
+  position: static;
+  font-size: clamp(12px, 1.5cqw, 17px);
+  line-height: 1;
+  color: #f5edd8;
 }
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-enemymeter {
- order:initial;display:block;width:100%;height:7px;min-height:7px;
- margin:0;background:#1b3732;
+  order: initial;
+  display: block;
+  width: 100%;
+  height: 7px;
+  min-height: 7px;
+  margin: 0;
+  background: #1b3732;
 }
 
 /* Cycle Quest battle HUD fixes: keep every enemy health bar in-flow and visible. */
 #cq-preview .cq-route > .cq-event:has(.cq-group),
-#cq-preview .cq-route > .cq-event:has(img.cq-enemyart) {min-height:0;max-height:min(62vh,520px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;}
-#cq-preview .cq-group > div {display:block;position:relative;min-width:0;margin:0;padding:5px 0;}
-#cq-preview .cq-group .cq-enemymeter {display:block;width:100%;margin:4px 0 0;}
-#cq-preview .cq-reward-selected {border:3px solid #ffe777 !important;background:#66551a !important;color:#fff3ad !important;box-shadow:inset 0 0 0 1px #fff3ad,0 0 12px #ffe77799;outline:2px solid #ffe777;outline-offset:2px;}
-#cq-preview .cq-reward-selected::after {content:"  ✓ SELECTED";color:#ffe777;font-weight:700;}
+#cq-preview .cq-route > .cq-event:has(img.cq-enemyart) {
+  min-height: 0;
+  max-height: min(62vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+#cq-preview .cq-group > div {
+  display: block;
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  padding: 5px 0;
+}
+#cq-preview .cq-group .cq-enemymeter {
+  display: block;
+  width: 100%;
+  margin: 4px 0 0;
+}
+#cq-preview .cq-reward-selected {
+  border: 3px solid #ffe777 !important;
+  background: #66551a !important;
+  color: #fff3ad !important;
+  box-shadow:
+    inset 0 0 0 1px #fff3ad,
+    0 0 12px #ffe77799;
+  outline: 2px solid #ffe777;
+  outline-offset: 2px;
+}
+#cq-preview .cq-reward-selected::after {
+  content: '  ✓ SELECTED';
+  color: #ffe777;
+  font-weight: 700;
+}
 
 /* Compact always-on-top battle: one dedicated HP card per living enemy. */
-#cq-preview .cq-mini-battle.cq-text-battle {min-height:0;overflow-y:auto;overflow-x:hidden;}
+#cq-preview .cq-mini-battle.cq-text-battle {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group {
- display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);
- flex:1 1 auto;min-height:0;min-width:0;gap:5px;align-items:stretch;overflow:visible;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  gap: 5px;
+  align-items: stretch;
+  overflow: visible;
 }
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-card {
- width:100%;max-width:none;min-width:0;overflow:hidden;box-sizing:border-box;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-hp,
-#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-name {max-width:100%;text-align:center;}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-name {
+  max-width: 100%;
+  text-align: center;
+}
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-enemymeter {
- flex:none;position:relative;z-index:1;height:8px;min-height:8px;width:100%;
+  flex: none;
+  position: relative;
+  z-index: 1;
+  height: 8px;
+  min-height: 8px;
+  width: 100%;
 }

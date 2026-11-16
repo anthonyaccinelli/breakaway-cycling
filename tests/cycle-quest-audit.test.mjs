@@ -87,14 +87,14 @@ test('named stat hooks match the HTML and tolerate missing or reordered readouts
  const html=await readFile(new URL('index.html',base),'utf8');
  const names=[...game.matchAll(/setStat\(['"]([^'"]+)['"]/g)].map(m=>m[1]);
  for(const name of names)assert(html.includes('data-stat="'+name+'"'),name);
- const declaration=game.match(/const setStat=[^\n]+/)[0];const first={},second={};
+ const declaration=game.match(/const setStat = [\s\S]*?\}\);\n/)[0];const first={},second={};
  const c={all:selector=>selector.includes('missing')?[]:[second,first]};vm.createContext(c);vm.runInContext(declaration+'\nsetStat("power","250 W");setStat("missing","ignored");',c);
  assert.equal(first.textContent,'250 W');assert.equal(second.textContent,'250 W');
  assert.doesNotMatch(game,/\b(?:cr|pr|tiles|os)\[\d+\]/);
 });
 test('save import confirms replacement, backs up raw progress, and refuses stale tabs or failed backup writes',async()=>{
- const start=game.indexOf("$('#savefile').onchange=async e=>")+"$('#savefile').onchange=".length;
- const end=game.indexOf('\nroot.addEventListener',start);
+ const start=game.indexOf("$('#savefile').onchange = async e =>")+"$('#savefile').onchange = ".length;
+ const end=game.indexOf('\n};',start)+2;
  const handler=game.slice(start,end).replace(/;\s*$/,'');
  for(const scenario of ['cancel','stale','quota','ok']){
   const original=JSON.stringify(fresh()),replacement={...fresh(),xp:999};const writes=[];let routes=0;
