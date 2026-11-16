@@ -78,10 +78,15 @@ best 20 minutes is higher than the current FTP. Until set, the game uses 200 W.
 
 ## Difficulty and progression
 
-* Fixed difficulty per chapter. Enemy levels start at `1 + 4.5 × (chapter − 1)` and rise
-  1 level every 25 miles; the chapter boss is at the top of the range. Rider level is
-  never an input, so out-leveling a chapter makes it easier (go back and grind with the
-  Freeroam chapter picker).
+* Adventure: fixed difficulty per chapter. Enemy levels start at `1 + 4.5 × (chapter − 1)`
+  and rise 1 level every 25 miles; the chapter boss is at the top of the range. Rider level
+  is never an input there, so out-leveling a chapter makes it easier.
+* Freeroam, "Scaled to me" (the default): enemies come in at the rider's level minus 0–2
+  (`BALANCE.scaledLevelsBelow`), drawn from the highest chapter reached; summit bosses use
+  the rider's level. XP and coins grow with enemy level, so rewards keep pace. XP and levels
+  count; chapter miles and bosses do not.
+* Freeroam, a chosen chapter: that chapter's fixed levels, for going back and feeling the
+  power creep.
 * Enemy HP grows 8% per level (same as rider attack); enemy attack grows 6% per level
   (same as rider HP). Equal-level fights feel the same in every chapter.
 * XP per level: 5,000 + 300 per level (about one level per hour of riding).

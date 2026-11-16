@@ -49,6 +49,7 @@ import {
   nextChapterEncounter,
   advanceBattle,
   advanceBossBattle,
+  scaledEncounterLevel,
   bossPhase,
   BOSS_FIGHT
 } from '/api/cycle-quest?asset=combat.js';
@@ -724,11 +725,16 @@ shopDialog.addEventListener('click', e => {
     renderShop();
   }
 });
-// Freeroam lets riders return to any chapter they have reached, to grind with the power creep.
+// Freeroam is "Scaled to me" by default (freeroamChapter 0 or unset): enemies at the rider's
+// level, drawn from the highest chapter reached. Picking a chapter instead uses that chapter's
+// fixed levels, so riders can go back and feel the power creep.
+function freeroamScaled() {
+  return s.mode === 'training' && !(Number(s.freeroamChapter) >= 1);
+}
 function freeroamChapter() {
   const reached = Math.min(s.chapter, CHAPTER_COUNT);
-  const chosen = Math.floor(Number(s.freeroamChapter) || reached);
-  return Math.max(1, Math.min(reached, chosen));
+  if (freeroamScaled()) return reached;
+  return Math.max(1, Math.min(reached, Math.floor(Number(s.freeroamChapter))));
 }
 function hpReadyForBattle() {
   return s.hp >= (maxHP() * HEALING.encounterMinPercent) / 100;
@@ -768,13 +774,19 @@ function encounter(kind, forcedCount = null) {
       fights.push(
         makeBattle('enemy', {
           chapter: contentChapter,
-          level: encounterLevel(contentChapter, contentMiles),
+          level: freeroamScaled()
+            ? scaledEncounterLevel(level())
+            : encounterLevel(contentChapter, contentMiles),
           monsterId: pick.monsterId
         })
       );
     }
     s.battle = enemyGroup(fights);
-  } else s.battle = makeBattle('summit', { chapter: contentChapter });
+  } else
+    s.battle = makeBattle(
+      'summit',
+      freeroamScaled() ? { chapter: contentChapter, level: level() } : { chapter: contentChapter }
+    );
   message = kind === 'summit' ? 'SUMMIT BOSS! Resistance held for battle.' : 'An enemy stands in your way.';
   save();
   render();
@@ -1813,7 +1825,9 @@ function renderHud(session, L, remaining) {
     'xp-left': compactNumber(remaining) + ' XP TO GO',
     'chapter-title': adventure
       ? chapterInfo(s.chapter)?.title || ''
-      : 'CHAPTER ' + freeroamChapter() + ' ENEMIES',
+      : freeroamScaled()
+        ? 'ENEMIES SCALED TO YOUR LEVEL'
+        : 'CHAPTER ' + freeroamChapter() + ' ENEMIES',
     miles: adventure
       ? s.miles.toFixed(1) + '<em> / 100 MI</em>'
       : (s.routeMiles || 0).toFixed(1) + '<em> MI RIDDEN</em>',
@@ -1909,19 +1923,22 @@ const freeroamSelect = $('#freeroam-chapter');
 function syncFreeroamPicker() {
   if (!freeroamSelect) return;
   const reached = Math.min(s.chapter, CHAPTER_COUNT);
-  if (freeroamSelect.options.length !== reached)
-    freeroamSelect.innerHTML = Array.from(
-      { length: reached },
-      (_, i) =>
-        '<option value="' +
-        (i + 1) +
-        '">' +
-        (i + 1) +
-        ' · ' +
-        safeText(chapterInfo(i + 1).title) +
-        '</option>'
-    ).join('');
-  freeroamSelect.value = String(freeroamChapter());
+  if (freeroamSelect.options.length !== reached + 1)
+    freeroamSelect.innerHTML =
+      '<option value="0">Scaled to me</option>' +
+      Array.from(
+        { length: reached },
+        (_, i) =>
+          '<option value="' +
+          (i + 1) +
+          '">' +
+          (i + 1) +
+          ' · ' +
+          safeText(chapterInfo(i + 1).title) +
+          '</option>'
+      ).join('');
+  freeroamSelect.value =
+    Number(s.freeroamChapter) >= 1 ? String(Math.min(reached, Math.floor(s.freeroamChapter))) : '0';
   freeroamSelect.disabled = !!s.battle || s.reward;
   // Only Freeroam uses the picker; hiding it in Adventure keeps the side column short.
   freeroamSelect.closest('label').hidden = s.mode !== 'training';
@@ -1930,7 +1947,9 @@ if (freeroamSelect)
   freeroamSelect.onchange = () => {
     if (externalSaveChanged || s.battle || s.reward) return;
     s.freeroamChapter = Number(freeroamSelect.value);
-    message = 'Freeroam enemies now come from Chapter ' + s.freeroamChapter + '.';
+    message = s.freeroamChapter
+      ? 'Freeroam enemies now come from Chapter ' + s.freeroamChapter + ' at its fixed levels.'
+      : 'Freeroam enemies now scale to your level.';
     save();
     render();
   };
@@ -2053,7 +2072,9 @@ bestiaryButton.className = 'cq-choice';
 $('.cq-character').append(bestiaryButton);
 bestiaryButton.onclick = () => {
   const chapter = s.mode === 'adventure' ? Math.min(s.chapter, CHAPTER_COUNT) : freeroamChapter(),
-    band = chapterLevels(chapter, s.mode === 'adventure' ? s.miles : null),
+    band = freeroamScaled()
+      ? { min: Math.max(1, level() - BALANCE.scaledLevelsBelow), max: level() }
+      : chapterLevels(chapter, s.mode === 'adventure' ? s.miles : null),
     visible = chapterMonsters(chapter),
     boss = makeBattle('boss', { chapter });
   document.getElementById('bestiary-current').textContent =

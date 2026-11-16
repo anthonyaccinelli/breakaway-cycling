@@ -26,6 +26,8 @@ export const BALANCE = Object.freeze({
   coins: { base: 20, perLevel: 4 },
   // The heal reward restores this share of max HP per defeated enemy.
   healPercentPerEnemy: 35,
+  // Scaled Freeroam: enemies come in at the rider's level minus 0 to this many levels.
+  scaledLevelsBelow: 2,
   // Summit bosses can be escaped by not pedaling for this long.
   summitEscapeSeconds: 15,
   // Random encounters wait while the road descends more steeply than this (percent grade).
@@ -80,6 +82,12 @@ export function chapterLevels(chapter = 1, miles = 0) {
   if (miles === null) return { min: base, max: top, boss: top };
   const quarter = clamp(Math.floor((Number(miles) || 0) / 25), 0, 3);
   return { min: base + quarter, max: base + quarter + BALANCE.levelSpread, boss: top };
+}
+
+// Scaled Freeroam: an enemy level near the rider's own, so quick rides always fit.
+export function scaledEncounterLevel(riderLevel, random = Math.random) {
+  const top = ownLevel(riderLevel);
+  return Math.max(1, top - Math.floor(roll(random) * (BALANCE.scaledLevelsBelow + 1)));
 }
 
 export function encounterLevel(chapter, miles, random = Math.random) {
@@ -143,7 +151,9 @@ export function makeBattle(kind, { chapter = 1, level, monsterId, random = Math.
     monster = species.get(monsterId) || species.get(chapterInfo(clampChapter(chapter)).boss);
     scale = BALANCE.boss;
   } else if (kind === 'summit') {
-    L = levels.boss;
+    // Scaled Freeroam passes the rider's level; everywhere else a summit boss uses the
+    // chapter boss level.
+    L = level === undefined ? levels.boss : ownLevel(level);
     monster = species.get(SUMMIT_BOSSES.includes(monsterId) ? monsterId : pick(SUMMIT_BOSSES, random));
     scale = BALANCE.summit;
   } else {

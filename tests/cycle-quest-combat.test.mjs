@@ -132,3 +132,21 @@ test('random encounters wait on descents steeper than -3% and resume when the ro
  const game=await readFile(new URL('../cycle-quest/game.js',import.meta.url),'utf8');
  assert(game.includes("if (s.nextEncounter <= 0 && encounterAllowedOnGrade(m.grade)) encounter('enemy');"));
 });
+
+test('scaled Freeroam puts enemies at the rider level minus 0 to 2, never below 1', async () => {
+  const { scaledEncounterLevel, makeBattle, BALANCE } = await loadQuestModule('combat.js');
+  const seen = new Set();
+  for (let i = 0; i < 200; i++) seen.add(scaledEncounterLevel(30, () => i / 200));
+  assert.deepEqual([...seen].sort((a, b) => a - b), [28, 29, 30]);
+  assert.equal(BALANCE.scaledLevelsBelow, 2);
+  for (let i = 0; i < 20; i++) assert(scaledEncounterLevel(1, () => i / 20) === 1);
+  assert.equal(makeBattle('summit', { chapter: 1, level: 30 }).level, 30, 'scaled summit boss');
+  assert.equal(makeBattle('summit', { chapter: 1 }).level, 6, 'chapter summit boss');
+});
+
+test('saves accept the scaled Freeroam setting (0) and chapters 1–10', async () => {
+  const { validCharacter } = await loadQuestModule('save-state.js');
+  const fresh = { version: 1, xp: 0, hp: 100, miles: 2, chapter: 1, mode: 'training', rideSeconds: 0, rideMiles: 0, nextEncounter: 260, reward: false, boss: null, battle: null, workouts: [] };
+  for (const n of [0, 1, 10]) assert(validCharacter({ ...fresh, freeroamChapter: n }), String(n));
+  for (const n of [-1, 11, 2.5]) assert(!validCharacter({ ...fresh, freeroamChapter: n }), String(n));
+});
