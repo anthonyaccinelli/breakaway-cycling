@@ -9,7 +9,8 @@
     "build": "node scripts/build-quest-workouts.mjs && node scripts/build-quest-demo.mjs && tsc && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "format:quest": "prettier --write 'cycle-quest/*.{js,css}' api/cycle-quest.js",
-    "lint:quest": "prettier --check 'cycle-quest/*.{js,css}' api/cycle-quest.js"
+    "lint:quest": "prettier --check 'cycle-quest/*.{js,css}' api/cycle-quest.js",
+    "simulate:quest": "node scripts/simulate-balance.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",

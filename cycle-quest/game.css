@@ -2052,3 +2052,31 @@ body {
   min-height: 8px;
   width: 100%;
 }
+
+/* Freeroam chapter picker in the Ride Mode panel. */
+#cq-preview .cq-freeroam-chapter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0;
+  font-size: 14px;
+}
+#cq-preview .cq-freeroam-chapter select {
+  width: 100%;
+  font: inherit;
+}
+
+/* Riding above FTP lands critical hits: highlight the damage line. */
+#cq-preview .cq-sub.cq-crit {
+  color: #ffe777;
+}
+
+/* Post-ride FTP offer in the ride summary. */
+#cq-preview .cq-ftp-offer {
+  margin-top: 12px;
+  padding: 10px;
+  border: 2px solid #ffe777;
+}
+#cq-preview .cq-ftp-offer button {
+  margin: 6px 8px 0 0;
+}

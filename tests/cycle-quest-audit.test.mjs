@@ -51,7 +51,7 @@ test('autosave checks for a newer tab write even before the storage event arrive
 test('text escaping, session clocks and shared reward buttons handle edge cases consistently',()=>{
  assert.equal(escapeHTML('<img src="x" onerror=\'bad\'>&'),'&lt;img src=&quot;x&quot; onerror=&#39;bad&#39;&gt;&amp;');
  assert.equal(formatClock(59.99),'00:00:59');assert.equal(formatClock(3600),'01:00:00');assert.equal(formatClock(-1),'00:00:00');
- for(const compact of [true,false]){const html=rewardButtons({hp:75,coins:75},compact);assert.match(html,/HEAL 75 HP/);assert.match(html,/GAIN 75 COINS/);assert.doesNotMatch(html,/data-reward="xp"/);}
+ for(const compact of [true,false]){const html=rewardButtons({healPercent:70,coins:75},compact);assert.match(html,/HEAL 70% HP/);assert.match(html,/GAIN 75 COINS/);assert.doesNotMatch(html,/data-reward="xp"/);}
 });
 test('every protected asset and its local autoplay counterpart exist with no missing module dependencies',async()=>{
  for(const name of Object.keys(QUEST_ASSETS)){

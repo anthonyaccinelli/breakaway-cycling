@@ -8,7 +8,8 @@ export const QUEST_ASSETS = Object.freeze({
     [
       'bike-parts',
       'music',
-      'story-chapters',
+      'chapters',
+      'rider-profile',
       'progression',
       'game',
       'shared-ui',

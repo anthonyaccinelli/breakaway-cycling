@@ -8,6 +8,9 @@ export const catalog = [
 ].flatMap((names, slot) => names.map((name, variant) => ({ id: slot * 3 + variant, name, slot })));
 export const grades = ['Stock', 'Bronze', 'Silver', 'Gold', 'Platinum'];
 const prices = [800, 550, 700, 650];
+// Each grade above Stock adds GRADE_BONUS% and each upgrade adds UPGRADE_BONUS% to the part's stat.
+export const GRADE_BONUS = 10;
+export const UPGRADE_BONUS = 2.5;
 export const unlockedGrade = rider => Math.min(4, Math.max(1, rider.chapter));
 export function riderLevel(rider) {
   return levelFromXP(rider.xp);
@@ -58,16 +61,17 @@ export function bikeFor(rider) {
   return bike;
 }
 export function partBonus(bike, id) {
-  return 24 * (bike.grades?.[id] || 0) + 8 * (bike.owned[id] || 0);
+  return GRADE_BONUS * (bike.grades?.[id] || 0) + UPGRADE_BONUS * (bike.owned[id] || 0);
 }
 export function multiplier(bike, slot) {
-  if (!bike?.owned) return 1 + 0.08 * ((bike?.tiers[slot] ?? 0) + (bike?.tiers[slot + 1] ?? 0));
+  if (!bike?.owned)
+    return 1 + (UPGRADE_BONUS / 100) * ((bike?.tiers[slot] ?? 0) + (bike?.tiers[slot + 1] ?? 0));
   return 1 + (partBonus(bike, bike.equipped[slot]) + partBonus(bike, bike.equipped[slot + 1])) / 100;
 }
 export function partPrice(bike, id, action = 'upgrade', grade = 1) {
   if (action === 'buy') return prices[catalog[id].slot] * grade;
   if (action === 'promote') return prices[catalog[id].slot] * (grade - bike.grades[id]);
-  return 150 * ((bike.owned[id] ?? 0) + 1) ** 2;
+  return 100 * ((bike.owned[id] ?? 0) + 1);
 }
 export function changePart(rider, id, action, grade = 1) {
   const part = catalog[id];

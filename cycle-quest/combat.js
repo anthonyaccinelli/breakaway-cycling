@@ -1,55 +1,95 @@
+// Combat rules: enemy stats, chapter difficulty, rider damage and battle resolution.
+// Battles are "ride until they die": no phases or special moves. Riding above FTP lands
+// critical hits. Every tuning number lives in BALANCE (see scripts/simulate-balance.mjs).
 import { MONSTERS } from '/api/cycle-quest?asset=monsters.js';
+import { CHAPTER_COUNT, chapterInfo, chapterRoster } from '/api/cycle-quest?asset=chapters.js';
+
 export { MONSTERS };
-export const COMBAT_VERSION = 2;
+export const COMBAT_VERSION = 3;
 export const MAX_ENEMY_LEVEL = 1000;
+
+export const BALANCE = Object.freeze({
+  // Rider damage per second at 100% FTP with 100 attack (a level 1 rider on a stock bike).
+  referenceWatts: 250,
+  // Enemy HP grows at the same rate as rider attack, and enemy attack at the same rate as
+  // rider HP, so a fight between equal levels feels the same in Chapter 1 and Chapter 10.
+  enemyHPBase: 8400,
+  enemyHPGrowth: 1.08,
+  enemyAttackBase: 0.4,
+  enemyAttackGrowth: 1.06,
+  // Fixed difficulty per chapter: enemy levels climb 4.5 per chapter and 1 per 25 miles.
+  chapterLevelStep: 4.5,
+  levelSpread: 2,
+  boss: { hp: 3.5, attack: 1.3, xp: 3 },
+  summit: { hp: 2.5, attack: 1.2, xp: 2 },
+  xp: { base: 100, perLevel: 15 },
+  coins: { base: 20, perLevel: 4 },
+  // The heal reward restores this share of max HP per defeated enemy.
+  healPercentPerEnemy: 35,
+  // Summit bosses can be escaped by not pedaling for this long.
+  summitEscapeSeconds: 15
+});
+
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const roll = random => clamp(Number(random()) || 0, 0, 1 - Number.EPSILON);
 const pick = (list, random) => list[Math.floor(roll(random) * list.length)];
 const ownLevel = value => clamp(Math.floor(Number(value) || 1), 1, MAX_ENEMY_LEVEL);
 const cents = value => Math.round(value * 100) / 100;
 const species = new Map(MONSTERS.map(m => [m.id, m]));
-export const CHAPTER_BIOMES = Object.freeze({
-  1: {
-    name: 'THE VERDANT WILDS',
-    biome: 'forest',
-    monsters: ['rat', 'bat', 'snake', 'goblin', 'wolf', 'giant-fire-beetle', 'giant-spider', 'worg']
-  },
-  2: {
-    name: 'THE HAUNTED MOOR',
-    biome: 'moor',
-    monsters: ['skeleton', 'zombie', 'ghoul', 'shadow', 'specter', 'death-dog', 'gnoll', 'harpy']
-  }
-});
-// Content levels only. Rider level, FTP and entering watts are never inputs.
-export function chapterLevels(chapter = 1, miles = 0) {
-  const c = Math.max(1, Math.floor(Number(chapter) || 1)),
-    band = clamp(Math.floor((Number(miles) || 0) / 25), 0, 3);
-  const min = ownLevel(c === 1 ? 1 : 12 * (c - 1)),
-    boss = ownLevel(12 * c + 6);
-  return { min, max: Math.min(boss, c === 1 ? [5, 10, 14, 18][band] : min + [6, 10, 14, 18][band]), boss };
+const clampChapter = chapter => clamp(Math.floor(Number(chapter) || 1), 1, CHAPTER_COUNT);
+
+// ---- Rider damage ---------------------------------------------------------------
+
+// Effort is watts as a share of FTP, so every rider deals the same damage at the same effort.
+export function effortShare(watts, ftp) {
+  const w = Math.max(0, Number(watts) || 0);
+  const f = Math.max(1, Number(ftp) || 0);
+  return w / f;
 }
+
+// Above FTP every 1% extra effort adds 1% damage: 110% FTP is a +10% crit, 200% is +100%.
+export function critBonus(effort) {
+  return Math.max(0, effort - 1);
+}
+
+export function riderDamagePerSecond(attack, watts, ftp) {
+  const effort = effortShare(watts, ftp);
+  return (attack / 100) * BALANCE.referenceWatts * effort * (1 + critBonus(effort));
+}
+
+// ---- Chapter difficulty -----------------------------------------------------------
+
+export function chapterBaseLevel(chapter) {
+  return 1 + Math.round(BALANCE.chapterLevelStep * (clampChapter(chapter) - 1));
+}
+
+// Content levels only. Rider level, FTP and watts are never inputs.
+// Pass miles = null for Freeroam, which uses the chapter's whole range.
+export function chapterLevels(chapter = 1, miles = 0) {
+  const base = chapterBaseLevel(chapter);
+  const top = base + 3 + BALANCE.levelSpread;
+  if (miles === null) return { min: base, max: top, boss: top };
+  const quarter = clamp(Math.floor((Number(miles) || 0) / 25), 0, 3);
+  return { min: base + quarter, max: base + quarter + BALANCE.levelSpread, boss: top };
+}
+
 export function encounterLevel(chapter, miles, random = Math.random) {
   const { min, max } = chapterLevels(chapter, miles);
   return min + Math.floor(roll(random) * (max - min + 1));
 }
-export const enemyXP = level => 150 + 25 * (ownLevel(level) - 1);
-export function monsterPool(contentLevel) {
-  const target = ownLevel(contentLevel),
-    available = MONSTERS.filter(m => m.id !== 'headwind');
-  const distance = Math.min(...available.map(m => Math.abs(m.tier - target)));
-  return available.filter(m => Math.abs(m.tier - target) === distance);
-}
+
+export const enemyXP = level => BALANCE.xp.base + BALANCE.xp.perLevel * (ownLevel(level) - 1);
+export const enemyCoins = level => BALANCE.coins.base + BALANCE.coins.perLevel * (ownLevel(level) - 1);
+
 export function chapterMonsters(chapter) {
-  return (
-    CHAPTER_BIOMES[chapter]?.monsters.map(id => species.get(id)) ||
-    monsterPool(chapterLevels(chapter).boss - 6)
-  );
+  return chapterRoster(chapter).map(id => species.get(id));
 }
+
+// Shuffled bag: every roster monster appears once before any repeats, never twice in a row.
 export function nextChapterEncounter(chapter, previousState, random = Math.random) {
   const state = previousState?.chapter === chapter ? previousState : null;
-  if (roll(random) < 0.1) return { monsterId: 'headwind', state };
-  const ids = chapterMonsters(chapter).map(m => m.id),
-    valid = new Set(ids);
+  const ids = chapterRoster(chapter);
+  const valid = new Set(ids);
   let bag = Array.isArray(state?.bag)
     ? state.bag.filter((id, i, a) => valid.has(id) && a.indexOf(id) === i)
     : [];
@@ -65,6 +105,8 @@ export function nextChapterEncounter(chapter, previousState, random = Math.rando
   const monsterId = bag.shift();
   return { monsterId, state: { chapter, bag, last: monsterId } };
 }
+
+// Summit bosses appear at the top of categorized climbs.
 export const SUMMIT_BOSSES = Object.freeze([
   'lifted-dually',
   'oni',
@@ -79,74 +121,48 @@ export const SUMMIT_BOSSES = Object.freeze([
   'storm-giant',
   'wyvern'
 ]);
-export const SUMMIT_VARIANTS = Object.freeze([
-  { name: 'BASE', suffix: '', levels: 0 },
-  { name: 'EXTREME', suffix: ' EXTREME', levels: 10 },
-  { name: 'PSYCHO', suffix: ' PSYCHO', levels: 20 }
-]);
-const summitLevel = (id, variant) => ownLevel(Math.max(8, species.get(id)?.tier || 12) + variant.levels);
-function summitIdentity(chapter, monsterId, variantName, random) {
-  if (monsterId && SUMMIT_BOSSES.includes(monsterId)) {
-    const variant = SUMMIT_VARIANTS.find(v => v.name === variantName) || SUMMIT_VARIANTS[0];
-    return { id: monsterId, variant, level: summitLevel(monsterId, variant) };
-  }
-  const limit = chapterLevels(chapter).boss + 4;
-  return pick(
-    SUMMIT_BOSSES.flatMap(id =>
-      SUMMIT_VARIANTS.map(variant => ({ id, variant, level: summitLevel(id, variant) }))
-    ).filter(item => item.level <= limit),
-    random
-  );
-}
-export function chapterRandom(chapter) {
-  let n = Math.imul(chapter, 0x9e3779b1);
-  n = Math.imul(n ^ (n >>> 16), 0x7feb352d);
-  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
-}
-// Single definition of HP, attack and XP for every species/own-level pair.
-export function makeBattle(kind, { chapter = 1, level, monsterId, variant, random = Math.random } = {}) {
+
+// ---- Battles ---------------------------------------------------------------------
+
+// Single definition of HP, attack, XP and coins for every species/level pair.
+export function makeBattle(kind, { chapter = 1, level, monsterId, random = Math.random } = {}) {
   if (!['enemy', 'boss', 'summit'].includes(kind)) throw Error('Unknown battle kind');
-  let monster, L, summit;
-  if (kind === 'summit') {
-    summit = summitIdentity(chapter, monsterId, variant, random);
-    monster = species.get(summit.id) || {
-      id: 'lifted-dually',
-      name: 'Lifted Dually',
-      baseHP: 9000,
-      baseAttack: 0.2
-    };
-    L = summit.level;
-  } else if (kind === 'boss') {
-    L = chapterLevels(chapter).boss;
-    monster = species.get(monsterId) || pick(monsterPool(L), () => chapterRandom(chapter));
+  const levels = chapterLevels(chapter, null);
+  let monster, L, scale;
+  if (kind === 'boss') {
+    L = levels.boss;
+    monster = species.get(monsterId) || species.get(chapterInfo(clampChapter(chapter)).boss);
+    scale = BALANCE.boss;
+  } else if (kind === 'summit') {
+    L = levels.boss;
+    monster = species.get(SUMMIT_BOSSES.includes(monsterId) ? monsterId : pick(SUMMIT_BOSSES, random));
+    scale = BALANCE.summit;
   } else {
     L = ownLevel(level ?? chapterLevels(chapter).min);
     monster = species.get(monsterId) || pick(chapterMonsters(chapter), random);
+    scale = { hp: 1, attack: 1, xp: 1 };
   }
-  const healthFactor = monster.baseHP / 9000,
-    attackFactor = monster.baseAttack / 0.2;
-  const hp = Math.round(
-    (kind === 'enemy' ? monster.baseHP : kind === 'boss' ? 27000 * healthFactor : 13500 * healthFactor) *
-      1.08 ** (L - 1)
-  );
+  monster ||= { id: 'lifted-dually', name: 'Lifted Dually', baseHP: 9000, baseAttack: 0.2 };
+  const healthFactor = monster.baseHP / 9000;
+  const attackFactor = monster.baseAttack / 0.2;
+  const hp = Math.round(BALANCE.enemyHPBase * healthFactor * BALANCE.enemyHPGrowth ** (L - 1) * scale.hp);
   const dps = cents(
-    kind === 'enemy'
-      ? monster.baseAttack * 1.06 ** (L - 1)
-      : (100 + 10 * (L - 1)) * (kind === 'boss' ? 0.65 / 180 : 0.4 / 60) * attackFactor
+    BALANCE.enemyAttackBase * attackFactor * BALANCE.enemyAttackGrowth ** (L - 1) * scale.attack
   );
   return {
     combatVersion: COMBAT_VERSION,
     kind,
     monsterId: monster.id,
-    name: monster.name.toUpperCase() + (summit?.variant.suffix || ''),
+    name: monster.name.toUpperCase(),
     level: L,
     hp,
     max: hp,
     dps,
-    reward: enemyXP(L) * (kind === 'enemy' ? 1 : 3),
-    ...(summit ? { summitVariant: summit.variant.name } : {})
+    reward: Math.round(enemyXP(L) * scale.xp),
+    coins: enemyCoins(L)
   };
 }
+
 export function enemyGroup(battles) {
   if (!Array.isArray(battles) || battles.length < 1 || battles.length > 3)
     throw Error('An encounter needs one to three enemies');
@@ -157,7 +173,8 @@ export function enemyGroup(battles) {
     hp: b.hp,
     max: b.max,
     dps: b.dps,
-    reward: b.reward
+    reward: b.reward,
+    coins: b.coins
   }));
   return {
     ...battles[0],
@@ -166,11 +183,13 @@ export function enemyGroup(battles) {
     hp: enemies.reduce((n, e) => n + e.hp, 0),
     max: enemies.reduce((n, e) => n + e.max, 0),
     dps: enemies.filter(e => e.hp > 0).reduce((n, e) => n + e.dps, 0),
-    reward: enemies.reduce((n, e) => n + e.reward, 0)
+    reward: enemies.reduce((n, e) => n + e.reward, 0),
+    coins: enemies.reduce((n, e) => n + (e.coins || 0), 0)
   };
 }
+
 // Resolve kills within the tick. Dead enemies stop attacking immediately.
-// Reaching 1 HP on a kill is a loss; group damage focuses the first living enemy.
+// Reaching 1 HP is a loss; group damage focuses the first living enemy.
 export function advanceBattle(battle, playerHP, damagePerSecond, dt) {
   const b = { ...battle, enemies: battle.enemies?.map(e => ({ ...e })) };
   let hp = Math.max(1, playerHP),
@@ -214,65 +233,25 @@ export function advanceBattle(battle, playerHP, damagePerSecond, dt) {
   return { battle: b, hp, killed, outcome };
 }
 
-// Boss phases use active battle time; trainer resistance is never changed here.
-const PHASES = { attack: 20, brace: 5, stagger: 10, recover: 5 };
-export function bossBehavior(battle) {
-  const phase = Object.hasOwn(PHASES, battle.phase) ? battle.phase : 'attack';
-  return { phase, remaining: Math.max(0, PHASES[phase] - (battle.phaseTime || 0)), target: '50% FTP' };
-}
-export function advanceBossBattle(
-  battle,
-  playerHP,
-  damagePerSecond,
-  dt,
-  { watts = 0, cadence = 0, ftp = 280, maxHP = 100 } = {}
-) {
-  let b = { ...battle },
-    hp = playerHP,
-    remaining = Math.max(0, Number(dt) || 0),
-    outcome = null;
-  const target = Math.max(1, Number(ftp) || 280) * 0.5;
-  while (remaining > 1e-9 && !outcome) {
-    const phase = bossBehavior(b).phase;
-    b.phase = phase;
-    b.phaseTime = Math.max(0, Math.min(PHASES[phase], Number(b.phaseTime) || 0));
-    const slice = Math.min(remaining, PHASES[phase] - b.phaseTime);
-    const stopped = watts < 10 && cadence <= 0;
-    // Recovery suspends (rather than resets) the summit escape countdown.
-    const fleeLeft =
-      b.kind === 'summit' && phase !== 'recover' && stopped ? Math.max(0, 15 - (b.stopped || 0)) : Infinity;
-    const elapsed = Math.min(slice, fleeLeft);
-    if (phase !== 'recover') b.stopped = stopped ? (b.stopped || 0) + elapsed : 0;
-    if (phase === 'brace') b.bracedSeconds = (b.bracedSeconds || 0) + (watts <= target ? elapsed : 0);
-    if (phase === 'recover') {
-      if (watts <= target) hp = Math.min(maxHP, hp + 5 * elapsed);
-    } else {
-      const result = advanceBattle(
-        { ...b, dps: phase === 'stagger' || phase === 'brace' ? 0 : b.dps },
-        hp,
-        damagePerSecond * (phase === 'stagger' ? 2 : 1),
-        elapsed
-      );
-      hp = result.hp;
-      b.hp = result.battle.hp;
-      outcome = result.outcome;
+// Chapter and summit bosses fight like everyone else. A summit boss is optional:
+// stop pedaling for BALANCE.summitEscapeSeconds to ride away from it.
+export function advanceBossBattle(battle, playerHP, damagePerSecond, dt, { watts = 0, cadence = 0 } = {}) {
+  let b = { ...battle };
+  const stopped = watts < 10 && cadence <= 0;
+  if (b.kind === 'summit') {
+    const escapeLeft = Math.max(0, BALANCE.summitEscapeSeconds - (b.stopped || 0));
+    if (stopped && dt >= escapeLeft) {
+      const result = advanceBattle(b, playerHP, damagePerSecond, escapeLeft);
+      if (result.outcome) return { ...result, killed: 0 };
+      return {
+        battle: { ...result.battle, stopped: BALANCE.summitEscapeSeconds },
+        hp: result.hp,
+        killed: 0,
+        outcome: 'flee'
+      };
     }
-    b.phaseTime += elapsed;
-    remaining -= elapsed;
-    if (!outcome && fleeLeft <= elapsed + 1e-9) outcome = 'flee';
-    if (!outcome && b.phaseTime >= PHASES[phase] - 1e-9) {
-      b.phaseTime = 0;
-      if (phase === 'attack') {
-        b.phase = 'brace';
-        b.bracedSeconds = 0;
-      } else if (phase === 'brace') {
-        const braced = (b.bracedSeconds || 0) >= 3;
-        hp = Math.max(1, hp - b.dps * 8 * (braced ? 0.25 : 1));
-        if (hp <= 1) outcome = 'loss';
-        b.phase = braced ? 'stagger' : 'recover';
-      } else b.phase = phase === 'stagger' ? 'recover' : 'attack';
-    }
-    if (elapsed <= 1e-9 && !outcome && slice > 1e-9) break;
+    b.stopped = stopped ? (b.stopped || 0) + dt : 0;
   }
-  return { battle: b, hp, killed: 0, outcome };
+  const result = advanceBattle(b, playerHP, damagePerSecond, dt);
+  return { ...result, battle: { ...result.battle, stopped: b.stopped }, killed: 0 };
 }

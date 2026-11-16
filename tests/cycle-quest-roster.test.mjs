@@ -1,13 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {loadQuestModule} from './quest-loader.mjs';
-const {MONSTERS,chapterMonsters,makeBattle,enemyGroup}=await loadQuestModule('combat.js');
+const {MONSTERS,makeBattle,enemyGroup}=await loadQuestModule('combat.js');
 const {readCharacter}=await loadQuestModule('save-state.js');
 const fresh=()=>({version:1,xp:0,hp:100,miles:10,chapter:1,mode:'adventure',rideSeconds:100,rideMiles:2,nextEncounter:260,reward:false,boss:null});
-test('chapter one replaces Stirge and Kobold with canonical Bat and Snake',()=>{
- assert.deepEqual(chapterMonsters(1).map(m=>m.id),['rat','bat','snake','goblin','wolf','giant-fire-beetle','giant-spider','worg']);
- assert(!MONSTERS.some(m=>['stirge','kobold'].includes(m.id)));assert.equal(MONSTERS.filter(m=>m.id==='bat').length,1);assert.equal(MONSTERS.filter(m=>m.id==='snake').length,1);
- assert.equal(MONSTERS.find(m=>m.id==='snake').type,'beast');
+test('retired monster ids stay out of the roster data',()=>{
+ assert(!MONSTERS.some(m=>['stirge','kobold','giant-rat'].includes(m.id)));
+ assert.equal(MONSTERS.filter(m=>m.id==='bat').length,1);assert.equal(MONSTERS.filter(m=>m.id==='snake').length,1);
 });
 test('current-version saved fights and encounter bags migrate without losing damage or progression',()=>{
  const group=enemyGroup([makeBattle('enemy',{monsterId:'bat',level:6}),makeBattle('enemy',{monsterId:'snake',level:10})]);

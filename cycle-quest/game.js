@@ -9,7 +9,9 @@ import {
   multiplier,
   partPrice,
   changePart,
-  exploreRoadside
+  exploreRoadside,
+  GRADE_BONUS,
+  UPGRADE_BONUS
 } from '/api/cycle-quest?asset=bike-parts.js';
 import { createQuestMusic } from '/api/cycle-quest?asset=music.js';
 import { readCharacter } from '/api/cycle-quest?asset=save-state.js';
@@ -22,22 +24,30 @@ import {
   baseAttack
 } from '/api/cycle-quest?asset=progression.js';
 import { escapeHTML as safeText, formatClock, rewardButtons } from '/api/cycle-quest?asset=ui-utils.js';
-import { battleRewards, sessionMetrics } from '/api/cycle-quest?asset=rewards.js';
+import { battleRewards, sessionMetrics, HEALING, regenPerSecond } from '/api/cycle-quest?asset=rewards.js';
 import { mountQuestBaseline } from '/api/cycle-quest?asset=shared-ui.js';
 import { createRewardGesture } from '/api/cycle-quest?asset=reward-gesture.js';
 import { generateRoute, parseGPX, sample, grade, METERS_PER_MILE } from '/api/cycle-quest?asset=routes.js';
-import { storyChapter, storyRoute } from '/api/cycle-quest?asset=story-chapters.js';
+import { CHAPTER_COUNT, chapterInfo, chapterRoute } from '/api/cycle-quest?asset=chapters.js';
+import {
+  riderFTP,
+  suggestedFTP,
+  createPowerWindow,
+  mountRiderProfile
+} from '/api/cycle-quest?asset=rider-profile.js';
 import {
   makeBattle,
   enemyGroup,
   encounterLevel,
   chapterLevels,
   chapterMonsters,
-  CHAPTER_BIOMES,
+  riderDamagePerSecond,
+  effortShare,
+  critBonus,
+  BALANCE,
   nextChapterEncounter,
   advanceBattle,
-  advanceBossBattle,
-  bossBehavior
+  advanceBossBattle
 } from '/api/cycle-quest?asset=combat.js';
 import { elevationSVG } from '/api/cycle-quest?asset=profile.js';
 import { createLevelUpQueue, levelUpMarkup } from '/api/cycle-quest?asset=level-up.js';
@@ -272,6 +282,37 @@ async function finishQuestSummary(retry = false) {
     img.style.cssText = 'display:block;max-width:100%;max-height:250px';
     body.append(img);
   }
+  const offer = suggestedFTP(q.best20, riderFTP(s));
+  if (offer) {
+    const box = document.createElement('div');
+    box.className = 'cq-ftp-offer';
+    const text = document.createElement('p');
+    text.textContent =
+      'You averaged ' +
+      Math.round(q.best20) +
+      ' W for 20 minutes. Raise your FTP from ' +
+      riderFTP(s) +
+      ' to ' +
+      offer +
+      ' W?';
+    const accept = document.createElement('button'),
+      keep = document.createElement('button');
+    accept.type = keep.type = 'button';
+    accept.textContent = 'RAISE FTP TO ' + offer + ' W';
+    keep.textContent = 'KEEP ' + riderFTP(s) + ' W';
+    accept.onclick = () => {
+      if (externalSaveChanged) return;
+      s.rider = { ...(s.rider || {}), ftp: offer, source: 'ride' };
+      text.textContent = 'FTP raised to ' + offer + ' W.';
+      accept.remove();
+      keep.remove();
+      save();
+      render();
+    };
+    keep.onclick = () => box.remove();
+    box.append(text, accept, keep);
+    body.append(box);
+  }
   const download = summaryDialog.querySelector('#cq-summary-download');
   download.disabled = true;
   summaryImage = null;
@@ -321,6 +362,7 @@ async function finishQuestSummary(retry = false) {
   }
 }
 
+let powerWindow = createPowerWindow();
 let roadsideNotice = '',
   roadsideNoticeUntil = 0;
 let floating = null,
@@ -377,7 +419,7 @@ function load() {
     s.chapter <= 10 &&
     s.route?.storyChapter !== s.chapter
   ) {
-    s.route = storyRoute(s.chapter, generateRoute);
+    s.route = chapterRoute(s.chapter, generateRoute);
     s.routeMiles = s.miles;
   }
   if (!invalidStoredSave) restoreRewardState();
@@ -423,7 +465,7 @@ function bossStats() {
   return s.boss;
 }
 function loadStoryRoute() {
-  const route = storyRoute(s.chapter, generateRoute);
+  const route = chapterRoute(s.chapter, generateRoute);
   if (!route) {
     message = 'All ten chapters cleared!';
     render();
@@ -494,7 +536,11 @@ function renderShop() {
     '</p>' +
     (!available
       ? '<p>Finish your ride to buy, upgrade, or equip parts.</p>'
-      : '<p>Each grade adds 24% base stats. Each upgrade adds 8%. Upgrade level is capped by rider level, up to 50.</p>') +
+      : '<p>Each grade adds ' +
+        GRADE_BONUS +
+        '% to the part’s stat. Each upgrade adds ' +
+        UPGRADE_BONUS +
+        '%. Upgrade level is capped by rider level, up to 50.</p>') +
     slots
       .map(
         (slot, i) =>
@@ -511,7 +557,7 @@ function renderShop() {
               let actions = '';
               if (tier === null) {
                 for (let g = 1; g <= grade; g++)
-                  actions += actionButton(p, 'buy', 'Buy ' + grades[g] + ' · +' + g * 24 + '%', g);
+                  actions += actionButton(p, 'buy', 'Buy ' + grades[g] + ' · +' + g * GRADE_BONUS + '%', g);
               } else {
                 if (tier < Math.min(50, riderLevel(s)))
                   actions += actionButton(
@@ -524,7 +570,7 @@ function renderShop() {
                       ' · bonus ' +
                       partBonus(bike, p.id) +
                       '% → ' +
-                      (partBonus(bike, p.id) + 8) +
+                      (partBonus(bike, p.id) + UPGRADE_BONUS) +
                       '%'
                   );
                 else
@@ -536,7 +582,7 @@ function renderShop() {
                   actions += actionButton(
                     p,
                     'promote',
-                    'Promote to ' + grades[g] + ' · bonus +' + (g * 24 + tier * 8) + '%',
+                    'Promote to ' + grades[g] + ' · bonus +' + (g * GRADE_BONUS + tier * UPGRADE_BONUS) + '%',
                     g
                   );
                 if (!equipped)
@@ -564,6 +610,22 @@ function renderShop() {
       )
       .join('');
 }
+const riderProfile = mountRiderProfile({
+  root,
+  getRider: () => s.rider || null,
+  onSave: rider => {
+    if (externalSaveChanged) return;
+    s.rider = rider;
+    message = 'Rider profile saved · FTP ' + rider.ftp + ' W.';
+    save();
+    render();
+  }
+});
+const riderButton = document.createElement('button');
+riderButton.type = 'button';
+riderButton.textContent = 'Rider profile · FTP';
+$('#save-tools').before(riderButton);
+riderButton.onclick = () => riderProfile.open();
 const partsButton = document.createElement('button');
 partsButton.type = 'button';
 partsButton.textContent = 'Bike shop';
@@ -595,10 +657,25 @@ shopDialog.addEventListener('click', e => {
     renderShop();
   }
 });
+// Freeroam lets riders return to any chapter they have reached, to grind with the power creep.
+function freeroamChapter() {
+  const reached = Math.min(s.chapter, CHAPTER_COUNT);
+  const chosen = Math.floor(Number(s.freeroamChapter) || reached);
+  return Math.max(1, Math.min(reached, chosen));
+}
+function hpReadyForBattle() {
+  return s.hp >= (maxHP() * HEALING.encounterMinPercent) / 100;
+}
 function encounter(kind, forcedCount = null) {
   if (externalSaveChanged || !live.connected) return;
-  if (s.hp <= 1) {
-    message = 'Rest to recover HP before starting another battle.';
+  if (!hpReadyForBattle()) {
+    if (kind === 'enemy') s.nextEncounter = 30;
+    message =
+      'HP low · battles wait until you recover to ' +
+      HEALING.encounterMinPercent +
+      '%. Easy spinning (≤' +
+      Math.round(HEALING.easyEffort * 100) +
+      '% FTP) heals twice as fast.';
     render();
     return;
   }
@@ -607,6 +684,8 @@ function encounter(kind, forcedCount = null) {
     return;
   }
   showEncounterView();
+  const contentChapter = s.mode === 'adventure' ? Math.min(s.chapter, CHAPTER_COUNT) : freeroamChapter(),
+    contentMiles = s.mode === 'adventure' ? s.miles : null;
   if (kind === 'boss') {
     if (s.mode !== 'adventure' || s.chapter > 10) return;
     s.bossWarmupReady = false;
@@ -617,18 +696,18 @@ function encounter(kind, forcedCount = null) {
       count = forcedCount ?? (roll < 0.1 ? 3 : roll < 0.3 ? 2 : 1),
       fights = [];
     for (let i = 0; i < count; i++) {
-      const pick = nextChapterEncounter(s.chapter, s.chapterEncounter);
+      const pick = nextChapterEncounter(contentChapter, s.chapterEncounter);
       s.chapterEncounter = pick.state;
       fights.push(
         makeBattle('enemy', {
-          chapter: s.chapter,
-          level: encounterLevel(s.chapter, s.miles),
+          chapter: contentChapter,
+          level: encounterLevel(contentChapter, contentMiles),
           monsterId: pick.monsterId
         })
       );
     }
     s.battle = enemyGroup(fights);
-  } else s.battle = makeBattle('summit', { chapter: s.chapter });
+  } else s.battle = makeBattle('summit', { chapter: contentChapter });
   message = kind === 'summit' ? 'SUMMIT BOSS! Resistance held for battle.' : 'An enemy stands in your way.';
   save();
   render();
@@ -640,12 +719,7 @@ function restoreRewardState() {
     s.pendingReward = battleRewards({ kind: 'enemy', reward: 150 });
     award(s.pendingReward.xp);
   }
-  if (s.reward) {
-    s.coins += s.pendingReward.coins;
-    s.pendingReward = null;
-    s.reward = false;
-    save();
-  }
+  // A pending heal-or-coins choice survives a reload and is offered again.
 }
 function finish(win) {
   const b = s.battle;
@@ -663,13 +737,14 @@ function finish(win) {
       else if (b.kind !== 'enemy') s.session.bosses++;
     }
     award(rewards.xp);
-    s.coins += rewards.coins;
+    s.reward = true;
+    s.pendingReward = rewards;
     if (b.kind === 'boss') {
       s.chapter++;
       s.miles = 0;
       s.boss = null;
       if (s.chapter <= 10) {
-        s.route = storyRoute(s.chapter, generateRoute);
+        s.route = chapterRoute(s.chapter, generateRoute);
         s.routeMiles = 0;
         lastLiveDistance = 0;
         parentSend({ type: 'route', route: s.route, restoreMiles: 0 });
@@ -687,14 +762,18 @@ function finish(win) {
     message =
       (s.chapter > 10 && b.kind === 'boss' ? 'ALL TEN CHAPTERS CLEARED! ' : 'VICTORY! ') +
       '+' +
-      rewards.xp +
-      ' XP · +' +
-      rewards.coins +
-      ' coins.';
+      fmt(rewards.xp) +
+      ' XP · Choose your reward: heal or coins.';
   } else {
-    s.hp = maxHP();
+    const lostCoins = Math.floor(((s.coins || 0) * HEALING.lossCoinPercent) / 100);
+    s.coins = (s.coins || 0) - lostCoins;
+    s.hp = Math.max(1, Math.round((maxHP() * HEALING.lossHPPercent) / 100));
     message =
-      'Battle lost. No bonus XP. HP fully restored. ' +
+      'Battle lost. No XP' +
+      (lostCoins ? ', ' + fmt(lostCoins) + ' coins dropped' : '') +
+      '. You limp on at ' +
+      HEALING.lossHPPercent +
+      '% HP. ' +
       (b.kind === 'boss' ? 'The same boss awaits your next attempt.' : 'Keep riding.');
   }
   save();
@@ -703,7 +782,7 @@ function choose(type) {
   if (externalSaveChanged || !s.reward || !s.pendingReward || !['heal', 'coins'].includes(type)) return;
   const rewards = s.pendingReward;
   if (type === 'heal') {
-    const n = Math.min(rewards.hp, maxHP() - s.hp);
+    const n = Math.min(Math.round((maxHP() * rewards.healPercent) / 100), maxHP() - s.hp);
     s.hp += n;
     message = 'Recovered ' + fmt(n) + ' HP. Shifting restored.';
   } else {
@@ -721,7 +800,11 @@ function step(dt) {
   if (!running) return;
   dt = Math.min(dt, 1);
   s.rideSeconds += dt;
-  if (power > 0 && live.cadence > 0) award(dt);
+  if (power > 0 && live.cadence > 0) {
+    award(dt);
+    if (!s.battle && !s.reward)
+      s.hp = Math.min(maxHP(), s.hp + regenPerSecond(maxHP(), effortShare(power, riderFTP(s))) * dt);
+  }
   if (s.reward) return;
   if (warmupSeconds > 0) {
     if (power > 0 && live.cadence > 0) warmupSeconds = Math.max(0, warmupSeconds - dt);
@@ -733,16 +816,11 @@ function step(dt) {
     encounter('boss');
   }
   if (s.battle) {
-    const damage = power > 0 ? (power * atk()) / 100 : 0;
+    const damage = riderDamagePerSecond(atk(), power, riderFTP(s));
     const out =
       s.battle.kind === 'enemy'
         ? advanceBattle(s.battle, s.hp, damage, dt)
-        : advanceBossBattle(s.battle, s.hp, damage, dt, {
-            watts: power,
-            cadence: live.cadence,
-            ftp: live.ftp,
-            maxHP: maxHP()
-          });
+        : advanceBossBattle(s.battle, s.hp, damage, dt, { watts: power, cadence: live.cadence });
     s.battle = out.battle;
     s.hp = out.hp;
     if (s.session && out.killed) s.session.monsters += out.killed;
@@ -757,35 +835,22 @@ function fleeSummit() {
   message = 'Summit battle escaped. No bonus reward.';
   save();
 }
+// Live effort readout: "112% FTP · CRIT +12%".
+function effortLabel() {
+  const effort = effortShare(displayedPower(), riderFTP(s)),
+    crit = critBonus(effort);
+  return Math.round(effort * 100) + '% FTP' + (crit > 0 ? ' · CRIT +' + Math.round(crit * 100) + '%' : '');
+}
+// Summit bosses are optional: show how to ride away from one.
 function bossPrompt(b) {
-  if (b.kind === 'enemy') return '';
-  const state = bossBehavior(b),
-    seconds = Math.ceil(state.remaining),
-    target = Math.round((live.ftp || 280) * 0.5);
-  const text = {
-    attack: 'ATTACK · WATCH FOR THE NEXT MOVE',
-    brace: 'BRACE · EASE TO ' + target + ' W OR LESS',
-    stagger: 'STAGGERED · DOUBLE DAMAGE',
-    recover: 'RECOVER — ARMOR IS UP · ≤' + target + ' W HEALS +5 HP/SEC'
-  }[state.phase];
+  if (b.kind !== 'summit') return '';
+  const left = Math.ceil(BALANCE.summitEscapeSeconds - (b.stopped || 0));
   return (
-    '<div class="cq-boss-prompt" data-phase="' +
-    state.phase +
-    '">' +
-    text +
-    ' · ' +
-    seconds +
-    's' +
-    (b.kind === 'summit'
-      ? '<small>STOP PEDALING 15s TO EXIT' +
-        (state.phase === 'recover'
-          ? ' · EXIT TIMER PAUSED'
-          : b.stopped
-            ? ' · ' + Math.ceil(15 - b.stopped) + 's LEFT'
-            : '') +
-        '</small>'
-      : '') +
-    '</div>'
+    '<div class="cq-boss-prompt"><small>STOP PEDALING ' +
+    BALANCE.summitEscapeSeconds +
+    's TO RIDE AWAY' +
+    (b.stopped ? ' · ' + left + 's LEFT' : '') +
+    '</small></div>'
   );
 }
 function healthColor(hp, max) {
@@ -1158,21 +1223,16 @@ function eventMarkup() {
       Math.max(0, (b.hp / b.max) * 100) +
       '%"></i></div>' +
       groupBars(b) +
-      '<span class="cq-sub">' +
+      '<span class="cq-sub' +
+      (critBonus(effortShare(displayedPower(), riderFTP(s))) > 0 ? ' cq-crit' : '') +
+      '">' +
       displayedPower() +
-      ' W \u2192 ' +
-      fmt(
-        ((displayedPower() * atk()) / 100) *
-          (b.kind === 'enemy'
-            ? 1
-            : bossBehavior(b).phase === 'recover'
-              ? 0
-              : bossBehavior(b).phase === 'stagger'
-                ? 2
-                : 1)
-      ) +
+      ' W \xB7 ' +
+      effortLabel() +
+      ' \u2192 ' +
+      fmt(riderDamagePerSecond(atk(), displayedPower(), riderFTP(s))) +
       ' DAMAGE / SEC \xB7 ' +
-      (b.kind === 'enemy' || bossBehavior(b).phase === 'attack' ? b.dps : 0).toFixed(2) +
+      b.dps.toFixed(2) +
       ' HP LOST / SEC</span><p class="cq-sub">' +
       (running ? 'Keep pedaling!' : 'Start pedaling to continue the battle.') +
       '</p>';
@@ -1204,7 +1264,7 @@ function eventMarkup() {
   } else {
     html =
       '<h3>' +
-      (storyChapter(Math.min(s.chapter, 10))?.title || 'FREEROAM') +
+      (chapterInfo(Math.min(s.chapter, 10))?.title || 'FREEROAM') +
       '</h3><p>' +
       (s.mode === 'training' ? 'Train here. Return stronger.' : 'Keep pedaling. Your next level is ahead.') +
       '</p><span class="cq-sub">' +
@@ -1284,25 +1344,20 @@ function render() {
   setStat('to-next-label', 'To Level ' + (L + 1));
   setStat(
     'chapter-name',
-    s.chapter + ' · ' + (storyChapter(Math.min(s.chapter, 10))?.title || 'ALL CHAPTERS CLEARED')
+    s.chapter + ' · ' + (chapterInfo(Math.min(s.chapter, 10))?.title || 'ALL CHAPTERS CLEARED')
   );
   setStat('chapter-distance', s.miles.toFixed(1) + ' / 100 MI');
   setStat('next-boss', s.boss?.name || makeBattle('boss', { chapter: Math.min(s.chapter, 10) }).name);
-  setStat('ftp', live.ftp + ' W');
-  setStat(
-    'wkg',
-    Number.isFinite(live.riderWeightKg) && live.riderWeightKg > 0
-      ? (live.ftp / live.riderWeightKg).toFixed(1) + ' W/KG'
-      : '— W/KG'
-  );
+  setStat('ftp', riderFTP(s) + ' W' + (s.rider ? '' : ' · SET UP'));
+  setStat('wkg', s.rider?.weightKg ? (riderFTP(s) / s.rider.weightKg).toFixed(1) + ' W/KG' : '— W/KG');
   setStat('save-location', 'THIS DEVICE');
   $('.cq-statuslabel').textContent = s.mode === 'training' ? 'FREEROAM' : 'ADVENTURE';
   $('.cq-topline>span').innerHTML =
     '<span class="cq-gold">' +
     (s.mode === 'training' ? 'FREEROAM' : 'CHAPTER ' + s.chapter) +
     '</span> &nbsp; ' +
-    (storyChapter(Math.min(s.chapter, 10))?.title || 'ALL CHAPTERS CLEARED');
-  $('.cq-game').dataset.biome = CHAPTER_BIOMES[s.chapter]?.biome || 'other';
+    (chapterInfo(Math.min(s.chapter, 10))?.title || 'ALL CHAPTERS CLEARED');
+  $('.cq-game').dataset.chapter = String(Math.min(s.chapter, CHAPTER_COUNT));
   $('.cq-mileage').innerHTML = s.miles.toFixed(1) + ' <span>/ 100 MI</span>';
   $('.cq-chaptermeter i').style.width = s.miles + '%';
   $('.cq-chapterhint').textContent =
@@ -1328,9 +1383,38 @@ function render() {
     previousEvent = html;
   }
   draw();
+  syncFreeroamPicker();
   questBaseline?.sync();
   syncFloating();
 }
+// Freeroam chapter picker: every chapter the rider has reached.
+const freeroamSelect = $('#freeroam-chapter');
+function syncFreeroamPicker() {
+  if (!freeroamSelect) return;
+  const reached = Math.min(s.chapter, CHAPTER_COUNT);
+  if (freeroamSelect.options.length !== reached)
+    freeroamSelect.innerHTML = Array.from(
+      { length: reached },
+      (_, i) =>
+        '<option value="' +
+        (i + 1) +
+        '">' +
+        (i + 1) +
+        ' · ' +
+        safeText(chapterInfo(i + 1).title) +
+        '</option>'
+    ).join('');
+  freeroamSelect.value = String(freeroamChapter());
+  freeroamSelect.disabled = !!s.battle || s.reward;
+}
+if (freeroamSelect)
+  freeroamSelect.onchange = () => {
+    if (externalSaveChanged || s.battle || s.reward) return;
+    s.freeroamChapter = Number(freeroamSelect.value);
+    message = 'Freeroam enemies now come from Chapter ' + s.freeroamChapter + '.';
+    save();
+    render();
+  };
 function syncFloating() {
   if (!floating || floating.closed) return;
   const source = $('.cq-overlay');
@@ -1416,10 +1500,21 @@ bestiaryButton.textContent = 'Bestiary & credits';
 bestiaryButton.className = 'cq-choice';
 $('.cq-character').append(bestiaryButton);
 bestiaryButton.onclick = () => {
-  const band = chapterLevels(s.chapter, s.miles),
-    visible = [...chapterMonsters(s.chapter), { id: 'headwind', name: 'Headwind' }];
+  const chapter = s.mode === 'adventure' ? Math.min(s.chapter, CHAPTER_COUNT) : freeroamChapter(),
+    band = chapterLevels(chapter, s.mode === 'adventure' ? s.miles : null),
+    visible = chapterMonsters(chapter),
+    boss = makeBattle('boss', { chapter });
   document.getElementById('bestiary-current').textContent =
-    'CHAPTER ' + s.chapter + ' · ENEMIES LV ' + band.min + '–' + band.max + ' · BOSS LV ' + band.boss;
+    'CHAPTER ' +
+    chapter +
+    ' · ENEMIES LV ' +
+    band.min +
+    '–' +
+    band.max +
+    ' · BOSS: ' +
+    boss.name +
+    ' LV ' +
+    boss.level;
   document.getElementById('bestiary-rows').innerHTML = visible
     .map(m => {
       const low = makeBattle('enemy', { monsterId: m.id, level: band.min }),
@@ -1712,6 +1807,7 @@ window.addEventListener('storage', e => {
 });
 new ResizeObserver(draw).observe(root);
 load();
+if (!invalidStoredSave && !s.rider) riderProfile.open();
 questBaseline = mountQuestBaseline({
   root,
   getState: () => s,
@@ -1854,14 +1950,17 @@ window.addEventListener('message', e => {
         heartRateSeconds: 0,
         monsters: 0,
         bosses: 0,
+        best20: 0,
         completed: false
       };
+      powerWindow = createPowerWindow();
     }
     if (s.session && !s.session.completed && m.running && dt > 0) {
       const sampleSeconds = Math.min(3, Math.max(0, dt));
       s.session.powerWattSeconds =
         (s.session.powerWattSeconds || 0) + Math.max(0, Number(m.power) || 0) * sampleSeconds;
       s.session.powerSeconds = (s.session.powerSeconds || 0) + sampleSeconds;
+      s.session.best20 = Math.max(s.session.best20 || 0, powerWindow.add(m.power, sampleSeconds));
       const hr = Number(String(m.heartRate ?? '').replace(/[^0-9.]/g, ''));
       if (Number.isFinite(hr) && hr >= 30 && hr <= 240) {
         s.session.heartRateBpmSeconds = (s.session.heartRateBpmSeconds || 0) + hr * sampleSeconds;
@@ -1890,7 +1989,7 @@ window.addEventListener('message', e => {
           s.pendingSummit = { end: c.end, category: c.category };
       }
       const pending = s.pendingSummit;
-      if (pending && !s.battle && !s.reward && !levelUp && s.hp > 1 && m.connected) {
+      if (pending && !s.battle && !s.reward && !levelUp && hpReadyForBattle() && m.connected) {
         encounter('summit');
         if (s.battle?.kind === 'summit') {
           s.battle.category = pending.category;
@@ -1930,8 +2029,8 @@ window.addEventListener('message', e => {
       )
         s.miles = 100;
       s.routeMiles = m.distanceM / METERS_PER_MILE;
-      if (s.miles >= 100 && s.mode === 'adventure' && s.chapter <= 10 && warmupSeconds <= 0) {
-        encounter('boss');
+      if (s.miles >= 100 && s.mode === 'adventure' && s.chapter <= 10) {
+        // Chapter boss reached: wait for the rider to pick a warmup or fight now.
       } else if (power > 0 && m.cadence > 0 && warmupSeconds <= 0) {
         if (!s.battle) {
           s.nextEncounter = Math.max(0, s.nextEncounter - dt);
@@ -2028,7 +2127,9 @@ function rewardLabel() {
     '+' +
     r.xp +
     ' XP EARNED · ' +
-    (rewardChoice?.selected === 'heal' ? 'HEAL ' + r.hp + ' HP' : 'GAIN ' + r.coins + ' COINS') +
+    (rewardChoice?.selected === 'heal'
+      ? 'HEAL ' + fmt(Math.round((maxHP() * r.healPercent) / 100)) + ' HP'
+      : 'GAIN ' + fmt(r.coins) + ' COINS') +
     ' · ' +
     Math.max(0, Math.ceil(((rewardChoice?.end || 0) - performance.now()) / 1000)) +
     's'

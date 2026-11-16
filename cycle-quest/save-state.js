@@ -2,7 +2,8 @@ import { validBike } from '/api/cycle-quest?asset=bike-parts.js';
 import { COMBAT_VERSION, MAX_ENEMY_LEVEL } from '/api/cycle-quest?asset=combat.js';
 import { migrateCombatSave } from '/api/cycle-quest?asset=combat-save.js';
 import { validLedger } from '/api/cycle-quest?asset=workouts.js';
-import { validPendingReward } from '/api/cycle-quest?asset=rewards.js';
+import { validPendingReward, normalizePendingReward } from '/api/cycle-quest?asset=rewards.js';
+import { validRider } from '/api/cycle-quest?asset=rider-profile.js';
 
 import { MAX_XP } from '/api/cycle-quest?asset=progression.js';
 export { MAX_XP };
@@ -79,6 +80,7 @@ function validBattle(battle, active = false) {
         optional(enemy.level, n => Number.isInteger(n) && n >= 1) &&
         optional(enemy.dps, nonnegative) &&
         optional(enemy.reward, nonnegative) &&
+        optional(enemy.coins, nonnegative) &&
         nonnegative(enemy.hp) &&
         nonnegative(enemy.max) &&
         enemy.max > 0 &&
@@ -116,6 +118,8 @@ export function validCharacter(state) {
     nonnegative(state.nextEncounter) &&
     typeof state.reward === 'boolean' &&
     optional(state.coins, n => Number.isSafeInteger(n) && n >= 0) &&
+    optional(state.rider, validRider) &&
+    optional(state.freeroamChapter, n => Number.isInteger(n) && n >= 1 && n <= 10) &&
     (!state.pendingReward || (state.reward && validPendingReward(state.pendingReward))) &&
     optional(state.routeMiles, nonnegative) &&
     validRoute(state.route) &&
@@ -128,7 +132,8 @@ export function validCharacter(state) {
           nonnegative(state.session[key])
         ) &&
         optional(state.session.startSeconds, nonnegative) &&
-        optional(state.session.startCoins, nonnegative))) &&
+        optional(state.session.startCoins, nonnegative) &&
+        optional(state.session.best20, nonnegative))) &&
     !(state.battle && state.reward)
   );
 }
@@ -143,6 +148,7 @@ export function readCharacter(text) {
   if (state && typeof state === 'object') {
     for (const field of RETIRED_FIELDS) delete state[field];
     if (state.mode === 'boss') state.mode = 'training'; // Boss Mode was removed.
+    if (state.pendingReward) state.pendingReward = normalizePendingReward(state.pendingReward);
   }
   if (state && Number.isFinite(state.xp) && state.xp > MAX_XP) state.xp = MAX_XP;
   if (state && Number.isFinite(state.nextEncounter) && state.nextEncounter < 0) state.nextEncounter = 0;

@@ -7,6 +7,7 @@ import {
 } from './combat.js';
 const canonical = id => ({ 'giant-rat': 'rat', stirge: 'bat', kobold: 'snake' })[id] || id;
 const ids = new Set(MONSTERS.map(m => m.id));
+// Saved enemy levels are clamped into the chapter's current range.
 const contentLevel = (level, chapter) =>
   Math.max(
     chapterLevels(chapter).min,
@@ -48,7 +49,11 @@ export function migrateCombatSave(state) {
         })
       );
     } else {
-      fresh = makeBattle(kind, { chapter: state.chapter, monsterId: identity, variant: old.summitVariant });
+      // Chapter bosses take the chapter's current boss; summit bosses keep their identity.
+      fresh = makeBattle(kind, {
+        chapter: state.chapter,
+        monsterId: kind === 'summit' ? identity : undefined
+      });
       if (key === 'battle') fresh.hp = fresh.max * fraction(old);
       if (old.category) fresh.category = old.category;
     }

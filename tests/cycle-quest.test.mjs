@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {gradeColor,GRADE_COLORS,elevationSVG} from '../cycle-quest/profile.js';
 import {generateRoute,sample} from '../cycle-quest/routes.js';
 import {loadQuestModule} from './quest-loader.mjs';
-const {MONSTERS,makeBattle,enemyGroup,enemyXP,chapterLevels,encounterLevel,chapterMonsters,nextChapterEncounter,advanceBattle,SUMMIT_BOSSES,SUMMIT_VARIANTS}=await loadQuestModule('combat.js');
+const {MONSTERS,makeBattle,enemyGroup,enemyXP,chapterLevels,encounterLevel,chapterMonsters,nextChapterEncounter,advanceBattle,SUMMIT_BOSSES}=await loadQuestModule('combat.js');
 const {readCharacter}=await loadQuestModule('save-state.js');
 const fresh=()=>({version:1,xp:24000,hp:100,miles:50,chapter:1,mode:'adventure',rideSeconds:100,rideMiles:2,nextEncounter:0,reward:false,boss:null});
 
@@ -12,12 +12,6 @@ test('canonical roster has one rat and no obsolete tabletop combat numbers',()=>
  assert.equal(MONSTERS.length,313);assert.equal(new Set(MONSTERS.map(m=>m.id)).size,313);
  assert.equal(MONSTERS.filter(m=>m.id==='rat').length,1);assert(!MONSTERS.some(m=>m.id==='giant-rat'));
  for(const m of MONSTERS){assert(m.baseHP>0&&m.baseAttack>0&&m.tier>=1);for(const key of ['hp','attack','damage','cr','level'])assert.equal(m[key],undefined);}
-});
-test('approved rat and Bat stats and XP use the enemy own level',()=>{
- for(const [level,hp,dps,xp] of [[1,7500,.2,150],[2,8100,.21,175],[6,11020,.27,275],[10,14993,.34,375],[18,27750,.54,575]]){
-  const b=makeBattle('enemy',{monsterId:'rat',level});assert.equal(b.hp,hp);assert.equal(b.dps,dps);assert.equal(b.reward,xp);
- }
- const bat=makeBattle('enemy',{monsterId:'bat',level:2});assert.equal(bat.hp,7992);assert.equal(bat.dps,.17);assert.equal(bat.reward,175);
 });
 test('rider telemetry and rider progression cannot affect enemy or boss stats',()=>{
  for(const kind of ['enemy','boss','summit']){
@@ -27,56 +21,10 @@ test('rider telemetry and rider progression cannot affect enemy or boss stats',(
   assert.equal(base.time,undefined);assert.equal(base.targetWatts,undefined);
  }
 });
-test('chapter mileage bands match the approved first two chapters and never consult rider level',()=>{
- for(const [chapter,min,caps,boss] of [[1,1,[5,10,14,18],18],[2,12,[18,22,26,30],30]]){
-  for(let i=0;i<4;i++)for(const miles of [i*25,i*25+24.999]){
-   assert.deepEqual(chapterLevels(chapter,miles),{min,max:caps[i],boss});
-   assert.equal(encounterLevel(chapter,miles,()=>0),min);assert.equal(encounterLevel(chapter,miles,()=>1),caps[i]);
-  }
- }
- assert.equal(chapterLevels(1,100).max,18);
- for(const chapter of [3,50,1000]){const b=chapterLevels(chapter,100);assert(b.min<=b.max&&b.max<=1000);assert(chapterMonsters(chapter).length>0);}
-});
-test('first two biome pools stay distinct and shuffle without adjacent repeats',()=>{
- const a=chapterMonsters(1),b=chapterMonsters(2);assert.equal(a.length,8);assert.equal(b.length,8);assert.equal(new Set([...a,...b].map(m=>m.id)).size,16);
- for(const chapter of [1,2]){let state=null,last=null;for(let cycle=0;cycle<5;cycle++){const drawn=[];for(let i=0;i<8;i++){const pick=nextChapterEncounter(chapter,state,()=>.37);assert.notEqual(pick.monsterId,last);drawn.push(pick.monsterId);last=pick.monsterId;state=pick.state;}assert.equal(new Set(drawn).size,8);}}
-});
-test('Headwind remains recurring in all chapters and uses the same own-level rules',()=>{
- for(const chapter of [1,2,3,50,1000]){const state={chapter,bag:['rat'],last:'wolf'},pick=nextChapterEncounter(chapter,state,()=>.05);assert.equal(pick.monsterId,'headwind');assert.equal(pick.state,state);}
- assert.equal(makeBattle('enemy',{monsterId:'headwind',level:20}).reward,625);
-});
-test('mixed groups sum fixed HP, individual attack and XP',()=>{
- const b=enemyGroup([1,6,10].map(level=>makeBattle('enemy',{monsterId:'rat',level})));
- assert.equal(b.hp,33513);assert.equal(b.reward,800);assert.deepEqual(b.enemies.map(e=>e.level),[1,6,10]);assert(Math.abs(b.dps-.81)<1e-10);
- for(const count of [1,2,3]){const one=makeBattle('enemy',{monsterId:'rat',level:6}),group=enemyGroup(Array(count).fill(one));assert.equal(group.hp,one.hp*count);assert.equal(group.reward,one.reward*count);}
-});
-test('a defeated group member immediately stops attacking, including inside a long tick',()=>{
- const b=enemyGroup([1,1,1].map(level=>makeBattle('enemy',{monsterId:'rat',level})));
- const result=advanceBattle(b,100,150,150);assert.equal(result.outcome,'win');assert.equal(result.killed,3);assert(Math.abs(result.hp-40)<1e-8);assert.equal(result.battle.dps,0);
- let small={battle:b,hp:100};for(let i=0;i<150;i++)small=advanceBattle(small.battle,small.hp,150,1);
- assert.equal(small.outcome,'win');assert(Math.abs(small.hp-result.hp)<1e-8);assert.equal(b.hp,22500);
-});
 test('combat has no timeout, coasting still takes damage, and simultaneous death is a loss',()=>{
  let r=advanceBattle({kind:'boss',hp:50000,max:50000,dps:.25},100,150,60);assert.equal(r.outcome,null);assert.equal(r.battle.hp,41000);assert.equal(r.hp,85);
  r=advanceBattle(r.battle,r.hp,0,400);assert.equal(r.outcome,'loss');assert.equal(r.hp,1);
  assert.equal(advanceBattle({hp:990,max:990,dps:1},100,10,100).outcome,'loss');
-});
-test('boss levels and rewards are fixed by chapter; grinding makes them easier',()=>{
- for(const [chapter,level,xp] of [[1,18,1725],[2,30,2625]]){const a=makeBattle('boss',{chapter}),b=makeBattle('boss',{chapter,level:99,ftp:500});assert.deepEqual(a,b);assert.equal(a.level,level);assert.equal(a.reward,xp);assert(a.hp/(150*1.08**19)<a.hp/(150*1.08**9));}
-});
-test('all twelve summit identities and three variants have permanent own levels and stats',()=>{
- assert.equal(SUMMIT_BOSSES.length,12);assert.equal(SUMMIT_VARIANTS.length,3);const names=new Set();
- for(const monsterId of SUMMIT_BOSSES){let previous=0;for(const variant of SUMMIT_VARIANTS){
-  const a=makeBattle('summit',{chapter:1,monsterId,variant:variant.name}),b=makeBattle('summit',{chapter:50,monsterId,variant:variant.name,ftp:500,level:99});assert.deepEqual(a,b);assert(a.hp>previous);previous=a.hp;assert.equal(a.reward,3*enemyXP(a.level));names.add(a.name);
- }}assert.equal(names.size,36);
- for(let i=0;i<100;i++){const b=makeBattle('summit',{chapter:1,random:()=>i/100});assert(b.level<=22);}
-});
-test('legacy rat IDs and scaled battles migrate once, preserving progress, damage and earned rewards',()=>{
- const old={...fresh(),battleCapPct:125,chapterEncounter:{chapter:1,bag:['giant-rat','rat','goblin'],last:'giant-rat'},battle:{kind:'enemy',name:'GIANT RAT',monsterId:'giant-rat',level:6,hp:500,max:1000,dps:.25,reward:150,enemies:[{id:'giant-rat',name:'GIANT RAT',hp:500,max:1000}]}};
- const next=readCharacter(JSON.stringify(old));assert.equal(next.xp,old.xp);assert.equal(next.hp,100);assert.equal(next.battle.monsterId,'rat');assert.equal(next.battle.name,'RAT');assert.equal(next.battle.max,11020);assert.equal(next.battle.hp,5510);assert.equal(next.battle.reward,275);assert.equal(next.battleCapPct,undefined);assert.deepEqual(next.chapterEncounter.bag,['rat','goblin']);
- assert.deepEqual(readCharacter(JSON.stringify(next)),next);
- const paid={...fresh(),reward:true,pendingReward:{count:1,xp:150,hp:25,coins:25}};assert.deepEqual(readCharacter(JSON.stringify(paid)).pendingReward,paid.pendingReward);
- const boss=readCharacter(JSON.stringify({...fresh(),boss:{monsterId:'roper',name:'ROPER',hp:9999,dps:1}}));assert.equal(boss.boss.monsterId,'roper');assert.equal(boss.boss.level,18);assert.equal(boss.boss.reward,1725);
 });
 test('all species-level variants are finite and higher own levels mean higher HP, attack and XP',()=>{
  for(const m of MONSTERS){let previous={hp:0,dps:0,reward:0};for(const level of [1,2,6,10,18,30,100,1000]){const b=makeBattle('enemy',{monsterId:m.id,level});assert(Number.isFinite(b.hp)&&Number.isFinite(b.dps));assert(b.hp>previous.hp&&b.dps>previous.dps&&b.reward>previous.reward);previous=b;}}

@@ -14,6 +14,7 @@ for(const name of Object.keys(QUEST_ASSETS)){
    ["key = 'cycle-quest-character-v1'","key = 'cycle-quest-autoplay-preview-v1'"],
    ['  xp: 0,\n  hp: 100,','  xp: 570,\n  hp: 100,'],
    ['nextEncounter: 260','nextEncounter: 8'],
+   ['if (!invalidStoredSave && !s.rider) riderProfile.open();','// Autoplay demo: the simulated rider skips the profile prompt.'],
    ['dt = lastLiveTime ? Math.min(3, (now - lastLiveTime) / 1000) : 0','dt = Number.isFinite(m.demoSeconds) ? Math.min(30, m.demoSeconds) : lastLiveTime ? Math.min(3, (now - lastLiveTime) / 1000) : 0'],
    ['s.nextEncounter = 240 + Math.random() * 180','s.nextEncounter = 35 + Math.random() * 20'],
    ["window.addEventListener('message', e =>",scenes+"\nwindow.addEventListener('message', e =>"],
