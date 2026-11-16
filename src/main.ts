@@ -56,16 +56,17 @@ let cycleQuestHold=false;let cycleQuestHeldSpeed=0;
 let cycleQuestHeldGrade:number|null=null,cycleQuestHeldRequestedGrade=0,cycleQuestHeldErgTarget=0,cycleQuestHeldGear=6;
 function setCycleQuestHold(hold:boolean){
  if(hold&&!cycleQuestHold){
-  // Freeze intended terrain load, not the last partially-slewed trainer value.
-  cycleQuestHeldRequestedGrade=Math.max(-12,Math.min(12,at(distance).grade*num('difficulty')/100));
-  cycleQuestHeldGrade=cycleQuestHeldRequestedGrade;
-  cycleQuestHeldSlope=cycleQuestHeldRequestedGrade;
+  // Preserve the currently applied trainer load for the full battle; route
+  // position and terrain updates must not change it mid-encounter.
+  cycleQuestHeldSlope=at(distance).grade*num('difficulty')/100;
+  cycleQuestHeldRequestedGrade=simRequestedGrade();
+  cycleQuestHeldGrade=Number.isFinite(trainerGrade)?trainerGrade:cycleQuestHeldRequestedGrade;
   cycleQuestHeldSpeed=speed;cycleQuestHeldErgTarget=lastTarget;cycleQuestHeldGear=gear;
  }
  cycleQuestHold=hold;
  if(!hold){cycleQuestHeldGrade=null;cycleQuestHeldSlope=null;}
- // Reassert resistance immediately on both battle-hold transitions.
- if(running&&connected&&controlGranted&&realTelemetry&&trainerMode!=='target'){
+ // Reassert the held/current load immediately on both transitions.
+ if(typeof running!=='undefined'&&running&&connected&&controlGranted&&realTelemetry&&trainerMode!=='target'){
   void updateSimResistance(performance.now(),true);
  }
 }
