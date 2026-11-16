@@ -11,7 +11,7 @@ const progression=await loadQuestModule('progression.js');
 const game=await readFile(new URL('../cycle-quest/game.js',import.meta.url),'utf8');
 function fn(name){const start=game.indexOf('function '+name+'('),end=game.indexOf('\nfunction ',start+1);assert(start>=0&&end>start);return game.slice(start,end);}
 function fixture(state={}){
- const c={bikeFor,multiplier,storyRoute,chapterRoute:storyRoute,generateRoute,HEALING,lastLiveDistance:0,music:{endBattle(){}},externalSaveChanged:false,s:{xp:0,hp:50,coins:0,chapter:1,miles:50,rideSeconds:9000,rideMiles:100,...state},levelUps:{enqueue(){}},message:'',rewardChoice:null,parentSend(){},shareCard(){},render(){},saved:null,save(){c.saved=JSON.parse(JSON.stringify(c.s));},fmt:Math.round,battleRewards};
+ const c={encounterDelay:()=>200,bikeFor,multiplier,storyRoute,chapterRoute:storyRoute,generateRoute,HEALING,lastLiveDistance:0,music:{endBattle(){}},externalSaveChanged:false,s:{xp:0,hp:50,coins:0,chapter:1,miles:50,rideSeconds:9000,rideMiles:100,...state},levelUps:{enqueue(){}},message:'',rewardChoice:null,parentSend(){},shareCard(){},render(){},saved:null,save(){c.saved=JSON.parse(JSON.stringify(c.s));},fmt:Math.round,battleRewards};
  Object.assign(c,progression);vm.createContext(c);vm.runInContext(['level','cost','threshold','maxHP','atk','award','restoreRewardState','finish','choose'].map(fn).join('\n'),c);return c;
 }
 test('a win grants XP immediately, then exactly one heal-or-coins choice',()=>{

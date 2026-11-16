@@ -150,3 +150,14 @@ test('saves accept the scaled Freeroam setting (0) and chapters 1–10', async (
   for (const n of [0, 1, 10]) assert(validCharacter({ ...fresh, freeroamChapter: n }), String(n));
   for (const n of [-1, 11, 2.5]) assert(!validCharacter({ ...fresh, freeroamChapter: n }), String(n));
 });
+
+test('random encounters come about every 3 minutes, and the first within 60–90 s of a ride', async () => {
+  const { encounterDelay } = await loadQuestModule('combat.js');
+  for (const r of [0, 0.5, 0.999]) {
+    const gap = encounterDelay(false, () => r), first = encounterDelay(true, () => r);
+    assert(gap >= 150 && gap <= 240, 'gap ' + gap);
+    assert(first >= 60 && first <= 90, 'first ' + first);
+  }
+  const game = await (await import('node:fs/promises')).readFile(new URL('../cycle-quest/game.js', import.meta.url), 'utf8');
+  assert.match(game, /s\.nextEncounter = encounterDelay\(true\)/);
+});

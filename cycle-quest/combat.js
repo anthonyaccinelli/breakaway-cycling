@@ -22,10 +22,14 @@ export const BALANCE = Object.freeze({
   levelSpread: 2,
   boss: { hp: 22, attack: 0.22, xp: 3 },
   summit: { hp: 10.5, attack: 0.35, xp: 2 },
-  xp: { base: 100, perLevel: 15 },
-  coins: { base: 20, perLevel: 4 },
+  xp: { base: 65, perLevel: 10 },
+  coins: { base: 14, perLevel: 3 },
   // The heal reward restores this share of max HP per defeated enemy.
   healPercentPerEnemy: 35,
+  // Random encounters: the gap between fights, and how soon the first one comes in a ride
+  // (seconds of riding, min and max).
+  encounterGap: [150, 240],
+  firstEncounter: [60, 90],
   // Scaled Freeroam: enemies come in at the rider's level minus 0 to this many levels.
   scaledLevelsBelow: 2,
   // Summit bosses can be escaped by not pedaling for this long.
@@ -82,6 +86,12 @@ export function chapterLevels(chapter = 1, miles = 0) {
   if (miles === null) return { min: base, max: top, boss: top };
   const quarter = clamp(Math.floor((Number(miles) || 0) / 25), 0, 3);
   return { min: base + quarter, max: base + quarter + BALANCE.levelSpread, boss: top };
+}
+
+// Seconds of riding until the next random encounter: ~every 3 minutes, sooner at ride start.
+export function encounterDelay(first = false, random = Math.random) {
+  const [low, high] = first ? BALANCE.firstEncounter : BALANCE.encounterGap;
+  return low + roll(random) * (high - low);
 }
 
 // Scaled Freeroam: an enemy level near the rider's own, so quick rides always fit.

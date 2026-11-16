@@ -90,7 +90,7 @@ export function simulate(rider, { seed = 7, chapters = CHAPTER_COUNT } = {}) {
     exhaustedSeconds = 0;
     let miles = 0,
       seconds = 0,
-      next = 240 + random() * 180,
+      next = combat.encounterDelay(false, random),
       wins = 0,
       losses = 0,
       fightSeconds = 0,
@@ -109,7 +109,7 @@ export function simulate(rider, { seed = 7, chapters = CHAPTER_COUNT } = {}) {
         lowHP += 30;
         continue;
       }
-      next = 240 + random() * 180;
+      next = combat.encounterDelay(false, random);
       const roll = random(),
         count = roll < 0.1 ? 3 : roll < 0.3 ? 2 : 1,
         fights = [];

@@ -6,7 +6,7 @@ through the beta-password endpoint `api/cycle-quest.js`. Code lives in `cycle-qu
 ## Core loop
 
 Ride ten fixed 100-mile chapters (Adventure) or any route (Freeroam). Pedaling earns
-1 XP per second. Every 4–7 minutes a random encounter of 1–3 enemies starts; summit
+1 XP per second. Every 2.5–4 minutes of riding (the first within 60–90 s of a ride, `BALANCE.encounterGap` and `firstEncounter`) a random encounter of 1–3 enemies starts; summit
 bosses wait at the top of categorized climbs; a chapter boss waits at mile 100.
 Random encounters are "ride until they die". Summit and chapter bosses fight in phases (below).
 

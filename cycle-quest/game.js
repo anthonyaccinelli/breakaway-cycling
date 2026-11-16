@@ -50,6 +50,7 @@ import {
   advanceBattle,
   advanceBossBattle,
   scaledEncounterLevel,
+  encounterDelay,
   bossPhase,
   BOSS_FIGHT
 } from '/api/cycle-quest?asset=combat.js';
@@ -808,7 +809,7 @@ function finish(win) {
   s.reward = false;
   s.pendingReward = null;
   if (b.kind === 'summit' && !s.route?.endless) parentSend({ type: 'summit-resolved' });
-  s.nextEncounter = 240 + Math.random() * 180;
+  s.nextEncounter = encounterDelay();
   if (win) {
     const rewards = battleRewards(b);
     if (s.session) {
@@ -2591,6 +2592,8 @@ window.addEventListener('message', e => {
         completed: false
       };
       s.stamina = STAMINA.max;
+      // The first fight of a ride comes quickly, so short rides get into the action.
+      if (!s.battle && !s.reward) s.nextEncounter = encounterDelay(true);
       powerWindow = createPowerWindow();
     }
     if (s.session && !s.session.completed && m.running && dt > 0) {
