@@ -10,6 +10,7 @@ export const QUEST_ASSETS = Object.freeze({
       'music',
       'chapters',
       'rider-profile',
+      'cloud-save',
       'progression',
       'game',
       'shared-ui',

@@ -16,7 +16,6 @@ body {
 #cq-preview .cq-controls {
   display: flex;
   align-items: center;
-  gap: 14px;
   flex-wrap: wrap;
   margin-bottom: 14px;
   padding: 12px 16px;
@@ -275,10 +274,6 @@ body {
 #cq-preview .cq-mini-battle .cq-rat-card .cq-rat-hp {
   font-size: clamp(9px, 1vw, 14px);
 }
-#cq-preview .cq-mini-battle .cq-rat-card .cq-enemymeter {
-  height: 7px;
-  min-height: 7px;
-}
 #cq-preview .cq-event .cq-rat-name {
   display: block;
   flex: none;
@@ -291,9 +286,6 @@ body {
   white-space: nowrap;
   text-align: center;
   text-shadow: none;
-}
-#cq-preview .cq-mini-battle .cq-rat-name {
-  display: none;
 }
 #cq-preview .cq-mini-battle .cq-rat-name {
   display: block;
@@ -664,8 +656,6 @@ body {
 }
 #cq-preview .cq-event h3 {
   font-weight: 400;
-  font-size: 25px;
-  margin: 0 0 10px;
   color: #ffeba0;
   letter-spacing: 1px;
 }
@@ -674,25 +664,17 @@ body {
   margin: 0 0 7px;
 }
 #cq-preview .cq-event .cq-sub {
-  font-size: 16px;
   color: #aebfe8;
 }
 #cq-preview .cq-eventbar {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 20px;
   margin-bottom: 9px;
-}
-#cq-preview .cq-enemymeter {
-  height: 11px;
-  background: #070c29;
-  margin: 0 0 13px;
 }
 #cq-preview .cq-enemymeter i {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, #b3486a, #ff9baf);
 }
 #cq-preview .cq-eventactions {
   display: flex;
@@ -786,15 +768,12 @@ body {
 }
 #cq-preview .cq-overlay {
   margin-top: 24px;
-  padding: 13px 17px;
 }
 #cq-preview .cq-overlayhead {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
-  font-size: 18px;
 }
 #cq-preview .cq-overlayhead button {
   font-size: 16px;
@@ -803,28 +782,17 @@ body {
 }
 #cq-preview .cq-overlaygrid {
   display: grid;
-  grid-template-columns: 125px minmax(0, 1fr) 145px;
-  gap: 16px;
-  margin-top: 12px;
-}
-#cq-preview .cq-smallprofile {
-  height: 120px;
 }
 #cq-preview .cq-overlaystats {
-  display: flex;
   flex-direction: column;
-  justify-content: space-around;
 }
 #cq-preview .cq-overlaystats strong {
-  font-size: 25px;
   font-weight: 400;
 }
 #cq-preview .cq-overlayfoot {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 12px;
-  font-size: 15px;
   color: #c3d0f0;
 }
 #cq-preview .cq-game button {
@@ -862,13 +830,6 @@ body {
   }
   #cq-preview .cq-charactergrid {
     gap: 25px;
-  }
-  #cq-preview .cq-overlaygrid {
-    grid-template-columns: 100px minmax(0, 1fr) 115px;
-    gap: 10px;
-  }
-  #cq-preview .cq-overlaystats strong {
-    font-size: 22px;
   }
 }
 @media (max-width: 480px) {
@@ -922,16 +883,6 @@ body {
   #cq-preview .cq-charactergrid .cq-statrow {
     font-size: 18px;
   }
-  #cq-preview .cq-overlaygrid {
-    grid-template-columns: 1fr 1fr;
-  }
-  #cq-preview .cq-smallprofile {
-    grid-column: 1/-1;
-    grid-row: 1;
-  }
-  #cq-preview .cq-overlaystats {
-    gap: 6px;
-  }
   #cq-preview .cq-overlayfoot {
     flex-wrap: wrap;
   }
@@ -957,7 +908,6 @@ body {
     padding: 10px 14px;
   }
   #cq-preview {
-    height: calc(100dvh - 20px);
     max-width: 1600px;
     display: flex;
     flex-direction: column;
@@ -1163,25 +1113,6 @@ body {
   font-size: 24px;
   flex: none;
 }
-#cq-preview .cq-pixel {
-  display: block;
-  aspect-ratio: 1;
-}
-#cq-preview .cq-pixel-1 {
-  background: #124f33;
-}
-#cq-preview .cq-pixel-2 {
-  background: #43bc5e;
-}
-#cq-preview .cq-pixel-3 {
-  background: #a5ef80;
-}
-#cq-preview .cq-enemy-summit {
-  filter: hue-rotate(125deg) drop-shadow(7px 8px 0 #1a254b66);
-}
-#cq-preview .cq-enemy-boss {
-  filter: hue-rotate(230deg) drop-shadow(7px 8px 0 #1a254b66);
-}
 #cq-preview .cq-eventbar {
   margin: 0;
   font-size: 17px;
@@ -1269,108 +1200,56 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 5px;
-  padding: 5px 9px;
   background: #52669c;
 }
 #cq-preview .cq-mini-battle .cq-enemymeter {
-  height: 10px;
   order: 0;
 }
 #cq-preview .cq-mini-battle button {
   font-size: 16px;
   padding: 4px 7px;
 }
-#cq-preview .cq-mini-battle .cq-battleheading {
-  font-size: 15px;
-}
 #cq-preview .cq-mini-battle .cq-eventactions {
   margin: 0;
 }
-#cq-preview .cq-overlay {
-  padding: 13px 17px;
-}
 #cq-preview .cq-overlaygrid {
-  grid-template-columns: 180px minmax(0, 1fr) 210px;
-  gap: 16px;
   margin-top: 10px;
 }
 #cq-preview .cq-smallprofile {
-  height: 220px !important;
   flex: none;
-}
-#cq-preview .cq-overlayhead {
-  font-size: 20px;
 }
 #cq-preview .cq-overlaystats {
   justify-content: flex-start;
-  gap: 3px;
-}
-#cq-preview .cq-overlaystats small {
-  font-size: 20px;
-  letter-spacing: 1px;
-}
-#cq-preview .cq-overlaystats strong {
-  font-size: 60px !important;
-  line-height: 1;
-  white-space: nowrap;
 }
 #cq-preview .cq-overlaystats strong + small {
   margin-top: 17px;
 }
-#cq-preview .cq-overlaystats:last-child strong {
-  font-size: 49px !important;
-}
-#cq-preview .cq-overlaystats:last-child small:nth-of-type(2) {
-  font-size: 15px;
-}
-#cq-preview .cq-overlaystats:last-child strong:last-child {
-  font-size: 25px !important;
-}
 #cq-preview .cq-overlayfoot {
-  font-size: 15px;
   margin-top: 10px;
 }
-#cq-preview .cq-mini-battle {
-  padding: 9px 13px;
-  gap: 7px;
-}
 #cq-preview .cq-mini-battle .cq-battleheading {
-  font-size: 26px;
-  line-height: 1.1;
   color: #fff;
   gap: 10px;
 }
 #cq-preview .cq-mini-battle .cq-battleheading > span:last-child {
-  font-size: 34px;
   color: #ffe777;
   white-space: nowrap;
-}
-#cq-preview .cq-mini-battle .cq-enemymeter {
-  height: 19px;
 }
 #cq-preview .cq-mini-reward {
   background: #203377;
   justify-content: center;
-  gap: 16px;
   text-align: center;
 }
 #cq-preview .cq-mini-reward > span {
-  font-size: 29px;
   color: #ffe777;
 }
 #cq-preview .cq-mini-reward .cq-eventactions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
   width: 100%;
   margin: 0;
 }
 #cq-preview .cq-mini-reward button {
-  font-size: 36px;
-  line-height: 1.05;
-  min-height: 110px;
-  padding: 10px 8px;
   border: 2px solid #c5d4ff;
   background: #101f5e;
 }
@@ -1438,7 +1317,6 @@ body {
   display: none !important;
 }
 #cq-preview .cq-overlayhead {
-  font-size: 17px !important;
   line-height: 1;
   min-height: 0;
   flex-wrap: nowrap;
@@ -1489,9 +1367,6 @@ body {
 }
 #cq-preview .cq-overlaystats:last-child strong:last-child {
   font-size: 23px !important;
-}
-#cq-preview .cq-overlaystats:last-child small:nth-of-type(2) {
-  font-size: 13px !important;
 }
 #cq-preview .cq-overlayfoot {
   font-size: 13px !important;
@@ -1582,7 +1457,6 @@ body {
   margin: 6px 0;
 }
 #cq-preview .cq-group > div {
-  min-width: 0;
   flex: 1;
   color: #fff;
   font-size: 17px;
@@ -1593,18 +1467,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-#cq-preview .cq-group-mini > div {
-  font-size: 15px;
-}
-#cq-preview .cq-group-mini .cq-enemymeter {
-  height: 5px;
-}
-#cq-preview .cq-game[data-biome='moor'] {
-  background: radial-gradient(ellipse at 35% 10%, #272449 0%, #10122c 60%, #08091b 100%);
-}
-#cq-preview .cq-game[data-biome='moor'] .cq-window {
-  background: linear-gradient(135deg, #393762 0%, #24234e 40%, #17183b 100%);
 }
 #cq-preview .cq-save-tools {
   position: relative;
@@ -1899,12 +1761,6 @@ body {
   color: #fff;
   font-size: 0.65em;
 }
-.cq-boss-prompt[data-phase='recover'] {
-  color: #8fffa1;
-}
-.cq-boss-prompt[data-phase='stagger'] {
-  color: #fff;
-}
 .cq-mini-battle .cq-boss-prompt {
   font-size: 19px;
   padding: 3px;
@@ -1929,13 +1785,6 @@ body {
 #cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading > span:last-child {
   font-size: 16px;
 }
-#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group {
-  display: flex;
-  flex: 1;
-  gap: 5px;
-  min-height: 0;
-  align-items: stretch;
-}
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-card {
   position: static;
   display: flex;
@@ -1944,7 +1793,6 @@ body {
   align-items: center;
   justify-content: center;
   gap: 3px;
-  min-width: 0;
   min-height: 0;
   height: auto;
   padding: 3px 5px;
@@ -1971,9 +1819,6 @@ body {
 #cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-enemymeter {
   order: initial;
   display: block;
-  width: 100%;
-  height: 7px;
-  min-height: 7px;
   margin: 0;
   background: #1b3732;
 }

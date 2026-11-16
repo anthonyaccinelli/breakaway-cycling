@@ -2,6 +2,7 @@ import { QUEST_ASSETS } from '../cycle-quest/assets.js';
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { handleCloud } from './_quest-cloud.js';
 const COOKIE = 'breakaway_quest_beta';
 const safeEqual = (a, b) =>
   timingSafeEqual(createHash('sha256').update(a).digest(), createHash('sha256').update(b).digest());
@@ -18,6 +19,12 @@ export function validSession(cookie, secret, now = Date.now()) {
     safeEqual(signature, sign(expiry, secret))
   );
 }
+const readCookie = req =>
+  (req.headers.cookie || '')
+    .split(';')
+    .map(v => v.trim())
+    .find(v => v.startsWith(COOKIE + '='))
+    ?.slice(COOKIE.length + 1);
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'private, no-store, max-age=0');
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -38,6 +45,14 @@ export default async function handler(req, res) {
     } catch {
       return res.status(400).json({ error: 'Invalid request' });
     }
+    // Cloud saves (?cloud=load|save) need an unlocked beta session, like every asset.
+    const cloudAction = url.searchParams.get('cloud');
+    if (cloudAction) {
+      if (!validSession(readCookie(req), secret))
+        return res.status(401).json({ error: 'Cycle Quest requires the beta password.' });
+      const [status, payload] = await handleCloud(cloudAction, body);
+      return res.status(status).json(payload);
+    }
     if (
       !body ||
       typeof body.password !== 'string' ||
@@ -53,12 +68,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
   if (req.method !== 'GET') return res.status(405).end();
-  const cookie = (req.headers.cookie || '')
-    .split(';')
-    .map(v => v.trim())
-    .find(v => v.startsWith(COOKIE + '='))
-    ?.slice(COOKIE.length + 1);
-  if (!validSession(cookie, secret))
+  if (!validSession(readCookie(req), secret))
     return res.status(401).json({ error: 'Cycle Quest requires the beta password.' });
   if (asset === 'status') return res.status(200).json({ ok: true });
   const assets = QUEST_ASSETS;

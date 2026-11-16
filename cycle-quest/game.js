@@ -52,17 +52,24 @@ import {
 import { elevationSVG } from '/api/cycle-quest?asset=profile.js';
 import { createLevelUpQueue, levelUpMarkup } from '/api/cycle-quest?asset=level-up.js';
 import { initWorkoutUI } from '/api/cycle-quest?asset=workout-ui.js';
-import { creditWorkout, dayAt } from '/api/cycle-quest?asset=workouts.js';
+import { createCloudSave } from '/api/cycle-quest?asset=cloud-save.js';
+import { creditWorkout, dayAt, validLedger } from '/api/cycle-quest?asset=workouts.js';
 let questBaseline = null;
 const root = document.getElementById('cq-preview'),
   $ = s => root.querySelector(s),
   all = s => root.querySelectorAll(s),
   key = 'cycle-quest-character-v1';
 const setStat = (name, value, html = false) =>
-  all('[data-stat="' + name + '"]').forEach(el => {
-    if (html) el.innerHTML = value;
-    else el.textContent = value;
-  });
+  all('[data-stat="' + name + '"]').forEach(el => (html ? setHTML(el, value) : setText(el, value)));
+// DOM writes are skipped when nothing changed, which keeps busy rides light on hardware.
+function setHTML(el, html) {
+  if (!el || el._cqHTML === html) return;
+  el.innerHTML = html;
+  el._cqHTML = html;
+}
+function setText(el, text) {
+  if (el && el.textContent !== String(text)) el.textContent = text;
+}
 $('.cq-route').append($('.cq-event'));
 const rewardGesture = createRewardGesture();
 const musicButton = document.createElement('button');
@@ -316,7 +323,7 @@ async function finishQuestSummary(retry = false) {
   const download = summaryDialog.querySelector('#cq-summary-download');
   download.disabled = true;
   summaryImage = null;
-  save();
+  save({ force: true });
   if (!summaryDialog.open) summaryDialog.showModal();
   music.sync({ battle: !!s.battle, rest: true });
   try {
@@ -410,6 +417,7 @@ function load() {
     message =
       'Your saved character could not be loaded. It has been preserved. Export your save before making changes.';
   }
+  if (!invalidStoredSave) loadHistory();
   s.hp = Math.min(maxHP(), s.hp);
   if (s.chapter > 10) s.mode = 'training';
   warmupSeconds = 0;
@@ -425,7 +433,41 @@ function load() {
   if (!invalidStoredSave) restoreRewardState();
   else $('#save-state').textContent = 'Original save preserved — export to recover';
 }
-function save() {
+// The character and its ride history are stored separately. The character is small and
+// saved often; the history (up to 5,000 workouts) is written at most once a minute.
+const historyKey = 'cycle-quest-history-v1';
+let cloud = null; // cloud save by save code, created after the character loads
+let historyText = null,
+  lastHistoryWrite = -Infinity;
+function characterText(state) {
+  const character = { ...state };
+  delete character.workouts;
+  return JSON.stringify(character);
+}
+function saveHistory(force = false) {
+  const now = performance.now();
+  if (!force && now - lastHistoryWrite < 60000) return;
+  const text = JSON.stringify(s.workouts || []);
+  if (text !== historyText) {
+    localStorage.setItem(historyKey, text);
+    historyText = text;
+  }
+  lastHistoryWrite = now;
+}
+function loadHistory() {
+  try {
+    const stored = localStorage.getItem(historyKey);
+    if (stored === null) return; // first run after the split: history is still inside the character
+    const ledger = JSON.parse(stored);
+    if (validLedger(ledger)) {
+      s.workouts = ledger;
+      historyText = stored;
+    }
+  } catch {
+    /* unreadable history: keep whatever the character carried */
+  }
+}
+function save({ force = false } = {}) {
   if (externalSaveChanged) return;
   try {
     if (localStorage.getItem(key) !== persistedSave) {
@@ -436,10 +478,14 @@ function save() {
       $('#save-state').textContent = message;
       return;
     }
-    const text = JSON.stringify(s);
-    localStorage.setItem(key, text);
-    persistedSave = text;
-    $('#save-state').textContent = 'Saved on this device';
+    const text = characterText(s);
+    if (text !== persistedSave) {
+      localStorage.setItem(key, text);
+      persistedSave = text;
+    }
+    saveHistory(force);
+    $('#save-state').textContent = 'Saved on this device' + (cloud?.statusSuffix() || '');
+    cloud?.queue(force);
   } catch {
     $('#save-state').textContent = 'Save unavailable — use Export save';
   }
@@ -997,6 +1043,8 @@ function draw() {
       h = h || 110;
     }
     if (!w || !h) return;
+    if (el.classList.contains('cq-smallprofile') && (warmupSeconds > 0 || levelUp || s.battle || s.reward))
+      el._cqProfileKey = null;
     if (el.classList.contains('cq-smallprofile') && warmupSeconds > 0) {
       el.setAttribute('role', 'group');
       el.setAttribute('aria-label', 'Boss warmup');
@@ -1104,6 +1152,23 @@ function draw() {
         : null;
     el.style.touchAction = inspectable ? 'none' : '';
     el.style.cursor = inspectable ? 'crosshair' : '';
+    // Rebuilding ~1,000 SVG shapes is the most expensive thing on screen: skip it unless the
+    // route window, size, rider marker (to the half pixel), overlays or readouts changed.
+    const profileKey = [
+      displayed.distance,
+      displayed.points.length,
+      s.route.windowStart || 0,
+      s.route.name,
+      w,
+      h,
+      Math.round(Math.max(0, Math.min(1, progress)) * w * 2),
+      displayed.summits.join(','),
+      profileInspect === null ? '' : Math.round(profileInspect),
+      climb ? climb.start + ':' + ((climb.end - current) / METERS_PER_MILE).toFixed(2) + ':' + eta : '',
+      el.classList.contains('cq-smallprofile') ? currentGrade() : ''
+    ].join('|');
+    if (el._cqProfileKey === profileKey) return;
+    el._cqProfileKey = profileKey;
     el.innerHTML =
       elevationSVG(displayed, sample, w, h, progress) +
       (inspectable && profileInspect !== null
@@ -1139,7 +1204,8 @@ function currentGrade() {
       : 0;
   return (g >= 0 ? '+' : '') + g.toFixed(1) + '%';
 }
-let previousEvent = '';
+let previousEvent = '',
+  lastRewardState = null;
 function renderRideReadouts(session, L, remaining) {
   setStat('tile-hr', safeText(live.heartRate) + ' <em>BPM</em>', true);
   setStat('tile-cadence', Math.round(live.cadence) + ' <em>RPM</em>', true);
@@ -1149,43 +1215,51 @@ function renderRideReadouts(session, L, remaining) {
   setStat('tile-time', clock(session.seconds));
   setStat('tile-distance', session.miles.toFixed(2) + ' <em>MI</em>', true);
   if (s.route) setStat('tile-ascent', fmt(routeAscent()) + ' <em>FT</em>', true);
-  $('.cq-overlayhead>span').innerHTML =
+  setHTML(
+    $('.cq-overlayhead>span'),
     'CYCLE QUEST <span class="cq-gold">LV ' +
-    L +
-    '</span> <span class="cq-overlay-xp" aria-label="Experience remaining to next level"><span class="cq-overlay-xpfill" style="width:' +
-    Math.max(0, Math.min(100, (remaining / cost(L)) * 100)) +
-    '%"></span><b>' +
-    fmt(remaining) +
-    ' XP LEFT</b></span>';
-  $('.cq-overlayhead>span:nth-child(2)').textContent =
-    'CHAPTER ' + s.chapter + ' \xB7 ' + s.miles.toFixed(1) + ' / 100 MI';
-  $('.cq-elapsed').textContent =
+      L +
+      '</span> <span class="cq-overlay-xp" aria-label="Experience remaining to next level"><span class="cq-overlay-xpfill" style="width:' +
+      Math.max(0, Math.min(100, (remaining / cost(L)) * 100)) +
+      '%"></span><b>' +
+      fmt(remaining) +
+      ' XP LEFT</b></span>'
+  );
+  setText(
+    $('.cq-overlayhead>span:nth-child(2)'),
+    'CHAPTER ' + s.chapter + ' \xB7 ' + s.miles.toFixed(1) + ' / 100 MI'
+  );
+  setText(
+    $('.cq-elapsed'),
     'SESSION ' +
-    session.miles.toFixed(2) +
-    ' MI \xB7 GEAR ' +
-    live.gear +
-    ' \xB7 TIME ' +
-    formatClock(session.seconds) +
-    ' \xB7 ' +
-    fmt(s.coins || 0) +
-    ' COINS';
+      session.miles.toFixed(2) +
+      ' MI \xB7 GEAR ' +
+      live.gear +
+      ' \xB7 TIME ' +
+      formatClock(session.seconds) +
+      ' \xB7 ' +
+      fmt(s.coins || 0) +
+      ' COINS'
+  );
   setStat('overlay-power', displayedPower() + ' W');
   setStat('overlay-hr', live.heartRate + ' BPM');
   setStat('overlay-speed', live.speed.toFixed(1) + ' MPH');
-  $('.cq-overlayfoot').innerHTML =
+  setHTML(
+    $('.cq-overlayfoot'),
     '<span>' +
-    (s.battle
-      ? safeText(s.battle.name) + ' \xB7 ' + fmt(s.battle.hp) + ' HP'
-      : s.reward
-        ? '+' + (s.pendingReward?.xp || 0) + ' XP EARNED \xB7 CHOOSE A REWARD'
-        : performance.now() < roadsideNoticeUntil
-          ? safeText(roadsideNotice)
-          : ' +1 XP / SEC PEDALING') +
-    '</span><span>ATTACK ' +
-    fmt(atk()) +
-    ' \xB7 ' +
-    fmt(s.coins || 0) +
-    ' COINS</span>';
+      (s.battle
+        ? safeText(s.battle.name) + ' \xB7 ' + fmt(s.battle.hp) + ' HP'
+        : s.reward
+          ? '+' + (s.pendingReward?.xp || 0) + ' XP EARNED \xB7 CHOOSE A REWARD'
+          : performance.now() < roadsideNoticeUntil
+            ? safeText(roadsideNotice)
+            : ' +1 XP / SEC PEDALING') +
+      '</span><span>ATTACK ' +
+      fmt(atk()) +
+      ' \xB7 ' +
+      fmt(s.coins || 0) +
+      ' COINS</span>'
+  );
 }
 function battleLevelLabel(b) {
   const levels = b.enemies?.map(e => e.level) || [b.level];
@@ -1289,32 +1363,43 @@ function render() {
     clickArmed = false;
     parentSend({ type: 'hold', hold: holding, reward: s.reward });
   }
-  parentSend({ type: 'reward-state', reward: s.reward });
-  $('#live-status').textContent = live.connected
-    ? 'Trainer connected · ' + (running ? 'RIDING' : 'Ready to pedal')
-    : 'Connect your smart trainer to ride.';
+  if (lastRewardState !== s.reward) {
+    lastRewardState = s.reward;
+    parentSend({ type: 'reward-state', reward: s.reward });
+  }
+  setText(
+    $('#live-status'),
+    live.connected
+      ? 'Trainer connected · ' + (running ? 'RIDING' : 'Ready to pedal')
+      : 'Connect your smart trainer to ride.'
+  );
   if (s.route) {
     const length = s.route.distance / METERS_PER_MILE;
-    $('.cq-route .cq-windowtitle>span').textContent = s.route.name;
-    $('.cq-route .cq-grade').textContent = currentGrade();
-    $('.cq-axis').innerHTML = [0, 0.25, 0.5, 0.75, 1]
-      .map(
-        f =>
-          '<span>' +
-          (length * f + (s.route.windowStart || 0) / METERS_PER_MILE).toFixed(1) +
-          (f === 0 || f === 1 ? ' mi' : '') +
-          '</span>'
-      )
-      .join('');
-    $('.cq-routefoot').innerHTML =
+    setText($('.cq-route .cq-windowtitle>span'), s.route.name);
+    setText($('.cq-route .cq-grade'), currentGrade());
+    setHTML(
+      $('.cq-axis'),
+      [0, 0.25, 0.5, 0.75, 1]
+        .map(
+          f =>
+            '<span>' +
+            (length * f + (s.route.windowStart || 0) / METERS_PER_MILE).toFixed(1) +
+            (f === 0 || f === 1 ? ' mi' : '') +
+            '</span>'
+        )
+        .join('')
+    );
+    setHTML(
+      $('.cq-routefoot'),
       '<span><i class="cq-dot"></i> YOU <b>' +
-      (s.routeMiles || 0).toFixed(1) +
-      ' MI</b></span><span>' +
-      (s.route.endless ? 'ENDLESS · <b>∞ MI</b> · ' : 'ROUTE <b>' + length.toFixed(1) + ' MI</b> · ') +
-      (s.route.hasElevation
-        ? fmt(s.route.endless ? routeAscent() : s.route.gain / 0.3048) + ' FT ASCENT'
-        : 'NO ELEVATION DATA') +
-      '</span>';
+        (s.routeMiles || 0).toFixed(1) +
+        ' MI</b></span><span>' +
+        (s.route.endless ? 'ENDLESS · <b>∞ MI</b> · ' : 'ROUTE <b>' + length.toFixed(1) + ' MI</b> · ') +
+        (s.route.hasElevation
+          ? fmt(s.route.endless ? routeAscent() : s.route.gain / 0.3048) + ' FT ASCENT'
+          : 'NO ELEVATION DATA') +
+        '</span>'
+    );
   }
   const inBattle =
     !!s.battle ||
@@ -1328,19 +1413,19 @@ function render() {
   let L = level(),
     hp = maxHP(),
     remaining = threshold(L + 1) - s.xp;
-  all('.cq-coinbalance').forEach(el => (el.textContent = fmt(s.coins || 0)));
+  all('.cq-coinbalance').forEach(el => setText(el, fmt(s.coins || 0)));
   $('.cq-full').hidden = view === 'overlay' || view === 'devices';
   $('.cq-overlay').hidden = view !== 'overlay';
   $('.cq-layout').hidden = view === 'character';
   $('.cq-character').hidden = view !== 'character';
-  all('.cq-hpnumber').forEach(e => (e.textContent = fmt(s.hp) + ' / ' + hp));
-  all('.cq-totalxp').forEach(e => (e.textContent = fmt(s.xp)));
-  all('.cq-nextxp').forEach(e => (e.textContent = fmt(remaining) + ' XP'));
+  all('.cq-hpnumber').forEach(e => setText(e, fmt(s.hp) + ' / ' + hp));
+  all('.cq-totalxp').forEach(e => setText(e, fmt(s.xp)));
+  all('.cq-nextxp').forEach(e => setText(e, fmt(remaining) + ' XP'));
   $('.cq-hpfill').style.width = Math.max(0, (s.hp / hp) * 100) + '%';
   $('.cq-xpmeter i').style.width = ((s.xp - threshold(L)) / cost(L)) * 100 + '%';
-  $('.cq-player .cq-windowtitle .cq-gold').textContent = 'LV ' + L;
+  setText($('.cq-player .cq-windowtitle .cq-gold'), 'LV ' + L);
   setStat('attack', fmt(atk()));
-  $('.cq-characterhead .cq-gold').textContent = L;
+  setText($('.cq-characterhead .cq-gold'), L);
   setStat('to-next-label', 'To Level ' + (L + 1));
   setStat(
     'chapter-name',
@@ -1350,32 +1435,39 @@ function render() {
   setStat('next-boss', s.boss?.name || makeBattle('boss', { chapter: Math.min(s.chapter, 10) }).name);
   setStat('ftp', riderFTP(s) + ' W' + (s.rider ? '' : ' · SET UP'));
   setStat('wkg', s.rider?.weightKg ? (riderFTP(s) / s.rider.weightKg).toFixed(1) + ' W/KG' : '— W/KG');
-  setStat('save-location', 'THIS DEVICE');
-  $('.cq-statuslabel').textContent = s.mode === 'training' ? 'FREEROAM' : 'ADVENTURE';
-  $('.cq-topline>span').innerHTML =
+  setStat('save-location', cloud?.enabled ? 'THIS DEVICE + CLOUD' : 'THIS DEVICE');
+  setText($('.cq-statuslabel'), s.mode === 'training' ? 'FREEROAM' : 'ADVENTURE');
+  setHTML(
+    $('.cq-topline>span'),
     '<span class="cq-gold">' +
-    (s.mode === 'training' ? 'FREEROAM' : 'CHAPTER ' + s.chapter) +
-    '</span> &nbsp; ' +
-    (chapterInfo(Math.min(s.chapter, 10))?.title || 'ALL CHAPTERS CLEARED');
+      (s.mode === 'training' ? 'FREEROAM' : 'CHAPTER ' + s.chapter) +
+      '</span> &nbsp; ' +
+      (chapterInfo(Math.min(s.chapter, 10))?.title || 'ALL CHAPTERS CLEARED')
+  );
   $('.cq-game').dataset.chapter = String(Math.min(s.chapter, CHAPTER_COUNT));
-  $('.cq-mileage').innerHTML = s.miles.toFixed(1) + ' <span>/ 100 MI</span>';
+  setHTML($('.cq-mileage'), s.miles.toFixed(1) + ' <span>/ 100 MI</span>');
   $('.cq-chaptermeter i').style.width = s.miles + '%';
-  $('.cq-chapterhint').textContent =
+  setText(
+    $('.cq-chapterhint'),
     s.mode === 'training'
       ? 'Freeroam: chapter progress paused.'
-      : (100 - s.miles).toFixed(1) + ' miles to the chapter boss.';
-  $('.cq-bossname>b').textContent =
-    s.boss?.name || makeBattle('boss', { chapter: Math.min(s.chapter, 10) }).name;
-  $('.cq-bossname>span').textContent =
-    s.mode === 'training' ? 'Adventure only' : s.miles >= 100 ? 'Ready to challenge' : 'Not yet reached';
+      : (100 - s.miles).toFixed(1) + ' miles to the chapter boss.'
+  );
+  setText($('.cq-bossname>b'), s.boss?.name || makeBattle('boss', { chapter: Math.min(s.chapter, 10) }).name);
+  setText(
+    $('.cq-bossname>span'),
+    s.mode === 'training' ? 'Adventure only' : s.miles >= 100 ? 'Ready to challenge' : 'Not yet reached'
+  );
   $('.cq-bossname').hidden = s.mode === 'training' || s.chapter > 10;
-  $('.cq-modehint').textContent =
+  setText(
+    $('.cq-modehint'),
     s.mode === 'training'
       ? 'FREEROAM · Earn XP and coins without chapter progression.'
-      : 'ADVENTURE · Complete the 100-mile chapter route.';
+      : 'ADVENTURE · Complete the 100-mile chapter route.'
+  );
   all('[data-mode]').forEach(b => b.classList.toggle('cq-active', b.dataset.mode === s.mode));
-  $('#pedal').textContent = running ? 'Pause pedaling' : 'Begin Adventure';
-  $('.cq-message').textContent = message;
+  setText($('#pedal'), running ? 'Pause pedaling' : 'Begin Adventure');
+  setText($('.cq-message'), message);
   renderRideReadouts(session, L, remaining);
   const html = eventMarkup();
   if (html !== previousEvent) {
@@ -1767,6 +1859,7 @@ $('#savefile').onchange = async e => {
       return;
     if (persistedSave) localStorage.setItem(key + '-pre-import-backup', persistedSave);
     s = v;
+    historyText = null;
     if (!s.route) {
       s.route = generateRoute(15, 'rolling');
       s.routeMiles = 0;
@@ -1781,7 +1874,7 @@ $('#savefile').onchange = async e => {
     restoreRewardState();
     lastLiveDistance = (s.routeMiles || 0) * METERS_PER_MILE;
     if (s.route) parentSend({ type: 'route', route: s.route, restoreMiles: s.routeMiles || 0 });
-    save();
+    save({ force: true });
     message = 'Save imported. Ready to ride.';
     render();
   } catch (err) {
@@ -1793,7 +1886,8 @@ $('#savefile').onchange = async e => {
 };
 root.addEventListener('keydown', rewardKey);
 window.addEventListener('pagehide', () => {
-  save();
+  save({ force: true });
+  cloud?.flush();
   music.dispose();
 });
 window.addEventListener('storage', e => {
@@ -1808,6 +1902,67 @@ window.addEventListener('storage', e => {
 new ResizeObserver(draw).observe(root);
 load();
 if (!invalidStoredSave && !s.rider) riderProfile.open();
+// Cloud save: replaces this device's character with one loaded by save code.
+function adoptCloudCharacter(saveText, historyText) {
+  if (s.battle || s.reward || (live.activityStartTime && !live.routeComplete)) {
+    message = 'Finish your ride and any battle before loading a cloud save.';
+    render();
+    return false;
+  }
+  let next, history;
+  try {
+    next = readCharacter(saveText);
+    history = historyText ? JSON.parse(historyText) : [];
+    if (!validLedger(history)) history = next.workouts || [];
+  } catch {
+    message = 'That cloud save could not be read.';
+    render();
+    return false;
+  }
+  if (
+    persistedSave &&
+    !window.confirm('Replace this device’s character with the cloud save? A backup of this one is kept.')
+  )
+    return false;
+  if (persistedSave) localStorage.setItem(key + '-pre-cloud-backup', persistedSave);
+  s = next;
+  s.workouts = history;
+  if (!s.route) {
+    s.route = generateRoute(15, 'rolling');
+    s.routeMiles = 0;
+  }
+  invalidStoredSave = false;
+  externalSaveChanged = false;
+  levelUps.clear();
+  levelUp = null;
+  running = false;
+  warmupSeconds = 0;
+  s.hp = Math.min(maxHP(), s.hp);
+  restoreRewardState();
+  lastLiveDistance = (s.routeMiles || 0) * METERS_PER_MILE;
+  historyText = null;
+  persistedSave = localStorage.getItem(key);
+  parentSend({ type: 'route', route: s.route, restoreMiles: s.routeMiles || 0 });
+  save({ force: true });
+  message = 'Cloud save loaded. Ready to ride.';
+  render();
+  return true;
+}
+cloud = createCloudSave({
+  root,
+  getSnapshot: () => ({ save: characterText(s), history: JSON.stringify(s.workouts || []) }),
+  onLoad: adoptCloudCharacter,
+  onChange: () => {
+    if (!externalSaveChanged) $('#save-state').textContent = 'Saved on this device' + cloud.statusSuffix();
+    setStat('save-location', cloud.enabled ? 'THIS DEVICE + CLOUD' : 'THIS DEVICE');
+  }
+});
+const cloudButton = document.createElement('button');
+cloudButton.type = 'button';
+cloudButton.textContent = 'Cloud save';
+$('#save-tools').before(cloudButton);
+cloudButton.onclick = () => cloud.open();
+cloud.check();
 questBaseline = mountQuestBaseline({
   root,
   getState: () => s,
@@ -1837,9 +1992,10 @@ function claimWorkout(workout, chapterCredit) {
     throw Error('This reward exceeds the current character XP limit. Export your save first.');
 
   if (result.bossReady && !next.boss) next.boss = makeBattle('boss', { chapter: next.chapter });
-  const text = JSON.stringify(next);
+  const text = characterText(next);
   try {
     localStorage.setItem(key, text);
+    localStorage.setItem(historyKey, (historyText = JSON.stringify(next.workouts || [])));
   } catch {
     throw Error(
       'Could not save the reward on this device. Export your save or free browser storage, then try again.'
@@ -2073,7 +2229,7 @@ window.addEventListener('message', e => {
           : 'Freeroam ride complete; rewards saved.';
     }
     render();
-    if (++saveTick >= 5) {
+    if (++saveTick >= 50) {
       save();
       saveTick = 0;
     }

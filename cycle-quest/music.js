@@ -24,7 +24,7 @@ export function createQuestMusic({
     ['battle', 'victory', 'rest', 'level', 'death'].map(name => {
       const file = {
           battle: 'do-or-die-loop.mp3',
-          victory: 'victory-opening-0-10.wav',
+          victory: 'victory-opening-0-10.mp3',
           rest: 'rest.mp3',
           level: 'take-flight.mp3',
           death: 'game-over.mp3'

@@ -87,7 +87,7 @@ test('named stat hooks match the HTML and tolerate missing or reordered readouts
  const html=await readFile(new URL('index.html',base),'utf8');
  const names=[...game.matchAll(/setStat\(['"]([^'"]+)['"]/g)].map(m=>m[1]);
  for(const name of names)assert(html.includes('data-stat="'+name+'"'),name);
- const declaration=game.match(/const setStat = [\s\S]*?\}\);\n/)[0];const first={},second={};
+ const declaration=game.match(/const setStat = [\s\S]*?;\n/)[0]+game.match(/function setHTML\([\s\S]*?\n\}\n/)[0]+game.match(/function setText\([\s\S]*?\n\}\n/)[0];const first={},second={};
  const c={all:selector=>selector.includes('missing')?[]:[second,first]};vm.createContext(c);vm.runInContext(declaration+'\nsetStat("power","250 W");setStat("missing","ignored");',c);
  assert.equal(first.textContent,'250 W');assert.equal(second.textContent,'250 W');
  assert.doesNotMatch(game,/\b(?:cr|pr|tiles|os)\[\d+\]/);
