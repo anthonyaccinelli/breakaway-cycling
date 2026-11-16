@@ -943,6 +943,18 @@ function patchMarkup(host, markup) {
   patch(host, template.content);
 }
 // One text card per living enemy (overlay battle view). No artwork.
+// The compact overlay names each enemy on its card, so the heading only says what kind of fight it is.
+function compactBattleTitle(b) {
+  if (b.kind === 'summit') return 'SUMMIT BOSS';
+  if (b.kind === 'boss') return 'CHAPTER BOSS';
+  const count = Array.isArray(b.enemies) ? b.enemies.filter(e => e.hp > 0).length : 1;
+  return count > 1 ? count + ' ENEMIES' : 'ENEMY';
+}
+// In the compact overlay the summit escape hint lives in the heading, so the card keeps its height.
+function compactEscapeLabel(b) {
+  const left = Math.ceil(BALANCE.summitEscapeSeconds - (b.stopped || 0));
+  return b.stopped ? 'ESCAPE IN ' + left + 's' : 'STOP ' + BALANCE.summitEscapeSeconds + 's TO ESCAPE';
+}
 function enemyCards(b) {
   const enemies = Array.isArray(b.enemies)
     ? b.enemies
@@ -955,12 +967,10 @@ function enemyCards(b) {
             e =>
               '<div class="cq-rat-card"><strong class="cq-rat-name">' +
               safeText(e.name || b.name) +
-              ' - LV ' +
+              ' <span class="cq-lv">- LV ' +
               safeText(e.level || b.level || 1) +
-              '</strong><span class="cq-rat-hp">' +
+              '</span></strong><span class="cq-rat-hp">' +
               fmt(e.hp) +
-              ' / ' +
-              fmt(e.max) +
               ' HP</span><div class="cq-enemymeter"><i style="width:' +
               Math.max(0, Math.min(100, (e.hp / e.max) * 100)) +
               '%"></i></div></div>'
@@ -1095,9 +1105,10 @@ function draw() {
           '<div class="cq-mini-battle cq-text-battle" style="--enemy-health:' +
             healthColor(b.hp, b.max) +
             '"><div class="cq-battleheading"><span>' +
-            safeText(b.name) +
-            '</span><span>UNTIL 1 HP</span></div>' +
-            bossPrompt(b) +
+            compactBattleTitle(b) +
+            '</span><span>' +
+            (b.kind === 'summit' ? compactEscapeLabel(b) : 'UNTIL 1 HP') +
+            '</span></div>' +
             (enemyCards(b) ||
               '<div class="cq-mini-enemyhp">' +
                 fmt(b.hp) +
@@ -1530,15 +1541,34 @@ function syncFloating() {
 }
 // Shrink the big overlay readouts so they never run past their column, whatever the
 // overlay window size or value length. Measured in the document that shows them.
+const FIT_TARGETS = [
+  ['.cq-overlaystats strong', 12],
+  // Compact battle cards: enemy names, HP and the "3 ENEMIES" heading.
+  ['.cq-mini-battle .cq-rat-hp', 11],
+  ['.cq-mini-battle .cq-battleheading > span', 10]
+];
 function fitOverlayNumbers(scope) {
-  scope?.querySelectorAll('.cq-overlaystats strong').forEach(el => {
+  if (!scope) return;
+  // Enemy names: one line, shrunk to fit; wrap to two lines only if still too long.
+  scope.querySelectorAll('.cq-mini-battle .cq-rat-name').forEach(el => {
+    el.classList.remove('cq-name-wrap');
     el.style.removeProperty('font-size');
     if (!el.clientWidth || el.scrollWidth <= el.clientWidth) return;
     const view = el.ownerDocument.defaultView;
-    const base = parseFloat(view.getComputedStyle(el).fontSize) || 40;
-    const size = Math.max(12, Math.floor((base * el.clientWidth) / el.scrollWidth));
+    const base = parseFloat(view.getComputedStyle(el).fontSize) || 16;
+    const size = Math.max(11, Math.floor((base * el.clientWidth) / el.scrollWidth));
     el.style.setProperty('font-size', size + 'px', 'important');
+    if (el.scrollWidth > el.clientWidth) el.classList.add('cq-name-wrap');
   });
+  for (const [selector, minimum] of FIT_TARGETS)
+    scope.querySelectorAll(selector).forEach(el => {
+      el.style.removeProperty('font-size');
+      if (!el.clientWidth || el.scrollWidth <= el.clientWidth) return;
+      const view = el.ownerDocument.defaultView;
+      const base = parseFloat(view.getComputedStyle(el).fontSize) || 40;
+      const size = Math.max(minimum, Math.floor((base * el.clientWidth) / el.scrollWidth));
+      el.style.setProperty('font-size', size + 'px', 'important');
+    });
 }
 async function openFloating() {
   try {

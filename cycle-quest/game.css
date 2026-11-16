@@ -325,10 +325,6 @@ body {
   margin: 0;
   background: #121e4c;
 }
-#cq-preview .cq-mini-battle .cq-rat-card:only-child .cq-enemymeter {
-  left: 35%;
-  width: 30%;
-}
 #cq-preview {
   --cq-ink: #f6f7ff;
   --cq-soft: #b5c4ef;
@@ -1973,4 +1969,64 @@ body {
   #cq-preview .cq-elapsed {
     visibility: hidden;
   }
+}
+
+/* Compact battle cards: text stays on one line and shrinks to fit (fitOverlayNumbers);
+   an ellipsis appears only if a very long name still cannot fit at the minimum size. */
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-hp {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#cq-preview .cq-mini-battle .cq-battleheading > span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Very narrow overlay windows: give the battle cards more room. Side readouts already
+   shrink to fit, and long labels ("HEART RATE") wrap onto two lines. */
+@container (max-width: 660px) {
+  #cq-preview .cq-overlaygrid {
+    grid-template-columns: 104px minmax(0, 1fr) 118px !important;
+    gap: 6px !important;
+  }
+  #cq-preview .cq-overlaystats {
+    gap: 0 4px !important;
+  }
+  #cq-preview .cq-overlaystats,
+  #cq-preview .cq-overlaystats:last-child {
+    grid-template-columns: min-content minmax(0, 1fr);
+  }
+  #cq-preview .cq-overlaystats small {
+    font-size: 12px !important;
+    white-space: normal;
+  }
+}
+
+/* Compact battle cards: names stay on one line and shrink to fit (fitOverlayNumbers);
+   only a name that still cannot fit wraps onto two lines. A lone enemy, summit or
+   chapter boss card spans the whole panel. */
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-name {
+  text-overflow: clip;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-name.cq-name-wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-card:only-child {
+  grid-column: 1 / -1;
+}
+#cq-preview .cq-mini-battle .cq-battleheading > span:last-child {
+  flex: none;
+}
+
+/* When a name must wrap, break before the level: "OCTOPUS" / "- LV 3". */
+#cq-preview .cq-rat-name .cq-lv {
+  white-space: nowrap;
 }
