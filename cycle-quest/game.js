@@ -1259,9 +1259,10 @@ function renderRideReadouts(session, L, remaining) {
       fmt(s.coins || 0) +
       ' COINS'
   );
-  setStat('overlay-power', displayedPower() + ' W');
-  setStat('overlay-hr', live.heartRate + ' BPM');
-  setStat('overlay-speed', live.speed.toFixed(1) + ' MPH');
+  // Overlay units are drawn at half size so the numbers themselves can be as large as possible.
+  setStat('overlay-power', displayedPower() + '<em> W</em>', true);
+  setStat('overlay-hr', safeText(live.heartRate) + '<em> BPM</em>', true);
+  setStat('overlay-speed', live.speed.toFixed(1) + '<em> MPH</em>', true);
   setHTML(
     $('.cq-overlayfoot'),
     '<span>' +
@@ -1436,7 +1437,11 @@ function render() {
   $('.cq-overlay').hidden = view !== 'overlay';
   $('.cq-layout').hidden = view === 'character';
   $('.cq-character').hidden = view !== 'character';
-  all('.cq-hpnumber').forEach(e => setText(e, fmt(s.hp) + ' / ' + hp));
+  all('.cq-hpnumber').forEach(e =>
+    e.closest('.cq-overlaystats')
+      ? setHTML(e, fmt(s.hp) + '<em> / ' + fmt(hp) + '</em>')
+      : setText(e, fmt(s.hp) + ' / ' + hp)
+  );
   all('.cq-totalxp').forEach(e => setText(e, fmt(s.xp)));
   all('.cq-nextxp').forEach(e => setText(e, fmt(remaining) + ' XP'));
   $('.cq-hpfill').style.width = Math.max(0, (s.hp / hp) * 100) + '%';

@@ -2030,3 +2030,11 @@ body {
 #cq-preview .cq-rat-name .cq-lv {
   white-space: nowrap;
 }
+
+/* Overlay readouts: big numbers, half-size units ("157 BPM", "97 / 100"). */
+#cq-preview .cq-overlaystats strong em {
+  font-size: 0.5em;
+  font-style: normal;
+  letter-spacing: 0;
+  opacity: 0.85;
+}
