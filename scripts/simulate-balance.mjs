@@ -48,7 +48,10 @@ export function simulate(rider, { seed = 7, chapters = CHAPTER_COUNT } = {}) {
   function fight(battle) {
     let seconds = 0;
     for (;;) {
-      const w = watts(rider.battleEffort ? rider.battleEffort(seconds) : rider.effort);
+      // Boss fights: ease off to 60% FTP for each brace and push 20% harder in the counter.
+      const phase = battle.kind === 'enemy' ? null : combat.bossPhase(battle).phase;
+      const base = rider.battleEffort ? rider.battleEffort(seconds) : rider.effort;
+      const w = watts(phase === 'brace' ? Math.min(base, 0.6) : phase === 'counter' ? base * 1.2 : base);
       s.stamina = stamina.advanceStamina(s.stamina, w / FTP, 1);
       if (stamina.isExhausted(s.stamina)) exhaustedSeconds++;
       const damage =
@@ -57,7 +60,12 @@ export function simulate(rider, { seed = 7, chapters = CHAPTER_COUNT } = {}) {
       const out =
         battle.kind === 'enemy'
           ? combat.advanceBattle(battle, s.hp, damage, 1)
-          : combat.advanceBossBattle(battle, s.hp, damage, 1, { watts: w, cadence: 85 });
+          : combat.advanceBossBattle(battle, s.hp, damage, 1, {
+              watts: w,
+              cadence: 85,
+              effort: w / FTP,
+              maxHP: maxHP()
+            });
       battle = out.battle;
       s.hp = out.hp;
       award(1);

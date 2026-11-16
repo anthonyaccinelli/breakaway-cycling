@@ -3,6 +3,15 @@ function handleDemoAction(action){
  rewardChoice=null;
  if(action==='claim'){choose('coins');return;}
  if(action==='win'||action==='lose'){if(s.battle)finish(action==='win');render();return;}
+ // Jump a summit (or, for enrage, a chapter) boss straight to a phase so each prompt can be checked.
+ const bossScene=/^boss-(windup|brace|counter|enrage)$/.exec(action);
+ if(bossScene){
+  const phase=bossScene[1],kind=phase==='enrage'?'boss':'summit';
+  if(s.battle?.kind!==kind){levelUps.clear();levelUp=null;s.reward=false;s.pendingReward=null;s.battle=null;if(kind==='boss')s.mode='adventure';encounter(kind);}
+  const b=s.battle;if(!b)return;
+  Object.assign(b,{phase:phase==='windup'?'attack':phase,phaseTime:phase==='windup'?BOSS_FIGHT[kind].attack-12:phase==='brace'?20:8,round:phase==='enrage'?BOSS_FIGHT.boss.rounds:0,bracedSeconds:phase==='brace'?12:0,lastBrace:phase==='counter'?0.9:0});
+  save();render();return;
+ }
  levelUps.clear();levelUp=null;s.battle=null;s.reward=false;s.pendingReward=null;
  const crab=/^crab-([123])$/.exec(action),ratCount={rat:1,'rats-2':2,rats:3}[action];
  const fixedRat=/^rat-level-(1|6|10)$/.exec(action);

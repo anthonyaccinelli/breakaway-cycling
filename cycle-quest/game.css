@@ -2168,4 +2168,52 @@ body {
     margin: 0 !important;
     font-size: 26px !important;
   }
+  /* Boss prompt on one line: "BRACE · UNDER 205 W · 0:48  —  72% BRACED". */
+  #cq-preview .cq-event .cq-boss-prompt {
+    font-size: 19px;
+    padding: 3px 8px;
+  }
+  #cq-preview .cq-event .cq-boss-prompt small {
+    display: inline;
+    margin-left: 0.6em;
+  }
+  #cq-preview .cq-event .cq-boss-prompt small::before {
+    content: '\2014  ';
+  }
+}
+
+/* Boss phase prompt: colour tells the rider what to do at a glance. */
+#cq-preview .cq-boss-prompt {
+  font-size: 22px;
+}
+#cq-preview .cq-boss-prompt small {
+  margin-top: 2px;
+  color: #d1ddfa;
+}
+#cq-preview .cq-phase-windup {
+  color: #ffe777;
+  border-color: #ffe777;
+  animation: cq-windup 1s steps(2) infinite;
+}
+#cq-preview .cq-phase-brace {
+  color: #7ee0ff;
+  border-color: #7ee0ff;
+}
+#cq-preview .cq-phase-counter {
+  color: #00ed00;
+  border-color: #00ed00;
+}
+#cq-preview .cq-phase-enrage {
+  color: #ff5a6e;
+  border-color: #ff5a6e;
+}
+@keyframes cq-windup {
+  50% {
+    border-color: #a7b2d1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #cq-preview .cq-phase-windup {
+    animation: none;
+  }
 }

@@ -48,7 +48,9 @@ import {
   BALANCE,
   nextChapterEncounter,
   advanceBattle,
-  advanceBossBattle
+  advanceBossBattle,
+  bossPhase,
+  BOSS_FIGHT
 } from '/api/cycle-quest?asset=combat.js';
 import { elevationSVG } from '/api/cycle-quest?asset=profile.js';
 import { createLevelUpQueue, levelUpMarkup } from '/api/cycle-quest?asset=level-up.js';
@@ -883,12 +885,19 @@ function step(dt) {
   }
   if (s.battle) {
     const damage = riderDamagePerSecond(atk(), power, riderFTP(s)) * staminaDamageMultiplier(s.stamina);
+    const before = s.battle.kind === 'enemy' ? null : bossPhase(s.battle);
     const out =
       s.battle.kind === 'enemy'
         ? advanceBattle(s.battle, s.hp, damage, dt)
-        : advanceBossBattle(s.battle, s.hp, damage, dt, { watts: power, cadence: live.cadence });
+        : advanceBossBattle(s.battle, s.hp, damage, dt, {
+            watts: power,
+            cadence: live.cadence,
+            effort: effortShare(power, riderFTP(s)),
+            maxHP: maxHP()
+          });
     s.battle = out.battle;
     s.hp = out.hp;
+    if (before && !out.outcome) announceBossPhase(before, out);
     if (s.session && out.killed) s.session.monsters += out.killed;
     if (out.outcome === 'flee') fleeSummit();
     else if (out.outcome) finish(out.outcome === 'win');
@@ -912,17 +921,127 @@ function effortLabel() {
     (isExhausted(s.stamina) ? ' · EXHAUSTED −' + Math.round((1 - STAMINA.exhaustedDamage) * 100) + '%' : '')
   );
 }
-// Summit bosses are optional: show how to ride away from one.
+// ---- Boss phases: on-screen prompts, messages and sound cues ---------------------
+// m:ss countdown for boss phases.
+const phaseClock = seconds => {
+  const n = Math.max(0, Math.ceil(seconds));
+  return Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0');
+};
+const braceWatts = () => Math.round(BOSS_FIGHT.braceEffort * riderFTP(s));
+// Short beeps for phase changes, only when the game's sound is on.
+let cueContext = null;
+function cue(kind) {
+  if (!music.state().enabled) return;
+  try {
+    cueContext ||= new AudioContext();
+    const t = cueContext.currentTime,
+      tones = {
+        windup: [660, 660, 660],
+        brace: [880, 660],
+        counter: [660, 990],
+        hit: [330],
+        enrage: [440, 330, 220]
+      }[kind] || [660];
+    tones.forEach((frequency, i) => {
+      const osc = cueContext.createOscillator(),
+        gain = cueContext.createGain(),
+        start = t + i * 0.18;
+      osc.type = 'square';
+      osc.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.07, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.15);
+      osc.connect(gain).connect(cueContext.destination);
+      osc.start(start);
+      osc.stop(start + 0.16);
+    });
+  } catch {
+    /* audio unavailable: the on-screen countdown still shows */
+  }
+}
+function announceBossPhase(before, out) {
+  const after = bossPhase(out.battle),
+    name = out.battle.name;
+  if (!before.windup && after.windup) {
+    cue('windup');
+    message = name + ' winds up! Ease under ' + braceWatts() + ' W to brace.';
+  }
+  for (const event of out.events || []) {
+    if (event === 'brace') {
+      cue('brace');
+      message = 'BRACE! Hold under ' + braceWatts() + ' W.';
+    } else if (event === 'hit') {
+      const held = Math.round((out.battle.lastBrace || 0) * 100),
+        landed = (out.battle.lastBrace || 0) >= BOSS_FIGHT.counterNeedsBrace;
+      cue(landed ? 'counter' : 'hit');
+      message =
+        name +
+        ' hits for ' +
+        fmt(out.battle.lastHit || 0) +
+        ' HP (' +
+        held +
+        '% braced). ' +
+        (landed ? 'COUNTER! Double damage.' : 'No opening this time.');
+    } else if (event === 'attack') message = 'Back on the attack.';
+    else if (event === 'enrage') {
+      cue('enrage');
+      message = name + ' is ENRAGED! No more braces. Finish it!';
+    }
+  }
+}
+// Full-screen prompt under the boss name: what to do now, and for how long.
 function bossPrompt(b) {
-  if (b.kind !== 'summit') return '';
-  const left = Math.ceil(BALANCE.summitEscapeSeconds - (b.stopped || 0));
+  if (b.kind === 'enemy') return '';
+  const p = bossPhase(b);
+  let big, small;
+  if (p.phase === 'brace') {
+    big = 'BRACE \xB7 UNDER ' + braceWatts() + ' W \xB7 ' + phaseClock(p.secondsLeft);
+    small = p.grace
+      ? 'EASE DOWN NOW'
+      : Math.round(p.braceShare * 100) + '% BRACED \xB7 BIG HIT ' + fmt(p.bigHit) + ' HP';
+  } else if (p.phase === 'counter') {
+    big = (p.counterLanded ? 'COUNTER! DOUBLE DAMAGE' : 'NO OPENING') + ' \xB7 ' + phaseClock(p.secondsLeft);
+    small = p.counterLanded ? 'PUSH NOW' : 'HOLD MORE OF THE NEXT BRACE TO EARN A COUNTER';
+  } else if (p.phase === 'enrage') {
+    big = 'ENRAGED \xB7 NO MORE BRACES';
+    small = 'FINISH IT';
+  } else if (p.windup) {
+    big = 'WIND-UP \xB7 BRACE IN ' + Math.ceil(p.secondsLeft);
+    small = 'EASE UNDER ' + braceWatts() + ' W';
+  } else {
+    big = 'ATTACK \xB7 BRACE IN ' + phaseClock(p.secondsLeft);
+    small = 'RIDE HOWEVER YOU LIKE';
+  }
+  if (b.kind === 'summit' && p.phase !== 'brace' && b.stopped)
+    small = 'RIDING AWAY IN ' + Math.ceil(BALANCE.summitEscapeSeconds - b.stopped) + 's';
   return (
-    '<div class="cq-boss-prompt"><small>STOP PEDALING ' +
-    BALANCE.summitEscapeSeconds +
-    's TO RIDE AWAY' +
-    (b.stopped ? ' · ' + left + 's LEFT' : '') +
+    '<div class="cq-boss-prompt cq-phase-' +
+    (p.windup ? 'windup' : p.phase) +
+    '">' +
+    big +
+    '<small>' +
+    small +
     '</small></div>'
   );
+}
+// Rider damage and boss attack as the current phase changes them.
+function phaseDamageFactor(b) {
+  if (b.kind === 'enemy') return 1;
+  const p = bossPhase(b);
+  return p.phase === 'brace' ? 0 : p.counterLanded ? BOSS_FIGHT.counterMultiplier : 1;
+}
+function phaseAttack(b) {
+  if (b.kind === 'enemy') return b.dps;
+  const phase = bossPhase(b).phase;
+  const factor =
+    phase === 'brace'
+      ? 0
+      : phase === 'counter'
+        ? BOSS_FIGHT.counterBossAttack
+        : phase === 'enrage'
+          ? BOSS_FIGHT.boss.enrageAttack
+          : 1;
+  return b.dps * factor;
 }
 function healthColor(hp, max) {
   const ratio = max > 0 ? hp / max : 0;
@@ -969,10 +1088,17 @@ function compactBattleTitle(b) {
   const count = Array.isArray(b.enemies) ? b.enemies.filter(e => e.hp > 0).length : 1;
   return count > 1 ? count + ' ENEMIES' : 'ENEMY';
 }
-// In the compact overlay the summit escape hint lives in the heading, so the card keeps its height.
-function compactEscapeLabel(b) {
-  const left = Math.ceil(BALANCE.summitEscapeSeconds - (b.stopped || 0));
-  return b.stopped ? 'ESCAPE IN ' + left + 's' : 'STOP ' + BALANCE.summitEscapeSeconds + 's TO ESCAPE';
+// In the compact overlay the boss phase lives in the heading, so the card keeps its height.
+function compactPhaseLabel(b) {
+  const p = bossPhase(b);
+  if (b.kind === 'summit' && p.phase !== 'brace' && b.stopped)
+    return 'ESCAPE IN ' + Math.ceil(BALANCE.summitEscapeSeconds - b.stopped) + 's';
+  if (p.phase === 'brace')
+    return p.grace ? 'BRACE NOW' : 'BRACE <' + braceWatts() + 'W ' + phaseClock(p.secondsLeft);
+  if (p.phase === 'counter')
+    return (p.counterLanded ? 'COUNTER \xD72 ' : 'NO OPENING ') + phaseClock(p.secondsLeft);
+  if (p.phase === 'enrage') return 'ENRAGED';
+  return p.windup ? 'BRACE IN ' + Math.ceil(p.secondsLeft) : 'ATTACK ' + phaseClock(p.secondsLeft);
 }
 function enemyCards(b) {
   const enemies = Array.isArray(b.enemies)
@@ -1125,8 +1251,12 @@ function draw() {
             healthColor(b.hp, b.max) +
             '"><div class="cq-battleheading"><span>' +
             compactBattleTitle(b) +
-            '</span><span>' +
-            (b.kind === 'summit' ? compactEscapeLabel(b) : 'UNTIL 1 HP') +
+            '</span><span' +
+            (b.kind === 'enemy'
+              ? ''
+              : ' class="cq-phase-' + (bossPhase(b).windup ? 'windup' : bossPhase(b).phase) + '"') +
+            '>' +
+            (b.kind === 'enemy' ? 'UNTIL 1 HP' : compactPhaseLabel(b)) +
             '</span></div>' +
             (enemyCards(b) ||
               '<div class="cq-mini-enemyhp">' +
@@ -1319,7 +1449,13 @@ function eventMarkup() {
     html =
       '<div class="cq-battleheading"><span>' +
       { enemy: 'RANDOM ENCOUNTER', summit: 'SUMMIT BOSS', boss: 'CHAPTER BOSS' }[b.kind] +
-      '</span><span>NO TIME LIMIT</span></div>' +
+      '</span><span>' +
+      (b.kind === 'boss'
+        ? bossPhase(b).phase === 'enrage'
+          ? 'FINAL ROUND'
+          : 'ROUND ' + Math.min(BOSS_FIGHT.boss.rounds, (b.round || 0) + 1) + ' OF ' + BOSS_FIGHT.boss.rounds
+        : 'NO TIME LIMIT') +
+      '</span></div>' +
       (Array.isArray(b.enemies) && b.enemies.length > 1 ? '' : '<h3>' + safeText(b.name) + '</h3>') +
       bossPrompt(b) +
       '<span class="cq-sub">' +
@@ -1348,9 +1484,13 @@ function eventMarkup() {
       ' W \xB7 ' +
       effortLabel() +
       ' \u2192 ' +
-      fmt(riderDamagePerSecond(atk(), displayedPower(), riderFTP(s)) * staminaDamageMultiplier(s.stamina)) +
+      fmt(
+        riderDamagePerSecond(atk(), displayedPower(), riderFTP(s)) *
+          staminaDamageMultiplier(s.stamina) *
+          phaseDamageFactor(b)
+      ) +
       ' DAMAGE / SEC \xB7 ' +
-      b.dps.toFixed(2) +
+      phaseAttack(b).toFixed(2) +
       ' HP LOST / SEC</span><p class="cq-sub">' +
       (running ? 'Keep pedaling!' : 'Start pedaling to continue the battle.') +
       '</p>';

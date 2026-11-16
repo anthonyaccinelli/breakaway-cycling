@@ -8,7 +8,7 @@ through the beta-password endpoint `api/cycle-quest.js`. Code lives in `cycle-qu
 Ride ten fixed 100-mile chapters (Adventure) or any route (Freeroam). Pedaling earns
 1 XP per second. Every 4–7 minutes a random encounter of 1–3 enemies starts; summit
 bosses wait at the top of categorized climbs; a chapter boss waits at mile 100.
-Battles are "ride until they die": no special moves or phases.
+Random encounters are "ride until they die". Summit and chapter bosses fight in phases (below).
 
 During a battle, reward choice, level-up or boss warmup, the trainer rides a **flat road**
 and the route position waits; the rider resumes exactly where the battle began, so chapter
@@ -23,6 +23,24 @@ Random encounters wait while the road descends more steeply than −3%
 `damage/sec = attack × (watts ÷ FTP) × (1 + crit)`, where crit is the share above FTP
 (110% FTP → +10%, 200% FTP → +100%). Riders with different FTPs deal the same damage at the
 same effort. Attack comes from rider level and bike parts. See `combat.js` → `riderDamagePerSecond`.
+
+## Boss fights
+
+Bosses fight in minutes-long phases (`BOSS_FIGHT` in `combat.js`), so riders ease in and
+out of efforts instead of snapping between 400 W and 140 W. Trainer resistance never changes.
+
+| Phase | Length | What the rider does | What happens |
+|---|---|---|---|
+| Attack | 2.5 min | Ride however you like | Normal damage both ways |
+| Wind-up | last 15 s of attack | Ease down | Countdown and sound cue |
+| Brace | 60 s (chapter boss 75/60/45 s) | Hold at or under 75% FTP | Rider deals no damage; the boss's steady attack stops and one big hit (120 s of its attack) lands at the end. A full brace blocks 75% of it and heals 5% max HP. The first 5 s are grace for trainer lag. |
+| Counter | 40 s | Push | Double damage if at least half the brace was held; boss attacks at half strength |
+| Enrage | chapter boss after 3 braces | Finish it | No more braces; boss attacks at 1.5× |
+
+A summit boss repeats attack/brace/counter. Stopping pedaling for 15 s still rides away,
+except during a brace (coasting through a brace never flees). A chapter boss's big hit grows
+25% each round. At a matched level, a summit fight lasts about 5–9 minutes and a chapter
+boss about 11–19 minutes. Riders who ignore braces usually lose the chapter boss.
 
 ## Stamina
 

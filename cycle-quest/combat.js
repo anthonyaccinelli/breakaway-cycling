@@ -1,6 +1,6 @@
 // Combat rules: enemy stats, chapter difficulty, rider damage and battle resolution.
-// Battles are "ride until they die": no phases or special moves. Riding above FTP lands
-// critical hits. Every tuning number lives in BALANCE (see scripts/simulate-balance.mjs).
+// Random encounters are "ride until they die"; summit and chapter bosses fight in phases
+// (see BOSS_FIGHT). Riding above FTP lands critical hits. Every tuning number lives in BALANCE (see scripts/simulate-balance.mjs).
 import { MONSTERS } from '/api/cycle-quest?asset=monsters.js';
 import { CHAPTER_COUNT, chapterInfo, chapterRoster } from '/api/cycle-quest?asset=chapters.js';
 
@@ -20,8 +20,8 @@ export const BALANCE = Object.freeze({
   // Fixed difficulty per chapter: enemy levels climb 4.5 per chapter and 1 per 25 miles.
   chapterLevelStep: 4.5,
   levelSpread: 2,
-  boss: { hp: 3.5, attack: 1.3, xp: 3 },
-  summit: { hp: 2.5, attack: 1.2, xp: 2 },
+  boss: { hp: 22, attack: 0.22, xp: 3 },
+  summit: { hp: 10.5, attack: 0.35, xp: 2 },
   xp: { base: 100, perLevel: 15 },
   coins: { base: 20, perLevel: 4 },
   // The heal reward restores this share of max HP per defeated enemy.
@@ -242,25 +242,170 @@ export function advanceBattle(battle, playerHP, damagePerSecond, dt) {
   return { battle: b, hp, killed, outcome };
 }
 
-// Chapter and summit bosses fight like everyone else. A summit boss is optional:
-// stop pedaling for BALANCE.summitEscapeSeconds to ride away from it.
-export function advanceBossBattle(battle, playerHP, damagePerSecond, dt, { watts = 0, cadence = 0 } = {}) {
-  let b = { ...battle };
-  const stopped = watts < 10 && cadence <= 0;
-  if (b.kind === 'summit') {
-    const escapeLeft = Math.max(0, BALANCE.summitEscapeSeconds - (b.stopped || 0));
-    if (stopped && dt >= escapeLeft) {
-      const result = advanceBattle(b, playerHP, damagePerSecond, escapeLeft);
-      if (result.outcome) return { ...result, killed: 0 };
-      return {
-        battle: { ...result.battle, stopped: BALANCE.summitEscapeSeconds },
-        hp: result.hp,
-        killed: 0,
-        outcome: 'flee'
-      };
-    }
-    b.stopped = stopped ? (b.stopped || 0) + dt : 0;
+// ---- Boss fights -----------------------------------------------------------------
+// Summit and chapter bosses fight in minutes-long phases, so riders ease in and out of
+// efforts the way a coached workout would, never a snap from 400 W to 140 W:
+//   ATTACK (2.5 min)  ride however you like; the last 15 s are a WIND-UP warning.
+//   BRACE  (45–75 s)  hold at or under 75% FTP (the stamina refill zone). The first 5 s are
+//                     grace for trainer and power-smoothing lag. The boss stops its steady
+//                     attack and lands one big hit at the end; bracing blocks up to 75% of it
+//                     and heals a little. The rider deals no damage while bracing.
+//   COUNTER (40 s)    double damage if the brace was at least half held; the staggered boss
+//                     hits at half strength.
+// A summit boss repeats the cycle. A chapter boss gets three braces, each shorter and with a
+// bigger hit, then ENRAGES: no more braces and a harder steady attack until someone falls.
+// Trainer resistance is never changed by any phase.
+export const BOSS_FIGHT = Object.freeze({
+  windupSeconds: 15,
+  braceEffort: 0.75,
+  braceGraceSeconds: 5,
+  bigHitSeconds: 120,
+  braceBlock: 0.75,
+  braceHealPercent: 5,
+  counterMultiplier: 2,
+  counterNeedsBrace: 0.5,
+  counterBossAttack: 0.5,
+  summit: { attack: 150, brace: [60], counter: 40, rounds: Infinity, bigHitGrowth: 0 },
+  boss: { attack: 150, brace: [75, 60, 45], counter: 40, rounds: 3, bigHitGrowth: 0.25, enrageAttack: 1.5 }
+});
+const BOSS_PHASES = ['attack', 'brace', 'counter', 'enrage'];
+
+function bossPlan(kind) {
+  return kind === 'boss' ? BOSS_FIGHT.boss : BOSS_FIGHT.summit;
+}
+function braceSeconds(kind, round) {
+  const list = bossPlan(kind).brace;
+  return list[Math.min(round, list.length - 1)];
+}
+function phaseLength(b) {
+  const plan = bossPlan(b.kind);
+  if (b.phase === 'attack') return plan.attack;
+  if (b.phase === 'brace') return braceSeconds(b.kind, b.round);
+  if (b.phase === 'counter') return plan.counter;
+  return Infinity; // enrage
+}
+// The size of the big hit that ends the current (or next) brace.
+export function bigHit(b) {
+  const plan = bossPlan(b.kind);
+  return b.dps * BOSS_FIGHT.bigHitSeconds * (1 + plan.bigHitGrowth * (b.round || 0));
+}
+
+// What the screen needs: phase, seconds left, whether this is the wind-up warning, and how
+// well the brace is going. Old saves (no phase, or phases from the 40-second loop) start ATTACK.
+export function bossPhase(battle) {
+  const b = normalizeBoss(battle);
+  const left = Math.max(0, phaseLength(b) - b.phaseTime);
+  const scoring = Math.max(1, braceSeconds(b.kind, b.round) - BOSS_FIGHT.braceGraceSeconds);
+  return {
+    phase: b.phase,
+    secondsLeft: left,
+    windup: b.phase === 'attack' && left <= BOSS_FIGHT.windupSeconds,
+    grace: b.phase === 'brace' && b.phaseTime < BOSS_FIGHT.braceGraceSeconds,
+    braceShare: Math.min(1, (b.bracedSeconds || 0) / scoring),
+    counterLanded: b.phase === 'counter' && (b.lastBrace || 0) >= BOSS_FIGHT.counterNeedsBrace,
+    round: b.round,
+    braceEffort: BOSS_FIGHT.braceEffort,
+    bigHit: bigHit(b)
+  };
+}
+
+function normalizeBoss(battle) {
+  const b = { ...battle };
+  if (!BOSS_PHASES.includes(b.phase) || (b.phase === 'enrage' && b.kind !== 'boss')) {
+    b.phase = 'attack';
+    b.phaseTime = 0;
   }
-  const result = advanceBattle(b, playerHP, damagePerSecond, dt);
-  return { ...result, battle: { ...result.battle, stopped: b.stopped }, killed: 0 };
+  b.phaseTime = Math.max(0, Number(b.phaseTime) || 0);
+  b.round = Math.max(0, Math.floor(Number(b.round) || 0));
+  b.bracedSeconds = Math.max(0, Number(b.bracedSeconds) || 0);
+  return b;
+}
+
+// Advance a boss fight. `effort` is watts ÷ FTP; `maxHP` lets a good brace heal.
+// A summit boss is optional: stop pedaling for BALANCE.summitEscapeSeconds to ride away.
+// The escape countdown pauses during a brace, so coasting through a brace never flees.
+export function advanceBossBattle(
+  battle,
+  playerHP,
+  damagePerSecond,
+  dt,
+  { watts = 0, cadence = 0, effort = 0, maxHP = 0 } = {}
+) {
+  let b = normalizeBoss(battle);
+  let hp = Math.max(1, playerHP),
+    remaining = Math.max(0, Number(dt) || 0),
+    events = [];
+  const stopped = watts < 10 && cadence <= 0;
+  const baseDamage = Math.max(0, Number(damagePerSecond) || 0);
+  const baseDPS = b.dps;
+  while (remaining > 1e-9) {
+    const plan = bossPlan(b.kind);
+    const slice = Math.min(remaining, phaseLength(b) - b.phaseTime);
+    // Summit escape (not while bracing).
+    if (b.kind === 'summit' && b.phase !== 'brace') {
+      const escapeLeft = Math.max(0, BALANCE.summitEscapeSeconds - (b.stopped || 0));
+      if (stopped && slice >= escapeLeft) {
+        const r = advanceBattle(phaseStats(b, baseDPS), hp, phaseDamage(b, baseDamage), escapeLeft);
+        b = { ...b, hp: r.battle.hp, stopped: BALANCE.summitEscapeSeconds };
+        if (r.outcome) return { battle: b, hp: r.hp, killed: 0, outcome: r.outcome, events };
+        return { battle: b, hp: r.hp, killed: 0, outcome: 'flee', events };
+      }
+      b.stopped = stopped ? (b.stopped || 0) + slice : 0;
+    }
+    if (
+      b.phase === 'brace' &&
+      b.phaseTime + slice > BOSS_FIGHT.braceGraceSeconds &&
+      effort <= BOSS_FIGHT.braceEffort
+    )
+      b.bracedSeconds += Math.min(slice, b.phaseTime + slice - BOSS_FIGHT.braceGraceSeconds);
+    const r = advanceBattle(phaseStats(b, baseDPS), hp, phaseDamage(b, baseDamage), slice);
+    b.hp = r.battle.hp;
+    hp = r.hp;
+    if (r.outcome) return { battle: { ...b, dps: baseDPS }, hp, killed: 0, outcome: r.outcome, events };
+    b.phaseTime += slice;
+    remaining -= slice;
+    if (b.phaseTime < phaseLength(b) - 1e-9) continue;
+    // Phase change.
+    b.phaseTime = 0;
+    if (b.phase === 'attack') {
+      b.phase = 'brace';
+      b.bracedSeconds = 0;
+      events.push('brace');
+    } else if (b.phase === 'brace') {
+      const scoring = Math.max(1, braceSeconds(b.kind, b.round) - BOSS_FIGHT.braceGraceSeconds);
+      const share = Math.min(1, b.bracedSeconds / scoring);
+      const hit = bigHit({ ...b, dps: baseDPS }) * (1 - BOSS_FIGHT.braceBlock * share);
+      hp = Math.max(1, hp - hit);
+      if (maxHP > 0) hp = Math.min(maxHP, hp + (maxHP * BOSS_FIGHT.braceHealPercent * share) / 100);
+      b.lastBrace = share;
+      b.lastHit = Math.round(hit);
+      b.phase = 'counter';
+      events.push('hit');
+      if (hp <= 1) return { battle: { ...b, dps: baseDPS }, hp: 1, killed: 0, outcome: 'loss', events };
+    } else if (b.phase === 'counter') {
+      b.round++;
+      b.phase = b.round >= plan.rounds ? 'enrage' : 'attack';
+      events.push(b.phase);
+    }
+  }
+  return { battle: { ...b, dps: baseDPS }, hp, killed: 0, outcome: null, events };
+}
+// The boss's steady attack in each phase (it winds up instead of attacking while you brace).
+function phaseStats(b, dps) {
+  const plan = bossPlan(b.kind);
+  const factor =
+    b.phase === 'brace'
+      ? 0
+      : b.phase === 'counter'
+        ? BOSS_FIGHT.counterBossAttack
+        : b.phase === 'enrage'
+          ? plan.enrageAttack
+          : 1;
+  return { ...b, dps: dps * factor };
+}
+function phaseDamage(b, damage) {
+  if (b.phase === 'brace') return 0;
+  if (b.phase === 'counter' && (b.lastBrace || 0) >= BOSS_FIGHT.counterNeedsBrace)
+    return damage * BOSS_FIGHT.counterMultiplier;
+  return damage;
 }
