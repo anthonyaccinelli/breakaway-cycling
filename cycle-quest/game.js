@@ -54,6 +54,12 @@ import { elevationSVG } from '/api/cycle-quest?asset=profile.js';
 import { createLevelUpQueue, levelUpMarkup } from '/api/cycle-quest?asset=level-up.js';
 import { initWorkoutUI } from '/api/cycle-quest?asset=workout-ui.js';
 import { createCloudSave } from '/api/cycle-quest?asset=cloud-save.js';
+import {
+  STAMINA,
+  advanceStamina,
+  isExhausted,
+  staminaDamageMultiplier
+} from '/api/cycle-quest?asset=stamina.js';
 import { creditWorkout, dayAt, validLedger } from '/api/cycle-quest?asset=workouts.js';
 let questBaseline = null;
 const root = document.getElementById('cq-preview'),
@@ -209,9 +215,14 @@ root.append(summaryDialog);
 summaryDialog.addEventListener('close', () => {
   music.sync({ battle: !!s.battle, paused: !running });
 });
+// Character tools (profile, shop, cloud save, highlights, workouts, export/import) live in
+// the "Character" menu so the ride toolbar never runs off the screen.
+function characterMenu() {
+  return document.querySelector('#save-tools > div');
+}
 const galleryButton = document.createElement('button');
 galleryButton.textContent = 'Ride highlights';
-document.getElementById('save-tools').before(galleryButton);
+characterMenu().append(galleryButton);
 galleryButton.onclick = () => {
   const body = summaryDialog.querySelector('#cq-summary-content');
   body.replaceChildren();
@@ -677,12 +688,12 @@ const riderProfile = mountRiderProfile({
 const riderButton = document.createElement('button');
 riderButton.type = 'button';
 riderButton.textContent = 'Rider profile · FTP';
-$('#save-tools').before(riderButton);
+characterMenu().append(riderButton);
 riderButton.onclick = () => riderProfile.open();
 const partsButton = document.createElement('button');
 partsButton.type = 'button';
 partsButton.textContent = 'Bike shop';
-$('#save-tools').before(partsButton);
+characterMenu().append(partsButton);
 partsButton.onclick = () => {
   renderShop();
   shopDialog.showModal();
@@ -853,6 +864,8 @@ function step(dt) {
   if (!running) return;
   dt = Math.min(dt, 1);
   s.rideSeconds += dt;
+  // Stamina: above FTP drains it, easy riding refills it, in battles and while exploring.
+  s.stamina = advanceStamina(s.stamina, effortShare(power, riderFTP(s)), dt);
   if (power > 0 && live.cadence > 0) {
     award(dt);
     if (!s.battle && !s.reward)
@@ -869,7 +882,7 @@ function step(dt) {
     encounter('boss');
   }
   if (s.battle) {
-    const damage = riderDamagePerSecond(atk(), power, riderFTP(s));
+    const damage = riderDamagePerSecond(atk(), power, riderFTP(s)) * staminaDamageMultiplier(s.stamina);
     const out =
       s.battle.kind === 'enemy'
         ? advanceBattle(s.battle, s.hp, damage, dt)
@@ -892,7 +905,12 @@ function fleeSummit() {
 function effortLabel() {
   const effort = effortShare(displayedPower(), riderFTP(s)),
     crit = critBonus(effort);
-  return Math.round(effort * 100) + '% FTP' + (crit > 0 ? ' · CRIT +' + Math.round(crit * 100) + '%' : '');
+  return (
+    Math.round(effort * 100) +
+    '% FTP' +
+    (crit > 0 ? ' · CRIT +' + Math.round(crit * 100) + '%' : '') +
+    (isExhausted(s.stamina) ? ' · EXHAUSTED −' + Math.round((1 - STAMINA.exhaustedDamage) * 100) + '%' : '')
+  );
 }
 // Summit bosses are optional: show how to ride away from one.
 function bossPrompt(b) {
@@ -1249,20 +1267,12 @@ function renderRideReadouts(session, L, remaining) {
   );
   setText(
     $('.cq-elapsed'),
-    'SESSION ' +
-      session.miles.toFixed(2) +
-      ' MI \xB7 GEAR ' +
-      live.gear +
-      ' \xB7 TIME ' +
-      formatClock(session.seconds) +
-      ' \xB7 ' +
-      fmt(s.coins || 0) +
-      ' COINS'
+    session.miles.toFixed(2) + ' MI \xB7 GEAR ' + live.gear + ' \xB7 ' + formatClock(session.seconds)
   );
   // Overlay units are drawn at half size so the numbers themselves can be as large as possible.
   setStat('overlay-power', displayedPower() + '<em> W</em>', true);
   setStat('overlay-hr', safeText(live.heartRate) + '<em> BPM</em>', true);
-  setStat('overlay-speed', live.speed.toFixed(1) + '<em> MPH</em>', true);
+  renderStamina();
   setHTML(
     $('.cq-overlayfoot'),
     '<span>' +
@@ -1273,12 +1283,26 @@ function renderRideReadouts(session, L, remaining) {
           : performance.now() < roadsideNoticeUntil
             ? safeText(roadsideNotice)
             : ' +1 XP / SEC PEDALING') +
-      '</span><span>ATTACK ' +
+      '</span><span>' +
+      live.speed.toFixed(1) +
+      ' MPH \xB7 ATTACK ' +
       fmt(atk()) +
       ' \xB7 ' +
       fmt(s.coins || 0) +
       ' COINS</span>'
   );
+}
+// Stamina readouts: overlay (number + bar under HP) and the full-screen strip.
+function renderStamina() {
+  const value = Math.round(Number.isFinite(s.stamina) ? s.stamina : STAMINA.max),
+    exhausted = isExhausted(s.stamina);
+  setStat('overlay-stamina', value + '<em> %</em>', true);
+  all('[data-stamina-label]').forEach(el => setText(el, exhausted ? 'EXHAUSTED' : 'STAMINA'));
+  all('.cq-stamina-fill').forEach(el => (el.style.width = value + '%'));
+  all('.cq-stamina-value').forEach(el => setText(el, value + '%'));
+  all('[data-stamina]').forEach(el => el.classList.toggle('cq-exhausted', exhausted));
+  const hpPct = Math.max(0, Math.min(100, (s.hp / maxHP()) * 100));
+  all('.cq-hp-fill-mini').forEach(el => (el.style.width = hpPct + '%'));
 }
 function battleLevelLabel(b) {
   const levels = b.enemies?.map(e => e.level) || [b.level];
@@ -1295,9 +1319,8 @@ function eventMarkup() {
     html =
       '<div class="cq-battleheading"><span>' +
       { enemy: 'RANDOM ENCOUNTER', summit: 'SUMMIT BOSS', boss: 'CHAPTER BOSS' }[b.kind] +
-      '</span><span>NO TIME LIMIT</span></div><h3>' +
-      safeText(b.name) +
-      '</h3>' +
+      '</span><span>NO TIME LIMIT</span></div>' +
+      (Array.isArray(b.enemies) && b.enemies.length > 1 ? '' : '<h3>' + safeText(b.name) + '</h3>') +
       bossPrompt(b) +
       '<span class="cq-sub">' +
       (battleLevelLabel(b) + ' \xB7 ') +
@@ -1310,12 +1333,14 @@ function eventMarkup() {
       ' / ' +
       fmt(b.max) +
       ' HP</span><span>LOSE AT 1 HP</span></div>' +
-      '<div class="cq-enemymeter" style="--enemy-health:' +
-      healthColor(b.hp, b.max) +
-      '"><i style="width:' +
-      Math.max(0, (b.hp / b.max) * 100) +
-      '%"></i></div>' +
-      groupBars(b) +
+      // Group fights show one bar per enemy; a single enemy gets the one big bar.
+      (Array.isArray(b.enemies) && b.enemies.length > 1
+        ? groupBars(b)
+        : '<div class="cq-enemymeter" style="--enemy-health:' +
+          healthColor(b.hp, b.max) +
+          '"><i style="width:' +
+          Math.max(0, (b.hp / b.max) * 100) +
+          '%"></i></div>') +
       '<span class="cq-sub' +
       (critBonus(effortShare(displayedPower(), riderFTP(s))) > 0 ? ' cq-crit' : '') +
       '">' +
@@ -1323,7 +1348,7 @@ function eventMarkup() {
       ' W \xB7 ' +
       effortLabel() +
       ' \u2192 ' +
-      fmt(riderDamagePerSecond(atk(), displayedPower(), riderFTP(s))) +
+      fmt(riderDamagePerSecond(atk(), displayedPower(), riderFTP(s)) * staminaDamageMultiplier(s.stamina)) +
       ' DAMAGE / SEC \xB7 ' +
       b.dps.toFixed(2) +
       ' HP LOST / SEC</span><p class="cq-sub">' +
@@ -1522,6 +1547,8 @@ function syncFreeroamPicker() {
     ).join('');
   freeroamSelect.value = String(freeroamChapter());
   freeroamSelect.disabled = !!s.battle || s.reward;
+  // Only Freeroam uses the picker; hiding it in Adventure keeps the side column short.
+  freeroamSelect.closest('label').hidden = s.mode !== 'training';
 }
 if (freeroamSelect)
   freeroamSelect.onchange = () => {
@@ -2017,7 +2044,7 @@ cloud = createCloudSave({
 const cloudButton = document.createElement('button');
 cloudButton.type = 'button';
 cloudButton.textContent = 'Cloud save';
-$('#save-tools').before(cloudButton);
+characterMenu().append(cloudButton);
 cloudButton.onclick = () => cloud.open();
 cloud.check();
 questBaseline = mountQuestBaseline({
@@ -2166,6 +2193,7 @@ window.addEventListener('message', e => {
         best20: 0,
         completed: false
       };
+      s.stamina = STAMINA.max;
       powerWindow = createPowerWindow();
     }
     if (s.session && !s.session.completed && m.running && dt > 0) {

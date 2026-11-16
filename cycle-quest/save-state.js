@@ -4,6 +4,7 @@ import { migrateCombatSave } from '/api/cycle-quest?asset=combat-save.js';
 import { validLedger } from '/api/cycle-quest?asset=workouts.js';
 import { validPendingReward, normalizePendingReward } from '/api/cycle-quest?asset=rewards.js';
 import { validRider } from '/api/cycle-quest?asset=rider-profile.js';
+import { validStamina } from '/api/cycle-quest?asset=stamina.js';
 
 import { MAX_XP } from '/api/cycle-quest?asset=progression.js';
 export { MAX_XP };
@@ -119,6 +120,7 @@ export function validCharacter(state) {
     typeof state.reward === 'boolean' &&
     optional(state.coins, n => Number.isSafeInteger(n) && n >= 0) &&
     optional(state.rider, validRider) &&
+    optional(state.stamina, validStamina) &&
     optional(state.freeroamChapter, n => Number.isInteger(n) && n >= 1 && n <= 10) &&
     (!state.pendingReward || (state.reward && validPendingReward(state.pendingReward))) &&
     optional(state.routeMiles, nonnegative) &&

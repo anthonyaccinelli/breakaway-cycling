@@ -24,6 +24,17 @@ Random encounters wait while the road descends more steeply than −3%
 (110% FTP → +10%, 200% FTP → +100%). Riders with different FTPs deal the same damage at the
 same effort. Attack comes from rider level and bike parts. See `combat.js` → `riderDamagePerSecond`.
 
+## Stamina
+
+Stamina (`stamina.js`) is the reserve for riding above FTP, modeled on W′. It drains
+whenever effort is above FTP, in battles and on climbs alike, at 1.25% per second for each
+100% of FTP above threshold (150% FTP empties a full bar in about 2.7 minutes). It refills
+at 0.6% per second at or below 75% FTP and holds steady between 75% and 100%. Below 25%
+the rider is **exhausted** and deals 40% less damage (`staminaDamageMultiplier`). Riders
+who stay under FTP never lose any, so casual riders are unaffected. Stamina starts full each
+ride. It shows as a bar under the route on the full screen and in the overlay's right column,
+under HP.
+
 ## FTP (rider profile)
 
 Cycle Quest keeps its own FTP in the character save (`rider-profile.js`), separate from

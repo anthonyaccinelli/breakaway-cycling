@@ -13,7 +13,7 @@ export function initWorkoutUI({ root, getState, apply, canOpen }) {
   const button = document.createElement('button');
   button.id = 'add-workout';
   button.textContent = 'Add workout';
-  root.querySelector('#save-tools').before(button);
+  root.querySelector('#save-tools > div').append(button);
   const dialog = document.createElement('dialog');
   dialog.id = 'workout-dialog';
   dialog.className = 'cq-route-dialog cq-workout-dialog';

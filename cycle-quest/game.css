@@ -1460,9 +1460,8 @@ body {
 }
 #cq-preview .cq-group > div > span {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.05;
 }
 #cq-preview .cq-save-tools {
   position: relative;
@@ -1473,9 +1472,10 @@ body {
   cursor: pointer;
   background: #102158;
   border: 1px solid #a4b5df;
-  padding: 7px 10px;
+  padding: 4px 8px;
+  border-radius: 3px;
   font:
-    18px VT323,
+    700 14px VT323,
     monospace;
   white-space: nowrap;
 }
@@ -1747,9 +1747,9 @@ body {
 .cq-boss-prompt {
   background: #102052;
   color: #ffe777;
-  padding: 8px;
-  font-size: clamp(20px, 2.5vw, 34px);
-  line-height: 1.05;
+  padding: 4px 8px;
+  font-size: 24px;
+  line-height: 1;
   border: 2px solid #a7b2d1;
 }
 .cq-boss-prompt small {
@@ -2037,4 +2037,135 @@ body {
   font-style: normal;
   letter-spacing: 0;
   opacity: 0.85;
+}
+
+/* ---- Stamina ---------------------------------------------------------------------- */
+/* Overlay, right column: your resources. HP and STAMINA, each with a thin bar. */
+#cq-preview .cq-overlaystats.cq-resources {
+  grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  row-gap: 2px !important;
+}
+#cq-preview .cq-res-meter {
+  grid-column: 2;
+  position: relative;
+  height: 6px;
+  background: #08143e;
+  border: 1px solid #9aadd8;
+}
+#cq-preview .cq-res-meter i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  background: #00ed00;
+}
+#cq-preview .cq-res-meter.cq-stamina-meter i,
+#cq-preview .cq-stamina-strip .cq-stamina-fill {
+  background: #7ee0ff;
+}
+#cq-preview .cq-stamina-number {
+  color: #7ee0ff;
+}
+/* Exhausted: below 25% stamina everything stamina-related turns red. */
+#cq-preview [data-stamina].cq-exhausted .cq-stamina-number,
+#cq-preview [data-stamina].cq-exhausted [data-stamina-label],
+#cq-preview [data-stamina].cq-exhausted .cq-stamina-value {
+  color: #ff5a6e;
+}
+#cq-preview [data-stamina].cq-exhausted .cq-stamina-meter i,
+#cq-preview [data-stamina].cq-exhausted .cq-stamina-fill {
+  background: #ff5a6e;
+}
+
+/* Full screen: a stamina strip between the battle/route panel and the ride readouts. */
+#cq-preview .cq-stamina-strip {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 14px !important;
+  font-size: 19px;
+  letter-spacing: 0.06em;
+  color: #7ee0ff;
+}
+#cq-preview .cq-stamina-track {
+  position: relative;
+  flex: 1;
+  height: 14px;
+  background: #08143e;
+  border: 1px solid #9aadd8;
+}
+#cq-preview .cq-stamina-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+}
+#cq-preview .cq-stamina-line {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 25%;
+  width: 2px;
+  background: #ff5a6e;
+}
+#cq-preview .cq-stamina-value {
+  min-width: 4ch;
+  text-align: right;
+}
+
+/* Battle panel: content starts at the top when it is taller than the panel, instead of
+   being centered with its top pushed out of view. */
+#cq-preview .cq-route > .cq-event:not(:has(.cq-levelup)) {
+  justify-content: center;
+  justify-content: safe center;
+}
+
+/* Character menu: tools stacked in a dropdown. */
+#cq-preview .cq-save-tools > div {
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 220px;
+}
+
+/* Side column: trimmed so all three panels fit without scrolling. The Status tab replaces
+   the "View character status" link, and the Ride Mode buttons explain themselves. */
+#cq-preview .cq-side .cq-player .cq-textbutton,
+#cq-preview .cq-side .cq-modehint {
+  display: none;
+}
+#cq-preview .cq-freeroam-chapter[hidden] {
+  display: none;
+}
+
+/* Ride toolbar wraps onto a second line on narrow screens instead of running off the edge. */
+#cq-preview .cq-controls {
+  flex-wrap: wrap;
+}
+
+/* Full-screen group battles: long enemy names wrap instead of being cut off. */
+#cq-preview .cq-group > div {
+  white-space: normal;
+}
+
+/* On narrow screens the toolbar drops the trainer status text (the footer still shows LIVE TRAINER)
+   and the Adventure Mode button (the Ride Mode panel has it), so the toolbar stays on one line. */
+@media (max-width: 1180px), (max-height: 820px) {
+  #cq-preview .cq-controls #live-status,
+  #cq-preview .cq-controls #story-route {
+    display: none;
+  }
+  /* The progress bar and mileage already say how far the boss is. */
+  #cq-preview .cq-side .cq-chapterhint {
+    display: none;
+  }
+}
+
+/* Tighter battle panel spacing when the window is narrow or short. */
+@media (max-width: 1180px), (max-height: 820px) {
+  #cq-preview .cq-event {
+    row-gap: 6px !important;
+  }
+  #cq-preview .cq-event h3 {
+    margin: 0 !important;
+    font-size: 26px !important;
+  }
 }

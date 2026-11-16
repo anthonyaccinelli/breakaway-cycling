@@ -11,6 +11,7 @@ export const QUEST_ASSETS = Object.freeze({
       'chapters',
       'rider-profile',
       'cloud-save',
+      'stamina',
       'progression',
       'game',
       'shared-ui',
