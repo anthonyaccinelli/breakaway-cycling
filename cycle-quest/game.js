@@ -309,7 +309,7 @@ function renderRideReadouts(session, L, remaining) {
   if (s.route) setStat("tile-ascent", fmt(routeAscent()) + " <em>FT</em>", true);
   $(".cq-overlayhead>span").innerHTML = 'CYCLE QUEST <span class="cq-gold">LV ' + L + '</span> <span class="cq-overlay-xp" aria-label="Experience remaining to next level"><span class="cq-overlay-xpfill" style="width:' + Math.max(0, Math.min(100, remaining / cost(L) * 100)) + '%"></span><b>' + fmt(remaining) + " XP LEFT</b></span>";
   $(".cq-overlayhead>span:nth-child(2)").textContent = "CHAPTER " + s.chapter + " \xB7 " + s.miles.toFixed(1) + " / 100 MI";
-  $(".cq-elapsed").textContent = "SESSION " + session.miles.toFixed(2) + " MI \xB7 GEAR " + live.gear + " \xB7 TIME " + formatClock(session.seconds);
+  $(".cq-elapsed").textContent = "SESSION " + session.miles.toFixed(2) + " MI \xB7 GEAR " + live.gear + " \xB7 TIME " + formatClock(session.seconds) + " \xB7 " + fmt(s.coins||0) + " COINS";
   setStat("overlay-power", displayedPower() + " W");
   setStat("overlay-hr", live.heartRate + " BPM");
   setStat("overlay-speed", live.speed.toFixed(1) + " MPH");
