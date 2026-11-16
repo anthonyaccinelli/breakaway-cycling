@@ -56,13 +56,18 @@ let cycleQuestHold=false;let cycleQuestHeldSpeed=0;
 let cycleQuestHeldGrade:number|null=null,cycleQuestHeldRequestedGrade=0,cycleQuestHeldErgTarget=0,cycleQuestHeldGear=6;
 function setCycleQuestHold(hold:boolean){
  if(hold&&!cycleQuestHold){
-  cycleQuestHeldSlope=at(distance).grade*num('difficulty')/100;
-  cycleQuestHeldRequestedGrade=simRequestedGrade();
-  cycleQuestHeldGrade=Number.isFinite(trainerGrade)?trainerGrade:cycleQuestHeldRequestedGrade;
+  // Freeze intended terrain load, not the last partially-slewed trainer value.
+  cycleQuestHeldRequestedGrade=Math.max(-12,Math.min(12,at(distance).grade*num('difficulty')/100));
+  cycleQuestHeldGrade=cycleQuestHeldRequestedGrade;
+  cycleQuestHeldSlope=cycleQuestHeldRequestedGrade;
   cycleQuestHeldSpeed=speed;cycleQuestHeldErgTarget=lastTarget;cycleQuestHeldGear=gear;
  }
  cycleQuestHold=hold;
  if(!hold){cycleQuestHeldGrade=null;cycleQuestHeldSlope=null;}
+ // Reassert resistance immediately on both battle-hold transitions.
+ if(running&&connected&&controlGranted&&realTelemetry&&trainerMode!=='target'){
+  void updateSimResistance(performance.now(),true);
+ }
 }
 let cscHasSpeed=false,cscHasCadence=false,cscSpeedMps=0,cscLastSpeedAt=0,cscLastCadenceAt=0;
 const cscDevices=new Map<string,BLEDevice>();
@@ -3326,7 +3331,7 @@ window.addEventListener('message',event=>{
  else if(data.type==='quest-summary'&&rideEnd){
   const root=$('rideSummary');if(root.querySelector('#quest-summary-section'))return;
   const section=document.createElement('section');section.id='quest-summary-section';const heading=document.createElement('h2');heading.textContent='Cycle Quest';section.append(heading);
-  for(const value of (Array.isArray(data.lines)?data.lines:[]).slice(0,7)){if(typeof value!=='string')continue;const line=document.createElement('p');line.textContent=value.slice(0,100);section.append(line);}
+  for(const value of (Array.isArray(data.lines)?data.lines:[]).slice(0,12)){if(typeof value!=='string')continue;const line=document.createElement('p');line.textContent=value.slice(0,100);section.append(line);}
   if(typeof data.image==='string'&&data.image.startsWith('data:image/png;base64,')&&data.image.length<2000000){const image=document.createElement('img');image.src=data.image;image.alt='Cycle Quest shareable ride summary';image.style.cssText='display:block;width:min(100%,600px);margin:16px 0';section.append(image);const link=document.createElement('a');link.href=data.image;link.download='cycle-quest-ride-summary.png';link.textContent='Download Cycle Quest image';section.append(link);}
   root.append(section);
  }
