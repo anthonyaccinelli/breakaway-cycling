@@ -395,6 +395,12 @@ function maxHP(L = level()) {
 function atk(L = level()) {
   return baseAttack(L) * multiplier(s.bike, 2);
 }
+// Short form for tight spots like the overlay XP bar: 4,416 → 4.4K, 12,345 → 12K.
+function compactNumber(n) {
+  const value = Math.max(0, Math.round(n));
+  if (value < 1000) return String(value);
+  return value < 10000 ? (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : Math.round(value / 1000) + 'K';
+}
 function fmt(n) {
   return Math.round(n).toLocaleString('en-US');
 }
@@ -1222,7 +1228,7 @@ function renderRideReadouts(session, L, remaining) {
       '</span> <span class="cq-overlay-xp" aria-label="Experience remaining to next level"><span class="cq-overlay-xpfill" style="width:' +
       Math.max(0, Math.min(100, (remaining / cost(L)) * 100)) +
       '%"></span><b>' +
-      fmt(remaining) +
+      compactNumber(remaining) +
       ' XP LEFT</b></span>'
   );
   setText(
@@ -1477,6 +1483,7 @@ function render() {
   draw();
   syncFreeroamPicker();
   questBaseline?.sync();
+  if (view === 'overlay') fitOverlayNumbers($('.cq-overlay'));
   syncFloating();
 }
 // Freeroam chapter picker: every chapter the rider has reached.
@@ -1515,9 +1522,23 @@ function syncFloating() {
   clone.querySelectorAll('[data-float],[data-state]').forEach(e => e.remove());
   const markup = clone.outerHTML;
   if (markup !== floatingMarkup) {
-    patchMarkup(floating.document.getElementById('cq-preview'), markup);
+    const host = floating.document.getElementById('cq-preview');
+    patchMarkup(host, markup);
     floatingMarkup = markup;
+    fitOverlayNumbers(host);
   }
+}
+// Shrink the big overlay readouts so they never run past their column, whatever the
+// overlay window size or value length. Measured in the document that shows them.
+function fitOverlayNumbers(scope) {
+  scope?.querySelectorAll('.cq-overlaystats strong').forEach(el => {
+    el.style.removeProperty('font-size');
+    if (!el.clientWidth || el.scrollWidth <= el.clientWidth) return;
+    const view = el.ownerDocument.defaultView;
+    const base = parseFloat(view.getComputedStyle(el).fontSize) || 40;
+    const size = Math.max(12, Math.floor((base * el.clientWidth) / el.scrollWidth));
+    el.style.setProperty('font-size', size + 'px', 'important');
+  });
 }
 async function openFloating() {
   try {

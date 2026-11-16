@@ -1925,3 +1925,52 @@ body {
 #cq-preview .cq-ftp-offer button {
   margin: 6px 8px 0 0;
 }
+
+/* Overlay readouts: labels take the space they need and numbers shrink to fit
+   (fitOverlayNumbers in game.js), so nothing is clipped in small overlay windows. */
+#cq-preview .cq-overlaystats,
+#cq-preview .cq-overlaystats:last-child {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+#cq-preview .cq-overlaystats strong {
+  min-width: 0;
+  overflow: hidden;
+}
+#cq-preview .cq-overlay-xp {
+  width: 120px;
+}
+
+/* Overlay header: title | session | chapter in three columns so they never overlap.
+   The session line shrinks with an ellipsis, and hides when the window is very narrow. */
+#cq-preview .cq-overlayhead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+#cq-preview .cq-overlayhead > span:first-child {
+  grid-column: 1;
+  grid-row: 1;
+  white-space: nowrap;
+}
+#cq-preview .cq-overlayhead > span:nth-child(2) {
+  grid-column: 3;
+  grid-row: 1;
+  margin-left: 0;
+  white-space: nowrap;
+}
+#cq-preview .cq-elapsed {
+  position: static;
+  transform: none;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+@container (max-width: 760px) {
+  #cq-preview .cq-elapsed {
+    visibility: hidden;
+  }
+}
