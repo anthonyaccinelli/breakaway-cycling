@@ -22,7 +22,7 @@ function handleDemoAction(action){
   showEncounterView();message='Enemy-level artwork preview';
  }else if(action==='group'){encounter('enemy',3);return;}
  else if(action==='chapter-1'||action==='chapter-2'){
-  s.chapter=action==='chapter-1'?1:2;s.miles=0;s.boss=null;s.chapterEncounter=null;message='Previewing '+CHAPTER_BIOMES[s.chapter].name;
+  s.chapter=action==='chapter-1'?1:2;s.miles=0;s.nextEncounter=600;s.boss=null;s.chapterEncounter=null;message='Previewing '+chapterInfo(s.chapter).title;
  }else if(action==='reset'){
   s=fresh();s.route=generateRoute(15,'rolling',null,42077);s.routeMiles=0;lastLiveDistance=0;
   parentSend({type:'route',route:s.route});message='Autoplay preview reset.';

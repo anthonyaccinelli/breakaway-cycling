@@ -4,6 +4,7 @@ export const QUEST_ASSETS = Object.freeze({
   'game.css': 'text/css; charset=utf-8',
   'shared-ui.css': 'text/css; charset=utf-8',
   'devices-ui.css': 'text/css; charset=utf-8',
+  'ride-hud.css': 'text/css; charset=utf-8',
   ...Object.fromEntries(
     [
       'bike-parts',
@@ -12,6 +13,7 @@ export const QUEST_ASSETS = Object.freeze({
       'rider-profile',
       'cloud-save',
       'stamina',
+      'ride-hud',
       'progression',
       'game',
       'shared-ui',

@@ -24,6 +24,22 @@ Random encounters wait while the road descends more steeply than −3%
 (110% FTP → +10%, 200% FTP → +100%). Riders with different FTPs deal the same damage at the
 same effort. Attack comes from rider level and bike parts. See `combat.js` → `riderDamagePerSecond`.
 
+## Ride display (HUD)
+
+While a ride is running, the 03 Ride page becomes a big-number display (`ride-hud.js`,
+`ride-hud.css`) sized to read from about 6 feet on a 13" laptop. It is one 1440×900 stage
+that scales to fit the window, so nothing reflows or clips.
+
+* **Road** (exploring): power with % FTP and gear, heart rate with coins, level with an XP
+  bar, chapter miles and progress, the elevation profile with grade and miles to the boss,
+  HP and stamina bars, then time, distance, ascent, cadence and speed.
+* **Cockpit** (encounters, boss fights, rewards, level-ups, boss warmup): power and heart
+  rate tiles, HP and stamina bars, a prompt band (damage, or the boss phase with its
+  countdown and brace target) and the enemy cards with time. Reward and warmup buttons
+  appear in the same place.
+* **MENU** shows the classic screen; the "Ride display" toolbar button, or starting the
+  next ride, brings the display back.
+
 ## Boss fights
 
 Bosses fight in minutes-long phases (`BOSS_FIGHT` in `combat.js`), so riders ease in and

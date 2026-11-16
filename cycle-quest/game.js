@@ -63,6 +63,7 @@ import {
   staminaDamageMultiplier
 } from '/api/cycle-quest?asset=stamina.js';
 import { creditWorkout, dayAt, validLedger } from '/api/cycle-quest?asset=workouts.js';
+import { mountRideHud } from '/api/cycle-quest?asset=ride-hud.js';
 let questBaseline = null;
 const root = document.getElementById('cq-preview'),
   $ = s => root.querySelector(s),
@@ -1662,11 +1663,246 @@ function render() {
     patchMarkup($('.cq-event'), html);
     previousEvent = html;
   }
+  renderHud(session, L, remaining);
   draw();
   syncFreeroamPicker();
   questBaseline?.sync();
   if (view === 'overlay') fitOverlayNumbers($('.cq-overlay'));
   syncFloating();
+}
+// ---- Ride HUD (ride-hud.js) --------------------------------------------------------
+// While a ride is running the ride page becomes the big-number HUD: ROAD while exploring,
+// COCKPIT during encounters, rewards and level-ups. MENU shows the classic screen; the
+// "Ride display" button (or starting the next ride) brings the HUD back.
+let hudDismissed = false,
+  hudWasRunning = false;
+const hud = mountRideHud(root, {
+  onMenu: () => {
+    hudDismissed = true;
+    render();
+  }
+});
+const hudReturn = document.createElement('button');
+hudReturn.type = 'button';
+hudReturn.id = 'hud-return';
+hudReturn.textContent = 'Ride display';
+hudReturn.hidden = true;
+hudReturn.onclick = () => {
+  hudDismissed = false;
+  render();
+};
+$('.cq-controls').insertBefore(hudReturn, $('#float-overlay'));
+const unit = (value, suffix) => value + '<em> ' + suffix + '</em>';
+function hudEnemyCards(b) {
+  const enemies = (Array.isArray(b.enemies) ? b.enemies : [b]).filter(e => e.hp > 0);
+  const many = enemies.length > 1;
+  return enemies
+    .map(
+      e =>
+        '<div class="cq-hud-enemy' +
+        (many ? ' cq-hud-many' : '') +
+        '" style="--enemy-health:' +
+        healthColor(e.hp, e.max) +
+        '"><header><span>' +
+        safeText(e.name || b.name) +
+        ' \xB7 LV ' +
+        safeText(e.level || b.level || 1) +
+        '</span><b>' +
+        fmt(e.hp) +
+        (many ? '' : ' / ' + fmt(e.max)) +
+        ' HP</b></header><div class="cq-hud-enemymeter"><i style="width:' +
+        Math.max(0, Math.min(100, (e.hp / e.max) * 100)).toFixed(1) +
+        '%"></i></div></div>'
+    )
+    .join('');
+}
+// Crit and exhaustion notes for the prompt band (the power tile already shows % FTP).
+function hudEffortNotes(effort) {
+  const crit = critBonus(effort);
+  return (
+    (crit > 0 ? 'CRIT +' + Math.round(crit * 100) + '% \xB7 ' : '') +
+    (isExhausted(s.stamina)
+      ? 'EXHAUSTED \u2212' + Math.round((1 - STAMINA.exhaustedDamage) * 100) + '% \xB7 '
+      : '')
+  );
+}
+function hudPrompt(b) {
+  const watts = displayedPower(),
+    effort = effortShare(watts, riderFTP(s)),
+    damage = fmt(
+      riderDamagePerSecond(atk(), watts, riderFTP(s)) *
+        staminaDamageMultiplier(s.stamina) *
+        phaseDamageFactor(b)
+    ),
+    lost = phaseAttack(b).toFixed(2) + ' HP LOST / SEC';
+  if (b.kind === 'enemy')
+    return {
+      big: damage + ' DMG / SEC',
+      small: hudEffortNotes(effort) + lost,
+      countdown: '',
+      state: critBonus(effort) > 0 ? 'crit' : ''
+    };
+  const p = bossPhase(b);
+  let out;
+  if (p.phase === 'brace')
+    out = {
+      big: 'BRACE',
+      small: p.grace
+        ? 'EASE DOWN NOW'
+        : Math.round(p.braceShare * 100) + '% HELD \xB7 BIG HIT ' + fmt(p.bigHit) + ' HP',
+      countdown: phaseClock(p.secondsLeft),
+      state: 'brace'
+    };
+  else if (p.phase === 'counter')
+    out = {
+      big: p.counterLanded ? 'COUNTER \xD72' : 'NO OPENING',
+      small: damage + ' DMG / SEC \xB7 ' + hudEffortNotes(effort) + lost,
+      countdown: phaseClock(p.secondsLeft),
+      state: p.counterLanded ? 'counter' : ''
+    };
+  else if (p.phase === 'enrage')
+    out = {
+      big: 'ENRAGED',
+      small: damage + ' DMG / SEC \xB7 NO MORE BRACES',
+      countdown: '',
+      state: 'enrage'
+    };
+  else if (p.windup)
+    out = {
+      big: 'WIND-UP',
+      small: 'EASE UNDER ' + braceWatts() + ' W TO BRACE',
+      countdown: Math.ceil(p.secondsLeft) + 's',
+      state: 'windup'
+    };
+  else
+    out = {
+      big: 'ATTACK',
+      small: damage + ' DMG / SEC \xB7 BRACE IN',
+      countdown: phaseClock(p.secondsLeft),
+      state: critBonus(effort) > 0 ? 'crit' : ''
+    };
+  if (b.kind === 'summit' && p.phase !== 'brace' && b.stopped)
+    out.small = 'RIDING AWAY IN ' + Math.ceil(BALANCE.summitEscapeSeconds - b.stopped) + 's';
+  return out;
+}
+function renderHud(session, L, remaining) {
+  const visible = running && view === 'ride' && root.querySelector('.cq-game')?.dataset.cqPage === 'ride';
+  if (running && !hudWasRunning) hudDismissed = false;
+  hudWasRunning = running;
+  hudReturn.hidden = !running || !hudDismissed;
+  if (!visible || hudDismissed) {
+    hud.update(null);
+    return;
+  }
+  const watts = displayedPower(),
+    ftp = riderFTP(s),
+    effortPct = Math.round(effortShare(watts, ftp) * 100),
+    hpMax = maxHP(),
+    stamina = Math.round(Number.isFinite(s.stamina) ? s.stamina : STAMINA.max),
+    exhausted = isExhausted(s.stamina),
+    adventure = s.mode === 'adventure' && s.chapter <= CHAPTER_COUNT,
+    hr = Number(live.heartRate) > 0 ? safeText(live.heartRate) : '\u2014',
+    bossWaiting = s.miles >= 100 && s.mode === 'adventure' && s.chapter <= 10,
+    encounter = !!s.battle || s.reward || !!levelUp || warmupSeconds > 0 || bossWaiting;
+  const text = {
+    power: unit(watts, 'W'),
+    'power-sub': effortPct + '% FTP \xB7 GEAR ' + safeText(live.gear),
+    hr: unit(hr, 'BPM'),
+    coins: fmt(s.coins || 0),
+    level: (adventure ? 'CH ' + s.chapter : 'FREEROAM') + ' \xB7 LV ' + L,
+    'xp-left': compactNumber(remaining) + ' XP TO GO',
+    'chapter-title': adventure
+      ? chapterInfo(s.chapter)?.title || ''
+      : 'CHAPTER ' + freeroamChapter() + ' ENEMIES',
+    miles: adventure
+      ? s.miles.toFixed(1) + '<em> / 100 MI</em>'
+      : (s.routeMiles || 0).toFixed(1) + '<em> MI RIDDEN</em>',
+    grade: currentGrade(),
+    'boss-in': adventure && s.miles < 100 ? 'BOSS IN ' + (100 - s.miles).toFixed(1) + ' MI' : '',
+    'cq-hud-hp-value': fmt(s.hp) + '<em> / ' + fmt(hpMax) + '</em>',
+    'cq-hud-hp-label': 'HP',
+    'cq-hud-stamina-value': stamina + '<em> %</em>',
+    'cq-hud-stamina-label': exhausted ? 'EXHAUSTED' : 'STAMINA',
+    time: clock(session.seconds),
+    distance: unit(session.miles.toFixed(1), 'MI'),
+    ascent: unit(fmt(routeAscent()), 'FT'),
+    cadence: unit(Math.round(live.cadence), 'RPM'),
+    speed: unit(live.speed.toFixed(1), 'MPH'),
+    'level-c': 'LV ' + L,
+    'power-c': unit(watts, 'W'),
+    target: effortPct + '% FTP',
+    effort: '',
+    'hr-c': unit(hr, 'BPM'),
+    'time-c': clock(session.seconds)
+  };
+  const model = {
+    mode: encounter ? 'cockpit' : 'road',
+    text,
+    fill: {
+      xp: ((s.xp - threshold(L)) / cost(L)) * 100,
+      progress: adventure ? s.miles : 0,
+      'cq-hud-hp': (s.hp / hpMax) * 100,
+      'cq-hud-stamina': stamina
+    },
+    aria: {
+      xp: compactNumber(remaining) + ' XP to level ' + (L + 1),
+      progress: adventure ? 'Chapter progress ' + s.miles.toFixed(1) + ' of 100 miles' : 'Freeroam',
+      'cq-hud-hp': 'Health ' + fmt(s.hp) + ' of ' + fmt(hpMax),
+      'cq-hud-stamina': 'Stamina ' + stamina + ' percent' + (exhausted ? ', exhausted' : '')
+    },
+    classes: {},
+    blocks: {},
+    exhausted
+  };
+  if (encounter) {
+    const b = s.battle;
+    if (b) {
+      text.kind = { enemy: 'RANDOM ENCOUNTER', summit: 'SUMMIT BOSS', boss: 'CHAPTER BOSS' }[b.kind];
+      const living = (Array.isArray(b.enemies) ? b.enemies : [b]).filter(e => e.hp > 0);
+      text.title =
+        living.length > 1
+          ? living.map(e => e.name).join(' \xB7 ')
+          : b.name +
+            ' \xB7 LV ' +
+            (b.level || 1) +
+            (b.kind === 'boss'
+              ? bossPhase(b).phase === 'enrage'
+                ? ' \xB7 FINAL ROUND'
+                : ' \xB7 ROUND ' +
+                  Math.min(BOSS_FIGHT.boss.rounds, (b.round || 0) + 1) +
+                  ' OF ' +
+                  BOSS_FIGHT.boss.rounds
+              : '');
+      const prompt = hudPrompt(b);
+      text['prompt-big'] = prompt.big;
+      text['prompt-small'] = prompt.small;
+      text.countdown = prompt.countdown;
+      model.classes.prompt = prompt.state;
+      model.blocks.enemies = hudEnemyCards(b);
+      const p = b.kind === 'enemy' ? null : bossPhase(b);
+      if (p?.phase === 'brace') {
+        const ok = effortShare(watts, ftp) <= BOSS_FIGHT.braceEffort;
+        text.target = 'TARGET UNDER ' + braceWatts() + ' W';
+        text.effort = p.grace ? 'EASE DOWN' : ok ? 'BRACED \u2713' : 'EASE OFF';
+        model.classes['power-tile'] = ok ? 'brace-ok' : p.grace ? '' : 'brace-high';
+      } else if (p?.windup) text.target = 'BRACE SOON: UNDER ' + braceWatts() + ' W';
+    } else {
+      text.kind = s.reward
+        ? 'VICTORY'
+        : levelUp
+          ? 'LEVEL UP'
+          : warmupSeconds > 0
+            ? 'BOSS WARMUP'
+            : 'CHAPTER BOSS';
+      text.title = s.reward
+        ? 'CHOOSE YOUR REWARD'
+        : !levelUp && bossWaiting && !warmupSeconds
+          ? bossStats().name + ' AWAITS'
+          : '';
+      model.blocks.event = eventMarkup();
+    }
+  }
+  hud.update(model);
 }
 // Freeroam chapter picker: every chapter the rider has reached.
 const freeroamSelect = $('#freeroam-chapter');
