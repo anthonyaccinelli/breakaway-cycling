@@ -41,7 +41,7 @@ let live={connected:false,running:false,power:0,cadence:0,heartRate:'—',speed:
 const parentSend=data=>window.parent.postMessage({source:'cycle-quest',...data},location.origin);
 const mediaKey='cycle-quest-share-cards-v1';
 function shareCard(title,lines,saveCard=true){
- try{const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=630;const c=canvas.getContext('2d');c.fillStyle='#0b1640';c.fillRect(0,0,1200,630);c.strokeStyle='#a7b2d1';c.lineWidth=6;c.strokeRect(18,18,1164,594);c.fillStyle='#ffe777';c.font='bold 54px monospace';c.fillText('CYCLE QUEST',62,95);c.fillStyle='#fff';c.font='bold 56px monospace';c.fillText(title.slice(0,30),62,190);c.font='36px monospace';lines.slice(0,7).forEach((line,i)=>c.fillText(String(line).slice(0,50),62,260+i*48));const data=canvas.toDataURL('image/png');if(saveCard)saveShareCard(title,data);return data;}catch{return null;}
+ try{const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=630;const c=canvas.getContext('2d');c.fillStyle='#0b1640';c.fillRect(0,0,1200,630);c.strokeStyle='#a7b2d1';c.lineWidth=6;c.strokeRect(18,18,1164,594);c.fillStyle='#ffe777';c.font='bold 54px monospace';c.fillText('CYCLE QUEST',62,95);c.fillStyle='#fff';c.font='bold 56px monospace';c.fillText(title.slice(0,30),62,190);c.font='36px monospace';lines.slice(0,11).forEach((line,i)=>c.fillText(String(line).slice(0,50),62,230+i*34));const data=canvas.toDataURL('image/png');if(saveCard)saveShareCard(title,data);return data;}catch{return null;}
 }
 function saveShareCard(title,data){const stored=JSON.parse(localStorage.getItem(mediaKey)||'[]'),cards=Array.isArray(stored)?stored:[];cards.unshift({title,date:new Date().toISOString(),data});localStorage.setItem(mediaKey,JSON.stringify(cards.slice(0,12)));}
 let summaryCapturing=false;
@@ -51,7 +51,23 @@ const galleryButton=document.createElement('button');galleryButton.textContent='
 let summaryImage=null;summaryDialog.querySelector('#cq-summary-retry').onclick=()=>finishQuestSummary(true);summaryDialog.querySelector('#cq-summary-close').onclick=()=>summaryDialog.close();summaryDialog.querySelector('#cq-summary-download').onclick=()=>{if(!summaryImage)return;const a=document.createElement('a');a.href=summaryImage;a.download='cycle-quest-ride-summary.png';a.click();};
 async function finishQuestSummary(retry=false){
  const q=s.session;if(!q||summaryCapturing||(q.completed&&!retry))return;q.completed=true;summaryCapturing=true;summaryDialog.querySelector('#cq-summary-retry').hidden=true;
- const lines=['XP GAINED  +'+fmt(s.xp-q.startXP),'LEVELS GAINED  +'+(level()-q.startLevel),'ATTACK GAINED  +'+fmt(atk()-q.startAttack),'COINS GAINED  +'+fmt((s.coins||0)-(q.startCoins||0)),'MONSTERS DEFEATED  '+q.monsters,'BOSSES DEFEATED  '+q.bosses,'RIDE DISTANCE  '+sessionMetrics(s,live).miles.toFixed(2)+' MI'];
+ const metrics=sessionMetrics(s,live);
+ const ascent=Math.max(0,(Number(live.ascentFeet)||0)-(Number(q.startAscentFeet)||0));
+ const avgPower=(q.powerSeconds||0)>0?Math.round(q.powerWattSeconds/q.powerSeconds):0;
+ const avgHR=(q.heartRateSeconds||0)>0?Math.round(q.heartRateBpmSeconds/q.heartRateSeconds):0;
+ const lines=[
+  'TIME RIDDEN  '+clock(metrics.seconds),
+  'DISTANCE  '+metrics.miles.toFixed(2)+' MI',
+  'ELEVATION GAINED  '+fmt(ascent)+' FT',
+  'AVERAGE POWER  '+avgPower+' W',
+  'AVERAGE HEART RATE  '+(avgHR?avgHR+' BPM':'NO HR DATA'),
+  'RIDER LEVEL  '+q.startLevel+' → '+level(),
+  'XP GAINED  +'+fmt(s.xp-q.startXP),
+  'ENEMIES DEFEATED  '+q.monsters,
+  'SUMMIT / CHAPTER BOSSES DEFEATED  '+q.bosses,
+  'COINS COLLECTED  +'+fmt((s.coins||0)-(q.startCoins||0)),
+  'ATTACK  '+fmt(atk())
+ ];
  const card=shareCard('RIDE COMPLETE',lines,false),body=summaryDialog.querySelector('#cq-summary-content');body.replaceChildren();
  for(const line of lines){const row=document.createElement('p');row.textContent=line;body.append(row);}
  if(card){const img=document.createElement('img');img.src=card;img.alt='Shareable Cycle Quest ride summary';img.style.cssText='display:block;max-width:100%;max-height:250px';body.append(img);}
@@ -308,7 +324,9 @@ function eventMarkup() {
     const b = s.battle;
     html = '<div class="cq-battleheading"><span>' + { enemy: "RANDOM ENCOUNTER", summit: "SUMMIT BOSS", boss: "CHAPTER BOSS" }[b.kind] + "</span><span>NO TIME LIMIT</span></div><h3>" + safeText(b.name) + "</h3>" + bossPrompt(b) + monsterArt(b) + '<span class="cq-sub">' + (battleLevelLabel(b) + " \xB7 ") + "BASE ATTACK " + b.dps.toFixed(2) + ' HP / SEC</span><div class="cq-eventbar" style="--enemy-health:' + healthColor(b.hp, b.max) + '"><span>' + fmt(b.hp) + " / " + fmt(b.max) + " HP</span><span>LOSE AT 1 HP</span></div>" + (!monsterArt(b) ? '<div class="cq-enemymeter" style="--enemy-health:' + healthColor(b.hp, b.max) + '"><i style="width:' + Math.max(0, b.hp / b.max * 100) + '%"></i></div>' : "") + groupBars(b) + '<span class="cq-sub">' + displayedPower() + " W \u2192 " + fmt(displayedPower() * atk() / 100 * (b.kind==='enemy'?1:bossBehavior(b).phase==='recover'?0:bossBehavior(b).phase==='stagger'?2:1)) + " DAMAGE / SEC \xB7 " + (b.kind==='enemy'||bossBehavior(b).phase==='attack'?b.dps:0).toFixed(2) + ' HP LOST / SEC</span><p class="cq-sub">' + (running ? "Keep pedaling!" : "Start pedaling to continue the battle.") + "</p>";
   } else if (s.reward) {
-    html = "<h3>VICTORY!</h3><p>" + rewardLabel() + "</p>" + rewardButtons(s.pendingReward) + '<p class="cq-sub" style="margin-top:12px">Keep pedaling for COINS \xB7 Stop pedaling for HEAL \xB7 \u2212 / + or click confirms now.</p>';
+    html = "<h3>VICTORY!</h3><p>" + rewardLabel() + "</p>" + rewardButtons(s.pendingReward)
+      .replace('data-reward="heal"','data-reward="heal"'+(rewardChoice?.selected==='heal'?' class="cq-reward-selected"':''))
+      .replace('data-reward="coins"','data-reward="coins"'+(rewardChoice?.selected==='coins'?' class="cq-reward-selected"':'')) + '<p class="cq-sub" style="margin-top:12px">Keep pedaling for COINS \xB7 Stop pedaling for HEAL \xB7 \u2212 / + or click confirms now.</p>';
   } else if (warmupSeconds > 0) {
     html = "<h3>BOSS WARMUP</h3><p>Pedal to warm up \xB7 " + clock(Math.ceil(warmupSeconds)) + ' remaining</p><div class="cq-eventactions"><button data-warmup="0">Skip warmup</button></div>';
   } else if (s.miles >= 100 && s.mode === "adventure" && s.chapter<=10) {
@@ -401,7 +419,17 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==
    }
    return;
   }
-  if(m.type==='telemetry'){const now=performance.now(),dt=lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0;lastLiveTime=now;live=m;if(m.running&&m.activityStartTime&&(!s.session||s.session.id!==m.activityStartTime)){s.session={id:m.activityStartTime,startXP:s.xp,startLevel:level(),startAttack:atk(),startMiles:s.rideMiles,startSeconds:s.rideSeconds,startCoins:s.coins||0,monsters:0,bosses:0,completed:false};}rewardGesture.sample(now,m.cadence);if(s.reward&&rewardChoice)rewardGesture.update(rewardChoice,now,m.cadence,m.power,m.connected);rememberIndoor(m);if(s.route?.endless&&m.routeProfile){s.route={...s.route,...m.routeProfile};}if(m.buttonsReleased)clickArmed=true;power=Math.max(0,Math.round(m.power));running=!!m.running&&!!m.connected;const previousDistance=lastLiveDistance;const delta=Math.max(0,m.distanceM-lastLiveDistance);lastLiveDistance=m.distanceM;if(!s.route?.endless){
+  if(m.type==='telemetry'){const now=performance.now(),dt=lastLiveTime?Math.min(3,(now-lastLiveTime)/1000):0;lastLiveTime=now;live=m;if(m.running&&m.activityStartTime&&(!s.session||s.session.id!==m.activityStartTime)){s.session={id:m.activityStartTime,startXP:s.xp,startLevel:level(),startAttack:atk(),startMiles:s.rideMiles,startSeconds:s.rideSeconds,startCoins:s.coins||0,startAscentFeet:Number(m.ascentFeet)||0,powerWattSeconds:0,powerSeconds:0,heartRateBpmSeconds:0,heartRateSeconds:0,monsters:0,bosses:0,completed:false};}
+ if(s.session&&!s.session.completed&&m.running&&dt>0){
+  const sampleSeconds=Math.min(3,Math.max(0,dt));
+  s.session.powerWattSeconds=(s.session.powerWattSeconds||0)+Math.max(0,Number(m.power)||0)*sampleSeconds;
+  s.session.powerSeconds=(s.session.powerSeconds||0)+sampleSeconds;
+  const hr=Number(String(m.heartRate??'').replace(/[^0-9.]/g,''));
+  if(Number.isFinite(hr)&&hr>=30&&hr<=240){
+   s.session.heartRateBpmSeconds=(s.session.heartRateBpmSeconds||0)+hr*sampleSeconds;
+   s.session.heartRateSeconds=(s.session.heartRateSeconds||0)+sampleSeconds;
+  }
+ }rewardGesture.sample(now,m.cadence);if(s.reward&&rewardChoice)rewardGesture.update(rewardChoice,now,m.cadence,m.power,m.connected);rememberIndoor(m);if(s.route?.endless&&m.routeProfile){s.route={...s.route,...m.routeProfile};}if(m.buttonsReleased)clickArmed=true;power=Math.max(0,Math.round(m.power));running=!!m.running&&!!m.connected;const previousDistance=lastLiveDistance;const delta=Math.max(0,m.distanceM-lastLiveDistance);lastLiveDistance=m.distanceM;if(!s.route?.endless){
   const c=m.summitBoss;
   summitChoices.clear();
   if(c&&Number.isFinite(c.end)){
