@@ -77,11 +77,11 @@ test('over-limit legacy XP recovers into a valid character instead of invalidati
  assert.equal(recovered.xp,10000000);assert(validCharacter(recovered));
  assert.throws(()=>readCharacter(JSON.stringify({...saved,hp:-1})));
 });
-test('enemy levels reject markup and battle art escapes even unvalidated labels',()=>{
+test('enemy levels reject markup and enemy cards escape even unvalidated labels',()=>{
  assert(!validCharacter({...fresh(),battle:{...battle(),enemies:[{...battle().enemies[0],level:'<img onerror=bad>'}]}}));
- const c={safeText:escapeHTML,healthColor:()=> '#fff',fmt:String};vm.createContext(c);vm.runInContext(fn('monsterArt'),c);
+ const c={safeText:escapeHTML,healthColor:()=> '#fff',fmt:String};vm.createContext(c);vm.runInContext(fn('enemyCards'),c);
  c.b={name:'RAT',level:1,enemies:[{id:'rat',name:'RAT',level:'<img onerror=bad>',hp:1,max:1}]};
- const html=vm.runInContext('monsterArt(b)',c);assert.match(html,/&lt;img onerror=bad&gt;/);assert.doesNotMatch(html,/<img onerror/);
+ const html=vm.runInContext('enemyCards(b)',c);assert.match(html,/&lt;img onerror=bad&gt;/);assert.doesNotMatch(html,/<img onerror/);
 });
 test('named stat hooks match the HTML and tolerate missing or reordered readouts',async()=>{
  const html=await readFile(new URL('index.html',base),'utf8');

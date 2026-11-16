@@ -270,26 +270,6 @@ body {
     margin: 0;
   }
 }
-#cq-preview img.cq-rat-art {
-  display: block;
-  object-fit: contain;
-  image-rendering: pixelated;
-  aspect-ratio: 1;
-  min-width: 0;
-}
-#cq-preview .cq-mini-battle img.cq-rat-art {
-  width: auto;
-}
-#cq-preview .cq-event img.cq-enemyart {
-  width: min(100%, 480px);
-  height: 0;
-  min-height: 0;
-  max-height: none;
-  flex: 1 1 0;
-  margin: 0 auto;
-  object-fit: contain;
-  image-rendering: pixelated;
-}
 #cq-preview .cq-enemymeter i {
   background: var(--enemy-health,#f21d38) !important;
 }
@@ -297,205 +277,6 @@ body {
 #cq-preview .cq-mini-enemyhp,
 #cq-preview .cq-group > div > span {
   color: var(--enemy-health,#fff);
-}
-#cq-preview .cq-mini-battle.cq-has-art {
-  position: relative;
-  padding-left: 115px;
-}
-#cq-preview .cq-mini-battle.cq-has-art img.cq-enemyart {
-  position: absolute;
-  left: 3px;
-  top: 3px;
-  width: 105px !important;
-  height: calc(100% - 6px) !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  object-fit: contain;
-  margin: 0;
-}
-@container (max-width:500px) {
-  #cq-preview .cq-mini-battle.cq-has-art {
-    padding-left: 75px;
-  }
-  #cq-preview .cq-mini-battle.cq-has-art img.cq-enemyart {
-    width: 70px !important;
-  }
-}
-#cq-preview .cq-route > .cq-event:has(img.cq-enemyart) {
-  display: grid;
-  grid-template-columns: minmax(0, 45%) minmax(0, 1fr);
-  grid-template-rows: auto auto auto auto auto auto;
-  align-content: center;
-  align-items: center;
-  column-gap: 18px;
-}
-#cq-preview .cq-event:has(img.cq-enemyart) > .cq-battleheading {
-  grid-column: 1 / -1;
-  grid-row: 1;
-}
-#cq-preview .cq-event:has(img.cq-enemyart) > img.cq-enemyart {
-  grid-column: 1;
-  grid-row: 2 / 7;
-  width: 100%;
-  height: 100%;
-  max-height: 260px;
-  min-height: 0;
-  object-fit: contain;
-}
-#cq-preview .cq-event:has(img.cq-enemyart) > h3 {
-  grid-column: 2;
-  grid-row: 2;
-}
-#cq-preview .cq-event:has(img.cq-enemyart) > span.cq-sub:first-of-type {
-  grid-column: 2;
-  grid-row: 3;
-}
-#cq-preview .cq-event:has(img.cq-enemyart) > .cq-eventbar {
-  grid-column: 2;
-  grid-row: 4;
-}
-#cq-preview .cq-event:has(img.cq-enemyart) > .cq-enemymeter {
-  grid-column: 2;
-  grid-row: 5;
-}
-#cq-preview .cq-event:has(img.cq-enemyart) > span.cq-sub:last-of-type {
-  grid-column: 2;
-  grid-row: 6;
-}
-#cq-preview .cq-event:has(img.cq-enemyart) > .cq-group {
-  grid-column: 2;
-}
-#cq-preview .cq-route > .cq-event:has(.cq-art-group) {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 55%);
-  grid-template-rows: auto repeat(5, auto);
-  align-content: center;
-  align-items: center;
-  gap: 6px 16px;
-}
-#cq-preview .cq-event:has(.cq-art-group) > .cq-battleheading {
-  grid-column: 1 / -1;
-  grid-row: 1;
-}
-#cq-preview .cq-event:has(.cq-art-group) > .cq-art-group {
-  grid-column: 2;
-  grid-row: 2 / 7;
-  height: 100%;
-  max-height: 260px;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-#cq-preview .cq-event:has(.cq-art-group) > h3 {
-  grid-column: 1;
-  grid-row: 2;
-}
-#cq-preview .cq-event:has(.cq-art-group) > span.cq-sub:first-of-type {
-  grid-column: 1;
-  grid-row: 3;
-}
-#cq-preview .cq-event:has(.cq-art-group) > .cq-eventbar {
-  grid-column: 1;
-  grid-row: 4;
-}
-#cq-preview .cq-event:has(.cq-art-group) > .cq-enemymeter {
-  grid-column: 1;
-  grid-row: 5;
-}
-#cq-preview .cq-event:has(.cq-art-group) > span.cq-sub:last-of-type {
-  grid-column: 1;
-  grid-row: 6;
-}
-#cq-preview .cq-event:has(.cq-art-group) > .cq-group {
-  grid-column: 1;
-  grid-row: 7;
-}
-#cq-preview .cq-art-group img.cq-rat-art {
-  display: block;
-  min-width: 0;
-  max-width: 100%;
-  width: auto;
-  height: auto;
-  max-height: 100%;
-  flex: 0 1 auto;
-  object-fit: contain;
-  image-rendering: pixelated;
-  filter: drop-shadow(7px 8px 0 #1a254b66);
-}
-#cq-preview .cq-art-group img.cq-rat-art:not(:only-child) {
-  width: 32%;
-  height: auto;
-}
-#cq-preview .cq-mini-battle.cq-has-art {
-  position: relative;
-  padding-left: 9px;
-  padding-right: clamp(90px, 35%, 220px);
-}
-#cq-preview .cq-mini-battle .cq-art-group {
-  position: absolute;
-  right: 3px;
-  top: 3px;
-  width: 33%;
-  height: calc(100% - 6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-}
-#cq-preview .cq-mini-battle .cq-art-group img.cq-rat-art {
-  position: static;
-  width: auto !important;
-  height: auto !important;
-  max-height: 100% !important;
-  max-width: 100%;
-  min-height: 0;
-  object-fit: contain;
-  margin: 0;
-}
-#cq-preview .cq-mini-battle .cq-art-group img.cq-rat-art:not(:only-child) {
-  width: 32% !important;
-}
-#cq-preview .cq-art-group .cq-rat-card {
-  min-width: 0;
-  min-height: 0;
-  flex: 1 1 0;
-  max-width: 260px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 3px;
-}
-#cq-preview .cq-art-group .cq-rat-card img.cq-rat-art {
-  width: 100% !important;
-  height: 0 !important;
-  min-height: 0;
-  max-height: none !important;
-  flex: 1 1 0;
-  object-fit: contain;
-}
-#cq-preview .cq-art-group .cq-rat-hp {
-  color: var(--enemy-health);
-  font-size: clamp(13px, 1.25vw, 20px);
-  white-space: nowrap;
-  line-height: 1;
-}
-#cq-preview .cq-art-group .cq-rat-card .cq-enemymeter {
-  width: 100%;
-  height: 14px;
-  min-height: 14px;
-  flex: none;
-  margin: 0;
-}
-#cq-preview .cq-mini-battle .cq-art-group {
-  width: 45%;
-  height: calc(100% - 6px);
-}
-#cq-preview .cq-mini-battle.cq-has-art {
-  padding-right: 47%;
 }
 #cq-preview .cq-mini-battle .cq-rat-card {
   gap: 2px;
@@ -506,54 +287,6 @@ body {
 #cq-preview .cq-mini-battle .cq-rat-card .cq-enemymeter {
   height: 7px;
   min-height: 7px;
-}
-#cq-preview .cq-route > .cq-event:has(.cq-art-group) {
-  display: block !important;
-  background:
-    linear-gradient(
-      110deg,
-      #2c3972,
-      #111d50) !important;
-  padding: 0 !important;
-  overflow: hidden;
-}
-#cq-preview .cq-event:has(.cq-art-group) > .cq-battleheading {
-  position: absolute;
-  left: 2%;
-  right: 2%;
-  top: 24%;
-  z-index: 1;
-  font-size: clamp(12px, 1.15vw, 23px);
-  line-height: 1;
-}
-#cq-preview .cq-event:has(.cq-art-group) > h3,
-#cq-preview .cq-event:has(.cq-art-group) > .cq-eventbar,
-#cq-preview .cq-event:has(.cq-art-group) > span.cq-sub,
-#cq-preview .cq-event:has(.cq-art-group) > p.cq-sub {
-  display: none;
-}
-#cq-preview .cq-event:has(.cq-art-group) > .cq-art-group {
-  position: absolute;
-  z-index: 2;
-  inset: 6% 22.5% 8%;
-  width: 55%;
-  height: 86%;
-  max-height: none;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  gap: 2%;
-  margin: 0;
-}
-#cq-preview .cq-event .cq-art-group .cq-rat-card {
-  flex: 1 1 0;
-  height: 100%;
-  max-width: 32%;
-  gap: 2%;
-  justify-content: stretch;
-}
-#cq-preview .cq-event .cq-art-group .cq-rat-card:only-child {
-  max-width: 32%;
 }
 #cq-preview .cq-event .cq-rat-name {
   display: block;
@@ -566,63 +299,8 @@ body {
   text-align: center;
   text-shadow: none;
 }
-#cq-preview .cq-event .cq-art-group .cq-rat-card img.cq-rat-art {
-  flex: 1 1 0;
-  width: 100% !important;
-  height: 0 !important;
-  min-height: 0;
-  max-height: none !important;
-  object-fit: contain;
-  filter: none;
-}
-#cq-preview .cq-event .cq-art-group .cq-rat-hp {
-  font: 700 clamp(11px, 1.25vw, 27px)/1.1 Georgia, serif;
-  letter-spacing: .08em;
-  text-shadow: none;
-  white-space: nowrap;
-}
-#cq-preview .cq-event .cq-art-group .cq-rat-card .cq-enemymeter {
-  height: clamp(10px, 2.1vw, 40px);
-  min-height: 0;
-  width: 100%;
-  flex: none;
-  background: #121e4c;
-}
-#cq-preview .cq-event:has(.cq-art-group) > .cq-group {
-  position: absolute;
-  bottom: 2%;
-  left: 2%;
-  width: 18%;
-  z-index: 3;
-}
 #cq-preview .cq-mini-battle .cq-rat-name {
   display: none;
-}
-#cq-preview .cq-mini-battle.cq-has-art {
-  position: relative;
-  padding: 0 !important;
-  overflow: hidden;
-}
-#cq-preview .cq-mini-battle.cq-has-art > .cq-battleheading {
-  display: none;
-}
-#cq-preview .cq-mini-battle.cq-has-art > .cq-art-group {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  gap: 0;
-}
-#cq-preview .cq-mini-battle .cq-art-group .cq-rat-card {
-  position: relative;
-  flex: 1 1 0;
-  max-width: none;
-  height: 100%;
-  gap: 0;
-  display: block;
 }
 #cq-preview .cq-mini-battle .cq-rat-name {
   display: block;
@@ -636,17 +314,6 @@ body {
   letter-spacing: .08em;
   white-space: nowrap;
   text-shadow: none;
-}
-#cq-preview .cq-mini-battle .cq-art-group .cq-rat-card img.cq-rat-art {
-  position: absolute;
-  top: 2%;
-  left: 0;
-  width: 100% !important;
-  height: 64% !important;
-  max-width: none;
-  max-height: none !important;
-  object-fit: contain;
-  filter: drop-shadow(5px 6px 0 #1a254b66);
 }
 #cq-preview .cq-mini-battle .cq-rat-card .cq-rat-hp {
   position: absolute;
@@ -672,14 +339,6 @@ body {
 #cq-preview .cq-mini-battle .cq-rat-card:only-child .cq-enemymeter {
   left: 35%;
   width: 30%;
-}
-#cq-preview .cq-mini-battle.cq-has-art > .cq-group {
-  position: absolute;
-  z-index: 3;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: #172455;
 }
 #cq-preview {
   --cq-ink:#f6f7ff;
@@ -1534,20 +1193,6 @@ body {
   font-size: 24px;
   flex: none;
 }
-#cq-preview .cq-enemyart {
-  flex: 1;
-  min-height: 45px;
-  max-height: 180px;
-  aspect-ratio: 20/15;
-  align-self: center;
-  display: grid;
-  grid-template-columns: repeat(20, 1fr);
-  grid-template-rows: repeat(15, 1fr);
-  width: auto;
-  height: auto;
-  filter: drop-shadow(7px 8px 0 #1a254b66);
-  margin: 3px auto 8px;
-}
 #cq-preview .cq-pixel {
   display: block;
   aspect-ratio: 1;
@@ -1560,9 +1205,6 @@ body {
 }
 #cq-preview .cq-pixel-3 {
   background: #a5ef80;
-}
-#cq-preview .cq-enemyart .cq-pixel-0 {
-  background: transparent;
 }
 #cq-preview .cq-enemy-summit {
   filter: hue-rotate(125deg) drop-shadow(7px 8px 0 #1a254b66);
@@ -1603,10 +1245,6 @@ body {
   #cq-preview .cq-route {
     min-height: 320px;
   }
-  #cq-preview .cq-enemyart {
-    height: 140px;
-    flex: none;
-  }
   #cq-preview .cq-event {
     padding: 13px;
   }
@@ -1639,9 +1277,6 @@ body {
   #cq-preview .cq-footer {
     margin-top: 7px;
   }
-  #cq-preview .cq-enemyart {
-    max-height: 130px;
-  }
   #cq-preview .cq-route > .cq-event {
     padding: 10px 18px;
     gap: 4px;
@@ -1667,13 +1302,6 @@ body {
   gap: 5px;
   padding: 5px 9px;
   background: #52669c;
-}
-#cq-preview .cq-mini-battle .cq-enemyart {
-  height: 65px;
-  min-height: 0;
-  max-height: 65px;
-  margin: 0 auto;
-  flex: 1;
 }
 #cq-preview .cq-mini-battle .cq-enemymeter {
   height: 10px;
@@ -1747,13 +1375,6 @@ body {
   font-size: 34px;
   color: #ffe777;
   white-space: nowrap;
-}
-#cq-preview .cq-mini-battle .cq-enemyart {
-  height: 125px;
-  max-height: 125px;
-  min-height: 70px;
-  margin: auto;
-  flex: 1;
 }
 #cq-preview .cq-mini-battle .cq-enemymeter {
   height: 19px;
@@ -1926,13 +1547,6 @@ body {
 }
 #cq-preview .cq-mini-battle .cq-battleheading > span:last-child {
   font-size: 25px;
-}
-#cq-preview .cq-mini-battle .cq-enemyart {
-  height: 58px !important;
-  max-height: 58px !important;
-  min-height: 0 !important;
-  flex: 1;
-  margin: 0 auto;
 }
 #cq-preview .cq-mini-battle .cq-enemymeter {
   height: 10px;
@@ -2312,19 +1926,53 @@ body {
 
 .cq-boss-prompt{background:#102052;color:#ffe777;padding:8px;font-size:clamp(20px,2.5vw,34px);line-height:1.05;border:2px solid #a7b2d1}.cq-boss-prompt small{display:block;color:#fff;font-size:.65em}.cq-boss-prompt[data-phase="recover"]{color:#8fffa1}.cq-boss-prompt[data-phase="stagger"]{color:#fff}.cq-mini-battle .cq-boss-prompt{font-size:19px;padding:3px;flex-shrink:0}
 
-/* One equal-width health card per living enemy, including enemies without art. */
-#cq-preview .cq-mini-battle .cq-art-group .cq-rat-card {
-  min-width: 0;
-  overflow: hidden;
+/* Compact text battles keep each enemy readable without illustration assets. */
+#cq-preview .cq-mini-battle.cq-text-battle {
+ display:flex;flex-direction:column;background:#0d1716;border:1px solid #607b61;
+ gap:5px;text-align:center;overflow:hidden;padding:5px 9px;
 }
-#cq-preview .cq-mini-battle .cq-art-group .cq-rat-name {
-  z-index: 1;
-  top: 3%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: 0;
+#cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading {font-size:18px;color:#d6e4d1}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-battleheading > span:last-child {font-size:16px}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group {
+ display:flex;flex:1;gap:5px;min-height:0;align-items:stretch;
 }
-#cq-preview .cq-mini-battle .cq-art-group .cq-rat-card img.cq-rat-art {
-  top: 18%;
-  height: 52% !important;
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-card {
+ position:static;display:flex;flex:1;flex-direction:column;align-items:center;
+ justify-content:center;gap:3px;min-width:0;min-height:0;height:auto;
+ padding:3px 5px;border:1px solid #607b61;background:#112423;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-name {
+ display:block;position:static;font-size:clamp(13px,1.7cqw,20px);line-height:1;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-hp {
+ display:block;position:static;font-size:clamp(12px,1.5cqw,17px);
+ line-height:1;color:#f5edd8;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-enemymeter {
+ order:initial;display:block;width:100%;height:7px;min-height:7px;
+ margin:0;background:#1b3732;
+}
+
+/* Cycle Quest battle HUD fixes: keep every enemy health bar in-flow and visible. */
+#cq-preview .cq-route > .cq-event:has(.cq-group),
+#cq-preview .cq-route > .cq-event:has(img.cq-enemyart) {min-height:0;max-height:min(62vh,520px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;}
+#cq-preview .cq-group > div {display:block;position:relative;min-width:0;margin:0;padding:5px 0;}
+#cq-preview .cq-group .cq-enemymeter {display:block;width:100%;margin:4px 0 0;}
+#cq-preview .cq-reward-selected {border:3px solid #ffe777 !important;background:#66551a !important;color:#fff3ad !important;box-shadow:inset 0 0 0 1px #fff3ad,0 0 12px #ffe77799;outline:2px solid #ffe777;outline-offset:2px;}
+#cq-preview .cq-reward-selected::after {content:"  ✓ SELECTED";color:#ffe777;font-weight:700;}
+
+/* Compact always-on-top battle: one dedicated HP card per living enemy. */
+#cq-preview .cq-mini-battle.cq-text-battle {min-height:0;overflow-y:auto;overflow-x:hidden;}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group {
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);
+ flex:1 1 auto;min-height:0;min-width:0;gap:5px;align-items:stretch;overflow:visible;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-card {
+ width:100%;max-width:none;min-width:0;overflow:hidden;box-sizing:border-box;
+}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-hp,
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-rat-name {max-width:100%;text-align:center;}
+#cq-preview .cq-mini-battle.cq-text-battle .cq-text-group .cq-enemymeter {
+ flex:none;position:relative;z-index:1;height:8px;min-height:8px;width:100%;
 }

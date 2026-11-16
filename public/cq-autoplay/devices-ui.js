@@ -58,7 +58,7 @@ export function mountQuestDevices({root,requestPage}){
  function sync(){
   if(!game.isConnected||game.dataset.cqPage!=='devices')return;
   const b=bridge();let state=null;
-  try{state=b?.snapshot?.()||null}catch{}
+  try{state=b?.snapshot?.()||null}catch{/* no snapshot available yet */}
   if(!state){section.querySelector('[data-cq-status="message"]').textContent='Trainer controls unavailable. Reload Cycle Quest.';return;}
   lastState=state;
   const txt=(id,value)=>{const node=section.querySelector('[data-cq-status="'+id+'"]');if(node&&node.textContent!==value)node.textContent=value};

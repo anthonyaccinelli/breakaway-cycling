@@ -1,7 +1,7 @@
 // One audio owner in the game iframe; overlays never create duplicate players.
 export function createQuestMusic({makeAudio=src=>{const audio=new Audio(src);audio.hidden=true;audio.dataset.questMusic=src.split('/').pop();document.body.append(audio);return audio;},storage=globalThis.localStorage,schedule=setTimeout,cancel=clearTimeout,onChange=()=>{},random=Math.random}={}){
  const key='cycle-quest-music-enabled';
- let enabled=true;try{enabled=storage?.getItem(key)!=='false';}catch{}
+ let enabled=true;try{enabled=storage?.getItem(key)!=='false';}catch{/* storage blocked: default to music on */}
  const tracks=Object.fromEntries(['battle','victory','rest','level','death'].map(name=>{
   const file={battle:'do-or-die-loop.mp3',victory:'victory-opening-0-10.wav',rest:'rest.mp3',level:'take-flight.mp3',death:'game-over.mp3'}[name],audio=makeAudio('/audio/cycle-quest/'+file);
   audio.preload='none';audio.loop=['battle','rest'].includes(name);audio.volume=.6;return [name,audio];
@@ -19,7 +19,7 @@ export function createQuestMusic({makeAudio=src=>{const audio=new Audio(src);aud
  const state=()=>({enabled,blocked,scene,suspended,paused});
  const notify=()=>onChange(state());
  function clearTimer(){if(timer!==null)cancel(timer);timer=null;}
- function halt(){generation++;clearTimer();clearFades();playing=false;for(const audio of Object.values(tracks)){audio.pause();audio.volume=volume;try{audio.currentTime=0;}catch{}}}
+ function halt(){generation++;clearTimer();clearFades();playing=false;for(const audio of Object.values(tracks)){audio.pause();audio.volume=volume;try{audio.currentTime=0;}catch{/* not seekable before metadata loads */}}}
  function play(){
   if(!enabled||suspended||paused||scene==='silent'||playing)return;
   const audio=tracks[scene],token=++generation;playing=true;
@@ -75,7 +75,7 @@ export function createQuestMusic({makeAudio=src=>{const audio=new Audio(src);aud
   sync,state,
   endBattle(result){outcome=result;},
   resume(){if(enabled){blocked=false;play();notify();}},
-  toggle(){if(blocked&&enabled){blocked=false;play();notify();return;}enabled=!enabled;try{storage?.setItem(key,String(enabled));}catch{}if(!enabled)halt();else play();notify();},
+  toggle(){if(blocked&&enabled){blocked=false;play();notify();return;}enabled=!enabled;try{storage?.setItem(key,String(enabled));}catch{/* storage blocked: setting lasts this session */}if(!enabled)halt();else play();notify();},
   suspend(value=true){suspended=value;if(value)halt();else play();notify();},
   dispose(){halt();scene='silent';for(const audio of Object.values(tracks))audio.remove?.();}
  };

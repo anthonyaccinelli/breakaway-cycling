@@ -57,13 +57,9 @@ test('mixed-level victory grants the summed 800 XP once and never scales by ride
   const restored=fixture(c.saved);vm.runInContext('restoreRewardState();choose("coins")',restored);assert.equal(restored.s.xp,xp+800);assert.equal(restored.s.coins,75);
  }
 });
-test('Boss Mode victory awards rewards without unlocking chapters or changing mileage',()=>{
- const c=fixture({mode:'boss',chapter:2,miles:42,battle:{kind:'boss',practice:true,reward:2625}});
- vm.runInContext('finish(true)',c);assert.equal(c.s.chapter,2);assert.equal(c.s.miles,42);assert.equal(c.s.xp,2625);assert.equal(c.s.bossModeComplete,true);assert.equal(c.s.bossWarmupRemaining,0);
-});
-test('the tenth chapter boss ends Story without dropping the route or losing the reward',()=>{
+test('the tenth chapter boss ends the chapters without dropping the route or losing the reward',()=>{
  const route=storyRoute(10,generateRoute),c=fixture({mode:'adventure',chapter:10,miles:100,route,routeMiles:100,battle:{kind:'boss',reward:9825}});
- vm.runInContext('finish(true)',c);assert.equal(c.s.chapter,11);assert.equal(c.s.mode,'training');assert.equal(c.s.route,route);assert.equal(c.s.routeMiles,100);assert.equal(c.s.reward,false);assert.match(c.message,/STORY COMPLETE/);
+ vm.runInContext('finish(true)',c);assert.equal(c.s.chapter,11);assert.equal(c.s.mode,'training');assert.equal(c.s.route,route);assert.equal(c.s.routeMiles,100);assert.equal(c.s.reward,false);assert.match(c.message,/ALL TEN CHAPTERS CLEARED/);
  vm.runInContext('choose("coins")',c);assert.equal(c.s.reward,false);assert.equal(c.s.chapter,11);
 });
 
@@ -101,7 +97,7 @@ test('loot is stored and mechanics repair without changing equipment',()=>{
 test('roadside rolls only occur in the active pedaling exploration branch',()=>{
  const block=game.slice(game.indexOf('if(!s.battle&&!s.reward&&!levelUp&&running){s.rideMiles'),game.indexOf('if(running){let remaining=dt;'));
  assert(block.includes("else if(power>0&&m.cadence>0&&warmupSeconds<=0)"));
- assert(block.includes("else if(s.mode!=='boss'&&delta>0)"));
+ assert(block.includes("else if(delta>0)"));
  assert.equal(fn('finish').includes('exploreRoadside'),false);
  assert.equal(game.includes('visitShop(s)'),false);
 });

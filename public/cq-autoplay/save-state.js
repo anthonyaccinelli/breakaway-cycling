@@ -1,3 +1,4 @@
+import {validBike} from './bike-parts.js';
 import {COMBAT_VERSION,MAX_ENEMY_LEVEL} from './combat.js';
 import {migrateCombatSave} from './combat-save.js';
 import {validLedger} from './workouts.js';
@@ -40,8 +41,8 @@ export function validCharacter(state){
  return !!state&&typeof state==='object'&&state.version===1
   &&nonnegative(state.xp)&&state.xp<=MAX_XP&&nonnegative(state.hp)
   &&nonnegative(state.miles)&&state.miles<=100&&Number.isInteger(state.chapter)&&state.chapter>=1
-  &&optional(state.bossWarmupRemaining,n=>nonnegative(n)&&n<=600)&&optional(state.bossModeComplete,n=>typeof n==='boolean')
-  &&['adventure','training','boss'].includes(state.mode)&&nonnegative(state.rideSeconds)&&nonnegative(state.rideMiles)&&nonnegative(state.nextEncounter)
+  &&optional(state.bike,validBike)
+  &&['adventure','training'].includes(state.mode)&&nonnegative(state.rideSeconds)&&nonnegative(state.rideMiles)&&nonnegative(state.nextEncounter)
   &&typeof state.reward==='boolean'&&optional(state.coins,n=>Number.isSafeInteger(n)&&n>=0)
   &&(!state.pendingReward||(state.reward&&validPendingReward(state.pendingReward)))
   &&optional(state.routeMiles,nonnegative)&&validRoute(state.route)&&validLedger(state.workouts)
@@ -50,10 +51,17 @@ export function validCharacter(state){
   &&!(state.battle&&state.reward);
 }
 
+// Retired features. Old saves drop these fields instead of failing validation.
+const RETIRED_FIELDS=['narrative','bossModeComplete','bossWarmupRemaining'];
+
 // Older versions saved a slightly negative countdown on the frame an encounter
 // started or was blocked. Repair that known case without accepting unrelated invalid fields.
 export function readCharacter(text){
  const state=JSON.parse(text);
+ if(state&&typeof state==='object'){
+  for(const field of RETIRED_FIELDS)delete state[field];
+  if(state.mode==='boss')state.mode='training'; // Boss Mode was removed.
+ }
  if(state&&Number.isFinite(state.xp)&&state.xp>MAX_XP)state.xp=MAX_XP;
  if(state&&Number.isFinite(state.nextEncounter)&&state.nextEncounter<0)state.nextEncounter=0;
  if(!validCharacter(state))throw Error('Invalid Cycle Quest save');

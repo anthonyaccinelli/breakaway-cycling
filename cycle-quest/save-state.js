@@ -21,15 +21,6 @@ export function validRoute(route){
   &&(route.endless!==true||(Number.isInteger(route.seed)&&['flat','rolling','mountain','punchy'].includes(route.terrain)&&nonnegative(route.windowStart??0)));
 }
 
-function validNarrative(n){
- if(!n||typeof n!=='object'||Array.isArray(n))return false;
- if(!Array.isArray(n.seen)||n.seen.length>20||new Set(n.seen).size!==n.seen.length||!n.seen.every(id=>typeof id==='string'&&id.length>0&&id.length<=80))return false;
- if(!n.choices||typeof n.choices!=='object'||Array.isArray(n.choices))return false;
- const choices=Object.entries(n.choices);
- if(choices.length>20||!choices.every(([id,value])=>typeof id==='string'&&id.length>0&&id.length<=80&&typeof value==='string'&&value.length>0&&value.length<=80))return false;
- return (n.current===null||(typeof n.current==='string'&&n.current.length<=80))&&Number.isFinite(n.shownAt)&&n.shownAt>=0&&n.shownAt<=1e15;
-}
-
 function validBattle(battle,active=false){
  if(!battle)return true;
  if(typeof battle!=='object'||!label(battle.name)||!nonnegative(battle.hp)||!nonnegative(battle.dps))return false;
@@ -50,9 +41,8 @@ export function validCharacter(state){
  return !!state&&typeof state==='object'&&state.version===1
   &&nonnegative(state.xp)&&state.xp<=MAX_XP&&nonnegative(state.hp)
   &&nonnegative(state.miles)&&state.miles<=100&&Number.isInteger(state.chapter)&&state.chapter>=1
-  &&optional(state.bossWarmupRemaining,n=>nonnegative(n)&&n<=600)
-  &&optional(state.bike,validBike)&&optional(state.narrative,validNarrative)&&optional(state.bossModeComplete,n=>typeof n==='boolean')
-  &&['adventure','training','boss'].includes(state.mode)&&nonnegative(state.rideSeconds)&&nonnegative(state.rideMiles)&&nonnegative(state.nextEncounter)
+  &&optional(state.bike,validBike)
+  &&['adventure','training'].includes(state.mode)&&nonnegative(state.rideSeconds)&&nonnegative(state.rideMiles)&&nonnegative(state.nextEncounter)
   &&typeof state.reward==='boolean'&&optional(state.coins,n=>Number.isSafeInteger(n)&&n>=0)
   &&(!state.pendingReward||(state.reward&&validPendingReward(state.pendingReward)))
   &&optional(state.routeMiles,nonnegative)&&validRoute(state.route)&&validLedger(state.workouts)
@@ -61,10 +51,17 @@ export function validCharacter(state){
   &&!(state.battle&&state.reward);
 }
 
+// Retired features. Old saves drop these fields instead of failing validation.
+const RETIRED_FIELDS=['narrative','bossModeComplete','bossWarmupRemaining'];
+
 // Older versions saved a slightly negative countdown on the frame an encounter
 // started or was blocked. Repair that known case without accepting unrelated invalid fields.
 export function readCharacter(text){
  const state=JSON.parse(text);
+ if(state&&typeof state==='object'){
+  for(const field of RETIRED_FIELDS)delete state[field];
+  if(state.mode==='boss')state.mode='training'; // Boss Mode was removed.
+ }
  if(state&&Number.isFinite(state.xp)&&state.xp>MAX_XP)state.xp=MAX_XP;
  if(state&&Number.isFinite(state.nextEncounter)&&state.nextEncounter<0)state.nextEncounter=0;
  if(!validCharacter(state))throw Error('Invalid Cycle Quest save');

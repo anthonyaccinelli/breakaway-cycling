@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
 import {loadQuestModule} from './quest-loader.mjs';
 const {MONSTERS,chapterMonsters,makeBattle,enemyGroup}=await loadQuestModule('combat.js');
 const {readCharacter}=await loadQuestModule('save-state.js');
@@ -20,16 +19,4 @@ test('current-version saved fights and encounter bags migrate without losing dam
  for(const e of next.battle.enemies)assert.equal(e.hp,e.max/2);
  assert.deepEqual(next.chapterEncounter.bag,['bat','snake']);assert.equal(next.chapterEncounter.last,'snake');
  assert.deepEqual(readCharacter(JSON.stringify(next)),next);
-});
-test('original 64px APNGs retain animation frames, infinite looping and transparency',async()=>{
- for(const [id,frames] of [['headwind',2],['bat',4],['snake',4]]){
-  const data=await readFile(new URL('../public/monsters/'+id+'.png',import.meta.url));
-  assert.equal(data.subarray(1,4).toString(),'PNG');let offset=8,seen=false;
-  while(offset<data.length){const size=data.readUInt32BE(offset),type=data.toString('ascii',offset+4,offset+8),body=offset+8;
-   if(type==='IHDR'){assert.equal(data.readUInt32BE(body),64);assert.equal(data.readUInt32BE(body+4),64);assert.equal(data[body+9],6);}
-   if(type==='acTL'){assert.equal(data.readUInt32BE(body),frames);assert.equal(data.readUInt32BE(body+4),0);seen=true;}
-   offset+=size+12;
-  }
-  assert(seen,id+' must remain animated');
- }
 });
