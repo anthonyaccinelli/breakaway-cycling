@@ -10,6 +10,14 @@ Ride ten fixed 100-mile chapters (Adventure) or any route (Freeroam). Pedaling e
 bosses wait at the top of categorized climbs; a chapter boss waits at mile 100.
 Battles are "ride until they die": no special moves or phases.
 
+During a battle, reward choice, level-up or boss warmup, the trainer rides a **flat road**
+and the route position waits; the rider resumes exactly where the battle began, so chapter
+miles only count route riding. The real distance pedaled during battles is still counted
+by the ride **odometer** (`rideOdometer` in `src/main.ts`), which the ride summary, saved
+history, TCX file and Strava/Garmin uploads use, so uploads never lose battle miles.
+Random encounters wait while the road descends more steeply than −3%
+(`BALANCE.steepestEncounterDescent`); summit and chapter bosses keep their places.
+
 ## Damage: effort, not watts
 
 `damage/sec = attack × (watts ÷ FTP) × (1 + crit)`, where crit is the share above FTP

@@ -123,3 +123,12 @@ test('older saves migrate battles, bosses and pending rewards into the current r
  const boss=readCharacter(JSON.stringify({...fresh,boss:{combatVersion:2,kind:'boss',monsterId:'tarrasque',name:'TARRASQUE',level:18,hp:9999,max:9999,dps:1,reward:1}}));
  assert.equal(boss.boss.monsterId,CHAPTERS[0].boss);assert.equal(boss.boss.level,chapterLevels(1).boss);
 });
+test('random encounters wait on descents steeper than -3% and resume when the road levels out',async()=>{
+ const {encounterAllowedOnGrade}=combat;
+ for(const g of [8,0,-1,-2.9,-3])assert(encounterAllowedOnGrade(g),String(g));
+ for(const g of [-3.1,-6,-12])assert(!encounterAllowedOnGrade(g),String(g));
+ assert(encounterAllowedOnGrade(undefined),'unknown grade never blocks encounters');
+ const {readFile}=await import('node:fs/promises');
+ const game=await readFile(new URL('../cycle-quest/game.js',import.meta.url),'utf8');
+ assert(game.includes("if (s.nextEncounter <= 0 && encounterAllowedOnGrade(m.grade)) encounter('enemy');"));
+});

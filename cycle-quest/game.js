@@ -42,6 +42,7 @@ import {
   chapterLevels,
   chapterMonsters,
   riderDamagePerSecond,
+  encounterAllowedOnGrade,
   effortShare,
   critBonus,
   BALANCE,
@@ -2241,7 +2242,7 @@ window.addEventListener('message', e => {
       } else if (power > 0 && m.cadence > 0 && warmupSeconds <= 0) {
         if (!s.battle) {
           s.nextEncounter = Math.max(0, s.nextEncounter - dt);
-          if (s.nextEncounter <= 0) encounter('enemy');
+          if (s.nextEncounter <= 0 && encounterAllowedOnGrade(m.grade)) encounter('enemy');
           else if (delta > 0) {
             const find = exploreRoadside(s, delta / METERS_PER_MILE);
             if (find) {

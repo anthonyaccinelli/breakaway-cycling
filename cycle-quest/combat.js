@@ -27,8 +27,17 @@ export const BALANCE = Object.freeze({
   // The heal reward restores this share of max HP per defeated enemy.
   healPercentPerEnemy: 35,
   // Summit bosses can be escaped by not pedaling for this long.
-  summitEscapeSeconds: 15
+  summitEscapeSeconds: 15,
+  // Random encounters wait while the road descends more steeply than this (percent grade).
+  steepestEncounterDescent: -3
 });
+
+// Riders coasting down a steep descent cannot fight, so random encounters wait for the road
+// to level out. Summit and chapter bosses keep their fixed places on the route.
+export function encounterAllowedOnGrade(gradePercent) {
+  const grade = Number(gradePercent);
+  return !Number.isFinite(grade) || grade >= BALANCE.steepestEncounterDescent;
+}
 
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const roll = random => clamp(Number(random()) || 0, 0, 1 - Number.EPSILON);
