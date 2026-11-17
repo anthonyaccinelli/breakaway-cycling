@@ -38,6 +38,8 @@ test('the ride page shows the display before the ride, with START RIDE or pedal-
     main = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
   assert.match(game, /onStart: \(\) => parentSend\(\{ type: live\.connected \? 'start' : 'toggle' \}\)/);
   assert.match(game, /parentSend\(\{ type: 'arm' \}\)/, 'pedaling alone starts the ride');
-  assert.match(main, /data\.type==='start'\)\{[^}]*beginRide\(\)/, 'START RIDE begins immediately');
-  assert.match(main, /data\.type==='arm'\)\{[^}]*rideAwaitingPedaling=true/);
+  const start = main.slice(main.indexOf("data.type==='start'"), main.indexOf("data.type==='arm'"));
+  assert.match(start, /else if\(!running\)beginRide\(\);/, 'START RIDE begins immediately');
+  const arm = main.slice(main.indexOf("data.type==='arm'"), main.indexOf("data.type==='toggle'"));
+  assert.match(arm, /rideAwaitingPedaling=true;pedalSince=0;/);
 });
