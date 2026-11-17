@@ -1693,8 +1693,13 @@ const hud = mountRideHud(root, {
   onMenu: () => {
     hudDismissed = true;
     render();
-  }
+  },
+  // START RIDE begins right away; without a trainer it opens the devices page instead.
+  onStart: () => parentSend({ type: live.connected ? 'start' : 'toggle' })
 });
+// Pedaling alone also starts the ride: whenever the ride page is open with a connected
+// trainer and no ride running, ask the app to start the ride as soon as the rider pedals.
+let hudArmed = false;
 const hudReturn = document.createElement('button');
 hudReturn.type = 'button';
 hudReturn.id = 'hud-return';
@@ -1799,10 +1804,14 @@ function hudPrompt(b) {
   return out;
 }
 function renderHud(session, L, remaining) {
-  const visible = running && view === 'ride' && root.querySelector('.cq-game')?.dataset.cqPage === 'ride';
+  const onRidePage = view === 'ride' && root.querySelector('.cq-game')?.dataset.cqPage === 'ride';
+  const visible = onRidePage;
   if (running && !hudWasRunning) hudDismissed = false;
   hudWasRunning = running;
-  hudReturn.hidden = !running || !hudDismissed;
+  const armable = onRidePage && live.connected && !running;
+  if (armable && !hudArmed) parentSend({ type: 'arm' });
+  hudArmed = armable;
+  hudReturn.hidden = !hudDismissed;
   if (!visible || hudDismissed) {
     hud.update(null);
     return;
@@ -1850,7 +1859,18 @@ function renderHud(session, L, remaining) {
     'hr-c': unit(hr, 'BPM'),
     'time-c': clock(session.seconds)
   };
+  text['start-label'] = !live.connected
+    ? 'CONNECT TRAINER'
+    : s.session && !s.session.completed
+      ? 'RESUME RIDE'
+      : 'START RIDE';
+  text['start-hint'] = live.connected
+    ? Number(live.cadence) >= 20 || displayedPower() >= 15
+      ? 'Keep pedaling \u2014 starting\u2026'
+      : 'or just start pedaling'
+    : 'Connect your smart trainer to ride';
   const model = {
+    idle: !running,
     mode: encounter ? 'cockpit' : 'road',
     text,
     fill: {
@@ -1890,7 +1910,7 @@ function renderHud(session, L, remaining) {
               : '');
       const prompt = hudPrompt(b);
       text['prompt-big'] = prompt.big;
-      text['prompt-small'] = prompt.small;
+      text['prompt-small'] = running ? prompt.small : 'PAUSED \xB7 START PEDALING TO RESUME';
       text.countdown = prompt.countdown;
       model.classes.prompt = prompt.state;
       model.blocks.enemies = hudEnemyCards(b);

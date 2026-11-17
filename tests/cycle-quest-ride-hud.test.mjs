@@ -32,3 +32,12 @@ test('the road layout shows every requested readout, in order along the bottom',
   for (const key of ['power', 'hr', 'coins', 'xp-left', 'miles', 'grade'])
     assert.match(hud, new RegExp('data-h="' + key + '"'));
 });
+
+test('the ride page shows the display before the ride, with START RIDE or pedal-to-start', async () => {
+  const game = await read('game.js'),
+    main = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
+  assert.match(game, /onStart: \(\) => parentSend\(\{ type: live\.connected \? 'start' : 'toggle' \}\)/);
+  assert.match(game, /parentSend\(\{ type: 'arm' \}\)/, 'pedaling alone starts the ride');
+  assert.match(main, /data\.type==='start'\)\{[^}]*beginRide\(\)/, 'START RIDE begins immediately');
+  assert.match(main, /data\.type==='arm'\)\{[^}]*rideAwaitingPedaling=true/);
+});

@@ -41,7 +41,10 @@ const MARKUP =
   `<span class="cq-hud-coins">${coinIcon}<b data-h="coins"></b><small>COINS</small></span></div>` +
   `</section>` +
   `<section class="cq-hud-road-profile"><div class="cq-profile cq-hudprofile" role="img" aria-label="Route elevation profile"></div>` +
-  `<span class="cq-hud-grade" data-h="grade"></span><span class="cq-hud-bossin" data-h="boss-in"></span></section>` +
+  `<span class="cq-hud-grade" data-h="grade"></span><span class="cq-hud-bossin" data-h="boss-in"></span>` +
+  // Before the ride starts: START RIDE, or simply start pedaling.
+  `<div class="cq-hud-start" hidden><button type="button" data-hud-start data-h="start-label"></button>` +
+  `<span data-h="start-hint"></span></div></section>` +
   `<section class="cq-hud-bars cq-hud-bars-row">` +
   bar('cq-hud-hp', 'HP', 'Health') +
   bar('cq-hud-stamina', 'STAMINA', 'Stamina') +
@@ -77,7 +80,7 @@ const MARKUP =
   `</div>` +
   `</div>`;
 
-export function mountRideHud(host, { onMenu = () => {} } = {}) {
+export function mountRideHud(host, { onMenu = () => {}, onStart = () => {} } = {}) {
   const el = host.ownerDocument.createElement('section');
   el.className = 'cq-hud';
   el.hidden = true;
@@ -93,6 +96,7 @@ export function mountRideHud(host, { onMenu = () => {} } = {}) {
   };
   el.addEventListener('click', event => {
     if (event.target.closest('[data-hud-menu]')) onMenu();
+    if (event.target.closest('[data-hud-start]')) onStart();
   });
   function fit() {
     const win = host.ownerDocument.defaultView;
@@ -109,6 +113,7 @@ export function mountRideHud(host, { onMenu = () => {} } = {}) {
     if (!model) return;
     fit();
     if (changed('mode', model.mode)) el.dataset.mode = model.mode;
+    if (changed('idle', !!model.idle)) el.querySelector('.cq-hud-start').hidden = !model.idle;
     for (const node of el.querySelectorAll('[data-h]')) {
       const key = node.dataset.h,
         value = model.text[key] ?? '';

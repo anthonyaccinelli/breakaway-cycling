@@ -3333,6 +3333,8 @@ window.addEventListener('message',event=>{
  else if(data.type==='music-setting'){questIntroMusic.setEnabled(data.enabled===true);}
  else if(data.type==='home'){if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');}
  else if(data.type==='connect'){questSend({type:'navigate',page:'devices'});}
+ else if(data.type==='start'){if(!connected||!controlGranted||!realTelemetry){questSend({type:'navigate',page:'devices'});status('Connect your smart trainer to start Cycle Quest.');}else if(rideEnd)status('Finish the ride summary before starting another ride.');else if(!running)beginRide();}
+ else if(data.type==='arm'){if(connected&&controlGranted&&realTelemetry&&!running&&!rideEnd&&!rideAwaitingPedaling){rideAwaitingPedaling=true;pedalSince=0;}}
  else if(data.type==='toggle'){if(!connected||!controlGranted||!realTelemetry){questSend({type:'navigate',page:'devices'});status('Connect your smart trainer to start Cycle Quest.');}else if(running)pauseRide();else if(rideEnd){status('Finish the ride summary before starting another ride.');}else {rideAwaitingPedaling=true;pedalSince=0;questSend({type:'notice',message:'Ready — start pedaling to begin.'});}}
  else if(data.type==='pause'){if(running)pauseRide();if(data.autoResume===false)rideAwaitingPedaling=false;}
  else if(data.type==='finish'){if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();questSend({type:'ride-finished'});}else questSend({type:'notice',message:'No active ride to finish.'});}

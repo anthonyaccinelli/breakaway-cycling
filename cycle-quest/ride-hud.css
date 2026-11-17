@@ -620,3 +620,41 @@
 #cq-preview .cq-hud-event .cq-levelup footer {
   font-size: 28px;
 }
+
+/* Before the ride: a big START RIDE over the road. Pedaling also starts the ride. */
+#cq-preview .cq-hud-start {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: #07132fb3;
+}
+#cq-preview .cq-hud-start[hidden] {
+  display: none;
+}
+#cq-preview .cq-hud .cq-hud-start button {
+  min-width: 520px;
+  min-height: 120px;
+  padding: 0 48px;
+  font-size: 84px;
+  line-height: 1;
+  background: #ffe777;
+  color: #06112f;
+  border: 4px solid #fff2a6;
+  box-shadow: 0 6px 0 #a88f2a;
+}
+#cq-preview .cq-hud .cq-hud-start button:hover {
+  background: #fff2a6;
+}
+#cq-preview .cq-hud .cq-hud-start button:focus-visible {
+  outline: 4px solid #7ee0ff;
+  outline-offset: 4px;
+}
+#cq-preview .cq-hud-start span {
+  font-size: 44px;
+  color: #e6ecff;
+  text-shadow: 0 2px 0 #06112f;
+}
