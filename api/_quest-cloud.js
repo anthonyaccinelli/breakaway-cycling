@@ -48,9 +48,11 @@ export async function handleCloud(action, body, { config = cloudConfig(), fetchI
   if (!config) return [503, { error: 'Cloud saves are not set up on this server yet.' }];
   if (!body || !validCode(body.code)) return [400, { error: 'That save code is not valid.' }];
   const hash = hashCode(body.code);
+  // Legacy service_role keys are JWTs and go in both headers; newer sb_secret_ keys are not
+  // JWTs, so Supabase only accepts them in the apikey header.
   const headers = {
     apikey: config.key,
-    Authorization: 'Bearer ' + config.key,
+    ...(config.key.startsWith('sb_') ? {} : { Authorization: 'Bearer ' + config.key }),
     'Content-Type': 'application/json'
   };
   const rows = config.url + '/rest/v1/' + TABLE;
