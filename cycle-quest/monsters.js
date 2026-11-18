@@ -1,5 +1,7 @@
 // Names/types adapted from SRD 5.1; numerical bases are authored Cycle Quest stats.
 // tier is a content-placement hint, never a rider level or a combat multiplier.
+// art (optional): a pixel PNG listed in assets.js, drawn at its native width × height and
+// shown at 2× in battle (up to 128 px tall; 136 px wide fits three across in any layout).
 export const MONSTERS = Object.freeze([
   {
     id: 'headwind',
@@ -431,7 +433,8 @@ export const MONSTERS = Object.freeze([
     type: 'beast',
     tier: 3,
     baseHP: 8400,
-    baseAttack: 0.21
+    baseAttack: 0.21,
+    art: { file: 'monster-wolf.png', width: 145, height: 86 }
   },
   {
     id: 'grimlock',
@@ -2506,3 +2509,26 @@ export const MONSTERS = Object.freeze([
     baseAttack: 0.2
   }
 ]);
+
+// The URL of a Cycle Quest asset, next to this module: through the beta endpoint
+// (/api/cycle-quest?asset=…) in the app, or a plain file in the autoplay demo.
+function questAssetUrl(file) {
+  try {
+    const here = new URL(import.meta.url);
+    if (here.searchParams.has('asset')) {
+      here.searchParams.set('asset', file);
+      return here.href;
+    }
+    if (here.protocol === 'http:' || here.protocol === 'https:') return new URL(file, here).href;
+  } catch {
+    /* no usable module URL (tests): fall through */
+  }
+  return '/api/cycle-quest?asset=' + encodeURIComponent(file);
+}
+
+const byId = new Map(MONSTERS.map(m => [m.id, m]));
+// Battle art for a monster id: { url, width, height } in native pixels, or null.
+export function monsterArt(id) {
+  const art = byId.get(id)?.art;
+  return art ? { url: questAssetUrl(art.file), width: art.width, height: art.height } : null;
+}

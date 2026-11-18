@@ -74,11 +74,13 @@ test('chapter levels are fixed per chapter and rise one level every 25 miles', (
   }
   assert.equal(chapterBaseLevel(10), 1 + Math.round(BALANCE.chapterLevelStep * 9));
 });
-test('rosters: 8 new monsters per chapter; 4 carry over from the last chapter for 12', () => {
+test('rosters: 8 of its own per chapter (new or returning); 4 carry over from the last chapter for 12', () => {
   assert.equal(CHAPTERS.length, 10);
   const seenNew = new Set();
   for (const c of CHAPTERS) {
-    assert.equal(c.newMonsters.length, 8);
+    const returning = c.returning || [];
+    assert.equal(c.newMonsters.length + returning.length, 8);
+    for (const id of returning) assert(seenNew.has(id), id + ' must be introduced before it returns');
     for (const id of c.newMonsters) {
       assert(!seenNew.has(id), 'repeated new monster ' + id);
       seenNew.add(id);
@@ -88,7 +90,8 @@ test('rosters: 8 new monsters per chapter; 4 carry over from the last chapter fo
     assert.equal(chapterRoster(c.chapter).length, c.chapter === 1 ? 8 : 12);
     if (c.chapter > 1) {
       assert.equal(c.carriedOver.length, 4);
-      const prev = CHAPTERS[c.chapter - 2].newMonsters;
+      const before = CHAPTERS[c.chapter - 2],
+        prev = [...before.newMonsters, ...(before.returning || [])];
       for (const id of c.carriedOver)
         assert(prev.includes(id), id + ' must come from chapter ' + (c.chapter - 1));
     }

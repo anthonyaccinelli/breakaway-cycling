@@ -134,10 +134,23 @@ best 20 minutes is higher than the current FTP. Until set, the game uses 200 W.
 
 ## Rosters
 
-`chapters.js`: each chapter introduces 8 D&D SRD 5.1 monsters; from Chapter 2 on, 4 of the
-previous chapter's new monsters carry over (12 per chapter). Each chapter has a fixed boss.
-They were picked at random within each chapter's challenge band, and you can edit them freely.
-Summit bosses come from a fixed list of 12 (`SUMMIT_BOSSES`). No monster artwork for now.
+`chapters.js`: each chapter has 8 D&D SRD 5.1 monsters of its own, newly introduced or
+`returning` from an earlier chapter, and from Chapter 2 on 4 of the previous chapter's 8 carry
+over (12 per chapter). Wolf is introduced in Chapter 1 (in place of Octopus), carries over to
+Chapter 2, returns in Chapter 3 and carries over to Chapter 4. Each chapter has a fixed boss.
+Summit bosses come from a fixed list of 12 (`SUMMIT_BOSSES`).
+
+## Monster art
+
+A monster with `art` in `monsters.js` (`{ file, width, height }`, a pixel PNG in `cycle-quest/`
+listed in `assets.js` as `image/png`) shows its sprite in the battle cockpit. Each enemy card
+is, top to bottom and centered: sprite, name, HP bar with the HP inside it; monsters without art
+show name and bar only. Art is drawn at native size, at most 128 px tall (136 px wide fits three
+across in any layout), and shown at 2×. When a window is too short for a 128 px creature at 2×,
+every sprite shrinks by the same factor, so relative sizes stay true. Twins in a pack are
+lettered (WOLF A, WOLF B). The beta endpoint serves images as bytes, and the autoplay demo
+copies them (its "1 wolf / 2 wolves / 3 wolves / Wolf + Jackal + Hawk" buttons preview the art).
+So far: Wolf (145×86).
 
 ## Rewards and healing
 

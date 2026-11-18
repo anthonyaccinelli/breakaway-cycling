@@ -35,6 +35,8 @@ export const QUEST_ASSETS = Object.freeze({
       'summary-capture'
     ].map(name => [name + '.js', 'text/javascript; charset=utf-8'])
   ),
+  // Monster art (pixel PNGs, shown at 2×). See monsters.js → art.
+  'monster-wolf.png': 'image/png',
   'FIT-PARSER-LICENSE.txt': 'text/plain; charset=utf-8',
   'SUMMARY-CAPTURE-LICENSE.txt': 'text/plain; charset=utf-8'
 });

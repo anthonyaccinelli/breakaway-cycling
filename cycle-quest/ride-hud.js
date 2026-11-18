@@ -93,6 +93,28 @@ const MARKUP =
   `<div class="cq-hud-iris" aria-hidden="true"></div>` +
   `</div>`;
 
+// Make `from` match `to` with the fewest DOM changes: same-shaped trees are patched
+// attribute by attribute and text by text; anything else is replaced.
+function morphChildren(from, to) {
+  const a = [...from.childNodes],
+    b = [...to.childNodes];
+  if (a.length !== b.length || a.some((n, i) => n.nodeName !== b[i].nodeName)) {
+    from.replaceChildren(...b);
+    return;
+  }
+  a.forEach((n, i) => {
+    const m = b[i];
+    if (n.nodeType === 3) {
+      if (n.nodeValue !== m.nodeValue) n.nodeValue = m.nodeValue;
+      return;
+    }
+    if (n.nodeType !== 1) return;
+    for (const attr of [...n.attributes]) if (!m.hasAttribute(attr.name)) n.removeAttribute(attr.name);
+    for (const attr of m.attributes)
+      if (n.getAttribute(attr.name) !== attr.value) n.setAttribute(attr.name, attr.value);
+    morphChildren(n, m);
+  });
+}
 export function mountRideHud(
   host,
   {
@@ -225,7 +247,12 @@ export function mountRideHud(
     }
     for (const node of el.querySelectorAll('[data-h-block]')) {
       const html = model.blocks[node.dataset.hBlock] || '';
-      if (changed('b:' + node.dataset.hBlock, html)) node.innerHTML = html;
+      if (changed('b:' + node.dataset.hBlock, html)) {
+        // Patch in place so images (monster art) are not recreated on every HP change.
+        const next = document.createElement('div');
+        next.innerHTML = html;
+        morphChildren(node, next);
+      }
     }
     const exhausted = !!model.exhausted;
     if (changed('exhausted', exhausted))

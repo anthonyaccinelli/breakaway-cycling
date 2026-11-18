@@ -7,6 +7,7 @@ function replaceOnce(source,before,after){
  return source.replace(before,after);
 }
 for(const name of Object.keys(QUEST_ASSETS)){
+ if(QUEST_ASSETS[name].startsWith('image/')){await writeFile(out+'/'+name,await readFile('cycle-quest/'+name));continue;}
  let source=(await readFile('cycle-quest/'+name,'utf8')).replace(/\/api\/cycle-quest\?asset=([A-Za-z0-9.-]+)/g,'./$1');
  if(name==='index.html')source=source.replace('Cycle Quest | Ride Breakaway','Cycle Quest — Autoplay Preview');
  if(name==='game.js'){

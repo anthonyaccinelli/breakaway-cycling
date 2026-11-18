@@ -70,6 +70,7 @@ import {
   bossPhase,
   BOSS_FIGHT
 } from '/api/cycle-quest?asset=combat.js';
+import { monsterArt } from '/api/cycle-quest?asset=monsters.js';
 import { elevationSVG } from '/api/cycle-quest?asset=profile.js';
 import { createLevelUpQueue, levelUpMarkup } from '/api/cycle-quest?asset=level-up.js';
 import { initWorkoutUI } from '/api/cycle-quest?asset=workout-ui.js';
@@ -1851,27 +1852,56 @@ $('.cq-controls').insertBefore(hudReturn, $('#float-overlay'));
 const unit = (value, suffix) => value + '<em> ' + suffix + '</em>';
 // Enemy cards, one per living enemy. The first is the one you are fighting (gold frame);
 // the rest wait their turn.
+// Enemy cards, top to bottom: sprite (when the monster has art), name, HP bar with the HP
+// inside it, all centered. Twins in a pack are lettered (WOLF A, WOLF B) in a stable order.
 function hudEnemyCards(b) {
-  const enemies = (Array.isArray(b.enemies) ? b.enemies : [b]).filter(e => e.hp > 0);
-  return enemies
-    .map(
-      (e, i) =>
+  const all = Array.isArray(b.enemies) ? b.enemies : [{ ...b, id: b.monsterId }];
+  const counts = new Map();
+  for (const e of all) counts.set(e.name, (counts.get(e.name) || 0) + 1);
+  const seen = new Map();
+  const named = all.map(e => {
+    const n = seen.get(e.name) || 0;
+    seen.set(e.name, n + 1);
+    return { e, label: e.name + (counts.get(e.name) > 1 ? ' ' + 'ABC'[n] : '') };
+  });
+  const living = named.filter(x => x.e.hp > 0);
+  return living
+    .map(({ e, label }, i) => {
+      const art = monsterArt(e.id || e.monsterId),
+        pct = Math.max(0, Math.min(100, (e.hp / e.max) * 100));
+      return (
         '<div class="cq-hud-enemy ' +
         (i === 0 ? 'cq-hud-active' : 'cq-hud-waiting') +
+        (art ? '' : ' cq-hud-noart') +
         '" style="--enemy-health:' +
         healthColor(e.hp, e.max) +
-        '"><div class="cq-hud-enemyname"><span>' +
-        safeText(e.name || b.name) +
+        '">' +
+        (art
+          ? '<div class="cq-hud-enemyart"><img src="' +
+            safeText(art.url) +
+            '" alt="" width="' +
+            art.width * 2 +
+            '" height="' +
+            art.height * 2 +
+            '" style="--art-h:' +
+            art.height +
+            '"></div>'
+          : '') +
+        '<div class="cq-hud-enemyname">' +
+        safeText(label) +
         ' \xB7 LV ' +
         safeText(e.level || b.level || 1) +
-        '</span>' +
-        (enemies.length > 1 ? '<em>' + (i === 0 ? 'FIGHTING' : 'NEXT') + '</em>' : '') +
-        '</div><span class="cq-hud-enemyhp">' +
+        '</div><div class="cq-hud-enemybar" role="img" aria-label="' +
+        safeText(label) +
+        ' health ' +
+        Math.round(pct) +
+        ' percent"><i style="width:' +
+        pct.toFixed(1) +
+        '%"></i><span>' +
         fmt(e.hp) +
-        '<em> HP</em></span><div class="cq-hud-enemymeter"><i style="width:' +
-        Math.max(0, Math.min(100, (e.hp / e.max) * 100)).toFixed(1) +
-        '%"></i></div></div>'
-    )
+        ' HP</span></div></div>'
+      );
+    })
     .join('');
 }
 // Crit and exhaustion notes for the prompt band (the power tile already shows % FTP).

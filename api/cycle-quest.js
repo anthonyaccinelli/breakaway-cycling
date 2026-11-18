@@ -74,7 +74,10 @@ export default async function handler(req, res) {
   const assets = QUEST_ASSETS;
   if (!Object.hasOwn(assets, asset)) return res.status(404).end();
   try {
-    const content = await readFile(path.join(process.cwd(), 'cycle-quest', asset), 'utf8');
+    // Images are sent as bytes; everything else is text.
+    const binary = assets[asset].startsWith('image/');
+    const content = await readFile(path.join(process.cwd(), 'cycle-quest', asset), binary ? null : 'utf8');
+    if (binary) res.setHeader('Cache-Control', 'private, max-age=86400');
     res.setHeader('Content-Type', assets[asset]);
     res.setHeader('Content-Security-Policy', "frame-ancestors 'self'");
     return res.status(200).send(content);

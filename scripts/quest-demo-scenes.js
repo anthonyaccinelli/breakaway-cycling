@@ -15,6 +15,13 @@ function handleDemoAction(action){
  levelUps.clear();levelUp=null;s.battle=null;s.reward=false;s.pendingReward=null;
  const crab=/^crab-([123])$/.exec(action),ratCount={rat:1,'rats-2':2,rats:3}[action];
  const fixedRat=/^rat-level-(1|6|10)$/.exec(action);
+ // Monster art previews: 1–3 wolves, or a wolf with two monsters that have no art yet.
+ const wolves=/^wolf-([123])$/.exec(action);
+ if(wolves||action==='wolf-mixed'){
+  const ids=wolves?Array(Number(wolves[1])).fill('wolf'):['wolf','jackal','hawk'];
+  s.battle=enemyGroup(ids.map(id=>makeBattle('enemy',{level:chapterLevels(s.chapter,s.miles).min,monsterId:id})));
+  showEncounterView();message='Monster art preview';save();render();return;
+ }
  if(crab||ratCount||fixedRat||['headwind','bat','snake','new-mobs'].includes(action)||action==='mixed-rats'){
   const id=['headwind','bat','snake'].includes(action)?action:crab?'crab':'rat';
   const levels=action==='mixed-rats'?[1,6,10]:Array.from({length:crab?Number(crab[1]):ratCount||1},()=>fixedRat?Number(fixedRat[1]):chapterLevels(s.chapter,s.miles).min);

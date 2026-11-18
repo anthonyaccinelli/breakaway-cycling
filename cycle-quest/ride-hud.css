@@ -484,47 +484,6 @@
   gap: 6px;
   overflow: hidden;
 }
-#cq-preview .cq-hud-enemy header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  font-size: 36px;
-  line-height: 1;
-  color: #ffe777;
-  white-space: nowrap;
-}
-#cq-preview .cq-hud-enemy header span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-#cq-preview .cq-hud-enemy header b {
-  font-weight: 400;
-  color: #fff;
-  font-size: 44px;
-}
-#cq-preview .cq-hud-enemy.cq-hud-many header {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  font-size: 32px;
-}
-#cq-preview .cq-hud-enemy.cq-hud-many header span,
-#cq-preview .cq-hud-enemy.cq-hud-many header b {
-  max-width: 100%;
-  font-size: 34px;
-}
-#cq-preview .cq-hud-enemymeter {
-  height: 28px;
-  flex: none;
-  background: #07132f;
-  border: 2px solid #6b86c3;
-}
-#cq-preview .cq-hud-enemymeter i {
-  display: block;
-  height: 100%;
-  background: var(--enemy-health, #e0b52f);
-}
 #cq-preview .cq-hud-timetile {
   padding: 8px 20px;
 }
@@ -732,7 +691,7 @@
 
 /* Cockpit, top to bottom: power + heart rate, enemies + time, damage band, HP + stamina. */
 #cq-preview .cq-hud-heroes {
-  height: 262px;
+  height: 216px;
 }
 #cq-preview .cq-hud-foot {
   order: 0;
@@ -740,15 +699,15 @@
   min-height: 0;
 }
 #cq-preview .cq-hud-prompt {
-  height: 112px;
+  height: 96px;
   flex: none;
 }
 #cq-preview .cq-hud-bars-cockpit {
-  height: 84px;
+  height: 76px;
   flex: none;
 }
 #cq-preview .cq-hud-bars-cockpit .cq-hud-bar {
-  height: 84px;
+  height: 76px;
 }
 #cq-preview .cq-hud-bars-cockpit .cq-hud-barvalue {
   font-size: 64px;
@@ -778,46 +737,83 @@
 #cq-preview .cq-hud .cq-hud-enemy.cq-hud-waiting {
   opacity: 0.78;
 }
-#cq-preview .cq-hud-enemy .cq-hud-enemyname {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 38px;
-  line-height: 1;
-  color: #ffe777;
-  white-space: nowrap;
+/* Enemy card, top to bottom and centered: sprite (if the monster has art), name, HP bar
+   with the HP inside it. Sprites keep their 2× size when there is room and shrink evenly
+   (still pixel-sharp) when there is not. */
+#cq-preview .cq-hud .cq-hud-enemy {
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 14px 12px;
 }
-#cq-preview .cq-hud-enemy .cq-hud-enemyname span {
+#cq-preview .cq-hud .cq-hud-enemy.cq-hud-noart {
+  justify-content: center;
+}
+#cq-preview .cq-hud-enemyart {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+#cq-preview .cq-hud-enemyart img {
+  display: block;
+  /* One scale for every monster, so sizes stay true: 2×, or less when the card cannot fit
+     a 128 px (the tallest allowed) creature at 2×. --art-h is the art's native height. */
+  height: min(calc(var(--art-h) * 2px), calc(var(--art-h) / 128 * 100%));
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+#cq-preview .cq-hud-enemy .cq-hud-enemyname {
+  max-width: 100%;
+  font-size: 40px;
+  line-height: 1;
+  color: #ffffff;
+  text-align: center;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 2px 0 #06112f;
 }
-#cq-preview .cq-hud-enemy .cq-hud-enemyname em {
-  font-style: normal;
-  font-size: 28px;
-  color: #c9d5f5;
+#cq-preview .cq-hud-enemy.cq-hud-active .cq-hud-enemyname {
+  color: #ffe777;
+}
+#cq-preview .cq-hud-enemy .cq-hud-enemybar {
+  position: relative;
   flex: none;
-}
-#cq-preview .cq-hud-enemy .cq-hud-enemyhp {
-  font-size: 76px;
-  line-height: 0.9;
-  white-space: nowrap;
-}
-#cq-preview .cq-hud-enemy .cq-hud-enemyhp em {
-  font-size: 34px;
-  color: #c9d5f5;
-}
-#cq-preview .cq-hud-enemies:has(> .cq-hud-enemy:nth-child(3)) .cq-hud-enemyhp {
-  font-size: 64px;
-}
-/* Three cards: the FIGHTING / NEXT tag moves above the name so the name fits. */
-#cq-preview .cq-hud-enemies:has(> .cq-hud-enemy:nth-child(3)) .cq-hud-enemyname {
-  flex-direction: column-reverse;
-  gap: 2px;
-  font-size: 34px;
-}
-#cq-preview .cq-hud-enemy .cq-hud-enemymeter {
-  height: 40px;
+  width: min(100%, 300px);
+  height: 48px;
+  box-sizing: border-box;
+  background: #07132f;
+  border: 3px solid #e6ecff;
   border-radius: 4px;
+  overflow: hidden;
+}
+#cq-preview .cq-hud-enemy.cq-hud-active .cq-hud-enemybar {
+  border-color: #ffe777;
+}
+#cq-preview .cq-hud-enemybar i {
+  display: block;
+  height: 100%;
+  background: var(--enemy-health, #e0b52f);
+}
+#cq-preview .cq-hud-enemybar span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 #06112f;
+}
+#cq-preview .cq-hud-enemies:has(> .cq-hud-enemy:nth-child(3)) .cq-hud-enemyname {
+  font-size: 34px;
 }
 #cq-preview .cq-hud-timetile {
   padding: 12px 20px;
@@ -875,6 +871,12 @@
 #cq-preview .cq-hud-tilebody .cq-hud-hero {
   font-size: 186px;
   line-height: 0.88;
+}
+#cq-preview .cq-hud[data-mode='cockpit'] .cq-hud-tilebody .cq-hud-hero {
+  font-size: 150px;
+}
+#cq-preview .cq-hud[data-mode='cockpit'] .cq-hud-heroes .cq-hud-tile {
+  padding: 10px 26px;
 }
 /* Phase and brace colours win over the window frame. */
 #cq-preview .cq-hud .cq-hud-prompt[data-state='windup'] {

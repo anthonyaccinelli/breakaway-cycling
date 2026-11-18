@@ -1,6 +1,7 @@
 // The ten Adventure chapters: fixed 100-mile routes, enemy rosters and chapter bosses.
-// Rosters: each chapter introduces 8 monsters (D&D SRD 5.1); from Chapter 2 on, 4 monsters
-// carry over from the previous chapter's new 8, for 12 per chapter. Picked at random within
+// Rosters: each chapter has 8 monsters of its own (D&D SRD 5.1): newly introduced ones, plus
+// any `returning` from an earlier chapter (Wolf, introduced in Chapter 1, returns in
+// Chapter 3). From Chapter 2 on, 4 of the previous chapter's own 8 carry over, for 12. Picked at random within
 // each chapter's challenge band (seeded), then frozen here. Edit freely.
 // Route seeds match the Classic route registry, so each chapter's terrain never changes.
 
@@ -11,7 +12,7 @@ export const CHAPTERS = Object.freeze([
     chapter: 1,
     title: 'COASTAL BEGINNINGS',
     route: { seed: 829101001, miles: 100, gainFeet: 5000, terrain: 'rolling' },
-    newMonsters: ['hawk', 'scorpion', 'jackal', 'raven', 'bat', 'cat', 'octopus', 'goat'],
+    newMonsters: ['hawk', 'scorpion', 'jackal', 'raven', 'bat', 'cat', 'wolf', 'goat'],
     carriedOver: [],
     boss: 'bandit'
   },
@@ -29,7 +30,7 @@ export const CHAPTERS = Object.freeze([
       'constrictor-snake',
       'giant-frog'
     ],
-    carriedOver: ['cat', 'octopus', 'hawk', 'scorpion'],
+    carriedOver: ['cat', 'wolf', 'hawk', 'scorpion'],
     boss: 'draft-horse'
   },
   {
@@ -38,7 +39,6 @@ export const CHAPTERS = Object.freeze([
     route: { seed: 829101003, miles: 100, gainFeet: 3300, terrain: 'rolling' },
     newMonsters: [
       'swarm-of-ravens',
-      'wolf',
       'violet-fungus',
       'zombie',
       'riding-horse',
@@ -46,6 +46,7 @@ export const CHAPTERS = Object.freeze([
       'deep-gnome-svirfneblin',
       'giant-sea-horse'
     ],
+    returning: ['wolf'],
     carriedOver: ['mastiff', 'giant-crab', 'giant-badger', 'giant-frog'],
     boss: 'crocodile'
   },
@@ -177,7 +178,7 @@ export function chapterInfo(chapter) {
 // Monster ids a chapter's random encounters draw from (8 in Chapter 1, 12 after).
 export function chapterRoster(chapter) {
   const info = chapterInfo(Math.min(CHAPTER_COUNT, Math.max(1, Math.floor(chapter) || 1)));
-  return [...info.newMonsters, ...info.carriedOver];
+  return [...info.newMonsters, ...(info.returning || []), ...info.carriedOver];
 }
 
 export function chapterRoute(chapter, generateRoute) {
