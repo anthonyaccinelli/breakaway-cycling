@@ -226,8 +226,8 @@ test('loot is stored and mechanics repair without changing equipment', () => {
   const rolls = [0, 0.1, 0.1, 0.8];
   const result = exploreRoadside(rider, 1, () => rolls.shift());
   assert(result.repair);
-  assert.deepEqual(bike.tiers, [0, 0, 0, 0]);
-  assert.equal(bike.owned.filter(n => n !== null).length, 5);
+  assert.deepEqual(bike.tiers, [0, 0, 0, 0, 0]);
+  assert.equal(bike.owned.filter(n => n !== null).length, 6);
   const saved = JSON.parse(JSON.stringify(rider));
   assert.equal(exploreRoadside(saved, 0), null);
   assert.equal(saved.bike.roadsideRemaining, 4);

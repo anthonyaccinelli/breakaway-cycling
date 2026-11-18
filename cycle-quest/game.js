@@ -11,7 +11,9 @@ import {
   changePart,
   exploreRoadside,
   GRADE_BONUS,
-  UPGRADE_BONUS
+  UPGRADE_BONUS,
+  SLOT_STATS,
+  staminaEfficiency
 } from '/api/cycle-quest?asset=bike-parts.js';
 import { createQuestMusic } from '/api/cycle-quest?asset=music.js';
 import { readCharacter } from '/api/cycle-quest?asset=save-state.js';
@@ -630,8 +632,15 @@ function renderShop() {
           '<h3>' +
           slot +
           ' · ' +
-          (i < 2 ? 'HP' : 'ATTACK') +
+          SLOT_STATS[i] +
           '</h3>' +
+          (SLOT_STATS[i] === 'STAMINA'
+            ? '<p>Tires make stamina last longer and refill faster, at half the tire’s bonus. ' +
+              (staminaEfficiency(bike) > 1
+                ? 'Your tires: +' + Math.round((staminaEfficiency(bike) - 1) * 100) + '% stamina.'
+                : 'Stock tires: no bonus yet.') +
+              '</p>'
+            : '') +
           catalog
             .filter(p => p.slot === i)
             .map(p => {
@@ -955,7 +964,7 @@ function step(dt) {
   dt = Math.min(dt, 1);
   s.rideSeconds += dt;
   // Stamina: above FTP drains it, easy riding refills it, in battles and while exploring.
-  s.stamina = advanceStamina(s.stamina, effortShare(power, riderFTP(s)), dt);
+  s.stamina = advanceStamina(s.stamina, effortShare(power, riderFTP(s)), dt, staminaEfficiency(s.bike));
   if (power > 0 && live.cadence > 0) {
     award(dt);
     if (!s.battle && !s.reward)

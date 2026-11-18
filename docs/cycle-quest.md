@@ -156,7 +156,10 @@ Summit bosses come from a fixed list of 12 (`SUMMIT_BOSSES`). No monster artwork
 
 ## Bike shop
 
-Four slots (Frame and Seat add HP, Pedals and Wheels add attack). Grades unlock by
+Five slots: Frame and Seat add HP, Pedals and Wheels add attack, and Tires make stamina
+last longer. Tires count half: stamina drain is divided, and refill multiplied, by
+1 + bonus × 0.5 (`staminaEfficiency`), so Gold tires (+30%) give +15% and fully upgraded
+Platinum tires +82%. Bikes saved with four slots load as before and get stock tires. Grades unlock by
 chapter (+10% each); upgrades add +2.5% each, capped by rider level (max 50) and cost
 100 × (tier + 1) coins. See `bike-parts.js`.
 

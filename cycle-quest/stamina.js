@@ -19,15 +19,19 @@ export const STAMINA = Object.freeze({
   exhaustedDamage: 0.6
 });
 
-export function advanceStamina(stamina, effort, dt) {
+// `efficiency` comes from the bike's tires (bike-parts.js → staminaEfficiency): drain is
+// divided by it and refill multiplied by it. 1 = stock tires.
+export function advanceStamina(stamina, effort, dt, efficiency = 1) {
+  const k = Number.isFinite(efficiency) && efficiency > 0 ? efficiency : 1;
   const current = Number.isFinite(stamina) ? stamina : STAMINA.max;
   const seconds = Math.max(0, Number(dt) || 0);
   const e = Math.max(0, Number(effort) || 0);
   let next = current;
-  if (e > 1) next -= (STAMINA.drainAtFTP + (e - 1) * STAMINA.drainPerFTPAbove) * seconds;
+  if (e > 1) next -= ((STAMINA.drainAtFTP + (e - 1) * STAMINA.drainPerFTPAbove) * seconds) / k;
   else if (e > STAMINA.drainFromEffort)
-    next -= ((STAMINA.drainAtFTP * (e - STAMINA.drainFromEffort)) / (1 - STAMINA.drainFromEffort)) * seconds;
-  else if (e <= STAMINA.recoverBelowEffort) next += STAMINA.recoverPerSecond * seconds;
+    next -=
+      ((STAMINA.drainAtFTP * (e - STAMINA.drainFromEffort)) / (1 - STAMINA.drainFromEffort)) * (seconds / k);
+  else if (e <= STAMINA.recoverBelowEffort) next += STAMINA.recoverPerSecond * seconds * k;
   return Math.max(0, Math.min(STAMINA.max, next));
 }
 
