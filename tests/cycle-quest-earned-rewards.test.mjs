@@ -235,7 +235,7 @@ test('loot is stored and mechanics repair without changing equipment', () => {
 test('roadside rolls only occur in the active pedaling exploration branch', () => {
   const block = game.slice(
     game.indexOf('if (!s.battle && !s.reward && !levelUp && running) {'),
-    game.indexOf('    if (running) {')
+    game.indexOf('let remaining = dt;')
   );
   assert(block.includes('else if (power > 0 && m.cadence > 0 && warmupSeconds <= 0)'));
   assert(block.includes('else if (delta > 0)'));

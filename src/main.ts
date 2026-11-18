@@ -51,25 +51,18 @@ const CSC_MEASUREMENT='00002a5b-0000-1000-8000-00805f9b34fb';
 const CONTROL='00002ad9-0000-1000-8000-00805f9b34fb';
 const STATUS='00002ada-0000-1000-8000-00805f9b34fb';
 const BIKE='00002ad2-0000-1000-8000-00805f9b34fb';
-let cycleQuestHeldSlope:number|null=null;
-let cycleQuestHold=false;let cycleQuestHeldSpeed=0;
-let cycleQuestHeldGrade:number|null=null,cycleQuestHeldRequestedGrade=0,cycleQuestHeldErgTarget=0,cycleQuestHeldGear=6;
+// Cycle Quest: true while a battle, reward, level-up or boss warmup is on screen. The route
+// keeps going underneath, so chapter miles always match real miles. Only at the end of a
+// finite route, where there is no more road, does the rider park on a flat finish straight
+// until the fight is over (questParked).
+let cycleQuestHold=false;
+function questRouteEnd(){return procedural?routeLimit:(points.at(-1)?.distance??0);}
+function questParked(){
+ return rideExperience==='cyclequest'&&!endless&&distance>=questRouteEnd()-0.5&&(cycleQuestHold||questStoryChapter>0);
+}
 function setCycleQuestHold(hold:boolean){
- if(hold&&!cycleQuestHold){
-  // Preserve the currently applied trainer load for the full battle; route
-  // position and terrain updates must not change it mid-encounter.
-  // Battles, rewards, level-ups and boss warmups keep the grade the rider was on when they
-  // began (capped at -3% to +8%), so gearing still feels right. The route position waits;
-  // the rider resumes where the battle began (see advanceRide).
-  const lockedGrade=Math.max(-3,Math.min(8,at(distance).grade*num('difficulty')/100));
-  cycleQuestHeldSlope=lockedGrade;
-  cycleQuestHeldRequestedGrade=lockedGrade;
-  cycleQuestHeldGrade=lockedGrade;
-  cycleQuestHeldSpeed=speed;cycleQuestHeldErgTarget=lastTarget;cycleQuestHeldGear=gear;
- }
  cycleQuestHold=hold;
- if(!hold){cycleQuestHeldGrade=null;cycleQuestHeldSlope=null;}
- // Reassert the held/current load immediately on both transitions.
+ // Reapply the trainer load at once in case the rider is parked at the route end.
  if(typeof running!=='undefined'&&running&&connected&&controlGranted&&realTelemetry&&trainerMode!=='target'){
   void updateSimResistance(performance.now(),true);
  }
@@ -1077,8 +1070,9 @@ async function setGrade(grade:number){
  return command(Array.from(new Uint8Array(b)));
 }
 function simRequestedGrade():number{
+ if(questParked())return 0;
  const routeGrade=at(distance).grade*num('difficulty')/100;
- return cycleQuestHold&&cycleQuestHeldGrade!==null?cycleQuestHeldGrade:Math.max(-12,Math.min(12,routeGrade));
+ return Math.max(-12,Math.min(12,routeGrade));
 }
 function resetSimController(){simAppliedGrade=NaN;simLastTime=0;trainerGrade=NaN;virtualPowerLastTime=-Infinity;lastTarget=-1;}
 async function updateSimResistance(now:number,immediate=false){
@@ -1103,7 +1097,7 @@ async function setVirtualGearResistance(immediate=false){
  const now=performance.now();
  if(!immediate&&now-virtualPowerLastTime<250)return;
  const rpm=now-cadenceReceivedAt<=3000?cadence:0;
- const slope=cycleQuestHold&&cycleQuestHeldSlope!==null?cycleQuestHeldSlope:at(distance).grade*num('difficulty')/100;
+ const slope=questParked()?0:at(distance).grade*num('difficulty')/100;
  const target=virtualGearTarget(gear,rpm,{massKg:Math.max(35,weightKg('weight')+weightKg('bikeWeight')),gradePercent:slope,crr:Math.max(0,num('crr'))});
  const watts=Math.round(target.watts);
  if(watts===lastTarget&&now-virtualPowerLastTime<2000)return;
@@ -1178,20 +1172,19 @@ function advanceRide(now:number){
     const limit=procedural?routeLimit:points.at(-1)!.distance;
     speed=now-cscLastSpeedAt<4500?cscSpeedMps:0;
     cadence=now-cscLastCadenceAt<4500?cadence:0;
-    // Cycle Quest battle: real distance counts, the route position waits.
-    if(cycleQuestHold){rideOdometer+=speed*step;continue;}
+    // Cycle Quest at the end of the route: real distance still counts.
+    if(questParked()){rideOdometer+=speed*step;continue;}
     const before=distance;
     distance=Math.min(limit,distance+speed*step);
     rideOdometer+=distance-before;
     if(distance>=limit)break;
     continue;
    }
-   // Cycle Quest battles, rewards, level-ups and boss warmups: ride the grade locked at the
-   // start of the battle. Speed follows the rider's watts and the odometer counts the real
-   // distance, while the route position waits so the rider resumes where the battle began.
-   if(cycleQuestHold){
+   // Cycle Quest at the end of the route (chapter boss, or a fight still going at the finish):
+   // ride a flat finish straight. Speed follows the rider's watts and the odometer counts it.
+   if(questParked()){
     const flatStart=speed;
-    speed=advanceRoadSpeed(speed,watts,step,{massKg:mass,gradePercent:cycleQuestHeldSlope??0,crr});
+    speed=advanceRoadSpeed(speed,watts,step,{massKg:mass,gradePercent:0,crr});
     rideOdometer+=(flatStart+speed)*0.5*step;
     continue;
    }
@@ -1209,7 +1202,8 @@ function advanceRide(now:number){
   if(!endless&&distance>=(procedural?routeLimit:points.at(-1)!.distance)){
    const summit=rideExperience==='cyclequest'?questHighestSummit():null;
    const waitForSummit=summit&&!questFinalSummitResolved&&summit.end>=(procedural?routeLimit:points.at(-1)!.distance)-100;
-   if(!waitForSummit&&!(rideExperience==='cyclequest'&&questStoryChapter>0)){finishRide();status('Route complete');}
+   // A Cycle Quest fight still going at the finish ends before the ride does.
+   if(!waitForSummit&&!(rideExperience==='cyclequest'&&(questStoryChapter>0||cycleQuestHold))){finishRide();status('Route complete');}
   }
   if(!cscOnly&&trainerMode==='sim')void updateSimResistance(now);
   if(!cscOnly&&trainerMode==='erg'&&now-lastGearUpdate>250){lastGearUpdate=now;void setVirtualGearResistance();}

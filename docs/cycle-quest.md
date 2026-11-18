@@ -10,13 +10,14 @@ Ride ten fixed 100-mile chapters (Adventure) or any route (Freeroam). Pedaling e
 bosses wait at the top of climbs; a chapter boss waits at mile 100.
 Random encounters are "ride until they die". Summit and chapter bosses fight in phases (below).
 
-During a battle, reward choice, level-up or boss warmup, the trainer **locks the grade** the
-rider was on when it began, capped to −3%…+8% (`setCycleQuestHold` in `src/main.ts`), and the
-route position waits; the rider resumes exactly where the battle began, so chapter
-miles only count route riding. The real distance pedaled during battles is still counted
-by the ride **odometer** (`rideOdometer` in `src/main.ts`), which the ride summary, saved
-history, TCX file and Strava/Garmin uploads use, so uploads never lose battle miles.
-Random encounters wait while the road descends more steeply than −3%
+During a battle, reward choice, level-up or boss warmup the route **keeps going**: the rider
+rides the real course (grade included) while fighting, so chapter miles always equal the
+miles actually ridden, and the ride summary, TCX file and Strava/Garmin uploads match too.
+Only at the end of a finite route, where there is no road left, does the rider park on a
+flat finish straight (`questParked` in `src/main.ts`) for the chapter boss or a fight still
+going at the finish; the ride does not end until that fight is over, and the odometer
+(`rideOdometer`) keeps counting. A summit passed during a fight waits until the fight ends,
+then starts. Random encounters wait while the road descends more steeply than −3%
 (`BALANCE.steepestEncounterDescent`); summit and chapter bosses keep their places.
 
 ## Routes and summit bosses

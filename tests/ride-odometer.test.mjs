@@ -19,6 +19,8 @@ const code = transpile(
   [
     fn('advanceRide'),
     fn('setCycleQuestHold'),
+    fn('questRouteEnd'),
+    fn('questParked'),
     fn('sessionDistanceMeters'),
     fn('checkpointOdometer'),
     fn('sampleOdometer')
@@ -55,12 +57,7 @@ function harness() {
     rideOdometer: 0,
     rideSessionStartDistance: 1000,
     cycleQuestHold: false,
-    cycleQuestHeldSlope: null,
-    cycleQuestHeldRequestedGrade: 0,
-    cycleQuestHeldGrade: null,
-    cycleQuestHeldSpeed: 0,
-    cycleQuestHeldErgTarget: 0,
-    cycleQuestHeldGear: 6,
+    finished: 0,
     trainerGrade: 4,
     lastTarget: 0,
     gear: 6,
@@ -82,7 +79,7 @@ function harness() {
     ensureTerrain() {},
     svg() {},
     checkStationaryRide() {},
-    finishRide() {},
+    finishRide: () => c.finished++,
     status() {},
     updateSimResistance: async () => {},
     setVirtualGearResistance: async () => {},
@@ -114,33 +111,37 @@ test('outside battles the odometer follows the route exactly', () => {
   assert.equal(Math.round(c.rideOdometer), 80);
   assert.equal(Math.round(vm.runInContext('sessionDistanceMeters()', c)), 80);
 });
-test('during a Cycle Quest battle the route waits, the grade stays locked and real distance still counts', () => {
+test('during a Cycle Quest battle the route keeps going, so chapter miles match real miles', () => {
   const { c, roads } = harness();
   ride(c, 5);
   vm.runInContext('setCycleQuestHold(true)', c);
   roads.length = 0;
-  assert.equal(c.cycleQuestHeldGrade, 6, 'the 6% climb the rider was on');
-  assert.equal(c.cycleQuestHeldSlope, 6);
   ride(c, 30);
-  assert.equal(Math.round(c.distance), 1040, 'route position waits where the battle began');
-  assert.equal(Math.round(c.rideOdometer), 40 + 240, 'the 30 battle seconds are real miles in the ride file');
-  assert(roads.length > 0 && roads.every(g => g === 6), 'battle speed uses the locked grade');
+  assert.equal(Math.round(c.distance), 1040 + 240, 'the route advances during the battle');
+  assert.equal(Math.round(c.rideOdometer), 40 + 240, 'route and ride file agree');
+  assert(roads.length > 0 && roads.every(g => g === 6), 'the rider rides the real grade');
   vm.runInContext('setCycleQuestHold(false)', c);
   ride(c, 5);
-  assert.equal(Math.round(c.distance), 1080, 'the rider resumes from the battle start');
+  assert.equal(Math.round(c.distance), 1320);
   assert.equal(Math.round(c.rideOdometer), 320);
 });
-test('the locked battle grade is capped at -3% to +8%', () => {
-  for (const [grade, locked] of [
-    [12, 8],
-    [-9, -3],
-    [2.5, 2.5]
-  ]) {
-    const { c } = harness();
-    c.at = () => ({ grade, elevation: 0 });
-    vm.runInContext('setCycleQuestHold(true)', c);
-    assert.equal(c.cycleQuestHeldGrade, locked, String(grade));
-  }
+test('a fight at the end of the route parks the rider on a flat finish and the ride waits for it', () => {
+  const { c, roads } = harness();
+  c.endless = false;
+  c.questStoryChapter = 0; // Freeroam: the route end normally finishes the ride
+  c.points = [
+    { distance: 0, elevation: 0, grade: 6 },
+    { distance: 1100, elevation: 66, grade: 6 }
+  ];
+  vm.runInContext('setCycleQuestHold(true)', c);
+  ride(c, 30);
+  assert.equal(Math.round(c.distance), 1100, 'no road past the finish');
+  assert.equal(c.finished, 0, 'the ride does not end mid-fight');
+  assert.equal(Math.round(c.rideOdometer), 240, 'pedaling at the finish still counts');
+  assert.equal(roads.at(-1), 0, 'parked on a flat finish straight');
+  vm.runInContext('setCycleQuestHold(false)', c);
+  ride(c, 1);
+  assert(c.finished >= 1, 'the ride finishes once the fight is over');
 });
 test('ride files and saved rides use the odometer; old samples and checkpoints still work', () => {
   const { c } = harness();

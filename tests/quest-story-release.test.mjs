@@ -18,10 +18,10 @@ test('returning from Freeroam restores Story chapter mileage on the same fixed r
  assert.equal(c.s.mode,'adventure');assert.equal(c.s.route.storyChapter,2);assert.equal(c.s.routeMiles,42);assert.equal(c.lastLiveDistance,42*METERS_PER_MILE);assert.equal(sent[0].restoreMiles,42);
  vm.runInContext('loadStoryRoute()',c);assert.equal(c.s.routeMiles,42);
 });
-test('Story route endpoint waits for its boss; Freeroam endpoints still finish normally',async()=>{
+test('Story route endpoint waits for its boss; Freeroam endpoints finish normally once any fight is over',async()=>{
  const main=await readFile(new URL('../src/main.ts',import.meta.url),'utf8');
  const line=main.split('\n').find(line=>line.includes('if(!waitForSummit&&'));assert(line);
- for(const [mode,chapter,wait,expected] of [['cyclequest',1,false,0],['cyclequest',0,false,1],['classic',0,false,1],['cyclequest',1,true,0]]){
-  let finishes=0;const c={rideExperience:mode,questStoryChapter:chapter,waitForSummit:wait,finishRide(){finishes++;},status(){}};vm.createContext(c);vm.runInContext(line,c);assert.equal(finishes,expected);
+ for(const [mode,chapter,wait,expected,hold=false] of [['cyclequest',1,false,0],['cyclequest',0,false,1],['classic',0,false,1],['cyclequest',1,true,0],['cyclequest',0,false,0,true]]){
+  let finishes=0;const c={rideExperience:mode,questStoryChapter:chapter,waitForSummit:wait,cycleQuestHold:hold,finishRide(){finishes++;},status(){}};vm.createContext(c);vm.runInContext(line,c);assert.equal(finishes,expected);
  }
 });

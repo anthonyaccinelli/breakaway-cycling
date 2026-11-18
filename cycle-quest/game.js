@@ -2834,7 +2834,9 @@ window.addEventListener('message', e => {
         }
       }
     }
-    if (!s.battle && !s.reward && !levelUp && running) {
+    // The route keeps going during battles, rewards and level-ups, so every mile ridden counts
+    // toward the chapter: chapter miles always match the ride's real miles.
+    if (running) {
       s.rideMiles += delta / METERS_PER_MILE;
       if (s.mode === 'adventure') s.miles = Math.min(100, s.miles + delta / METERS_PER_MILE);
       if (
@@ -2844,6 +2846,8 @@ window.addEventListener('message', e => {
       )
         s.miles = 100;
       s.routeMiles = m.distanceM / METERS_PER_MILE;
+    }
+    if (!s.battle && !s.reward && !levelUp && running) {
       if (s.miles >= 100 && s.mode === 'adventure' && s.chapter <= 10) {
         // Chapter boss reached: wait for the rider to pick a warmup or fight now.
       } else if (power > 0 && m.cadence > 0 && warmupSeconds <= 0) {
