@@ -142,24 +142,6 @@
 #cq-preview .cq-setup-party > * {
   flex-shrink: 0;
 }
-#cq-preview .cq-setup-device {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  font-size: clamp(20px, 1.6vw, 28px);
-}
-#cq-preview .cq-setup-device b {
-  font-weight: 400;
-  color: #c9d5f5;
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-#cq-preview .cq-setup-device b.cq-ok {
-  color: #5fe07f;
-}
 #cq-preview .cq-setup hr {
   width: 100%;
   border: 0;
@@ -227,6 +209,102 @@
   display: grid;
   gap: 12px;
 }
+/* Party devices: three big rounded square tiles, each one a connect button. */
+#cq-preview .cq-setup-party {
+  container-type: inline-size;
+}
+#cq-preview .cq-setup-party > .cq-setup-devices {
+  flex: 1 1 auto;
+}
+#cq-preview .cq-setup-devices {
+  display: grid;
+  /* About as tall as each tile is wide: big squares, not tall cards. */
+  max-height: min(280px, 31cqi);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+#cq-preview .cq-setup .cq-setup-tile {
+  position: relative;
+  min-height: clamp(96px, 15vh, 150px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 6px !important;
+  background: #10255b !important;
+  color: #fff !important;
+  border: 3px solid #6b86c3 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 0 #06112f;
+  min-width: 0 !important;
+  width: auto !important;
+}
+#cq-preview .cq-setup-tile strong {
+  font-weight: 400;
+  font-size: clamp(26px, 2.3vw, 40px);
+  line-height: 0.95;
+}
+#cq-preview .cq-setup-tile b {
+  font-weight: 400;
+  font-size: clamp(16px, 1.4vw, 24px);
+  line-height: 1;
+  color: #c9d5f5;
+}
+#cq-preview .cq-setup-tile strong,
+#cq-preview .cq-setup-tile b {
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+#cq-preview .cq-setup-tag {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  right: 0;
+  font-size: clamp(13px, 1vw, 17px);
+  letter-spacing: 0.08em;
+  color: #8fa3d6;
+}
+#cq-preview .cq-setup-tile[data-tile='trainer'] .cq-setup-tag {
+  color: #ffe777;
+}
+/* The trainer is required, so its tile stands out until it is ready. */
+#cq-preview .cq-setup .cq-setup-tile[data-tile='trainer'][data-state='off'] {
+  border-color: #ffe777 !important;
+  animation: cq-setup-pulse 1.6s ease-in-out infinite;
+}
+#cq-preview .cq-setup .cq-setup-tile[data-state='busy'] b {
+  color: #ffe777;
+}
+#cq-preview .cq-setup .cq-setup-tile[data-state='on'] {
+  background: #14532d !important;
+  border-color: #5fe07f !important;
+}
+#cq-preview .cq-setup .cq-setup-tile[data-state='on'] b {
+  color: #5fe07f;
+}
+#cq-preview .cq-setup .cq-setup-tile:hover {
+  filter: brightness(1.15);
+}
+@keyframes cq-setup-pulse {
+  50% {
+    box-shadow:
+      0 4px 0 #06112f,
+      0 0 0 4px #ffe77755;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #cq-preview .cq-setup .cq-setup-tile[data-tile='trainer'][data-state='off'] {
+    animation: none;
+  }
+}
+/* Bike shop is the one gold button in the party menu. */
+#cq-preview .cq-setup .cq-setup-pill.cq-setup-shop {
+  background: #ffe777 !important;
+  color: #06112f !important;
+  border-color: #fff2a6 !important;
+}
 /* Smaller windows: tighten the party so it fits without scrolling. */
 @media (max-width: 1200px), (max-height: 1000px) {
   #cq-preview .cq-setup-window {
@@ -235,13 +313,21 @@
   #cq-preview .cq-setup-party {
     gap: 6px;
   }
+  #cq-preview .cq-setup .cq-setup-tile {
+    aspect-ratio: auto;
+    min-height: 112px;
+    padding-top: 22px !important;
+  }
+  #cq-preview .cq-setup-tile strong {
+    font-size: clamp(18px, 2vw, 26px);
+  }
+  #cq-preview .cq-setup-tile b {
+    font-size: clamp(14px, 1.4vw, 18px);
+  }
   #cq-preview .cq-setup .cq-setup-tab,
   #cq-preview .cq-setup .cq-setup-pill {
     min-height: 36px;
     font-size: clamp(18px, 1.5vw, 24px) !important;
-  }
-  #cq-preview .cq-setup-device {
-    font-size: clamp(18px, 1.5vw, 24px);
   }
   #cq-preview .cq-setup-hp {
     height: 24px;
@@ -278,6 +364,11 @@
   }
   #cq-preview .cq-setup-profile {
     min-height: 110px;
+  }
+  #cq-preview .cq-setup .cq-setup-tile {
+    aspect-ratio: auto;
+    min-height: clamp(96px, 15vh, 150px);
+    border-radius: 12px !important;
   }
   #cq-preview .cq-setup .cq-setup-ride {
     min-height: 60px;

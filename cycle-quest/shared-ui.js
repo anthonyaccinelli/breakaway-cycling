@@ -28,6 +28,21 @@ export function mountQuestBaseline({
   section.setAttribute('aria-label', 'Set up your ride');
   const pill = (attr, label) =>
     '<button type="button" class="cq-setup-pill" ' + attr + '>' + label + '</button>';
+  // Party devices: three big square tiles; the whole tile is the connect button.
+  const tile = (action, id, label, tag) =>
+    '<button type="button" class="cq-setup-tile" data-setup-device="' +
+    action +
+    '" data-tile="' +
+    id +
+    '"><span class="cq-setup-tag" data-setup-tag="' +
+    id +
+    '">' +
+    tag +
+    '</span><strong>' +
+    label +
+    '</strong><b data-setup-status="' +
+    id +
+    '">TAP TO CONNECT</b></button>';
   section.innerHTML =
     '<section class="cq-setup-route cq-setup-window">' +
     '<div class="cq-setup-routehead"><h2>ROUTE</h2><div class="cq-setup-modes">' +
@@ -47,14 +62,10 @@ export function mountQuestBaseline({
     '</div></section>' +
     '<section class="cq-setup-party cq-setup-window">' +
     '<h2>PARTY</h2>' +
-    '<div class="cq-setup-device"><span>TRAINER</span><b data-setup-status="trainer">NOT CONNECTED</b>' +
-    pill('data-setup-device="connect"', 'CONNECT') +
-    '</div>' +
-    '<div class="cq-setup-device"><span>HEART RATE</span><b data-setup-status="hr">OPTIONAL</b>' +
-    pill('data-setup-device="connectHr"', 'CONNECT') +
-    '</div>' +
-    '<div class="cq-setup-device"><span>SHIFTERS</span><b data-setup-status="click">OPTIONAL</b>' +
-    pill('data-setup-device="connectClick"', 'PAIR') +
+    '<div class="cq-setup-devices">' +
+    tile('connect', 'trainer', 'TRAINER', 'REQUIRED') +
+    tile('connectHr', 'hr', 'HEART RATE', 'OPTIONAL') +
+    tile('connectClick', 'click', 'SHIFTERS', 'OPTIONAL') +
     '</div>' +
     pill('data-setup-settings', 'TRAINER SETTINGS') +
     '<hr>' +
@@ -62,7 +73,7 @@ export function mountQuestBaseline({
     '<div class="cq-setup-hp" role="img" data-setup-aria="hp"><i></i><span data-setup="hp"></span></div>' +
     '<div class="cq-setup-hero2"><span data-setup="ftp">FTP —</span><span class="cq-gold" data-setup="coins">0 COINS</span></div>' +
     '<div class="cq-setup-charbuttons">' +
-    pill('data-setup-open="shop"', 'BIKE SHOP') +
+    pill('data-setup-open="shop"', 'BIKE SHOP').replace('cq-setup-pill', 'cq-setup-pill cq-setup-shop') +
     pill('data-setup-open="rider"', 'FTP &amp; WEIGHT') +
     pill('data-setup-open="cloud"', 'SAVE CODE') +
     pill('data-state="character"', 'STATUS') +
@@ -241,19 +252,36 @@ export function mountQuestBaseline({
     }
     // Party: device status from the app's device bridge.
     const state = devices.snapshot();
-    setText(
-      '[data-setup-status="trainer"]',
-      state?.ready ? 'READY' : (state?.trainer || 'NOT CONNECTED').toUpperCase()
-    );
-    setText(
-      '[data-setup-status="hr"]',
-      (state?.hr && state.hr !== 'Not connected' ? state.hr : 'OPTIONAL').toUpperCase()
-    );
-    setText(
-      '[data-setup-status="click"]',
-      (state?.click && state.click !== 'Not connected' ? state.click : 'OPTIONAL').toUpperCase()
-    );
-    section.querySelector('[data-setup-status="trainer"]').classList.toggle('cq-ok', !!state?.ready);
+    // Short tile states: connected, connecting, or tap to connect.
+    const deviceState = (text, connected) =>
+      connected || /^connected/i.test(text || '')
+        ? 'on'
+        : /not connected/i.test(text || '') || !text
+          ? 'off'
+          : /connect|search|pair|scan|wait/i.test(text)
+            ? 'busy'
+            : 'off';
+    const tiles = {
+      trainer: state?.ready ? 'on' : state?.trainer && state.trainer !== 'Not connected' ? 'busy' : 'off',
+      hr: deviceState(state?.hr),
+      click: deviceState(state?.click)
+    };
+    for (const [id, st] of Object.entries(tiles)) {
+      const node = section.querySelector('[data-tile="' + id + '"]');
+      if (node.dataset.state !== st) node.dataset.state = st;
+      setText(
+        '[data-setup-status="' + id + '"]',
+        st === 'on'
+          ? id === 'trainer'
+            ? 'READY \u2713'
+            : 'CONNECTED \u2713'
+          : st === 'busy'
+            ? 'CONNECTING\u2026'
+            : id === 'click'
+              ? 'TAP TO PAIR'
+              : 'TAP TO CONNECT'
+      );
+    }
     const ride = section.querySelector('[data-setup-ride]');
     const rideLabel = state?.ready ? '▶ RIDE' : 'CONNECT TRAINER';
     if (ride.textContent !== rideLabel) ride.textContent = rideLabel;
