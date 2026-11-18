@@ -24,10 +24,23 @@ import {
   baseAttack
 } from '/api/cycle-quest?asset=progression.js';
 import { escapeHTML as safeText, formatClock, rewardButtons } from '/api/cycle-quest?asset=ui-utils.js';
-import { battleRewards, sessionMetrics, HEALING, regenPerSecond } from '/api/cycle-quest?asset=rewards.js';
+import {
+  battleRewards,
+  sessionMetrics,
+  HEALING,
+  regenPerSecond,
+  SMART_HEAL_BELOW
+} from '/api/cycle-quest?asset=rewards.js';
 import { mountQuestBaseline } from '/api/cycle-quest?asset=shared-ui.js';
 import { createRewardGesture } from '/api/cycle-quest?asset=reward-gesture.js';
-import { generateRoute, parseGPX, sample, grade, METERS_PER_MILE } from '/api/cycle-quest?asset=routes.js';
+import {
+  generateRoute,
+  parseGPX,
+  sample,
+  grade,
+  routeSummits,
+  METERS_PER_MILE
+} from '/api/cycle-quest?asset=routes.js';
 import { CHAPTER_COUNT, chapterInfo, chapterRoute } from '/api/cycle-quest?asset=chapters.js';
 import {
   riderFTP,
@@ -692,11 +705,13 @@ const riderProfile = mountRiderProfile({
 });
 const riderButton = document.createElement('button');
 riderButton.type = 'button';
+riderButton.id = 'cq-open-rider';
 riderButton.textContent = 'Rider profile · FTP';
 characterMenu().append(riderButton);
 riderButton.onclick = () => riderProfile.open();
 const partsButton = document.createElement('button');
 partsButton.type = 'button';
+partsButton.id = 'cq-open-shop';
 partsButton.textContent = 'Bike shop';
 characterMenu().append(partsButton);
 partsButton.onclick = () => {
@@ -726,6 +741,43 @@ shopDialog.addEventListener('click', e => {
     renderShop();
   }
 });
+// Ride display profile window: 10 miles by default; tapping the profile cycles 10 → 5 → whole
+// route. Remembered on this device.
+const HUD_PROFILE_STEPS = [10, 5, 0];
+let hudProfileMiles = 10;
+try {
+  const saved = localStorage.getItem('cycle-quest-hud-profile-miles');
+  if (saved !== null && HUD_PROFILE_STEPS.includes(Number(saved))) hudProfileMiles = Number(saved);
+} catch {
+  /* storage blocked: keep 10 miles */
+}
+function cycleHudProfile() {
+  hudProfileMiles =
+    HUD_PROFILE_STEPS[(HUD_PROFILE_STEPS.indexOf(hudProfileMiles) + 1) % HUD_PROFILE_STEPS.length];
+  try {
+    localStorage.setItem('cycle-quest-hud-profile-miles', String(hudProfileMiles));
+  } catch {
+    /* storage blocked */
+  }
+  render();
+}
+// Summit bosses for fixed routes: computed from the route itself, cached per route.
+let summitCache = { key: null, ends: [] };
+const summitRouteKey = () =>
+  s.route
+    ? [s.route.name, Math.round(s.route.distance), s.route.seed ?? '', s.route.points?.length].join('|')
+    : '';
+function currentSummits() {
+  const key = summitRouteKey();
+  if (summitCache.key !== key)
+    summitCache = { key, ends: s.route && !s.route.endless ? routeSummits(s.route) : [] };
+  return summitCache.ends;
+}
+function summitsDone() {
+  return s.summitsDone?.route === summitRouteKey() && Array.isArray(s.summitsDone.ends)
+    ? s.summitsDone.ends
+    : [];
+}
 // Freeroam is "Scaled to me" by default (freeroamChapter 0 or unset): enemies at the rider's
 // level, drawn from the highest chapter reached. Picking a chapter instead uses that chapter's
 // fixed levels, so riders can go back and feel the power creep.
@@ -796,7 +848,8 @@ function restoreRewardState() {
   s.coins ??= 0;
   bikeFor(s);
   if (s.reward && !s.pendingReward) {
-    s.pendingReward = battleRewards({ kind: 'enemy', reward: 150 });
+    // A reward flag saved without details: nothing was paid yet, so the choice pays the coins.
+    s.pendingReward = { ...battleRewards({ kind: 'enemy', reward: 150 }), coinsPaid: false };
     award(s.pendingReward.xp);
   }
   // A pending heal-or-coins choice survives a reload and is offered again.
@@ -817,6 +870,7 @@ function finish(win) {
       else if (b.kind !== 'enemy') s.session.bosses++;
     }
     award(rewards.xp);
+    s.coins = (s.coins || 0) + rewards.coins;
     s.reward = true;
     s.pendingReward = rewards;
     if (b.kind === 'boss') {
@@ -843,7 +897,9 @@ function finish(win) {
       (s.chapter > 10 && b.kind === 'boss' ? 'ALL TEN CHAPTERS CLEARED! ' : 'VICTORY! ') +
       '+' +
       fmt(rewards.xp) +
-      ' XP · Choose your reward: heal or coins.';
+      ' XP · +' +
+      fmt(rewards.coins) +
+      ' coins · Choose a bonus: heal or more coins.';
   } else {
     const lostCoins = Math.floor(((s.coins || 0) * HEALING.lossCoinPercent) / 100);
     s.coins = (s.coins || 0) - lostCoins;
@@ -866,8 +922,11 @@ function choose(type) {
     s.hp += n;
     message = 'Recovered ' + fmt(n) + ' HP. Shifting restored.';
   } else {
-    s.coins = (s.coins || 0) + rewards.coins;
-    message = '+' + fmt(rewards.coins) + ' coins! Shifting restored.';
+    // New rewards already paid the win's coins; this is the bonus. Older saved choices paid
+    // nothing yet, so they still pay their coins here.
+    const bonus = rewards.coinsPaid ? rewards.bonusCoins || 0 : rewards.coins;
+    s.coins = (s.coins || 0) + bonus;
+    message = '+' + fmt(bonus) + ' bonus coins! Shifting restored.';
   }
   s.reward = false;
   s.pendingReward = null;
@@ -1167,7 +1226,7 @@ function groupBars(b) {
 let profileInspect = null,
   profileDrag = null;
 root.addEventListener('pointerdown', event => {
-  const el = event.target.closest('.cq-profile:not(.cq-smallprofile)');
+  const el = event.target.closest('.cq-profile:not(.cq-smallprofile):not(.cq-hudprofile)');
   if (!el || !s.route || event.button !== 0 || event.target.closest('[data-profile-reset]')) return;
   profileDrag = { id: event.pointerId, el };
   el.setPointerCapture(event.pointerId);
@@ -1290,10 +1349,12 @@ function draw() {
       'aria-label',
       'Elevation profile: downhill, 0–3%, 3–6%, 6–9%, 9%+ grades in five blue tones; yellow rider line'
     );
+    const hudWindow =
+      el.classList.contains('cq-hudprofile') && hudProfileMiles ? hudProfileMiles * METERS_PER_MILE : 0;
     const offset = s.route?.windowStart || 0,
       current = (s.routeMiles || 0) * METERS_PER_MILE,
       climb =
-        running && !document.getElementById('route-dialog')?.open
+        !hudWindow && running && !document.getElementById('route-dialog')?.open
           ? (Array.isArray(live.climbs) ? live.climbs : []).find(
               c =>
                 current >= c.start &&
@@ -1303,8 +1364,26 @@ function draw() {
             )
           : null;
     let displayed = s.route,
-      progress = (current - offset) / s.route.distance;
-    if (climb) {
+      progress = (current - offset) / s.route.distance,
+      windowFrom = offset;
+    if (hudWindow && hudWindow < s.route.distance) {
+      // Ride display: show the next stretch of road. The rider line moves until it is 2 miles
+      // in, then the road scrolls past it; near the end of the route the line moves on again.
+      const rel = current - offset,
+        from = Math.max(0, Math.min(s.route.distance - hudWindow, rel - 2 * METERS_PER_MILE)),
+        to = from + hudWindow;
+      displayed = {
+        ...s.route,
+        distance: hudWindow,
+        points: [
+          { d: 0, e: sample(s.route, from) },
+          ...s.route.points.filter(p => p.d > from && p.d < to).map(p => ({ d: p.d - from, e: p.e })),
+          { d: hudWindow, e: sample(s.route, to) }
+        ]
+      };
+      progress = (rel - from) / hudWindow;
+      windowFrom = offset + from;
+    } else if (climb) {
       const start = climb.start - offset,
         end = climb.end - offset,
         pts = [
@@ -1315,15 +1394,19 @@ function draw() {
       displayed = { ...s.route, distance: end - start, points: pts };
       progress = (current - climb.start) / (climb.end - climb.start);
     }
-    const inspectable = !el.classList.contains('cq-smallprofile'),
-      profileStart = climb ? climb.start : offset;
+    if (climb) windowFrom = climb.start;
+    const inspectable = !el.classList.contains('cq-smallprofile') && !hudWindow,
+      profileStart = windowFrom;
     el.dataset.profileStart = String(profileStart);
     el.dataset.profileLength = String(displayed.distance);
     if (inspectable && profileInspect !== null)
       progress = (profileInspect - profileStart) / displayed.distance;
-    const bosses = (Array.isArray(live.climbs) ? live.climbs : [])
-      .filter(c => summitChoices.get(Math.round(c.end)) && !summitSeen.has(Math.round(c.end)))
-      .map(c => (c.end - (climb ? climb.start : offset)) / displayed.distance)
+    const bossEnds = s.route?.endless
+      ? (Array.isArray(live.climbs) ? live.climbs : []).map(c => c.end)
+      : currentSummits().map(e => e + offset);
+    const bosses = bossEnds
+      .filter(e => summitChoices.get(Math.round(e)) && !summitSeen.has(Math.round(e)))
+      .map(e => (e - windowFrom) / displayed.distance)
       .filter(v => v >= 0 && v <= 1);
     displayed = { ...displayed, summits: bosses };
     const eta =
@@ -1342,6 +1425,7 @@ function draw() {
       w,
       h,
       Math.round(Math.max(0, Math.min(1, progress)) * w * 2),
+      Math.round(windowFrom),
       displayed.summits.join(','),
       profileInspect === null ? '' : Math.round(profileInspect),
       climb ? climb.start + ':' + ((climb.end - current) / METERS_PER_MILE).toFixed(2) + ':' + eta : '',
@@ -1522,7 +1606,11 @@ function eventMarkup() {
           'data-reward="coins"',
           'data-reward="coins"' + (rewardChoice?.selected === 'coins' ? ' class="cq-reward-selected"' : '')
         ) +
-      '<p class="cq-sub" style="margin-top:12px">Keep pedaling for COINS \xB7 Stop pedaling for HEAL \xB7 \u2212 / + or click confirms now.</p>';
+      '<p class="cq-sub" style="margin-top:12px">Keep pedaling for ' +
+      (rewardChoice?.pedal === 'heal'
+        ? 'HEAL \xB7 Stop pedaling for COINS'
+        : 'COINS \xB7 Stop pedaling for HEAL') +
+      ' \xB7 \u2212 / + or click confirms now.</p>';
   } else if (warmupSeconds > 0) {
     html =
       '<h3>BOSS WARMUP</h3><p>Pedal to warm up \xB7 ' +
@@ -1546,7 +1634,11 @@ function eventMarkup() {
   return html;
 }
 function render() {
-  if (s.reward && !rewardChoice) rewardChoice = rewardGesture.begin(performance.now());
+  if (s.reward && !rewardChoice)
+    rewardChoice = rewardGesture.begin(
+      performance.now(),
+      (s.hp / maxHP()) * 100 < SMART_HEAL_BELOW ? 'heal' : 'coins'
+    );
   if (!s.reward) rewardChoice = null;
   levelUp = levelUps.update(performance.now(), !!s.battle || s.reward || view === 'character');
   music.sync({
@@ -1695,8 +1787,30 @@ const hud = mountRideHud(root, {
     render();
   },
   // START RIDE begins right away; without a trainer it opens the devices page instead.
-  onStart: () => parentSend({ type: live.connected ? 'start' : 'toggle' })
+  onStart: () => parentSend({ type: live.connected ? 'start' : 'toggle' }),
+  onOverlay: () => openFloating(),
+  // SAVE & QUIT ends the ride and opens the ride summary (same as the classic button).
+  onQuit: () => parentSend({ type: 'finish' }),
+  onProfile: () => cycleHudProfile()
 });
+// Fight clock for the cockpit's TIME tile.
+let fightClock = { battle: null, start: 0 };
+function fightSeconds() {
+  if (!s.battle) return 0;
+  if (fightClock.battle !== s.battle.name + '|' + s.battle.max) {
+    fightClock = { battle: s.battle.name + '|' + s.battle.max, start: s.rideSeconds };
+  }
+  return Math.max(0, s.rideSeconds - fightClock.start);
+}
+// Where the rider line sits across the ride display's profile (0–1), for the iris wipe.
+function hudRiderFraction() {
+  if (!s.route) return 0.2;
+  const rel = (s.routeMiles || 0) * METERS_PER_MILE - (s.route.windowStart || 0),
+    span = hudProfileMiles ? hudProfileMiles * METERS_PER_MILE : 0;
+  if (!span || span >= s.route.distance) return rel / s.route.distance;
+  const from = Math.max(0, Math.min(s.route.distance - span, rel - 2 * METERS_PER_MILE));
+  return (rel - from) / span;
+}
 // Pedaling alone also starts the ride: whenever the ride page is open with a connected
 // trainer and no ride running, ask the app to start the ride as soon as the rider pedals.
 let hudArmed = false;
@@ -1711,24 +1825,26 @@ hudReturn.onclick = () => {
 };
 $('.cq-controls').insertBefore(hudReturn, $('#float-overlay'));
 const unit = (value, suffix) => value + '<em> ' + suffix + '</em>';
+// Enemy cards, one per living enemy. The first is the one you are fighting (gold frame);
+// the rest wait their turn.
 function hudEnemyCards(b) {
   const enemies = (Array.isArray(b.enemies) ? b.enemies : [b]).filter(e => e.hp > 0);
-  const many = enemies.length > 1;
   return enemies
     .map(
-      e =>
-        '<div class="cq-hud-enemy' +
-        (many ? ' cq-hud-many' : '') +
+      (e, i) =>
+        '<div class="cq-hud-enemy ' +
+        (i === 0 ? 'cq-hud-active' : 'cq-hud-waiting') +
         '" style="--enemy-health:' +
         healthColor(e.hp, e.max) +
-        '"><header><span>' +
+        '"><div class="cq-hud-enemyname"><span>' +
         safeText(e.name || b.name) +
         ' \xB7 LV ' +
         safeText(e.level || b.level || 1) +
-        '</span><b>' +
+        '</span>' +
+        (enemies.length > 1 ? '<em>' + (i === 0 ? 'FIGHTING' : 'NEXT') + '</em>' : '') +
+        '</div><span class="cq-hud-enemyhp">' +
         fmt(e.hp) +
-        (many ? '' : ' / ' + fmt(e.max)) +
-        ' HP</b></header><div class="cq-hud-enemymeter"><i style="width:' +
+        '<em> HP</em></span><div class="cq-hud-enemymeter"><i style="width:' +
         Math.max(0, Math.min(100, (e.hp / e.max) * 100)).toFixed(1) +
         '%"></i></div></div>'
     )
@@ -1832,7 +1948,10 @@ function renderHud(session, L, remaining) {
     hr: unit(hr, 'BPM'),
     coins: fmt(s.coins || 0),
     level: (adventure ? 'CH ' + s.chapter : 'FREEROAM') + ' \xB7 LV ' + L,
-    'xp-left': compactNumber(remaining) + ' XP TO GO',
+    'xp-left': fmt(remaining) + ' XP TO GO',
+    'profile-view':
+      (hudProfileMiles ? 'NEXT ' + hudProfileMiles + ' MI' : 'WHOLE ROUTE') + ' \xB7 TAP TO CHANGE',
+    toast: performance.now() < roadsideNoticeUntil ? roadsideNotice : '',
     'chapter-title': adventure
       ? chapterInfo(s.chapter)?.title || ''
       : freeroamScaled()
@@ -1854,10 +1973,11 @@ function renderHud(session, L, remaining) {
     speed: unit(live.speed.toFixed(1), 'MPH'),
     'level-c': 'LV ' + L,
     'power-c': unit(watts, 'W'),
-    target: effortPct + '% FTP',
+    target: effortPct + '% FTP \xB7 GEAR ' + safeText(live.gear),
     effort: '',
     'hr-c': unit(hr, 'BPM'),
-    'time-c': clock(session.seconds)
+    'time-c': clock(session.seconds),
+    'fight-time': s.battle ? 'FIGHT ' + phaseClock(fightSeconds()) : ''
   };
   text['start-label'] = !live.connected
     ? 'CONNECT TRAINER'
@@ -1870,6 +1990,7 @@ function renderHud(session, L, remaining) {
       : 'or just start pedaling'
     : 'Connect your smart trainer to ride';
   const model = {
+    riderFraction: hudRiderFraction(),
     idle: !running,
     mode: encounter ? 'cockpit' : 'road',
     text,
@@ -1917,10 +2038,10 @@ function renderHud(session, L, remaining) {
       const p = b.kind === 'enemy' ? null : bossPhase(b);
       if (p?.phase === 'brace') {
         const ok = effortShare(watts, ftp) <= BOSS_FIGHT.braceEffort;
-        text.target = 'TARGET UNDER ' + braceWatts() + ' W';
+        text.target = 'UNDER ' + braceWatts() + ' W \xB7 GEAR ' + safeText(live.gear);
         text.effort = p.grace ? 'EASE DOWN' : ok ? 'BRACED \u2713' : 'EASE OFF';
         model.classes['power-tile'] = ok ? 'brace-ok' : p.grace ? '' : 'brace-high';
-      } else if (p?.windup) text.target = 'BRACE SOON: UNDER ' + braceWatts() + ' W';
+      } else if (p?.windup) text.target = 'BRACE SOON \xB7 GEAR ' + safeText(live.gear);
     } else {
       text.kind = s.reward
         ? 'VICTORY'
@@ -2302,7 +2423,8 @@ root.addEventListener('click', e => {
       }
     } else {
       s.mode = 'training';
-      showEncounterView();
+      // The setup screen's FREEROAM tab only picks the mode; RIDE starts it.
+      if (!b.closest('.cq-setup')) showEncounterView();
       save();
       render();
     }
@@ -2461,6 +2583,7 @@ cloud = createCloudSave({
 });
 const cloudButton = document.createElement('button');
 cloudButton.type = 'button';
+cloudButton.id = 'cq-open-cloud';
 cloudButton.textContent = 'Cloud save';
 characterMenu().append(cloudButton);
 cloudButton.onclick = () => cloud.open();
@@ -2476,7 +2599,16 @@ questBaseline = mountQuestBaseline({
   },
   openOverlay: openFloating,
   routeSVG: route => elevationSVG(route, sample, 1000, 250, 0, false),
-  parentSend
+  parentSend,
+  getCharacter: () => ({
+    name: $('.cq-player h2')?.textContent || 'RIDER',
+    level: level(),
+    hp: Math.round(s.hp),
+    maxHP: maxHP(),
+    ftp: riderFTP(s),
+    coins: s.coins || 0
+  }),
+  getRouteSummits: () => currentSummits()
 });
 questBaseline.sync();
 if (!s.route) {
@@ -2559,14 +2691,7 @@ window.addEventListener('message', e => {
   }
   if (m.type === 'navigate') {
     if (['route', 'devices', 'ride', 'overlay', 'character'].includes(m.page)) {
-      view =
-        m.page === 'overlay'
-          ? 'overlay'
-          : m.page === 'character'
-            ? 'character'
-            : m.page === 'devices'
-              ? 'devices'
-              : 'ride';
+      view = m.page === 'overlay' ? 'overlay' : m.page === 'character' ? 'character' : 'ride';
       questBaseline?.setPage(m.page);
       render();
     }
@@ -2641,20 +2766,25 @@ window.addEventListener('message', e => {
     const delta = Math.max(0, m.distanceM - lastLiveDistance);
     lastLiveDistance = m.distanceM;
     if (!s.route?.endless) {
-      const c = m.summitBoss;
+      // A summit boss waits at the top of each of the route's biggest climbs (routeSummits).
+      const ends = currentSummits(),
+        done = summitsDone();
       summitChoices.clear();
-      if (c && Number.isFinite(c.end)) {
-        const id = Math.round(c.end);
-        if (s.summitDoneEnd !== id) summitChoices.set(id, true);
-        if (m.running && m.distanceM >= c.end && s.summitDoneEnd !== id && !s.pendingSummit)
-          s.pendingSummit = { end: c.end, category: c.category };
-      }
+      for (const end of ends) if (!done.includes(Math.round(end))) summitChoices.set(Math.round(end), true);
+      const next = ends.find(
+        end => previousDistance < end && m.distanceM >= end && !done.includes(Math.round(end))
+      );
+      if (m.running && next !== undefined && !s.pendingSummit)
+        s.pendingSummit = { end: next, category: 'SUMMIT' };
       const pending = s.pendingSummit;
       if (pending && !s.battle && !s.reward && !levelUp && hpReadyForBattle() && m.connected) {
         encounter('summit');
         if (s.battle?.kind === 'summit') {
           s.battle.category = pending.category;
-          s.summitDoneEnd = Math.round(pending.end);
+          s.summitsDone = {
+            route: summitRouteKey(),
+            ends: [...summitsDone(), Math.round(pending.end)].slice(-12)
+          };
           s.pendingSummit = null;
           save();
         }
@@ -2699,7 +2829,7 @@ window.addEventListener('message', e => {
           else if (delta > 0) {
             const find = exploreRoadside(s, delta / METERS_PER_MILE);
             if (find) {
-              if (find.repair) s.hp = maxHP();
+              if (find.repair) s.hp = Math.min(maxHP(), s.hp + Math.round(maxHP() * 0.25));
               roadsideNotice = find.text;
               roadsideNoticeUntil = performance.now() + 8000;
               message = find.text;
@@ -2790,7 +2920,7 @@ function rewardLabel() {
     ' XP EARNED · ' +
     (rewardChoice?.selected === 'heal'
       ? 'HEAL ' + fmt(Math.round((maxHP() * r.healPercent) / 100)) + ' HP'
-      : 'GAIN ' + fmt(r.coins) + ' COINS') +
+      : 'BONUS +' + fmt(r.coinsPaid ? r.bonusCoins || 0 : r.coins) + ' COINS') +
     ' · ' +
     Math.max(0, Math.ceil(((rewardChoice?.end || 0) - performance.now()) / 1000)) +
     's'

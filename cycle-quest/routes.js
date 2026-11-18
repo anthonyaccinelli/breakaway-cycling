@@ -24,7 +24,8 @@ export function generateRoute(
   miles = 15,
   terrain = 'rolling',
   gainFeet = null,
-  seed = Math.floor(Math.random() * 1000000000)
+  seed = Math.floor(Math.random() * 1000000000),
+  { smooth = true } = {}
 ) {
   if (!Number.isFinite(miles) || miles < 1 || miles > 100)
     throw Error('Choose a distance between 1 and 100 miles.');
@@ -93,13 +94,33 @@ export function generateRoute(
   };
   const n = Math.min(999, Math.ceil(distance / 80)),
     step = distance / n,
-    grades = Array.from({ length: n }, (_, i) => rawGrade((i + 0.5) * step));
+    rawGrades = Array.from({ length: n }, (_, i) => rawGrade((i + 0.5) * step)),
+    // Indoors, quick ups and downs mean constant shifting and a jumpy power number. Smoothing
+    // averages the grade over about 1.2 km, then the scale below restores the same total ascent.
+    window = smooth ? Math.max(1, Math.round(1200 / step)) : 0,
+    grades = window
+      ? rawGrades.map((_, i) => {
+          let total = 0,
+            count = 0;
+          for (let j = Math.max(0, i - window); j <= Math.min(n - 1, i + window); j++) {
+            const w = window + 1 - Math.abs(i - j);
+            total += rawGrades[j] * w;
+            count += w;
+          }
+          return total / count;
+        })
+      : rawGrades;
   const bounded = (g, scale) => Math.max(-12, Math.min(12, g * scale));
   const estimate = scale =>
     grades.reduce((total, g) => total + (Math.max(0, bounded(g, scale)) * step) / 100, 0);
   let scale = 1;
-  if (gainFeet !== null) {
-    const target = gainFeet * 0.3048;
+  // Natural terrain keeps the ascent the unsmoothed hills would have had.
+  const naturalGain = rawGrades.reduce(
+    (t, g) => t + (Math.max(0, Math.max(-12, Math.min(12, g))) * step) / 100,
+    0
+  );
+  if (gainFeet !== null || window) {
+    const target = gainFeet !== null ? gainFeet * 0.3048 : naturalGain;
     if (target === 0) scale = 0;
     else {
       let lo = 0,
@@ -134,9 +155,63 @@ export function generateRoute(
     hasElevation: true,
     seed,
     terrain: kind,
-    generator: 'classic-hills-v1',
+    generator: smooth ? 'classic-hills-v2-smooth' : 'classic-hills-v1',
     points
   };
+}
+// Climbs on a route, for summit bosses: a rise of at least 1 km at 3% or more, allowing dips
+// of up to 250 m inside it. Returns [{ start, end, gain, grade }] in metres along the route.
+export function routeClimbs(route, { minLength = 1000, minGrade = 3 } = {}) {
+  if (!route?.points?.length || !(route.distance > 0)) return [];
+  const step = 100,
+    D = [],
+    E = [];
+  for (let d = 0; d <= route.distance; d += step) {
+    D.push(d);
+    E.push(sample(route, d));
+  }
+  const out = [];
+  let start = -1,
+    last = -1;
+  const commit = () => {
+    if (start < 0 || last <= start) return;
+    const length = D[last] - D[start],
+      gain = E[last] - E[start],
+      grade = (100 * gain) / length;
+    if (length >= minLength && grade >= minGrade) out.push({ start: D[start], end: D[last], gain, grade });
+  };
+  for (let i = 1; i < E.length; i++) {
+    if (E[i] - E[i - 1] > 0.2) {
+      if (start < 0) start = i - 1;
+      last = i;
+    } else if (start >= 0 && (i - last) * step > 250) {
+      commit();
+      start = last = -1;
+    }
+  }
+  commit();
+  return out;
+}
+// Where summit bosses wait: the tops of the route's biggest climbs. About one per 25 miles on
+// long routes (at most five), one per 8 miles on short ones, spread out along the route.
+// Returns climb-top distances in metres, in route order.
+export function routeSummits(route) {
+  const miles = (route?.distance || 0) / METERS_PER_MILE;
+  if (!(miles > 0)) return [];
+  const count = Math.max(1, Math.min(5, Math.round(miles >= 25 ? miles / 25 : miles / 8)));
+  // Prefer real climbs; on flat routes fall back to the longest gentle rises.
+  let climbs = routeClimbs(route, { minLength: 800, minGrade: 1.5 }).filter(c => c.gain >= 25);
+  if (climbs.length < count)
+    climbs = routeClimbs(route, { minLength: 600, minGrade: 0.8 }).filter(c => c.gain >= 10);
+  const spacing = Math.max(3, miles / (count * 2)) * METERS_PER_MILE;
+  const picked = [];
+  // Not in the first or last mile: the ride is just starting, or the chapter boss waits there.
+  climbs = climbs.filter(c => c.end > METERS_PER_MILE && c.end < route.distance - METERS_PER_MILE);
+  for (const c of [...climbs].sort((a, b) => b.gain - a.gain)) {
+    if (picked.length >= count) break;
+    if (picked.every(p => Math.abs(p.end - c.end) >= spacing)) picked.push(c);
+  }
+  return picked.map(c => c.end).sort((a, b) => a - b);
 }
 export function parseGPX(text) {
   const xml = new DOMParser().parseFromString(text, 'application/xml');

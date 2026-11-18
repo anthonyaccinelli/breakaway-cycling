@@ -121,6 +121,15 @@ export function validCharacter(state) {
     optional(state.coins, n => Number.isSafeInteger(n) && n >= 0) &&
     optional(state.rider, validRider) &&
     optional(state.stamina, validStamina) &&
+    optional(
+      state.summitsDone,
+      v =>
+        typeof v === 'object' &&
+        typeof v.route === 'string' &&
+        Array.isArray(v.ends) &&
+        v.ends.length <= 12 &&
+        v.ends.every(Number.isFinite)
+    ) &&
     optional(state.freeroamChapter, n => Number.isInteger(n) && n >= 0 && n <= 10) &&
     (!state.pendingReward || (state.reward && validPendingReward(state.pendingReward))) &&
     optional(state.routeMiles, nonnegative) &&

@@ -5,6 +5,7 @@ export const QUEST_ASSETS = Object.freeze({
   'shared-ui.css': 'text/css; charset=utf-8',
   'devices-ui.css': 'text/css; charset=utf-8',
   'ride-hud.css': 'text/css; charset=utf-8',
+  'setup-ui.css': 'text/css; charset=utf-8',
   ...Object.fromEntries(
     [
       'bike-parts',

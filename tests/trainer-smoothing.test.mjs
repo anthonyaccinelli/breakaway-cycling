@@ -40,28 +40,30 @@ test('live SIM controller cannot accelerate its ramp on sub-threshold frames',as
  await vm.runInContext('updateSimResistance(2500)',context);
  assert(Math.abs(context.simAppliedGrade-.6625)<1e-8);
 });
-test('battles ride a flat road: the route waits, momentum carries, and the odometer counts real distance',async()=>{
+test('battles hold the route: the route waits, momentum carries on the locked grade, and the odometer counts real distance',async()=>{
  const fn=main.slice(main.indexOf('function advanceRide('),main.indexOf('function tick('));
  const noop=()=>{};
  const physics=await readFile(new URL('../src/virtual-drivetrain.ts',import.meta.url),'utf8');
  const {advanceRoadSpeed}=await import('data:text/javascript;base64,'+Buffer.from(transpile(physics)).toString('base64'));
- const context={advanceRoadSpeed,last:1000,running:true,points:[{distance:10000}],connected:true,controlGranted:true,realTelemetry:true,activeRideMs:0,energyKcal:0,power:150,GROSS_EFFICIENCY:.24,avgPowerEnergy:0,avgPowerDuration:0,weightKg:()=>40,num:()=>.004,cadence:80,procedural:false,cycleQuestHold:true,speed:8,distance:100,rideOdometer:0,endless:true,trainerMode:'target',lastGearUpdate:0,updateSimResistance:noop,setVirtualGearResistance:noop,setFixedErgPower:noop,recordRideSample:noop,update:noop,checkStationaryRide:noop,sensorRideOnly:()=>false,at:()=>({grade:8})};
+ const context={advanceRoadSpeed,last:1000,running:true,points:[{distance:10000}],connected:true,controlGranted:true,realTelemetry:true,activeRideMs:0,energyKcal:0,power:150,GROSS_EFFICIENCY:.24,avgPowerEnergy:0,avgPowerDuration:0,weightKg:()=>40,num:()=>.004,cadence:80,procedural:false,cycleQuestHold:true,cycleQuestHeldSlope:0,speed:8,distance:100,rideOdometer:0,endless:true,trainerMode:'target',lastGearUpdate:0,updateSimResistance:noop,setVirtualGearResistance:noop,setFixedErgPower:noop,recordRideSample:noop,update:noop,checkStationaryRide:noop,sensorRideOnly:()=>false,at:()=>({grade:8})};
  vm.createContext(context);vm.runInContext(transpile(fn),context);
  vm.runInContext('advanceRide(2000)',context);
  assert.equal(context.distance,100,'the route position waits during the battle');
- assert(context.speed>7.5&&context.speed<8.5,'momentum carries on a flat road (no sudden 8% climb)');
+ assert(context.speed>7.5&&context.speed<8.5,'momentum carries on the locked grade');
  assert(context.rideOdometer>7.5,'the battle second is real distance for the ride file');
  const odometer=context.rideOdometer;
  context.cycleQuestHold=false;vm.runInContext('advanceRide(2010)',context);
  assert(context.speed>7,'no zero-speed restart');assert(context.distance>100);assert(context.rideOdometer>odometer);
 });
-test('battles set SIM load to a flat road whatever the route grade, and release it afterwards',()=>{
+test('battles lock SIM load to the grade before the fight (capped -3% to +8%), and release it afterwards',()=>{
  const hold=main.slice(main.indexOf('function setCycleQuestHold('),main.indexOf("let drivetrainMode:"));
  const requested=main.slice(main.indexOf('function simRequestedGrade('),main.indexOf('function resetSimController('));
- const c={cycleQuestHold:false,cycleQuestHeldSpeed:0,cycleQuestHeldGrade:null,cycleQuestHeldRequestedGrade:0,cycleQuestHeldErgTarget:0,cycleQuestHeldGear:6,speed:8,trainerGrade:7,lastTarget:180,gear:12,distance:100,drivetrainMode:'traditional',at:()=>({grade:7}),num:()=>100};
- vm.createContext(c);vm.runInContext(transpile(hold+'\n'+requested),c);
- assert.equal(c.simRequestedGrade(),7);
- vm.runInContext('setCycleQuestHold(true)',c);assert.equal(c.simRequestedGrade(),0);assert.equal(c.cycleQuestHeldSlope,0);
- c.speed=0;assert.equal(c.simRequestedGrade(),0,'transient speed changes cannot change battle load');
- vm.runInContext('setCycleQuestHold(false)',c);assert.equal(c.cycleQuestHeldGrade,null);assert.equal(c.simRequestedGrade(),7);
+ for(const [route,locked] of [[7,7],[12,8],[-6,-3]]){
+  const c={cycleQuestHold:false,cycleQuestHeldSpeed:0,cycleQuestHeldGrade:null,cycleQuestHeldRequestedGrade:0,cycleQuestHeldErgTarget:0,cycleQuestHeldGear:6,speed:8,trainerGrade:route,lastTarget:180,gear:12,distance:100,drivetrainMode:'traditional',at:()=>({grade:route}),num:id=>id==='difficulty'?100:1};
+  vm.createContext(c);vm.runInContext(transpile(hold+'\n'+requested),c);
+  assert.equal(c.simRequestedGrade(),route);
+  vm.runInContext('setCycleQuestHold(true)',c);assert.equal(c.simRequestedGrade(),locked);assert.equal(c.cycleQuestHeldSlope,locked);
+  c.at=()=>({grade:route+3});c.speed=0;assert.equal(c.simRequestedGrade(),locked,'route and speed changes cannot change battle load');
+  vm.runInContext('setCycleQuestHold(false)',c);assert.equal(c.cycleQuestHeldGrade,null);
+ }
 });

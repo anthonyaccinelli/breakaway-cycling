@@ -58,11 +58,13 @@ function setCycleQuestHold(hold:boolean){
  if(hold&&!cycleQuestHold){
   // Preserve the currently applied trainer load for the full battle; route
   // position and terrain updates must not change it mid-encounter.
-  // Battles, rewards, level-ups and boss warmups are ridden on a flat road. The route
-  // position waits; the rider resumes where the battle began (see advanceRide).
-  cycleQuestHeldSlope=0;
-  cycleQuestHeldRequestedGrade=0;
-  cycleQuestHeldGrade=0;
+  // Battles, rewards, level-ups and boss warmups keep the grade the rider was on when they
+  // began (capped at -3% to +8%), so gearing still feels right. The route position waits;
+  // the rider resumes where the battle began (see advanceRide).
+  const lockedGrade=Math.max(-3,Math.min(8,at(distance).grade*num('difficulty')/100));
+  cycleQuestHeldSlope=lockedGrade;
+  cycleQuestHeldRequestedGrade=lockedGrade;
+  cycleQuestHeldGrade=lockedGrade;
   cycleQuestHeldSpeed=speed;cycleQuestHeldErgTarget=lastTarget;cycleQuestHeldGear=gear;
  }
  cycleQuestHold=hold;
@@ -314,7 +316,7 @@ const POWER_WINDOW_MS=3000, BEER_KCAL=150, GROSS_EFFICIENCY=0.24;
 let powerHistory:{time:number;watts:number}[]=[];
 let energyKcal=0, activeRideMs=0, lastActiveTick=0, rideSessionStartDistance=0;
 // Real distance pedaled this ride. Equals route progress, except during Cycle Quest
-// battles, which are ridden on a flat road while the route position waits.
+// battles, which hold their starting grade while the route position waits.
 // Ride files, summaries and uploads use this, so they never lose battle miles.
 let rideOdometer=0;
 type RideSample={seconds:number; distance:number; odometer?:number; elevation:number; power:number; hasPower?:boolean; cadence:number; heartRate:number|null};
@@ -1184,12 +1186,12 @@ function advanceRide(now:number){
     if(distance>=limit)break;
     continue;
    }
-   // Cycle Quest battles, rewards, level-ups and boss warmups: ride a flat road. Speed
-   // follows the rider's watts and the odometer counts the real distance, while the
-   // route position waits so the rider resumes exactly where the battle began.
+   // Cycle Quest battles, rewards, level-ups and boss warmups: ride the grade locked at the
+   // start of the battle. Speed follows the rider's watts and the odometer counts the real
+   // distance, while the route position waits so the rider resumes where the battle began.
    if(cycleQuestHold){
     const flatStart=speed;
-    speed=advanceRoadSpeed(speed,watts,step,{massKg:mass,gradePercent:0,crr});
+    speed=advanceRoadSpeed(speed,watts,step,{massKg:mass,gradePercent:cycleQuestHeldSlope??0,crr});
     rideOdometer+=(flatStart+speed)*0.5*step;
     continue;
    }

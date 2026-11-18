@@ -1,10 +1,14 @@
-// After a win the rider earns the XP, then picks ONE branch reward: heal or coins.
-// Healing is a share of max HP per defeated enemy, so it stays meaningful at every level.
+// After a win the rider earns XP and coins right away, then picks ONE bonus: heal, or bonus
+// coins (half the win's coins again). Healing is a share of max HP per defeated enemy, so it
+// stays meaningful at every level. Pedaling through the choice picks heal below
+// SMART_HEAL_BELOW% HP and bonus coins above it; stopping picks the other one.
 export const HEAL_PERCENT_PER_ENEMY = 35;
+export const BONUS_COIN_PERCENT = 50;
+export const SMART_HEAL_BELOW = 60;
 
 // Slow healing between fights while pedaling. Easy spinning heals twice as fast.
 export const HEALING = Object.freeze({
-  percentPerMinute: 1.5,
+  percentPerMinute: 2,
   easyPercentPerMinute: 3,
   easyEffort: 0.55, // at or below 55% FTP counts as easy
   encounterMinPercent: 20, // random encounters wait until HP is back to 20%
@@ -25,7 +29,14 @@ export function battleRewards(battle) {
       ? Math.max(1, Math.min(3, battle.enemies.length))
       : 1;
   const coins = Number.isSafeInteger(battle.coins) && battle.coins >= 0 ? battle.coins : 25 * count;
-  return { count, xp: Math.max(0, Number(battle.reward) || 0), healPercent: healPercentFor(count), coins };
+  return {
+    count,
+    xp: Math.max(0, Number(battle.reward) || 0),
+    healPercent: healPercentFor(count),
+    coins,
+    bonusCoins: Math.round((coins * BONUS_COIN_PERCENT) / 100),
+    coinsPaid: true
+  };
 }
 
 // Older saves stored a flat `hp` heal. Convert so a pending choice survives the update.
@@ -47,7 +58,8 @@ export function validPendingReward(value) {
     Number.isSafeInteger(value.coins) &&
     value.coins >= 0 &&
     Number.isFinite(value.xp) &&
-    value.xp >= 0
+    value.xp >= 0 &&
+    (value.bonusCoins === undefined || (Number.isSafeInteger(value.bonusCoins) && value.bonusCoins >= 0))
   );
 }
 export function sessionMetrics(state, live) {

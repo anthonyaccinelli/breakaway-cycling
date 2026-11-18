@@ -5,19 +5,21 @@ const { STAMINA, advanceStamina, isExhausted, staminaDamageMultiplier, validStam
   await loadQuestModule('stamina.js');
 const { validCharacter } = await loadQuestModule('save-state.js');
 
-test('riding above FTP drains stamina in proportion to how far above FTP you are', () => {
-  // 150% FTP for 10 s: 0.5 × 1.25%/s × 10 s = 6.25%
-  assert.equal(advanceStamina(100, 1.5, 10), 100 - 6.25);
-  // Twice as far above FTP drains twice as fast.
-  assert.equal(100 - advanceStamina(100, 2, 10), 2 * (100 - advanceStamina(100, 1.5, 10)));
-  // A climb ridden at 120% FTP drains just like a battle surge.
-  assert(advanceStamina(100, 1.2, 60) < 100);
+test('hard riding drains stamina from 85% FTP, much faster above FTP', () => {
+  // 90% FTP: about 30 minutes to empty; FTP: 10 minutes; 120%: about 3 minutes.
+  const minutesToEmpty = effort => 100 / (100 - advanceStamina(100, effort, 60) || 1e-9);
+  assert(Math.abs(minutesToEmpty(0.9) - 30) < 1, 'at 90%');
+  assert(Math.abs(minutesToEmpty(1) - 10) < 0.2, 'at FTP');
+  assert(Math.abs(minutesToEmpty(1.2) - 3) < 0.3, 'at 120%');
+  // 250 W at a 280 W FTP (89%) now drains.
+  assert(advanceStamina(100, 250 / 280, 60) < 100);
+  assert(advanceStamina(100, 1.2, 60) < advanceStamina(100, 1, 60), 'a climb at 120% drains faster');
 });
 
-test('stamina holds steady between 75% and 100% FTP and refills at 75% or below', () => {
-  assert.equal(advanceStamina(60, 0.9, 30), 60);
-  assert.equal(advanceStamina(60, 1, 30), 60);
-  assert.equal(advanceStamina(60, 0.75, 10), 60 + 10 * STAMINA.recoverPerSecond);
+test('stamina holds steady between 70% and 85% FTP and refills at 70% or below', () => {
+  assert.equal(advanceStamina(60, 0.8, 30), 60);
+  assert.equal(advanceStamina(60, 0.85, 30), 60);
+  assert.equal(advanceStamina(60, 0.7, 10), 60 + 10 * STAMINA.recoverPerSecond);
   assert.equal(advanceStamina(60, 0.4, 10), 60 + 10 * STAMINA.recoverPerSecond);
 });
 
@@ -37,11 +39,11 @@ test('below 25% the rider is exhausted and deals 40% less damage', () => {
   assert.equal(staminaDamageMultiplier(undefined), 1);
 });
 
-test('an all-out 150% FTP effort is exhausted after about two minutes', () => {
+test('an all-out 150% FTP effort is exhausted after about one minute', () => {
   let stamina = 100,
     seconds = 0;
   while (!isExhausted(stamina)) ((stamina = advanceStamina(stamina, 1.5, 1)), seconds++);
-  assert(seconds >= 110 && seconds <= 130, seconds + ' s');
+  assert(seconds >= 55 && seconds <= 75, seconds + ' s');
 });
 
 test('saves accept stamina in range and reject anything else', () => {

@@ -7,16 +7,26 @@ through the beta-password endpoint `api/cycle-quest.js`. Code lives in `cycle-qu
 
 Ride ten fixed 100-mile chapters (Adventure) or any route (Freeroam). Pedaling earns
 1 XP per second. Every 2.5–4 minutes of riding (the first within 60–90 s of a ride, `BALANCE.encounterGap` and `firstEncounter`) a random encounter of 1–3 enemies starts; summit
-bosses wait at the top of categorized climbs; a chapter boss waits at mile 100.
+bosses wait at the top of climbs; a chapter boss waits at mile 100.
 Random encounters are "ride until they die". Summit and chapter bosses fight in phases (below).
 
-During a battle, reward choice, level-up or boss warmup, the trainer rides a **flat road**
-and the route position waits; the rider resumes exactly where the battle began, so chapter
+During a battle, reward choice, level-up or boss warmup, the trainer **locks the grade** the
+rider was on when it began, capped to −3%…+8% (`setCycleQuestHold` in `src/main.ts`), and the
+route position waits; the rider resumes exactly where the battle began, so chapter
 miles only count route riding. The real distance pedaled during battles is still counted
 by the ride **odometer** (`rideOdometer` in `src/main.ts`), which the ride summary, saved
 history, TCX file and Strava/Garmin uploads use, so uploads never lose battle miles.
 Random encounters wait while the road descends more steeply than −3%
 (`BALANCE.steepestEncounterDescent`); summit and chapter bosses keep their places.
+
+## Routes and summit bosses
+
+Generated routes are smoothed (`routes.js` → `generateRoute`, about a 1.2 km rolling average)
+and rescaled to the same total ascent, so grades change gradually instead of jumping.
+`routeSummits` places summit bosses at the top of climbs (`routeClimbs`: at least 1 km at 3%+,
+dips under 250 m allowed): about one per 25 miles (one per 8 miles on short routes, at most
+5), spaced out, never in the first or last mile. Flat routes fall back to their gentlest
+real climbs. Each summit fights once per route (`summitsDone` in the save).
 
 ## Damage: effort, not watts
 
@@ -24,19 +34,33 @@ Random encounters wait while the road descends more steeply than −3%
 (110% FTP → +10%, 200% FTP → +100%). Riders with different FTPs deal the same damage at the
 same effort. Attack comes from rider level and bike parts. See `combat.js` → `riderDamagePerSecond`.
 
+## Setup screen (01 Setup)
+
+One Final Fantasy VI "party menu" screen (`shared-ui.js`, `setup-ui.css`) replaces the old
+Route and Devices pages: the ROUTE window (Adventure/Freeroam tabs, chapter or route stats
+with the summit count, elevation profile, route generators and GPX upload), the PARTY
+window (trainer, heart rate and shifters, trainer settings, the character's HP, FTP and
+coins, Bike Shop, FTP & Weight, Save Code and Status) and a big RIDE button (CONNECT
+TRAINER until a trainer is ready). The shop is reachable here without riding.
+
 ## Ride display (HUD)
 
-The 03 Ride page is a big-number display (`ride-hud.js`,
+The 02 Ride page is a big-number display (`ride-hud.js`,
 `ride-hud.css`) sized to read from about 6 feet on a 13" laptop. It is one 1440×900 stage
 that scales to fit the window, so nothing reflows or clips.
 
-* **Road** (exploring): power with % FTP and gear, heart rate with coins, level with an XP
-  bar, chapter miles and progress, the elevation profile with grade and miles to the boss,
-  HP and stamina bars, then time, distance, ascent, cadence and speed.
-* **Cockpit** (encounters, boss fights, rewards, level-ups, boss warmup): power and heart
-  rate tiles, HP and stamina bars, a prompt band (damage, or the boss phase with its
-  countdown and brace target) and the enemy cards with time. Reward and warmup buttons
-  appear in the same place.
+* **Road** (exploring): power with % FTP and gear, heart rate with coins, level with the
+  exact XP to go, chapter miles and progress, the elevation profile with grade and miles to
+  the boss, HP and stamina bars, then time, distance, ascent, cadence and speed. The
+  profile shows the next 10 miles by default with the rider 2 miles in and the road
+  scrolling; tapping it cycles 10 mi / 5 mi / whole route (remembered per browser).
+  MENU, OVERLAY and SAVE & QUIT (tap twice to confirm) sit in the middle.
+* **Cockpit** (encounters, boss fights, rewards, level-ups, boss warmup), top to bottom:
+  power and heart rate tiles, enemy cards with the fight time (the one attacking is marked
+  FIGHTING, the rest NEXT), the prompt band (damage per second, or the boss phase with its
+  countdown and brace target), then HP and stamina bars. Reward and warmup buttons appear
+  in the prompt band.
+* Switching between Road and Cockpit plays an iris wipe that closes on the rider.
 * **Before the ride** the Road view shows START RIDE over the road (RESUME RIDE when paused,
   CONNECT TRAINER without one). It is optional: pedaling for 3 seconds also starts the ride
   (the game sends `arm`, START RIDE sends `start` to the app).
@@ -63,10 +87,11 @@ boss about 11–19 minutes. Riders who ignore braces usually lose the chapter bo
 
 ## Stamina
 
-Stamina (`stamina.js`) is the reserve for riding above FTP, modeled on W′. It drains
-whenever effort is above FTP, in battles and on climbs alike, at 1.25% per second for each
-100% of FTP above threshold (150% FTP empties a full bar in about 2.7 minutes). It refills
-at 0.6% per second at or below 75% FTP and holds steady between 75% and 100%. Below 25%
+Stamina (`stamina.js`) is the reserve for hard riding, modeled on W′. It drains from 85%
+FTP, in battles and on climbs alike: slowly up to FTP (a full bar lasts about 10 minutes at
+FTP), then faster, adding 1.95% per second for each 100% of FTP above threshold (150% FTP
+empties a full bar in about 1.5 minutes and exhausts the rider in about 1 minute). It refills at 0.6% per second at or below 70% FTP
+and holds steady between 70% and 85%. Below 25%
 the rider is **exhausted** and deals 40% less damage (`staminaDamageMultiplier`). Riders
 who stay under FTP never lose any, so casual riders are unaffected. Stamina starts full each
 ride. It shows as a bar under the route on the full screen and in the overlay's right column,
@@ -107,11 +132,15 @@ Summit bosses come from a fixed list of 12 (`SUMMIT_BOSSES`). No monster artwork
 
 ## Rewards and healing
 
-* A win gives XP, then one choice for 10 seconds: heal 35% of max HP per enemy, or coins
-  (scaled by enemy level). Keep pedaling for coins; stop pedaling for 2 s to heal; the
-  − / + keys or trainer buttons confirm. Defaults to coins.
+* Every win pays XP and coins (30 + 5 per enemy level above 1), then one choice for 10
+  seconds: heal 35% of max HP per enemy, or bonus coins (half the win's coins). Smart
+  default: below 60% HP, pedaling picks heal; otherwise pedaling picks bonus coins. Stop
+  pedaling for 2 s to pick the other; the − / + keys or trainer buttons confirm.
 * Level-ups fully heal.
-* Pedaling between fights heals 1.5% of max HP per minute, 3% at ≤55% FTP.
+* Pedaling between fights heals 2% of max HP per minute, 3% at ≤55% FTP.
+* Roadside mechanic: an occasional repair stop on the road adds 25% of max HP, with a message.
+* Groups: only the first living enemy attacks; the others wait their turn. Two-enemy packs
+  have 80% HP each, three-enemy packs 70%.
 * Random encounters wait until HP is back to 20%.
 * A loss gives no XP, drops 10% of coins and leaves the rider at 50% HP.
 * Summit bosses are optional: stop pedaling for 15 s to ride away.
@@ -125,6 +154,7 @@ chapter (+10% each); upgrades add +2.5% each, capped by rider level (max 50) and
 
 ## Saves
 
+* SAVE & QUIT (classic screen and Ride display) ends and saves the ride.
 * Character: `localStorage['cycle-quest-character-v1']`, saved about every 10 s while
   riding and on every important event.
 * Ride and workout history: `localStorage['cycle-quest-history-v1']`, written at most

@@ -108,7 +108,7 @@ export function exploreRoadside(rider, miles, random = Math.random) {
   if (bike.roadsideRemaining > 0) return null;
   bike.roadsideRemaining = 4 + 4 * random();
   const repair = random() < 0.5;
-  let text = repair ? 'Mechanic · full HP' : '';
+  let text = repair ? 'Mechanic · +25% HP' : '';
   if (!repair || random() < 0.2) {
     const available = catalog.filter(p => bike.owned[p.id] === null);
     if (available.length) {

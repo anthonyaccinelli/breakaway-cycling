@@ -23,7 +23,11 @@ export const BALANCE = Object.freeze({
   boss: { hp: 22, attack: 0.22, xp: 3 },
   summit: { hp: 10.5, attack: 0.35, xp: 2 },
   xp: { base: 65, perLevel: 10 },
-  coins: { base: 14, perLevel: 3 },
+  // Coins are paid after every win: 25 + 5 × enemy level (50 at LV 5, 100 at LV 15, 250 at LV 45).
+  coins: { base: 30, perLevel: 5 },
+  // Packs: each enemy in a pair has 80% HP, in a pack of three 70%, so a 3-pack lasts about
+  // twice a single fight rather than three times.
+  packHP: [1, 0.8, 0.7],
   // The heal reward restores this share of max HP per defeated enemy.
   healPercentPerEnemy: 35,
   // Random encounters: the gap between fights, and how soon the first one comes in a ride
@@ -195,12 +199,13 @@ export function makeBattle(kind, { chapter = 1, level, monsterId, random = Math.
 export function enemyGroup(battles) {
   if (!Array.isArray(battles) || battles.length < 1 || battles.length > 3)
     throw Error('An encounter needs one to three enemies');
+  const packHP = BALANCE.packHP[battles.length - 1];
   const enemies = battles.map(b => ({
     id: b.monsterId,
     name: b.name,
     level: b.level,
-    hp: b.hp,
-    max: b.max,
+    hp: b.hp * packHP,
+    max: b.max * packHP,
     dps: b.dps,
     reward: b.reward,
     coins: b.coins
@@ -211,14 +216,16 @@ export function enemyGroup(battles) {
     enemies,
     hp: enemies.reduce((n, e) => n + e.hp, 0),
     max: enemies.reduce((n, e) => n + e.max, 0),
-    dps: enemies.filter(e => e.hp > 0).reduce((n, e) => n + e.dps, 0),
+    // Only the enemy you are fighting attacks; the rest wait their turn.
+    dps: enemies.find(e => e.hp > 0)?.dps || 0,
     reward: enemies.reduce((n, e) => n + e.reward, 0),
     coins: enemies.reduce((n, e) => n + (e.coins || 0), 0)
   };
 }
 
-// Resolve kills within the tick. Dead enemies stop attacking immediately.
-// Reaching 1 HP is a loss; group damage focuses the first living enemy.
+// Resolve kills within the tick. Groups fight one enemy at a time: the first living enemy
+// takes your damage and is the only one attacking; the rest wait their turn.
+// Reaching 1 HP is a loss.
 export function advanceBattle(battle, playerHP, damagePerSecond, dt) {
   const b = { ...battle, enemies: battle.enemies?.map(e => ({ ...e })) };
   let hp = Math.max(1, playerHP),
@@ -234,7 +241,7 @@ export function advanceBattle(battle, playerHP, damagePerSecond, dt) {
       outcome = hp <= 1 ? 'loss' : 'win';
       break;
     }
-    const incoming = group ? targets.filter(e => e.hp > 1e-7).reduce((n, e) => n + e.dps, 0) : b.dps;
+    const incoming = group ? target.dps : b.dps;
     const death = incoming > 0 ? (hp - 1) / incoming : Infinity,
       kill = outgoing > 0 ? target.hp / outgoing : Infinity,
       elapsed = Math.min(remaining, death, kill);
@@ -257,7 +264,7 @@ export function advanceBattle(battle, playerHP, damagePerSecond, dt) {
   }
   if (group) {
     b.hp = targets.reduce((n, e) => n + e.hp, 0);
-    b.dps = targets.filter(e => e.hp > 1e-7).reduce((n, e) => n + e.dps, 0);
+    b.dps = targets.find(e => e.hp > 1e-7)?.dps || 0;
   }
   return { battle: b, hp, killed, outcome };
 }

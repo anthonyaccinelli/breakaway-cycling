@@ -66,8 +66,8 @@ export function mountQuestDevices({ root, requestPage }) {
   };
   const select = name => section.querySelector('[data-cq-input="' + name + '"]');
   let lastState = null;
-  function sync() {
-    if (!game.isConnected || game.dataset.cqPage !== 'devices') return;
+  function sync(force = false) {
+    if (!game.isConnected || (!force && !['devices', 'route'].includes(game.dataset.cqPage))) return;
     const b = bridge();
     let state = null;
     try {
@@ -133,5 +133,5 @@ export function mountQuestDevices({ root, requestPage }) {
   // Sync only while visible. Disconnected previews show genuine empty telemetry.
   const poll = window.setInterval(sync, 750);
   window.addEventListener('pagehide', () => window.clearInterval(poll), { once: true });
-  return { sync, section };
+  return { sync, section, action, snapshot: () => lastState, ready: () => !!lastState?.ready };
 }

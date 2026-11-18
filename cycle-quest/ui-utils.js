@@ -12,5 +12,6 @@ export function formatClock(seconds) {
 }
 export function rewardButtons(reward, compact = false) {
   const key = value => (compact ? '' : `<span class="cq-rewardkey">${value}</span> `);
-  return `<div class="cq-eventactions"><button data-reward="heal">${key('−')}HEAL ${reward.healPercent}% HP</button><button data-reward="coins">${key('+')}GAIN ${reward.coins} COINS</button></div>`;
+  const bonus = reward.coinsPaid ? reward.bonusCoins || 0 : reward.coins;
+  return `<div class="cq-eventactions"><button data-reward="heal">${key('−')}HEAL ${reward.healPercent}% HP</button><button data-reward="coins">${key('+')}BONUS ${bonus} COINS</button></div>`;
 }

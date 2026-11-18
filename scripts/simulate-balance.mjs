@@ -1,8 +1,8 @@
 // Cycle Quest balance check: plays all ten chapters with the real game rules for three
 // kinds of riders and prints one row per chapter. Run: npm run simulate:quest
 // Exits non-zero if any rider cannot finish, so tuning mistakes are caught before release.
-// The rider model: steady effort with small wobbles, a reward policy of "heal below 60% HP,
-// otherwise coins", and a chapter-boss retry after riding Freeroam for an hour on a loss.
+// The rider model: steady effort with small wobbles, pedaling through every reward choice
+// (the game then heals below 60% HP and pays bonus coins above), and a chapter-boss retry after riding Freeroam for an hour on a loss.
 import { loadQuestModule } from '../tests/quest-loader.mjs';
 
 const progression = await loadQuestModule('progression.js');
@@ -77,9 +77,11 @@ export function simulate(rider, { seed = 7, chapters = CHAPTER_COUNT } = {}) {
     if (result.won) {
       const reward = rewards.battleRewards(battle);
       award(reward.xp);
-      if (s.hp < 0.6 * maxHP())
+      s.coins += reward.coins;
+      // The rider pedals through the choice, which picks heal below 60% HP, bonus coins above.
+      if (s.hp < (rewards.SMART_HEAL_BELOW / 100) * maxHP())
         s.hp = Math.min(maxHP(), s.hp + Math.round((maxHP() * reward.healPercent) / 100));
-      else s.coins += reward.coins;
+      else s.coins += reward.bonusCoins;
     } else {
       s.coins -= Math.floor((s.coins * rewards.HEALING.lossCoinPercent) / 100);
       s.hp = Math.round((maxHP() * rewards.HEALING.lossHPPercent) / 100);
