@@ -38,7 +38,7 @@ same effort. Attack comes from rider level and bike parts. See `combat.js` → `
 
 One Final Fantasy VI "party menu" screen (`shared-ui.js`, `setup-ui.css`) replaces the old
 Route and Devices pages: the ROUTE window (Adventure/Freeroam tabs, chapter or route stats
-with the summit count, elevation profile, route generators and GPX upload), the PARTY
+with the summit count, elevation profile, route generators and GPX upload in one row), the PARTY
 window (three big square tiles for trainer, heart rate and shifters that show READY, CONNECTING or TAP TO CONNECT; trainer settings; the character's HP, FTP and
 coins, a gold Bike Shop button, FTP & Weight, Save Code and Status) and a big RIDE button (CONNECT
 TRAINER until a trainer is ready). The shop is reachable here without riding.

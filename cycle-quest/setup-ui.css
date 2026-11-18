@@ -128,10 +128,18 @@
   background: #07132fcc;
   padding: 0 6px;
 }
+/* All seven route generators share one row; on narrow windows the labels wrap inside
+   their buttons instead of pushing a button onto a second row. */
 #cq-preview .cq-setup-generators {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
+}
+#cq-preview .cq-setup .cq-setup-generators .cq-setup-pill {
+  flex: 1 1 auto;
+  min-width: 0 !important;
+  padding: 2px 8px !important;
+  white-space: normal;
+  line-height: 0.95;
 }
 #cq-preview .cq-setup-party {
   display: flex;
@@ -213,18 +221,16 @@
 #cq-preview .cq-setup-party {
   container-type: inline-size;
 }
-#cq-preview .cq-setup-party > .cq-setup-devices {
-  flex: 1 1 auto;
-}
+
 #cq-preview .cq-setup-devices {
   display: grid;
-  /* About as tall as each tile is wide: big squares, not tall cards. */
-  max-height: min(280px, 31cqi);
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 #cq-preview .cq-setup .cq-setup-tile {
   position: relative;
+  /* About as tall as each tile is wide (31% of the party window): big squares. */
+  height: min(280px, 31cqi);
   min-height: clamp(96px, 15vh, 150px);
   display: flex;
   flex-direction: column;
@@ -366,8 +372,8 @@
     min-height: 110px;
   }
   #cq-preview .cq-setup .cq-setup-tile {
-    aspect-ratio: auto;
-    min-height: clamp(96px, 15vh, 150px);
+    height: min(116px, 31cqi);
+    min-height: 88px;
     border-radius: 12px !important;
   }
   #cq-preview .cq-setup .cq-setup-ride {

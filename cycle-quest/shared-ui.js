@@ -58,7 +58,7 @@ export function mountQuestBaseline({
     pill('data-cq-action="recovery"', 'RECOVERY 30') +
     pill('data-cq-action="rolling"', 'ROLLING 45') +
     pill('data-cq-action="climbing"', 'CLIMBING 60') +
-    pill('data-cq-action="gpx"', 'UPLOAD GPX') +
+    pill('data-cq-action="gpx" aria-label="Upload a GPX route"', 'GPX') +
     '</div></section>' +
     '<section class="cq-setup-party cq-setup-window">' +
     '<h2>PARTY</h2>' +
