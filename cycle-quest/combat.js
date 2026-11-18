@@ -20,7 +20,11 @@ export const BALANCE = Object.freeze({
   // Fixed difficulty per chapter: enemy levels climb 4.5 per chapter and 1 per 25 miles.
   chapterLevelStep: 4.5,
   levelSpread: 2,
-  boss: { hp: 22, attack: 0.22, xp: 3 },
+  boss: { hp: 22, attack: 0.26, xp: 3 },
+  // Chapter bosses meet the rider at the rider's level (never below the chapter's own boss
+  // level), so out-leveling a chapter does not make its boss easy; gear and effort decide it.
+  // Each loss to the same boss lowers it this many levels, down to the chapter's own level.
+  bossRetryLevels: 2,
   summit: { hp: 10.5, attack: 0.35, xp: 2 },
   xp: { base: 65, perLevel: 10 },
   // Coins are paid after every win: 25 + 5 × enemy level (50 at LV 5, 100 at LV 15, 250 at LV 45).
@@ -92,6 +96,15 @@ export function chapterLevels(chapter = 1, miles = 0) {
   return { min: base + quarter, max: base + quarter + BALANCE.levelSpread, boss: top };
 }
 
+// The chapter boss's level for this rider: the rider's level, lowered after each loss,
+// never below the chapter's own boss level.
+export function chapterBossLevel(chapter, riderLevel, losses = 0) {
+  const fixed = chapterLevels(chapter).boss;
+  if (!Number.isFinite(Number(riderLevel))) return fixed;
+  const tries = Math.max(0, Math.floor(Number(losses) || 0));
+  return Math.max(fixed, ownLevel(riderLevel) - BALANCE.bossRetryLevels * tries);
+}
+
 // Seconds of riding until the next random encounter: ~every 3 minutes, sooner at ride start.
 export function encounterDelay(first = false, random = Math.random) {
   const [low, high] = first ? BALANCE.firstEncounter : BALANCE.encounterGap;
@@ -161,7 +174,7 @@ export function makeBattle(kind, { chapter = 1, level, monsterId, random = Math.
   const levels = chapterLevels(chapter, null);
   let monster, L, scale;
   if (kind === 'boss') {
-    L = levels.boss;
+    L = level === undefined ? levels.boss : Math.max(levels.boss, ownLevel(level));
     monster = species.get(monsterId) || species.get(chapterInfo(clampChapter(chapter)).boss);
     scale = BALANCE.boss;
   } else if (kind === 'summit') {

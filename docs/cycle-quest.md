@@ -107,8 +107,15 @@ best 20 minutes is higher than the current FTP. Until set, the game uses 200 W.
 ## Difficulty and progression
 
 * Adventure: fixed difficulty per chapter. Enemy levels start at `1 + 4.5 × (chapter − 1)`
-  and rise 1 level every 25 miles; the chapter boss is at the top of the range. Rider level
-  is never an input there, so out-leveling a chapter makes it easier.
+  and rise 1 level every 25 miles. Rider level is never an input for random enemies or
+  summit bosses, so out-leveling a chapter makes them easier: regular fights are meant to
+  be won.
+* Chapter bosses are meant to be hard. They meet the rider at the rider's level, never below
+  the chapter's own boss level (`chapterBossLevel`), so only gear and effort decide the fight.
+  Each loss lowers that boss 2 levels (`BALANCE.bossRetryLevels`, counted in `bossLosses`),
+  down to the chapter's own level, so nobody is stuck. In the simulator a steady casual rider
+  usually needs a second try, a typical rider wins with about 3–12% HP left, a strong rider
+  with 10–30%, and a rider who surges hard between braces with about half.
 * Freeroam, "Scaled to me" (the default): enemies come in at the rider's level minus 0–2
   (`BALANCE.scaledLevelsBelow`), drawn from the highest chapter reached; summit bosses use
   the rider's level. XP and coins grow with enemy level, so rewards keep pace. XP and levels
@@ -120,7 +127,8 @@ best 20 minutes is higher than the current FTP. Until set, the game uses 200 W.
 * XP per level: 5,000 + 300 per level (about one level per hour of riding).
 * All tuning numbers are in `combat.js` → `BALANCE` and `progression.js`.
 * `npm run simulate:quest` plays all ten chapters with the real rules for casual,
-  typical and strong riders. `tests/cycle-quest-balance.test.mjs` fails if any of them
+  typical, strong and interval riders, and lists each chapter boss attempt (level, win or
+  loss, HP left). `tests/cycle-quest-balance.test.mjs` fails if any of them
   cannot finish, so run the tests after any tuning change.
 
 ## Rosters

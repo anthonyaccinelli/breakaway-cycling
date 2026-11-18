@@ -3,6 +3,7 @@
 // Exits non-zero if any rider cannot finish, so tuning mistakes are caught before release.
 // The rider model: steady effort with small wobbles, pedaling through every reward choice
 // (the game then heals below 60% HP and pays bonus coins above), and a chapter-boss retry after riding Freeroam for an hour on a loss.
+// Chapter bosses come in at the rider's level and drop 2 levels per loss (combat.chapterBossLevel).
 import { loadQuestModule } from '../tests/quest-loader.mjs';
 
 const progression = await loadQuestModule('progression.js');
@@ -134,17 +135,23 @@ export function simulate(rider, { seed = 7, chapters = CHAPTER_COUNT } = {}) {
       settle(result, group);
     }
     let attempts = 0,
-      beaten = false;
+      beaten = false,
+      lastBossLevel = 0;
+    const bossLog = [];
     while (!beaten && attempts < 6) {
       attempts++;
       const recover = Math.max(0, (0.9 * maxHP() - s.hp) / rewards.regenPerSecond(maxHP(), rider.effort));
       seconds += recover;
       award(Math.round(recover));
       s.hp = Math.max(s.hp, 0.9 * maxHP());
-      const boss = combat.makeBattle('boss', { chapter }),
+      const bossLevel = combat.chapterBossLevel(chapter, level(), attempts - 1),
+        boss = combat.makeBattle('boss', { chapter, level: bossLevel }),
         result = fight(boss);
       seconds += result.seconds;
+      const hpLeft = Math.round((100 * s.hp) / maxHP());
       settle(result, boss);
+      lastBossLevel = bossLevel + (result.won ? '' : ' (lost)');
+      bossLog.push(bossLevel + (result.won ? ' W ' + hpLeft + '%' : ' L'));
       beaten = result.won;
       if (!beaten) {
         seconds += 3600;
@@ -156,13 +163,14 @@ export function simulate(rider, { seed = 7, chapters = CHAPTER_COUNT } = {}) {
       hours: +(seconds / 3600).toFixed(1),
       level: startLevel + '→' + level(),
       enemyLevels: combat.chapterLevels(chapter, 0).min + '–' + combat.chapterLevels(chapter, 99).max,
-      bossLevel: combat.chapterLevels(chapter).boss,
+      bossLevel: lastBossLevel,
       winRate: Math.round((100 * wins) / Math.max(1, wins + losses)) + '%',
       avgFight: Math.round(fightSeconds / Math.max(1, wins + losses)) + 's',
       lowHPMinutes: Math.round(lowHP / 60),
       coins: s.coins - startCoins,
       exhaustedMin: Math.round(exhaustedSeconds / 60),
-      bossTries: beaten ? attempts : 'FAILED'
+      bossTries: beaten ? attempts : 'FAILED',
+      bossFights: bossLog.join(' → ')
     });
     if (!beaten) break;
   }

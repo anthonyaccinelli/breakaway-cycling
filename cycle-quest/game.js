@@ -53,6 +53,7 @@ import {
   enemyGroup,
   encounterLevel,
   chapterLevels,
+  chapterBossLevel,
   chapterMonsters,
   riderDamagePerSecond,
   encounterAllowedOnGrade,
@@ -816,7 +817,13 @@ function encounter(kind, forcedCount = null) {
     if (s.mode !== 'adventure' || s.chapter > 10) return;
     s.bossWarmupReady = false;
     s.miles = 100;
-    s.battle = { ...bossStats() };
+    // The chapter boss meets the rider at their level (weaker after each loss).
+    s.battle = {
+      ...makeBattle('boss', {
+        chapter: s.chapter,
+        level: chapterBossLevel(s.chapter, level(), s.bossLosses || 0)
+      })
+    };
   } else if (kind === 'enemy') {
     const roll = Math.random(),
       count = forcedCount ?? (roll < 0.1 ? 3 : roll < 0.3 ? 2 : 1),
@@ -877,6 +884,7 @@ function finish(win) {
       s.chapter++;
       s.miles = 0;
       s.boss = null;
+      delete s.bossLosses;
       if (s.chapter <= 10) {
         s.route = chapterRoute(s.chapter, generateRoute);
         s.routeMiles = 0;
@@ -904,13 +912,20 @@ function finish(win) {
     const lostCoins = Math.floor(((s.coins || 0) * HEALING.lossCoinPercent) / 100);
     s.coins = (s.coins || 0) - lostCoins;
     s.hp = Math.max(1, Math.round((maxHP() * HEALING.lossHPPercent) / 100));
+    if (b.kind === 'boss') s.bossLosses = (s.bossLosses || 0) + 1;
     message =
       'Battle lost. No XP' +
       (lostCoins ? ', ' + fmt(lostCoins) + ' coins dropped' : '') +
       '. You limp on at ' +
       HEALING.lossHPPercent +
       '% HP. ' +
-      (b.kind === 'boss' ? 'The same boss awaits your next attempt.' : 'Keep riding.');
+      (b.kind !== 'boss'
+        ? 'Keep riding.'
+        : chapterBossLevel(s.chapter, level(), s.bossLosses) < b.level
+          ? 'The boss is wounded: next time it is LV ' +
+            chapterBossLevel(s.chapter, level(), s.bossLosses) +
+            '.'
+          : 'The same boss awaits your next attempt.');
   }
   save();
 }

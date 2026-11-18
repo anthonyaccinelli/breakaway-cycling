@@ -130,6 +130,7 @@ export function validCharacter(state) {
         v.ends.length <= 12 &&
         v.ends.every(Number.isFinite)
     ) &&
+    optional(state.bossLosses, n => Number.isInteger(n) && n >= 0 && n <= 1000) &&
     optional(state.freeroamChapter, n => Number.isInteger(n) && n >= 0 && n <= 10) &&
     (!state.pendingReward || (state.reward && validPendingReward(state.pendingReward))) &&
     optional(state.routeMiles, nonnegative) &&
