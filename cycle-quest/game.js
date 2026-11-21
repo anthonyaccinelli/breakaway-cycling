@@ -2740,6 +2740,9 @@ window.addEventListener('message', e => {
   }
   if (m.type === 'notice') {
     message = String(m.message || '');
+    // Show it on the ride display too, where `message` is not visible.
+    roadsideNotice = message;
+    roadsideNoticeUntil = performance.now() + 8000;
     render();
     return;
   }

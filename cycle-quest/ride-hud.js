@@ -150,12 +150,12 @@ export function mountRideHud(
     if (event.target.closest('[data-hud-start]')) onStart();
     if (event.target.closest('[data-hud-overlay]')) onOverlay();
     if (event.target.closest('.cq-hudprofile')) onProfile();
-    // SAVE & QUIT asks once more (for 4 seconds) before ending the ride.
+    // SAVE & QUIT asks once more (for 10 seconds, time to reach the mouse) before ending the ride.
     if (event.target.closest('[data-hud-quit]')) {
       if (performance.now() < quitArmedUntil) {
         quitArmedUntil = 0;
         onQuit();
-      } else quitArmedUntil = performance.now() + 4000;
+      } else quitArmedUntil = performance.now() + 10000;
       if (lastModel) update(lastModel);
     }
   });

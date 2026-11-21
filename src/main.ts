@@ -3333,7 +3333,13 @@ window.addEventListener('message',event=>{
  else if(data.type==='arm'){if(connected&&controlGranted&&realTelemetry&&!running&&!rideEnd&&!rideAwaitingPedaling){rideAwaitingPedaling=true;pedalSince=0;}}
  else if(data.type==='toggle'){if(!connected||!controlGranted||!realTelemetry){questSend({type:'navigate',page:'devices'});status('Connect your smart trainer to start Cycle Quest.');}else if(running)pauseRide();else if(rideEnd){status('Finish the ride summary before starting another ride.');}else {rideAwaitingPedaling=true;pedalSince=0;questSend({type:'notice',message:'Ready — start pedaling to begin.'});}}
  else if(data.type==='pause'){if(running)pauseRide();if(data.autoResume===false)rideAwaitingPedaling=false;}
- else if(data.type==='finish'){if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();questSend({type:'ride-finished'});}else questSend({type:'notice',message:'No active ride to finish.'});}
+ else if(data.type==='finish'){
+  // Save & Quit. A ride already ended reopens its summary (TCX download, Strava/Garmin) rather than doing nothing.
+  console.info('[Cycle Quest] Save & Quit',{rideStart,rideEnd,running});
+  if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();questSend({type:'ride-finished'});}
+  else if(rideStart&&rideEnd){showRideSummary();questSend({type:'ride-finished'});}
+  else questSend({type:'notice',message:'No ride in progress, so there is nothing to save.'});
+ }
  else if(data.type==='route'){if(pendingQuestRideRecovery){questStoryChapter=pendingQuestRideRecovery.questStoryChapter||data.route?.storyChapter||0;}else routeFromQuest(data);}
  else if(data.type==='ready'){
   if(pendingQuestRideRecovery){
