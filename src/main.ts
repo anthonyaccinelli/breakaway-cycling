@@ -1,4 +1,5 @@
 import {virtualGearTarget,advanceRoadSpeed} from './virtual-drivetrain';
+import {ZwiftClickHub,ZWIFT_OPTIONAL_SERVICES,ZWIFT_REQUEST_FILTERS,describeHub as describeZwiftHub} from './zwift-controller';
 import {createQuestIntroMusic} from './quest-intro-music';
 import {createRouteSeedSelector,readRouteGainTarget} from './route-seed';
 import {findClassicRoute,registerClassicRoute,randomClassicSeed,isClassicSeed,validatedClassicRecipe,deriveUnregisteredClassicRoute} from './classic-route-registry';
@@ -1496,120 +1497,64 @@ $('disconnectHr').addEventListener('click',()=>{pausedBleRoles.add('hr');
  $('heartRate').textContent='—';hrMessage('Heart rate monitor disconnected');
 });
 
-// Original Zwift Click (BC1) protocol: RC1 service, unencrypted RideOn activation.
-// Reference: jat255/Zwift_click_handling and Makinolo's RC1 protocol notes.
-const CLICK_SERVICE='00000001-19ca-4651-86e5-fa29dcdd09d1';
-const CLICK_NOTIFY='00000002-19ca-4651-86e5-fa29dcdd09d1';
-const CLICK_WRITE='00000003-19ca-4651-86e5-fa29dcdd09d1';
-let clickDevice:any=null;
-let clickCharacteristic:any=null;
-let clickHandler:((event:any)=>void)|null=null;
+// Zwift Click (original), Click v2 (both halves), Play and Ride via the shared hub.
+// Games keep receiving the original {plus, minus} state; see src/zwift-controller.ts.
+let clickDevice:any=null; // first connected controller, for readiness checks
+const clickDevices=new Map<string,any>();
 let plusPressed=false,minusPressed=false;
 let clickPackets=0;
 let clickButtonEvents=0;
-// The original Click may go idle without periodic RC1 activation traffic.
-// Keepalive is best-effort; no automatic Bluetooth chooser or silent re-pairing.
-let clickKeepaliveTimer:ReturnType<typeof setInterval>|null=null;
-let clickWriteCharacteristic:any=null;
-let clickKeepaliveBusy=false;
-let clickSession=0;
-const CLICK_KEEPALIVE_MS=15000;
-function stopClickKeepalive(){
- if(clickKeepaliveTimer!==null){clearInterval(clickKeepaliveTimer);clickKeepaliveTimer=null;}
- clickWriteCharacteristic=null;
-}
-async function sendClickRideOn(session:number){
- if(session!==clickSession||clickKeepaliveBusy||!clickDevice?.gatt?.connected||!clickWriteCharacteristic)return;
- clickKeepaliveBusy=true;
- try{
-  const payload=new TextEncoder().encode('RideOn');
-  if(clickWriteCharacteristic.properties.writeWithoutResponse)await clickWriteCharacteristic.writeValueWithoutResponse(payload);
-  else if(clickWriteCharacteristic.properties.write)await clickWriteCharacteristic.writeValueWithResponse(payload);
-  else throw Error('Click activation characteristic is not writable');
- }catch(err){
-  if(session===clickSession)clickMessage('Zwift Click keepalive failed: '+String(err));
- }finally{clickKeepaliveBusy=false;}
-}
 function clickMessage(message:string){$('clickStatus').textContent=message;}
-function packetHex(view:DataView):string{
- return Array.from(new Uint8Array(view.buffer,view.byteOffset,view.byteLength)).map(b=>b.toString(16).padStart(2,'0')).join(' ');
+function rememberClickDevices(){
+ const ids=clickHub.ids();
+ if(ids.length)rememberedBle.click=ids.join(',');else delete rememberedBle.click;
+ try{localStorage.setItem(REMEMBERED_BLE_KEY,JSON.stringify(rememberedBle));}catch{}
 }
-// Click message 0x37 carries two protobuf varint fields: field 1 = plus,
-// field 2 = minus; zero means pressed, one means released.
-function decodeClickState(bytes:Uint8Array):{plus:boolean;minus:boolean}|null{
- if(bytes.length<2||bytes[0]!==0x37)return null;
- const fields=new Map<number,number>();let i=1;
- while(i<bytes.length){
-  let tag=0,shiftBits=0,b=0;
-  do{if(i>=bytes.length||shiftBits>28)return null;b=bytes[i++];tag|=(b&127)<<shiftBits;shiftBits+=7;}while(b&128);
-  const field=tag>>>3,wire=tag&7;
-  if(wire===0){let value=0;shiftBits=0;
-   do{if(i>=bytes.length||shiftBits>28)return null;b=bytes[i++];value|=(b&127)<<shiftBits;shiftBits+=7;}while(b&128);
-   fields.set(field,value);
-  }else if(wire===2){let length=0;shiftBits=0;
-   do{if(i>=bytes.length||shiftBits>28)return null;b=bytes[i++];length|=(b&127)<<shiftBits;shiftBits+=7;}while(b&128);
-   if(i+length>bytes.length)return null;i+=length;
-  }else return null;
- }
- if(!fields.has(1)||!fields.has(2))return null;
- return {plus:fields.get(1)===0,minus:fields.get(2)===0};
+function rememberedClickIds(){return (rememberedBle.click||'').split(',').filter(Boolean);}
+function enableVirtualForClick(){
+ // A successful Zwift Click connection always enables virtual shifting, including auto-reconnects.
+ if(drivetrainMode==='virtual')return;
+ drivetrainMode='virtual';
+ ($('drivetrainMode') as HTMLSelectElement).value='virtual';
+ applyDrivetrainMode();
+ saveRideSettings();
 }
+const clickHub=new ZwiftClickHub({
+ onState:(state)=>{
+  clickButtonEvents++;
+  $('clickDecoded').textContent=`Decoded button packets: ${clickButtonEvents} | Plus: ${state.plus?'PRESSED':'released'} | Minus: ${state.minus?'PRESSED':'released'}`;
+  // Edge detection: one gear change per press, not per notification.
+  const questConsumed=routeQuestClick(state.plus,state.minus);
+  if(!questConsumed&&drivetrainMode==='virtual'&&state.plus&&!plusPressed)shift(1);
+  if(!questConsumed&&drivetrainMode==='virtual'&&state.minus&&!minusPressed)shift(-1);
+  plusPressed=state.plus;minusPressed=state.minus;
+ },
+ onChange:(devices)=>{
+  clickDevice=null;
+  for(const info of devices)if(info.connected){clickDevice=clickDevices.get(info.id)??null;break;}
+  if(!devices.length)clickDevice=null;
+  if(devices.some(d=>d.connected))enableVirtualForClick();
+  clickMessage(describeZwiftHub(devices));
+ },
+ onPacket:(_info,hex)=>{clickPackets++;$('clickPacket').textContent=`Packets: ${clickPackets} | Last: ${hex}`;},
+ log:(text)=>console.info('[Zwift controller]',text),
+});
 async function connectClickDevice(selected:any){
  try{
-  const bluetooth=(navigator as any).bluetooth;
-  if(!bluetooth)throw Error('Use desktop Chrome or Edge on localhost or HTTPS.');
-  clickMessage('Press a Click button to wake it, then select Zwift Click…');
-  if(clickDevice?.id===selected.id&&clickDevice.gatt?.connected)return;
-  stopClickKeepalive();clickSession++;
-  if(clickCharacteristic&&clickHandler)clickCharacteristic.removeEventListener('characteristicvaluechanged',clickHandler);
-  if(clickDevice?.gatt?.connected)clickDevice.gatt.disconnect();
-  clickDevice=selected;plusPressed=false;minusPressed=false;clickPackets=0;clickButtonEvents=0;
-  selected.addEventListener('gattserverdisconnected',()=>{if(clickDevice===selected){stopClickKeepalive();clickSession++;plusPressed=false;minusPressed=false;clickMessage('Zwift Click disconnected — press a button to wake it, then reconnect');}});
-  const server=await selected.gatt.connect();
-  let service:any;
-  try{service=await server.getPrimaryService(CLICK_SERVICE);}
-  catch{
-   throw Error('Connected to '+(selected.name||'Zwift controller')+', but its Bluetooth service differs from the original Click. Newer Cog & Click / Play controllers need protocol support. Device name: '+(selected.name||'unknown'));
-  }
-  clickCharacteristic=await service.getCharacteristic(CLICK_NOTIFY);
-  clickHandler=(event:any)=>{
-   const view:DataView=event.target.value;
-   clickPackets++;
-   $('clickPacket').textContent=`Packets: ${clickPackets} | Last: ${packetHex(view)}`;
-   const bytes=new Uint8Array(view.buffer,view.byteOffset,view.byteLength);
-   const state=decodeClickState(bytes);
-   if(!state)return;
-   clickButtonEvents++;
-   $('clickDecoded').textContent=`Decoded button packets: ${clickButtonEvents} | Plus: ${state.plus?'PRESSED':'released'} | Minus: ${state.minus?'PRESSED':'released'}`;
-   // Edge detection: one gear change per press, not per notification.
-   const questConsumed=routeQuestClick(state.plus,state.minus);
-   if(!questConsumed&&drivetrainMode==='virtual'&&state.plus&&!plusPressed)shift(1);
-   if(!questConsumed&&drivetrainMode==='virtual'&&state.minus&&!minusPressed)shift(-1);
-   plusPressed=state.plus;minusPressed=state.minus;
-   clickMessage(`Zwift Click connected · + ${plusPressed?'pressed':'ready'} / − ${minusPressed?'pressed':'ready'} · ${clickPackets} packets`);
-  };
-  clickCharacteristic.addEventListener('characteristicvaluechanged',clickHandler);
-  await clickCharacteristic.startNotifications();
-  // A successful Zwift Click connection always enables virtual shifting, including auto-reconnects.
-  if(drivetrainMode!=='virtual'){
-   drivetrainMode='virtual';
-   ($('drivetrainMode') as HTMLSelectElement).value='virtual';
-   applyDrivetrainMode();
-   saveRideSettings();
-  }
-  // Crucial: notifications stay silent until the original Click is activated.
-  clickWriteCharacteristic=await service.getCharacteristic(CLICK_WRITE);
-  const session=clickSession;
-  await sendClickRideOn(session);
-  clickKeepaliveTimer=setInterval(()=>{void sendClickRideOn(session);},CLICK_KEEPALIVE_MS);
-  clickMessage('Zwift Click activated · idle keepalive every 15s · press + or − to shift');
- }catch(err){clickMessage('Zwift Click: '+String(err));throw err;}
+  if(!(navigator as any).bluetooth)throw Error('Use desktop Chrome or Edge on localhost or HTTPS.');
+  clickDevices.set(selected.id,selected);
+  if(!clickHub.has(selected.id))clickMessage(`Connecting ${selected.name||'Zwift controller'}…`);
+  await clickHub.add(selected);
+  if(!clickHub.has(selected.id))clickDevices.delete(selected.id);
+  rememberClickDevices();
+ }catch(err){
+  if(!clickHub.has(selected.id))clickDevices.delete(selected.id);
+  clickMessage('Zwift Click: '+String(err));throw err;
+ }
 }
-$('connectClick').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');const selected=await bluetooth.requestDevice({filters:[{namePrefix:'Zwift Click'},{namePrefix:'Zwift Play'},{namePrefix:'Zwift'}],optionalServices:[CLICK_SERVICE]});pausedBleRoles.delete('click');rememberDevice('click',selected);await connectClickDevice(selected);}catch(err){clickMessage('Zwift Click: '+String(err));}});
+$('connectClick').addEventListener('click',async()=>{try{const bluetooth=(navigator as any).bluetooth;if(!bluetooth)throw Error('Web Bluetooth unavailable');clickMessage('Press a button on the Click to wake it, then choose it. Click v2: pair each half (connect twice).');const selected=await bluetooth.requestDevice({filters:ZWIFT_REQUEST_FILTERS,optionalServices:ZWIFT_OPTIONAL_SERVICES});pausedBleRoles.delete('click');await connectClickDevice(selected);}catch(err){clickMessage('Zwift Click: '+String(err));}});
 $('disconnectClick').addEventListener('click',()=>{pausedBleRoles.add('click');
- stopClickKeepalive();clickSession++;
- if(clickCharacteristic&&clickHandler)clickCharacteristic.removeEventListener('characteristicvaluechanged',clickHandler);
- clickDevice?.gatt?.disconnect();clickDevice=null;clickCharacteristic=null;clickHandler=null;
+ clickHub.removeAll();clickDevices.clear();clickDevice=null;
  plusPressed=false;minusPressed=false;
  clickMessage('Zwift Click disconnected');
 });
@@ -1637,7 +1582,7 @@ function rememberDevice(role:DeviceRole,selected:any){
  autoBleStatus.textContent=`Remembered ${selected.name||role}. Automatic reconnect ${autoBluetoothEnabled?'enabled':'disabled'}.`;
 }
 function roleConnected(role:DeviceRole){
- return role==='trainer'?connected&&!!device?.gatt?.connected:role==='hr'?!!hrDevice?.gatt?.connected:!!clickDevice?.gatt?.connected;
+ return role==='trainer'?connected&&!!device?.gatt?.connected:role==='hr'?!!hrDevice?.gatt?.connected:rememberedClickIds().every(id=>clickHub.has(id)&&clickHub.devices().some(d=>d.id===id&&d.connected));
 }
 async function reconnectRememberedBluetooth(){
  if(!autoBluetoothEnabled||autoBluetoothBusy||document.hidden)return;
@@ -1653,12 +1598,20 @@ async function reconnectRememberedBluetooth(){
   let count=0;
   for(const role of roles){
    if(!autoBluetoothEnabled||pausedBleRoles.has(role)||roleConnected(role)||!rememberedBle[role])continue;
+   if(role==='click'){
+    // Click v2 is two devices; each remembered half reconnects on its own.
+    for(const id of rememberedClickIds()){
+     if(clickHub.has(id))continue; // the hub is already retrying this half
+     const half=devices.find(d=>d.id===id);if(!half)continue;
+     try{await connectClickDevice(half);count++;}catch{/* asleep or out of range; retry later */}
+    }
+    continue;
+   }
    const selected=devices.find(d=>d.id===rememberedBle[role]);
    if(!selected)continue;
    try{
     if(role==='trainer')await connectTrainerDevice(selected);
-    else if(role==='hr')await connectHrDevice(selected);
-    else await connectClickDevice(selected);
+    else await connectHrDevice(selected);
     count++;
    }catch{/* Device may be powered off or out of range; retry later. */}
   }
