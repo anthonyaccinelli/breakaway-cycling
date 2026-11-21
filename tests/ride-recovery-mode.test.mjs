@@ -10,7 +10,7 @@ const restore=main.slice(main.indexOf('function restoreRideRecovery('),main.inde
 const checkpoint={mode:'cyclequest',rideStart:'2026-10-30T12:00:00Z',routeName:'Coastal Beginnings',points:[{distance:0,elevation:0,grade:0},{distance:160934,elevation:0,grade:0}],distance:12345,activeRideMs:123000,energyKcal:250,avgPowerEnergy:12000,avgPowerDuration:100,rideSamples:[{seconds:123,distance:12345}],routeLimit:-1};
 function harness(){
  const calls=[],controls={start:{},surviveFailScreen:{hidden:false},surviveVictoryScreen:{hidden:false}};
- const c={Number,Infinity,localStorage:{getItem:()=>null},surviveFailScreen:controls.surviveFailScreen,surviveVictoryScreen:controls.surviveVictoryScreen,$:id=>controls[id],resetSimController:()=>{},setRideFocus:()=>{},syncManualFinishButton:()=>{},svg:()=>{},update:()=>{},chooseRideExperience:mode=>calls.push(mode),showBreakawayScreen:page=>calls.push(page),enterCycleQuest:()=>calls.push('quest'),showRideSummary:()=>calls.push('summary'),status:()=>{},c:checkpoint};
+ const c={Number,Infinity,checkpointOdometer:c=>Math.max(0,c.distance-(c.rideSessionStartDistance??0)),localStorage:{getItem:()=>null},surviveFailScreen:controls.surviveFailScreen,surviveVictoryScreen:controls.surviveVictoryScreen,$:id=>controls[id],resetSimController:()=>{},setRideFocus:()=>{},syncManualFinishButton:()=>{},svg:()=>{},update:()=>{},chooseRideExperience:mode=>calls.push(mode),showBreakawayScreen:page=>calls.push(page),enterCycleQuest:()=>calls.push('quest'),showRideSummary:()=>calls.push('summary'),status:()=>{},c:checkpoint};
  vm.createContext(c);vm.runInContext(transpile(modes+'\n'+restore),c);return {c,calls};
 }
 test('recovery selects the saved mode instead of the previous screen and keeps metrics paused',()=>{

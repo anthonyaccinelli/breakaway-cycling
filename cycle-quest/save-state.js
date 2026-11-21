@@ -1,61 +1,169 @@
-import {COMBAT_VERSION,MAX_ENEMY_LEVEL} from '/api/cycle-quest?asset=combat.js';
-import {migrateCombatSave} from '/api/cycle-quest?asset=combat-save.js';
-import {validLedger} from '/api/cycle-quest?asset=workouts.js';
-import {validPendingReward} from '/api/cycle-quest?asset=rewards.js';
+import { validBike } from '/api/cycle-quest?asset=bike-parts.js';
+import { COMBAT_VERSION, MAX_ENEMY_LEVEL } from '/api/cycle-quest?asset=combat.js';
+import { migrateCombatSave } from '/api/cycle-quest?asset=combat-save.js';
+import { validLedger } from '/api/cycle-quest?asset=workouts.js';
+import { validPendingReward, normalizePendingReward } from '/api/cycle-quest?asset=rewards.js';
+import { validRider } from '/api/cycle-quest?asset=rider-profile.js';
+import { validStamina } from '/api/cycle-quest?asset=stamina.js';
 
-export const MAX_XP=10000000;
+import { MAX_XP } from '/api/cycle-quest?asset=progression.js';
+export { MAX_XP };
 
-const nonnegative=value=>Number.isFinite(value)&&value>=0;
-const label=value=>typeof value==='string'&&value.length>0&&value.length<=160;
-const optional=(value,check)=>value===undefined||check(value);
+const nonnegative = value => Number.isFinite(value) && value >= 0;
+const label = value => typeof value === 'string' && value.length > 0 && value.length <= 160;
+const optional = (value, check) => value === undefined || check(value);
 
-export function validRoute(route){
- if(!route)return true;
- if(typeof route!=='object')return false;
- const points=route.points;
- return typeof route.name==='string'&&route.name.length<=80&&nonnegative(route.distance)&&route.distance>0&&nonnegative(route.gain)&&typeof route.hasElevation==='boolean'
-  &&Array.isArray(points)&&points.length>=2&&points.length<=1000&&points[0]?.d===0
-  &&points.every((point,index)=>point&&nonnegative(point.d)&&Number.isFinite(point.e)&&(!index||point.d>points[index-1].d))
-  &&points.at(-1).d===route.distance
-  &&(route.endless!==true||(Number.isInteger(route.seed)&&['flat','rolling','mountain','punchy'].includes(route.terrain)&&nonnegative(route.windowStart??0)));
+export function validRoute(route) {
+  if (!route) return true;
+  if (typeof route !== 'object') return false;
+  const points = route.points;
+  return (
+    typeof route.name === 'string' &&
+    route.name.length <= 80 &&
+    nonnegative(route.distance) &&
+    route.distance > 0 &&
+    nonnegative(route.gain) &&
+    typeof route.hasElevation === 'boolean' &&
+    Array.isArray(points) &&
+    points.length >= 2 &&
+    points.length <= 1000 &&
+    points[0]?.d === 0 &&
+    points.every(
+      (point, index) =>
+        point && nonnegative(point.d) && Number.isFinite(point.e) && (!index || point.d > points[index - 1].d)
+    ) &&
+    points.at(-1).d === route.distance &&
+    (route.endless !== true ||
+      (Number.isInteger(route.seed) &&
+        ['flat', 'rolling', 'mountain', 'punchy'].includes(route.terrain) &&
+        nonnegative(route.windowStart ?? 0)))
+  );
 }
 
-function validBattle(battle,active=false){
- if(!battle)return true;
- if(typeof battle!=='object'||!label(battle.name)||!nonnegative(battle.hp)||!nonnegative(battle.dps))return false;
- if(!optional(battle.combatVersion,n=>Number.isInteger(n)&&n>=1&&n<=COMBAT_VERSION))return false;
- if(!active&&battle.combatVersion!==COMBAT_VERSION)return battle.hp>0;
- if(!active&&(battle.kind!=='boss'||battle.hp<=0))return false;
- if(!optional(battle.level,n=>Number.isInteger(n)&&n>=1))return false;
- if(!['enemy','summit','boss'].includes(battle.kind)||!nonnegative(battle.reward)||!nonnegative(battle.max)||battle.max<=0||battle.hp>battle.max)return false;
- if(battle.combatVersion===COMBAT_VERSION&&(!Number.isInteger(battle.level)||battle.level<1||battle.level>MAX_ENEMY_LEVEL))return false;
- if(!battle.enemies)return true;
- return battle.kind==='enemy'&&Array.isArray(battle.enemies)&&battle.enemies.length>=1&&battle.enemies.length<=3
-  &&battle.enemies.every(enemy=>enemy&&label(enemy.name)&&label(enemy.id)&&optional(enemy.level,n=>Number.isInteger(n)&&n>=1)&&optional(enemy.dps,nonnegative)&&optional(enemy.reward,nonnegative)&&nonnegative(enemy.hp)&&nonnegative(enemy.max)&&enemy.max>0&&enemy.hp<=enemy.max)
-  &&(battle.combatVersion!==COMBAT_VERSION||battle.enemies.every(enemy=>Number.isInteger(enemy.level)&&enemy.level>=1&&enemy.level<=MAX_ENEMY_LEVEL&&nonnegative(enemy.dps)&&nonnegative(enemy.reward)))
-  &&Math.abs(battle.enemies.reduce((sum,enemy)=>sum+enemy.hp,0)-battle.hp)<1;
+function validBattle(battle, active = false) {
+  if (!battle) return true;
+  if (
+    typeof battle !== 'object' ||
+    !label(battle.name) ||
+    !nonnegative(battle.hp) ||
+    !nonnegative(battle.dps)
+  )
+    return false;
+  if (!optional(battle.combatVersion, n => Number.isInteger(n) && n >= 1 && n <= COMBAT_VERSION))
+    return false;
+  if (!active && battle.combatVersion !== COMBAT_VERSION) return battle.hp > 0;
+  if (!active && (battle.kind !== 'boss' || battle.hp <= 0)) return false;
+  if (!optional(battle.level, n => Number.isInteger(n) && n >= 1)) return false;
+  if (
+    !['enemy', 'summit', 'boss'].includes(battle.kind) ||
+    !nonnegative(battle.reward) ||
+    !nonnegative(battle.max) ||
+    battle.max <= 0 ||
+    battle.hp > battle.max
+  )
+    return false;
+  if (
+    battle.combatVersion === COMBAT_VERSION &&
+    (!Number.isInteger(battle.level) || battle.level < 1 || battle.level > MAX_ENEMY_LEVEL)
+  )
+    return false;
+  if (!battle.enemies) return true;
+  return (
+    battle.kind === 'enemy' &&
+    Array.isArray(battle.enemies) &&
+    battle.enemies.length >= 1 &&
+    battle.enemies.length <= 3 &&
+    battle.enemies.every(
+      enemy =>
+        enemy &&
+        label(enemy.name) &&
+        label(enemy.id) &&
+        optional(enemy.level, n => Number.isInteger(n) && n >= 1) &&
+        optional(enemy.dps, nonnegative) &&
+        optional(enemy.reward, nonnegative) &&
+        optional(enemy.coins, nonnegative) &&
+        nonnegative(enemy.hp) &&
+        nonnegative(enemy.max) &&
+        enemy.max > 0 &&
+        enemy.hp <= enemy.max
+    ) &&
+    (battle.combatVersion !== COMBAT_VERSION ||
+      battle.enemies.every(
+        enemy =>
+          Number.isInteger(enemy.level) &&
+          enemy.level >= 1 &&
+          enemy.level <= MAX_ENEMY_LEVEL &&
+          nonnegative(enemy.dps) &&
+          nonnegative(enemy.reward)
+      )) &&
+    Math.abs(battle.enemies.reduce((sum, enemy) => sum + enemy.hp, 0) - battle.hp) < 1
+  );
 }
 
-export function validCharacter(state){
- return !!state&&typeof state==='object'&&state.version===1
-  &&nonnegative(state.xp)&&state.xp<=MAX_XP&&nonnegative(state.hp)
-  &&nonnegative(state.miles)&&state.miles<=100&&Number.isInteger(state.chapter)&&state.chapter>=1
-  &&optional(state.bossWarmupRemaining,n=>nonnegative(n)&&n<=600)&&optional(state.bossModeComplete,n=>typeof n==='boolean')
-  &&['adventure','training','boss'].includes(state.mode)&&nonnegative(state.rideSeconds)&&nonnegative(state.rideMiles)&&nonnegative(state.nextEncounter)
-  &&typeof state.reward==='boolean'&&optional(state.coins,n=>Number.isSafeInteger(n)&&n>=0)
-  &&(!state.pendingReward||(state.reward&&validPendingReward(state.pendingReward)))
-  &&optional(state.routeMiles,nonnegative)&&validRoute(state.route)&&validLedger(state.workouts)
-  &&validBattle(state.boss)&&validBattle(state.battle,true)
-  &&(!state.session||(typeof state.session.id==='string'&&['startXP','startLevel','startAttack','startMiles','monsters','bosses'].every(key=>nonnegative(state.session[key]))&&optional(state.session.startSeconds,nonnegative)&&optional(state.session.startCoins,nonnegative)))
-  &&!(state.battle&&state.reward);
+export function validCharacter(state) {
+  return (
+    !!state &&
+    typeof state === 'object' &&
+    state.version === 1 &&
+    nonnegative(state.xp) &&
+    state.xp <= MAX_XP &&
+    nonnegative(state.hp) &&
+    nonnegative(state.miles) &&
+    state.miles <= 100 &&
+    Number.isInteger(state.chapter) &&
+    state.chapter >= 1 &&
+    optional(state.bike, validBike) &&
+    ['adventure', 'training'].includes(state.mode) &&
+    nonnegative(state.rideSeconds) &&
+    nonnegative(state.rideMiles) &&
+    nonnegative(state.nextEncounter) &&
+    typeof state.reward === 'boolean' &&
+    optional(state.coins, n => Number.isSafeInteger(n) && n >= 0) &&
+    optional(state.rider, validRider) &&
+    optional(state.stamina, validStamina) &&
+    optional(
+      state.summitsDone,
+      v =>
+        typeof v === 'object' &&
+        typeof v.route === 'string' &&
+        Array.isArray(v.ends) &&
+        v.ends.length <= 12 &&
+        v.ends.every(Number.isFinite)
+    ) &&
+    optional(state.bossLosses, n => Number.isInteger(n) && n >= 0 && n <= 1000) &&
+    optional(state.freeroamChapter, n => Number.isInteger(n) && n >= 0 && n <= 10) &&
+    (!state.pendingReward || (state.reward && validPendingReward(state.pendingReward))) &&
+    optional(state.routeMiles, nonnegative) &&
+    validRoute(state.route) &&
+    validLedger(state.workouts) &&
+    validBattle(state.boss) &&
+    validBattle(state.battle, true) &&
+    (!state.session ||
+      (typeof state.session.id === 'string' &&
+        ['startXP', 'startLevel', 'startAttack', 'startMiles', 'monsters', 'bosses'].every(key =>
+          nonnegative(state.session[key])
+        ) &&
+        optional(state.session.startSeconds, nonnegative) &&
+        optional(state.session.startCoins, nonnegative) &&
+        optional(state.session.best20, nonnegative))) &&
+    !(state.battle && state.reward)
+  );
 }
+
+// Retired features. Old saves drop these fields instead of failing validation.
+const RETIRED_FIELDS = ['narrative', 'bossModeComplete', 'bossWarmupRemaining'];
 
 // Older versions saved a slightly negative countdown on the frame an encounter
 // started or was blocked. Repair that known case without accepting unrelated invalid fields.
-export function readCharacter(text){
- const state=JSON.parse(text);
- if(state&&Number.isFinite(state.xp)&&state.xp>MAX_XP)state.xp=MAX_XP;
- if(state&&Number.isFinite(state.nextEncounter)&&state.nextEncounter<0)state.nextEncounter=0;
- if(!validCharacter(state))throw Error('Invalid Cycle Quest save');
- return migrateCombatSave(state);
+export function readCharacter(text) {
+  const state = JSON.parse(text);
+  if (state && typeof state === 'object') {
+    for (const field of RETIRED_FIELDS) delete state[field];
+    if (state.mode === 'boss') state.mode = 'training'; // Boss Mode was removed.
+    if (state.pendingReward) state.pendingReward = normalizePendingReward(state.pendingReward);
+  }
+  if (state && Number.isFinite(state.xp) && state.xp > MAX_XP) state.xp = MAX_XP;
+  if (state && Number.isFinite(state.nextEncounter) && state.nextEncounter < 0) state.nextEncounter = 0;
+  if (!validCharacter(state)) throw Error('Invalid Cycle Quest save');
+  return migrateCombatSave(state);
 }

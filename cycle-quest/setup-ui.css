@@ -1,0 +1,394 @@
+/* 01 SETUP (shared-ui.js): route, party (devices), character and RIDE on one screen, in the
+   same framed windows as the ride display. Final Fantasy VI party-menu style. */
+#cq-preview .cq-game[data-cq-page='route'] .cq-unified-route.cq-setup {
+  display: grid !important;
+}
+#cq-preview .cq-setup {
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 8px 0 0;
+  font-family: 'VT323', monospace;
+  color: #fff;
+}
+#cq-preview .cq-setup-window {
+  background: linear-gradient(#24398f, #0f1d5a);
+  border: 3px solid #e6ecff;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 3px #0a1640;
+  padding: 14px 20px;
+  box-sizing: border-box;
+  min-height: 0;
+  min-width: 0;
+}
+#cq-preview .cq-setup h2 {
+  margin: 0;
+  font:
+    400 clamp(30px, 2.6vw, 42px) / 1 'VT323',
+    monospace;
+  color: #ffe777;
+  letter-spacing: 0.04em;
+}
+#cq-preview .cq-setup-route {
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#cq-preview .cq-setup-routehead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+#cq-preview .cq-setup-modes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+#cq-preview .cq-setup button {
+  font-family: 'VT323', monospace !important;
+  cursor: pointer;
+}
+#cq-preview .cq-setup .cq-setup-tab,
+#cq-preview .cq-setup .cq-setup-pill {
+  min-height: 44px;
+  padding: 2px 14px !important;
+  font-size: clamp(20px, 1.6vw, 28px) !important;
+  background: #10255b !important;
+  color: #fff !important;
+  border: 2px solid #6b86c3 !important;
+  border-radius: 4px !important;
+  white-space: nowrap;
+}
+#cq-preview .cq-setup .cq-setup-tab.cq-on {
+  background: #ffe777 !important;
+  color: #06112f !important;
+  border-color: #fff2a6 !important;
+}
+#cq-preview .cq-setup-freeroam {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(18px, 1.4vw, 24px);
+  color: #c9d5f5;
+}
+#cq-preview .cq-setup-freeroam[hidden] {
+  display: none;
+}
+#cq-preview .cq-setup-freeroam select {
+  min-height: 40px;
+  font:
+    22px 'VT323',
+    monospace;
+  background: #07132f;
+  color: #fff;
+  border: 2px solid #6b86c3;
+}
+#cq-preview .cq-setup-routeinfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#cq-preview .cq-setup-routeinfo strong {
+  font-size: clamp(26px, 2.2vw, 36px);
+  font-weight: 400;
+  color: #ffe777;
+}
+#cq-preview .cq-setup-routestats {
+  font-size: clamp(20px, 1.6vw, 28px);
+  color: #c9d5f5;
+}
+#cq-preview .cq-setup-profile {
+  position: relative;
+  flex: 1;
+  min-height: 140px;
+  background: #07132f;
+  border: 2px solid #6b86c3;
+  border-radius: 4px;
+  overflow: hidden;
+}
+#cq-preview .cq-setup-profile .cq-route-actual-profile,
+#cq-preview .cq-setup-profile .cq-route-actual-profile svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+#cq-preview .cq-setup-profilenote {
+  position: absolute;
+  left: 10px;
+  top: 6px;
+  font-size: clamp(18px, 1.4vw, 24px);
+  color: #ffe777;
+  background: #07132fcc;
+  padding: 0 6px;
+}
+/* All seven route generators share one row; on narrow windows the labels wrap inside
+   their buttons instead of pushing a button onto a second row. */
+#cq-preview .cq-setup-generators {
+  display: flex;
+  gap: 6px;
+}
+#cq-preview .cq-setup .cq-setup-generators .cq-setup-pill {
+  flex: 1 1 auto;
+  min-width: 0 !important;
+  padding: 2px 8px !important;
+  white-space: normal;
+  line-height: 0.95;
+}
+#cq-preview .cq-setup-party {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: auto;
+}
+#cq-preview .cq-setup-party > * {
+  flex-shrink: 0;
+}
+#cq-preview .cq-setup hr {
+  width: 100%;
+  border: 0;
+  border-top: 2px solid #6b86c3;
+  margin: 4px 0;
+}
+#cq-preview .cq-setup-hero,
+#cq-preview .cq-setup-hero2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: clamp(22px, 1.8vw, 30px);
+}
+#cq-preview .cq-setup-hero strong {
+  font-weight: 400;
+  font-size: clamp(28px, 2.4vw, 38px);
+}
+#cq-preview .cq-setup-hp {
+  position: relative;
+  height: 30px;
+  background: #07132f;
+  border: 2px solid #6b86c3;
+  border-radius: 4px;
+  overflow: hidden;
+}
+#cq-preview .cq-setup-hp i {
+  display: block;
+  height: 100%;
+  background: #2fbf55;
+}
+#cq-preview .cq-setup-hp span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  text-shadow: 0 2px 0 #06112f;
+}
+#cq-preview .cq-setup-charbuttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+#cq-preview .cq-setup .cq-setup-ride {
+  min-height: 96px;
+  font-size: clamp(44px, 4.2vw, 72px) !important;
+  background: #ffe777 !important;
+  color: #06112f !important;
+  border: 4px solid #fff2a6 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 6px 0 #a88f2a;
+}
+#cq-preview .cq-setup .cq-setup-ride:hover,
+#cq-preview .cq-setup .cq-setup-pill:hover,
+#cq-preview .cq-setup .cq-setup-tab:hover {
+  filter: brightness(1.12);
+}
+#cq-preview .cq-setup button:focus-visible {
+  outline: 3px solid #7ee0ff;
+  outline-offset: 2px;
+}
+#cq-preview .cq-setup-settingsdialog .cq-setup-settingsbody {
+  display: grid;
+  gap: 12px;
+}
+/* Party devices: three big rounded square tiles, each one a connect button. */
+#cq-preview .cq-setup-party {
+  container-type: inline-size;
+}
+
+#cq-preview .cq-setup-devices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+#cq-preview .cq-setup .cq-setup-tile {
+  position: relative;
+  /* About as tall as each tile is wide (31% of the party window): big squares. */
+  height: min(280px, 31cqi);
+  min-height: clamp(96px, 15vh, 150px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 6px !important;
+  background: #10255b !important;
+  color: #fff !important;
+  border: 3px solid #6b86c3 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 0 #06112f;
+  min-width: 0 !important;
+  width: auto !important;
+}
+#cq-preview .cq-setup-tile strong {
+  font-weight: 400;
+  font-size: clamp(26px, 2.3vw, 40px);
+  line-height: 0.95;
+}
+#cq-preview .cq-setup-tile b {
+  font-weight: 400;
+  font-size: clamp(16px, 1.4vw, 24px);
+  line-height: 1;
+  color: #c9d5f5;
+}
+#cq-preview .cq-setup-tile strong,
+#cq-preview .cq-setup-tile b {
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+#cq-preview .cq-setup-tag {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  right: 0;
+  font-size: clamp(13px, 1vw, 17px);
+  letter-spacing: 0.08em;
+  color: #8fa3d6;
+}
+#cq-preview .cq-setup-tile[data-tile='trainer'] .cq-setup-tag {
+  color: #ffe777;
+}
+/* The trainer is required, so its tile stands out until it is ready. */
+#cq-preview .cq-setup .cq-setup-tile[data-tile='trainer'][data-state='off'] {
+  border-color: #ffe777 !important;
+  animation: cq-setup-pulse 1.6s ease-in-out infinite;
+}
+#cq-preview .cq-setup .cq-setup-tile[data-state='busy'] b {
+  color: #ffe777;
+}
+#cq-preview .cq-setup .cq-setup-tile[data-state='on'] {
+  background: #14532d !important;
+  border-color: #5fe07f !important;
+}
+#cq-preview .cq-setup .cq-setup-tile[data-state='on'] b {
+  color: #5fe07f;
+}
+#cq-preview .cq-setup .cq-setup-tile:hover {
+  filter: brightness(1.15);
+}
+@keyframes cq-setup-pulse {
+  50% {
+    box-shadow:
+      0 4px 0 #06112f,
+      0 0 0 4px #ffe77755;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #cq-preview .cq-setup .cq-setup-tile[data-tile='trainer'][data-state='off'] {
+    animation: none;
+  }
+}
+/* Bike shop is the one gold button in the party menu. */
+#cq-preview .cq-setup .cq-setup-pill.cq-setup-shop {
+  background: #ffe777 !important;
+  color: #06112f !important;
+  border-color: #fff2a6 !important;
+}
+/* Smaller windows: tighten the party so it fits without scrolling. */
+@media (max-width: 1200px), (max-height: 1000px) {
+  #cq-preview .cq-setup-window {
+    padding: 10px 14px;
+  }
+  #cq-preview .cq-setup-party {
+    gap: 6px;
+  }
+  #cq-preview .cq-setup .cq-setup-tile {
+    aspect-ratio: auto;
+    min-height: 112px;
+    padding-top: 22px !important;
+  }
+  #cq-preview .cq-setup-tile strong {
+    font-size: clamp(18px, 2vw, 26px);
+  }
+  #cq-preview .cq-setup-tile b {
+    font-size: clamp(14px, 1.4vw, 18px);
+  }
+  #cq-preview .cq-setup .cq-setup-tab,
+  #cq-preview .cq-setup .cq-setup-pill {
+    min-height: 36px;
+    font-size: clamp(18px, 1.5vw, 24px) !important;
+  }
+  #cq-preview .cq-setup-hp {
+    height: 24px;
+  }
+  #cq-preview .cq-setup-hp span {
+    font-size: 18px;
+  }
+  #cq-preview .cq-setup .cq-setup-ride {
+    min-height: 72px;
+    font-size: clamp(36px, 3.6vw, 56px) !important;
+  }
+}
+/* Short windows (laptops): smaller titles and buttons, so everything fits above the fold. */
+@media (max-height: 920px) {
+  #cq-preview .cq-setup {
+    gap: 10px;
+    padding-top: 4px;
+  }
+  #cq-preview .cq-setup h2 {
+    font-size: clamp(26px, 2.2vw, 34px);
+  }
+  #cq-preview .cq-setup-party {
+    gap: 4px;
+  }
+  #cq-preview .cq-setup .cq-setup-tab,
+  #cq-preview .cq-setup .cq-setup-pill {
+    min-height: 32px;
+  }
+  #cq-preview .cq-setup hr {
+    margin: 2px 0;
+  }
+  #cq-preview .cq-setup-hero strong {
+    font-size: clamp(24px, 2vw, 32px);
+  }
+  #cq-preview .cq-setup-profile {
+    min-height: 110px;
+  }
+  #cq-preview .cq-setup .cq-setup-tile {
+    height: min(116px, 31cqi);
+    min-height: 88px;
+    border-radius: 12px !important;
+  }
+  #cq-preview .cq-setup .cq-setup-ride {
+    min-height: 60px;
+    font-size: clamp(32px, 3vw, 48px) !important;
+  }
+}
+/* Narrow windows: stack the route above the party. */
+@media (max-width: 900px) {
+  #cq-preview .cq-setup {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  #cq-preview .cq-setup-route {
+    grid-row: auto;
+    min-height: 420px;
+  }
+}

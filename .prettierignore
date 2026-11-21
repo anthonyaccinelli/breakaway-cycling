@@ -1,0 +1,6 @@
+# Generated or vendored files
+cycle-quest/fit-decoder.js
+cycle-quest/summary-capture.js
+public/
+dist/
+node_modules/

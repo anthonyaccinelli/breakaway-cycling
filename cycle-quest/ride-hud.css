@@ -1,0 +1,900 @@
+/* Ride HUD (ride-hud.js): a fixed 1440×900 stage scaled to fit the window. Sizes are
+   chosen for reading from about 6 feet on a 13" laptop: hero numbers ~200 px, main
+   numbers 72–84 px, labels at least 34 px. */
+#cq-preview .cq-hud {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  background: #07132f;
+  color: #fff;
+  font-family: 'VT323', monospace;
+}
+#cq-preview .cq-hud[hidden] {
+  display: none;
+}
+#cq-preview .cq-hud[data-mode='cockpit'] {
+  background: #0a1640;
+}
+#cq-preview .cq-hud-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 900px;
+  box-sizing: border-box;
+  padding: 24px;
+  transform-origin: 0 0;
+}
+#cq-preview .cq-hud-road,
+#cq-preview .cq-hud-cockpit {
+  height: 100%;
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+#cq-preview .cq-hud[data-mode='road'] .cq-hud-road,
+#cq-preview .cq-hud[data-mode='cockpit'] .cq-hud-cockpit {
+  display: flex;
+}
+#cq-preview .cq-hud small {
+  font-size: 40px;
+  color: #ffe777;
+  letter-spacing: 0.1em;
+}
+#cq-preview .cq-hud em {
+  font-style: normal;
+  font-size: 0.3em;
+  color: #c9d5f5;
+}
+#cq-preview .cq-hud-gold {
+  color: #ffe777;
+  font-size: 44px;
+  white-space: nowrap;
+}
+#cq-preview .cq-hud-hero {
+  font-size: 190px;
+  line-height: 0.85;
+  font-weight: 400;
+  white-space: nowrap;
+}
+#cq-preview .cq-hud button {
+  font-family: 'VT323', monospace;
+  cursor: pointer;
+  background: #10255b;
+  border: 2px solid #6b86c3;
+  color: #fff;
+}
+
+/* ---- ROAD ---- */
+#cq-preview .cq-hud-top {
+  height: 274px;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+#cq-preview .cq-hud-corner {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+#cq-preview .cq-hud-right {
+  align-items: flex-end;
+}
+#cq-preview .cq-hud-sub {
+  font-size: 52px;
+  color: #ffe777;
+  white-space: nowrap;
+}
+#cq-preview .cq-hud-coins {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 52px;
+  color: #ffe777;
+}
+#cq-preview .cq-hud-coins small {
+  font-size: 30px;
+  color: #c9d5f5;
+  letter-spacing: 0.06em;
+}
+#cq-preview .cq-hud-coins b {
+  font-weight: 400;
+}
+#cq-preview .cq-hud-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+  min-width: 0;
+}
+#cq-preview .cq-hud-levelrow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+#cq-preview .cq-hud-xp {
+  position: relative;
+  flex: 1;
+  max-width: 240px;
+  height: 34px;
+  background: #1a2f6b;
+  border: 2px solid #6b86c3;
+}
+#cq-preview .cq-hud-xp i,
+#cq-preview .cq-hud-progress i,
+#cq-preview .cq-hud-bar i {
+  display: block;
+  height: 100%;
+}
+#cq-preview .cq-hud-xp i {
+  background: #b49cff;
+}
+#cq-preview .cq-hud-xp span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 #06112f;
+}
+#cq-preview .cq-hud-chapter {
+  font-size: 34px;
+  color: #c9d5f5;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+#cq-preview .cq-hud-miles {
+  font-size: 66px;
+  line-height: 1;
+}
+#cq-preview .cq-hud-miles em {
+  font-size: 36px;
+}
+#cq-preview .cq-hud-progress {
+  width: 100%;
+  height: 22px;
+  background: #1a2f6b;
+  border: 2px solid #6b86c3;
+  flex: none;
+}
+#cq-preview .cq-hud-progress i {
+  background: #ffe777;
+}
+#cq-preview .cq-hud-menu {
+  margin-top: 2px;
+  height: 48px;
+  padding: 0 18px;
+  font-size: 30px;
+}
+#cq-preview .cq-hud-road-profile {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-top: 2px solid #2b4588;
+  border-bottom: 2px solid #2b4588;
+}
+#cq-preview .cq-hud-road-profile .cq-hudprofile {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+#cq-preview .cq-hud-grade {
+  position: absolute;
+  left: 18px;
+  top: 14px;
+  font-size: 76px;
+  line-height: 1;
+  color: #ffe777;
+  background: #07132fcc;
+  padding: 0 10px;
+  pointer-events: none;
+}
+#cq-preview .cq-hud-bossin {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  font-size: 36px;
+  color: #ffe777;
+  background: #07132fcc;
+  padding: 0 8px;
+  pointer-events: none;
+}
+#cq-preview .cq-hud-bossin:empty {
+  display: none;
+}
+#cq-preview .cq-hud-bars-row {
+  height: 90px;
+  flex: none;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+#cq-preview .cq-hud-stats {
+  height: 130px;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+#cq-preview .cq-hud-stat,
+#cq-preview .cq-hud-tile {
+  background: #10255b;
+  border: 2px solid #6b86c3;
+  box-sizing: border-box;
+  min-width: 0;
+}
+#cq-preview .cq-hud-stat {
+  padding: 10px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+#cq-preview .cq-hud-stat small {
+  font-size: 34px;
+}
+#cq-preview .cq-hud-stat strong {
+  font-size: 74px;
+  line-height: 0.85;
+  font-weight: 400;
+  white-space: nowrap;
+}
+#cq-preview .cq-hud-stat strong em {
+  font-size: 34px;
+}
+
+/* ---- Bars (both layouts) ---- */
+#cq-preview .cq-hud-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: none;
+}
+#cq-preview .cq-hud-bar {
+  position: relative;
+  height: 78px;
+  background: #10255b;
+  border: 2px solid #6b86c3;
+  box-sizing: border-box;
+}
+#cq-preview .cq-hud-bars-row .cq-hud-bar {
+  height: 90px;
+}
+#cq-preview .cq-hud-hp i {
+  background: #2fbf55;
+}
+#cq-preview .cq-hud-stamina i {
+  background: #4fb8d8;
+}
+#cq-preview .cq-hud-stamina.cq-exhausted i {
+  background: #ff5a6e;
+}
+#cq-preview .cq-hud-line {
+  position: absolute;
+  left: 25%;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #ff5a6e;
+}
+#cq-preview .cq-hud-barlabel,
+#cq-preview .cq-hud-barvalue {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  text-shadow: 0 2px 0 #06112f;
+  white-space: nowrap;
+}
+#cq-preview .cq-hud-barlabel {
+  left: 18px;
+  font-size: 48px;
+  letter-spacing: 0.08em;
+}
+#cq-preview .cq-hud-barvalue {
+  right: 18px;
+  font-size: 72px;
+}
+#cq-preview .cq-hud-barvalue em {
+  margin-left: 0.25em;
+  font-size: 40px;
+  color: #e6ecff;
+}
+
+/* ---- COCKPIT ---- */
+#cq-preview .cq-hud-head {
+  height: 72px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+#cq-preview .cq-hud-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 40px;
+  color: #c9d5f5;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#cq-preview .cq-hud-iconbutton {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#cq-preview .cq-hud-heroes {
+  height: 300px;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+#cq-preview .cq-hud-tile {
+  padding: 18px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+#cq-preview .cq-hud-tilehead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 48px;
+  color: #ffe777;
+  white-space: nowrap;
+}
+#cq-preview .cq-hud-tile[data-state^='brace'] .cq-hud-tilehead span {
+  color: #7ee0ff;
+}
+#cq-preview .cq-hud-tilebody {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+}
+#cq-preview .cq-hud-tilebody .cq-hud-hero {
+  font-size: 210px;
+  line-height: 0.9;
+}
+#cq-preview .cq-hud-effort {
+  margin-left: auto;
+  font-size: 56px;
+  color: #ffe777;
+  white-space: nowrap;
+}
+#cq-preview .cq-hud-tile[data-state='brace-ok'] {
+  border: 3px solid #7ee0ff;
+}
+#cq-preview .cq-hud-tile[data-state='brace-ok'] .cq-hud-hero,
+#cq-preview .cq-hud-tile[data-state='brace-ok'] .cq-hud-effort {
+  color: #7ee0ff;
+}
+#cq-preview .cq-hud-tile[data-state='brace-high'] {
+  border: 3px solid #ff5a6e;
+}
+#cq-preview .cq-hud-tile[data-state='brace-high'] .cq-hud-effort {
+  color: #ff5a6e;
+}
+#cq-preview .cq-hud-prompt {
+  height: 112px;
+  flex: none;
+  box-sizing: border-box;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  background: #10255b;
+  border: 3px solid #6b86c3;
+}
+#cq-preview .cq-hud-promptbig {
+  font-size: 72px;
+  line-height: 1;
+  color: #ffe777;
+  white-space: nowrap;
+}
+#cq-preview .cq-hud-promptsmall {
+  flex: 1;
+  min-width: 0;
+  font-size: 40px;
+  color: #e6ecff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#cq-preview .cq-hud-countdown {
+  font-size: 104px;
+  line-height: 0.9;
+}
+#cq-preview .cq-hud-prompt[data-state='windup'] {
+  border-color: #ffe777;
+  animation: cq-hud-windup 1s steps(2) infinite;
+}
+#cq-preview .cq-hud-prompt[data-state='brace'] {
+  background: #0d2d4a;
+  border-color: #7ee0ff;
+}
+#cq-preview .cq-hud-prompt[data-state='brace'] .cq-hud-promptbig {
+  color: #7ee0ff;
+}
+#cq-preview .cq-hud-prompt[data-state='counter'] {
+  border-color: #2fbf55;
+}
+#cq-preview .cq-hud-prompt[data-state='counter'] .cq-hud-promptbig {
+  color: #5fe07f;
+}
+#cq-preview .cq-hud-prompt[data-state='enrage'] {
+  border-color: #ff5a6e;
+}
+#cq-preview .cq-hud-prompt[data-state='enrage'] .cq-hud-promptbig {
+  color: #ff5a6e;
+}
+#cq-preview .cq-hud-prompt[data-state='crit'] .cq-hud-promptbig {
+  color: #ffb347;
+}
+@keyframes cq-hud-windup {
+  50% {
+    border-color: #6b86c3;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #cq-preview .cq-hud-prompt[data-state='windup'] {
+    animation: none;
+  }
+}
+#cq-preview .cq-hud-foot {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+  gap: 16px;
+}
+#cq-preview .cq-hud-enemies {
+  grid-column: span 3;
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+}
+#cq-preview .cq-hud-enemy {
+  flex: 1;
+  min-width: 0;
+  background: #10255b;
+  border: 2px solid #6b86c3;
+  box-sizing: border-box;
+  padding: 8px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  overflow: hidden;
+}
+#cq-preview .cq-hud-timetile {
+  padding: 8px 20px;
+}
+#cq-preview .cq-hud-timetile small {
+  font-size: 34px;
+}
+#cq-preview .cq-hud-timetile strong {
+  font-size: 84px;
+  line-height: 0.85;
+  font-weight: 400;
+  white-space: nowrap;
+}
+/* Reward choice, level up and boss warmup take over the prompt band and enemy row. */
+#cq-preview .cq-hud-event {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 18px 28px;
+  background: #10255b;
+  border: 3px solid #ffe777;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  font-size: 36px;
+  overflow: hidden;
+}
+#cq-preview .cq-hud.cq-hud-has-event .cq-hud-event {
+  display: flex;
+}
+#cq-preview .cq-hud.cq-hud-has-event .cq-hud-prompt,
+#cq-preview .cq-hud.cq-hud-has-event .cq-hud-foot {
+  display: none;
+}
+#cq-preview .cq-hud-event h3 {
+  margin: 0;
+  font-size: 60px;
+  line-height: 1;
+  color: #ffe777;
+  font-weight: 400;
+}
+#cq-preview .cq-hud .cq-hud-event p {
+  margin: 0;
+  font-size: 34px;
+}
+#cq-preview .cq-hud-event .cq-eventactions {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+#cq-preview .cq-hud-event .cq-eventactions button {
+  font-size: 48px !important;
+  min-height: 72px;
+  padding: 8px 32px !important;
+}
+#cq-preview .cq-hud-event .cq-eventactions button.cq-reward-selected {
+  background: #ffe777 !important;
+  color: #06112f !important;
+}
+#cq-preview .cq-hud-event .cq-sub {
+  margin-top: 0 !important;
+  font-size: 28px;
+  color: #c9d5f5;
+}
+
+/* The classic screen gets a button back to the HUD while a ride is running. */
+#cq-preview #hud-return[hidden] {
+  display: none;
+}
+
+/* Level-up card inside the HUD: same card, sized for the 6-foot view. */
+#cq-preview .cq-hud-event:has(.cq-levelup) {
+  padding: 0;
+}
+#cq-preview .cq-hud-event .cq-levelup header > strong {
+  font-size: 60px;
+}
+#cq-preview .cq-hud-event .cq-levelup header > span {
+  font-size: 40px;
+}
+#cq-preview .cq-hud-event .cq-levelup-gains > div > span {
+  font-size: 30px;
+}
+#cq-preview .cq-hud-event .cq-levelup-gains > div > strong {
+  font-size: 56px;
+}
+#cq-preview .cq-hud-event .cq-levelup-gains small {
+  font-size: 34px;
+}
+#cq-preview .cq-hud-event .cq-levelup footer {
+  font-size: 28px;
+}
+
+/* Before the ride: a big START RIDE over the road. Pedaling also starts the ride. */
+#cq-preview .cq-hud-start {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: #07132fb3;
+}
+#cq-preview .cq-hud-start[hidden] {
+  display: none;
+}
+#cq-preview .cq-hud .cq-hud-start button {
+  min-width: 520px;
+  min-height: 120px;
+  padding: 0 48px;
+  font-size: 84px;
+  line-height: 1;
+  background: #ffe777;
+  color: #06112f;
+  border: 4px solid #fff2a6;
+  box-shadow: 0 6px 0 #a88f2a;
+}
+#cq-preview .cq-hud .cq-hud-start button:hover {
+  background: #fff2a6;
+}
+#cq-preview .cq-hud .cq-hud-start button:focus-visible {
+  outline: 4px solid #7ee0ff;
+  outline-offset: 4px;
+}
+#cq-preview .cq-hud-start span {
+  font-size: 44px;
+  color: #e6ecff;
+  text-shadow: 0 2px 0 #06112f;
+}
+
+/* ---- 11/17 batch: FF6-style windows, buttons, enemy-first cockpit, iris wipe ---- */
+/* Windows share the setup screen's framed look: a light double frame on a blue gradient. */
+#cq-preview .cq-hud .cq-hud-window {
+  background: linear-gradient(#24398f, #0f1d5a);
+  border: 3px solid #e6ecff;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 3px #0a1640;
+}
+#cq-preview .cq-hud .cq-hud-road-profile.cq-hud-window {
+  background: #07132f;
+}
+#cq-preview .cq-hud-bar {
+  border: 3px solid #e6ecff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+#cq-preview .cq-hud-small {
+  height: 48px;
+  padding: 0 14px;
+  font-size: 30px;
+  white-space: nowrap;
+}
+#cq-preview .cq-hud-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+#cq-preview .cq-hud .cq-hud-quit.cq-armed {
+  background: #ff5a6e;
+  border-color: #ffd0d6;
+  color: #06112f;
+}
+#cq-preview .cq-hud-view {
+  position: absolute;
+  left: 18px;
+  bottom: 10px;
+  font-size: 28px;
+  color: #c9d5f5;
+  background: #07132fcc;
+  padding: 0 8px;
+  pointer-events: none;
+}
+#cq-preview .cq-hud-toast {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  max-width: 70%;
+  padding: 6px 18px;
+  font-size: 40px;
+  color: #06112f;
+  background: #ffe777;
+  border: 3px solid #fff2a6;
+  border-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+#cq-preview .cq-hud-toast.cq-show {
+  opacity: 1;
+}
+#cq-preview .cq-hudprofile {
+  cursor: pointer;
+}
+#cq-preview .cq-hud-head .cq-hud-small {
+  flex: none;
+}
+
+/* Cockpit, top to bottom: power + heart rate, enemies + time, damage band, HP + stamina. */
+#cq-preview .cq-hud-heroes {
+  height: 216px;
+}
+#cq-preview .cq-hud-foot {
+  order: 0;
+  flex: 1 1 0;
+  min-height: 0;
+}
+#cq-preview .cq-hud-prompt {
+  height: 96px;
+  flex: none;
+}
+#cq-preview .cq-hud-bars-cockpit {
+  height: 76px;
+  flex: none;
+}
+#cq-preview .cq-hud-bars-cockpit .cq-hud-bar {
+  height: 76px;
+}
+#cq-preview .cq-hud-bars-cockpit .cq-hud-barvalue {
+  font-size: 64px;
+}
+#cq-preview .cq-hud-bars-cockpit .cq-hud-barlabel {
+  font-size: 44px;
+}
+#cq-preview .cq-hud-enemies {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+}
+#cq-preview .cq-hud .cq-hud-enemy {
+  background: linear-gradient(#24398f, #0f1d5a);
+  border: 3px solid #e6ecff;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 3px #0a1640;
+  padding: 12px 20px;
+  justify-content: space-between;
+}
+#cq-preview .cq-hud .cq-hud-enemy.cq-hud-active {
+  border-color: #ffe777;
+  box-shadow:
+    inset 0 0 0 3px #0a1640,
+    0 0 0 3px #ffe77755;
+}
+#cq-preview .cq-hud .cq-hud-enemy.cq-hud-waiting {
+  opacity: 0.78;
+}
+/* Enemy card, top to bottom and centered: sprite (if the monster has art), name, HP bar
+   with the HP inside it. Sprites keep their 2× size when there is room and shrink evenly
+   (still pixel-sharp) when there is not. */
+#cq-preview .cq-hud .cq-hud-enemy {
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 14px 12px;
+}
+#cq-preview .cq-hud .cq-hud-enemy.cq-hud-noart {
+  justify-content: center;
+}
+#cq-preview .cq-hud-enemyart {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+#cq-preview .cq-hud-enemyart img {
+  display: block;
+  /* One scale for every monster, so sizes stay true: 2×, or less when the card cannot fit
+     a 128 px (the tallest allowed) creature at 2×. --art-h is the art's native height. */
+  height: min(calc(var(--art-h) * 2px), calc(var(--art-h) / 128 * 100%));
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+#cq-preview .cq-hud-enemy .cq-hud-enemyname {
+  max-width: 100%;
+  font-size: 40px;
+  line-height: 1;
+  color: #ffffff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 0 #06112f;
+}
+#cq-preview .cq-hud-enemy.cq-hud-active .cq-hud-enemyname {
+  color: #ffe777;
+}
+#cq-preview .cq-hud-enemy .cq-hud-enemybar {
+  position: relative;
+  flex: none;
+  width: min(100%, 300px);
+  height: 48px;
+  box-sizing: border-box;
+  background: #07132f;
+  border: 3px solid #e6ecff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+#cq-preview .cq-hud-enemy.cq-hud-active .cq-hud-enemybar {
+  border-color: #ffe777;
+}
+#cq-preview .cq-hud-enemybar i {
+  display: block;
+  height: 100%;
+  background: var(--enemy-health, #e0b52f);
+}
+#cq-preview .cq-hud-enemybar span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 #06112f;
+}
+#cq-preview .cq-hud-enemies:has(> .cq-hud-enemy:nth-child(3)) .cq-hud-enemyname {
+  font-size: 34px;
+}
+#cq-preview .cq-hud-timetile {
+  padding: 12px 20px;
+}
+#cq-preview .cq-hud-timetile span {
+  font-size: 32px;
+  color: #c9d5f5;
+}
+
+/* Iris wipe: the black closes in on the rider, then opens on the new view. */
+@property --cq-iris-r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+#cq-preview .cq-hud-iris {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  visibility: hidden;
+  background: radial-gradient(
+    circle at var(--iris-at, 30% 55%),
+    transparent var(--cq-iris-r),
+    #000 calc(var(--cq-iris-r) + 1px)
+  );
+}
+#cq-preview .cq-hud-iris.cq-hud-iris-close {
+  visibility: visible;
+  animation: cq-iris-close 0.42s ease-in forwards;
+}
+#cq-preview .cq-hud-iris.cq-hud-iris-open {
+  visibility: visible;
+  animation: cq-iris-open 0.42s ease-out forwards;
+}
+@keyframes cq-iris-close {
+  from {
+    --cq-iris-r: 2400px;
+  }
+  to {
+    --cq-iris-r: 0px;
+  }
+}
+@keyframes cq-iris-open {
+  from {
+    --cq-iris-r: 0px;
+  }
+  to {
+    --cq-iris-r: 2400px;
+  }
+}
+#cq-preview .cq-hud-heroes .cq-hud-tile {
+  padding: 14px 26px;
+}
+#cq-preview .cq-hud-tilebody .cq-hud-hero {
+  font-size: 186px;
+  line-height: 0.88;
+}
+#cq-preview .cq-hud[data-mode='cockpit'] .cq-hud-tilebody .cq-hud-hero {
+  font-size: 150px;
+}
+#cq-preview .cq-hud[data-mode='cockpit'] .cq-hud-heroes .cq-hud-tile {
+  padding: 10px 26px;
+}
+/* Phase and brace colours win over the window frame. */
+#cq-preview .cq-hud .cq-hud-prompt[data-state='windup'] {
+  border-color: #ffe777;
+}
+#cq-preview .cq-hud .cq-hud-prompt[data-state='brace'] {
+  background: linear-gradient(#123d5f, #0b2440);
+  border-color: #7ee0ff;
+}
+#cq-preview .cq-hud .cq-hud-prompt[data-state='counter'] {
+  border-color: #5fe07f;
+}
+#cq-preview .cq-hud .cq-hud-prompt[data-state='enrage'] {
+  border-color: #ff5a6e;
+}
+#cq-preview .cq-hud .cq-hud-tile[data-state='brace-ok'] {
+  border-color: #7ee0ff;
+}
+#cq-preview .cq-hud .cq-hud-tile[data-state='brace-high'] {
+  border-color: #ff5a6e;
+}

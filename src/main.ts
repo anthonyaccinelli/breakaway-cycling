@@ -51,18 +51,21 @@ const CSC_MEASUREMENT='00002a5b-0000-1000-8000-00805f9b34fb';
 const CONTROL='00002ad9-0000-1000-8000-00805f9b34fb';
 const STATUS='00002ada-0000-1000-8000-00805f9b34fb';
 const BIKE='00002ad2-0000-1000-8000-00805f9b34fb';
-let cycleQuestHeldSlope:number|null=null;
-let cycleQuestHold=false;let cycleQuestHeldSpeed=0;
-let cycleQuestHeldGrade:number|null=null,cycleQuestHeldRequestedGrade=0,cycleQuestHeldErgTarget=0,cycleQuestHeldGear=6;
+// Cycle Quest: true while a battle, reward, level-up or boss warmup is on screen. The route
+// keeps going underneath, so chapter miles always match real miles. Only at the end of a
+// finite route, where there is no more road, does the rider park on a flat finish straight
+// until the fight is over (questParked).
+let cycleQuestHold=false;
+function questRouteEnd(){return procedural?routeLimit:(points.at(-1)?.distance??0);}
+function questParked(){
+ return rideExperience==='cyclequest'&&!endless&&distance>=questRouteEnd()-0.5&&(cycleQuestHold||questStoryChapter>0);
+}
 function setCycleQuestHold(hold:boolean){
- if(hold&&!cycleQuestHold){
-  cycleQuestHeldSlope=at(distance).grade*num('difficulty')/100;
-  cycleQuestHeldRequestedGrade=simRequestedGrade();
-  cycleQuestHeldGrade=Number.isFinite(trainerGrade)?trainerGrade:cycleQuestHeldRequestedGrade;
-  cycleQuestHeldSpeed=speed;cycleQuestHeldErgTarget=lastTarget;cycleQuestHeldGear=gear;
- }
  cycleQuestHold=hold;
- if(!hold){cycleQuestHeldGrade=null;cycleQuestHeldSlope=null;}
+ // Reapply the trainer load at once in case the rider is parked at the route end.
+ if(typeof running!=='undefined'&&running&&connected&&controlGranted&&realTelemetry&&trainerMode!=='target'){
+  void updateSimResistance(performance.now(),true);
+ }
 }
 let cscHasSpeed=false,cscHasCadence=false,cscSpeedMps=0,cscLastSpeedAt=0,cscLastCadenceAt=0;
 const cscDevices=new Map<string,BLEDevice>();
@@ -305,11 +308,15 @@ async function generateClassicRoute():Promise<boolean>{
 const POWER_WINDOW_MS=3000, BEER_KCAL=150, GROSS_EFFICIENCY=0.24;
 let powerHistory:{time:number;watts:number}[]=[];
 let energyKcal=0, activeRideMs=0, lastActiveTick=0, rideSessionStartDistance=0;
-type RideSample={seconds:number; distance:number; elevation:number; power:number; hasPower?:boolean; cadence:number; heartRate:number|null};
+// Real distance pedaled this ride. Equals route progress, except during Cycle Quest
+// battles, which hold their starting grade while the route position waits.
+// Ride files, summaries and uploads use this, so they never lose battle miles.
+let rideOdometer=0;
+type RideSample={seconds:number; distance:number; odometer?:number; elevation:number; power:number; hasPower?:boolean; cadence:number; heartRate:number|null};
 let rideSamples:RideSample[]=[];let lastSampleSecond=-1;
 // v409: local, versioned crash-recovery checkpoint. Never stores Bluetooth credentials.
 const RIDE_RECOVERY_KEY='breakaway-ride-recovery-v409';
-type RideCheckpoint={mode?:RideExperience;questStoryChapter?:number;rideSessionStartDistance?:number;version:1;savedAt:number;rideStart:string;rideEnd:string|null;routeName:string;points:Point[];distance:number;speed:number;procedural:boolean;endless:boolean;proceduralSeed:number;proceduralTerrain:Terrain;proceduralIntensity:number;routeLimit:number;generatedThrough:number;gainScale:number;plannedGainFeet:number|null;retiredGainMeters:number;retiredLossMeters:number;elevationHistory:HistoryPoint[];historyStride:number;activeRideMs:number;energyKcal:number;avgPowerEnergy:number;avgPowerDuration:number;rideSamples:RideSample[]};
+type RideCheckpoint={mode?:RideExperience;questStoryChapter?:number;rideSessionStartDistance?:number;rideOdometer?:number;version:1;savedAt:number;rideStart:string;rideEnd:string|null;routeName:string;points:Point[];distance:number;speed:number;procedural:boolean;endless:boolean;proceduralSeed:number;proceduralTerrain:Terrain;proceduralIntensity:number;routeLimit:number;generatedThrough:number;gainScale:number;plannedGainFeet:number|null;retiredGainMeters:number;retiredLossMeters:number;elevationHistory:HistoryPoint[];historyStride:number;activeRideMs:number;energyKcal:number;avgPowerEnergy:number;avgPowerDuration:number;rideSamples:RideSample[]};
 let recoveryWriteFailed=false;
 let pendingQuestRideRecovery:RideCheckpoint|null=null;
 function recoveryMode(c:RideCheckpoint):RideExperience{
@@ -321,7 +328,7 @@ function recoveryMode(c:RideCheckpoint):RideExperience{
 function clearRideRecovery(){try{localStorage.removeItem(RIDE_RECOVERY_KEY);}catch{}}
 function saveRideRecovery(){
  if(!rideStart||!points.length)return;
- const checkpoint:RideCheckpoint={mode:rideExperience,questStoryChapter,rideSessionStartDistance,version:1,savedAt:Date.now(),rideStart,rideEnd,routeName,points,distance,speed,procedural,endless,proceduralSeed,proceduralTerrain,proceduralIntensity,routeLimit: Number.isFinite(routeLimit)?routeLimit:-1,generatedThrough,gainScale,plannedGainFeet,retiredGainMeters,retiredLossMeters,elevationHistory,historyStride,activeRideMs,energyKcal,avgPowerEnergy,avgPowerDuration,rideSamples};
+ const checkpoint:RideCheckpoint={mode:rideExperience,questStoryChapter,rideSessionStartDistance,rideOdometer,version:1,savedAt:Date.now(),rideStart,rideEnd,routeName,points,distance,speed,procedural,endless,proceduralSeed,proceduralTerrain,proceduralIntensity,routeLimit: Number.isFinite(routeLimit)?routeLimit:-1,generatedThrough,gainScale,plannedGainFeet,retiredGainMeters,retiredLossMeters,elevationHistory,historyStride,activeRideMs,energyKcal,avgPowerEnergy,avgPowerDuration,rideSamples};
  try{localStorage.setItem(RIDE_RECOVERY_KEY,JSON.stringify(checkpoint));recoveryWriteFailed=false;}
  catch(error){if(!recoveryWriteFailed){console.warn('Ride autosave unavailable',error);status('Ride autosave unavailable — storage full or blocked. Export your TCX when finished.');}recoveryWriteFailed=true;}
 }
@@ -338,7 +345,7 @@ function restoreRideRecovery(c:RideCheckpoint){
  rideStart=c.rideStart;rideEnd=c.rideEnd||null;routeName=c.routeName;points=c.points;distance=c.distance;speed=0;
  procedural=c.procedural;endless=c.endless;proceduralSeed=c.proceduralSeed;proceduralTerrain=c.proceduralTerrain;proceduralIntensity=c.proceduralIntensity;routeLimit=c.routeLimit===-1?Infinity:c.routeLimit;generatedThrough=c.generatedThrough;gainScale=c.gainScale;plannedGainFeet=c.plannedGainFeet;
  retiredGainMeters=c.retiredGainMeters||0;retiredLossMeters=c.retiredLossMeters||0;elevationHistory=c.elevationHistory||[];historyStride=c.historyStride||400;
- rideSessionStartDistance=Number.isFinite(c.rideSessionStartDistance)?Math.max(0,c.rideSessionStartDistance!):c.rideSamples[0]?.distance||0;activeRideMs=c.activeRideMs;energyKcal=c.energyKcal;avgPowerEnergy=c.avgPowerEnergy;avgPowerDuration=c.avgPowerDuration;rideSamples=c.rideSamples;lastSampleSecond=rideSamples.at(-1)?.seconds??-1;powerHistory=[];lastActiveTick=0;stationarySince=0;stationaryPromptShown=false;
+ rideSessionStartDistance=Number.isFinite(c.rideSessionStartDistance)?Math.max(0,c.rideSessionStartDistance!):c.rideSamples[0]?.distance||0;rideOdometer=checkpointOdometer(c);activeRideMs=c.activeRideMs;energyKcal=c.energyKcal;avgPowerEnergy=c.avgPowerEnergy;avgPowerDuration=c.avgPowerDuration;rideSamples=c.rideSamples;lastSampleSecond=rideSamples.at(-1)?.seconds??-1;powerHistory=[];lastActiveTick=0;stationarySince=0;stationaryPromptShown=false;
  resetSimController();setRideFocus(false);$('start').textContent=rideEnd?'Let’s Ride!':'Resume ride';syncManualFinishButton();svg();update();
  const mode=recoveryMode(c);
  if(mode==='cyclequest'){pendingQuestRideRecovery=c;void enterCycleQuest();}
@@ -349,7 +356,7 @@ function offerRideRecovery(){
  const saved=readRideRecovery();if(!saved)return;
  const overlay=document.createElement('div');overlay.className='stationary-ride-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
  const dialog=document.createElement('div');dialog.className='stationary-ride-dialog';const title=document.createElement('h2');title.textContent='Recover your ride?';const detail=document.createElement('p');
- const minutes=Math.floor(saved.activeRideMs/60000);detail.textContent=`${saved.routeName} · ${(sessionDistanceMeters(saved.distance,saved.rideSessionStartDistance??saved.rideSamples[0]?.distance??0)/METERS_PER_MILE).toFixed(2)} mi · ${minutes} min recorded. Saved ${new Date(saved.savedAt).toLocaleString()}. The saved ride will reopen ${saved.rideEnd?"at its summary":"paused"}.`;
+ const minutes=Math.floor(saved.activeRideMs/60000);detail.textContent=`${saved.routeName} · ${(checkpointOdometer(saved)/METERS_PER_MILE).toFixed(2)} mi · ${minutes} min recorded. Saved ${new Date(saved.savedAt).toLocaleString()}. The saved ride will reopen ${saved.rideEnd?"at its summary":"paused"}.`;
  const actions=document.createElement('div');actions.className='stationary-ride-actions';const discard=document.createElement('button');discard.className='secondary';discard.textContent='Discard saved ride';const recover=document.createElement('button');recover.textContent='Recover ride';
  discard.onclick=()=>{clearRideRecovery();overlay.remove();};recover.onclick=()=>{try{restoreRideRecovery(saved);overlay.remove();}catch(error){console.error('Recovery failed',error);status('Could not restore saved ride. Reload to try again.');}};
  actions.append(discard,recover);dialog.append(title,detail,actions);overlay.append(dialog);document.body.append(overlay);recover.focus();
@@ -359,10 +366,13 @@ function recordRideSample(){
  const seconds=Math.floor(activeRideMs/1000);
  if(seconds<=lastSampleSecond)return;
  lastSampleSecond=seconds;
- rideSamples.push({seconds,distance,elevation:at(distance).elevation,power:Math.round(Math.max(0,power)),hasPower:!sensorRideOnly(),cadence:Math.round(Math.max(0,cadence)),heartRate:Number(($('heartRate').textContent||'').trim())||null});
+ rideSamples.push({seconds,distance,odometer:rideOdometer,elevation:at(distance).elevation,power:Math.round(Math.max(0,power)),hasPower:!sensorRideOnly(),cadence:Math.round(Math.max(0,cadence)),heartRate:Number(($('heartRate').textContent||'').trim())||null});
 }
 // Route position includes earlier Story rides; activity totals start at this session's origin.
-function sessionDistanceMeters(routeDistance=distance,startDistance=rideSessionStartDistance){return Math.max(0,routeDistance-startDistance);}
+function sessionDistanceMeters(){return rideOdometer;}
+function checkpointOdometer(c:RideCheckpoint){return Number.isFinite(c.rideOdometer)?Math.max(0,c.rideOdometer!):Math.max(0,c.distance-(c.rideSessionStartDistance??c.rideSamples[0]?.distance??0));}
+// Older samples (and older recovery checkpoints) have no odometer: fall back to route progress.
+function sampleOdometer(s:RideSample){return Number.isFinite(s.odometer)?s.odometer!:Math.max(0,s.distance-rideSessionStartDistance);}
 function sessionGainFeet(){
  if(points.length)return Math.max(0,gainLossThrough(distance).gain-gainLossThrough(rideSessionStartDistance).gain)*FEET_PER_METER;
  return rideSamples.reduce((total,s,i)=>total+(i?Math.max(0,s.elevation-rideSamples[i-1].elevation):0),0)*FEET_PER_METER;
@@ -373,9 +383,9 @@ function buildRideTcx(){
  const startMs=Date.parse(rideStart),start=new Date(startMs).toISOString();
  const entries=rideSamples.map((s,i)=>{
   const previous=rideSamples[i-1],seconds=s.seconds-(previous?.seconds??0);
-  const sampleSpeed=seconds>0?Math.max(0,s.distance-(previous?.distance??rideSessionStartDistance))/seconds:0;
+  const sampleSpeed=seconds>0?Math.max(0,sampleOdometer(s)-(previous?sampleOdometer(previous):0))/seconds:0;
   const t=new Date(startMs+s.seconds*1000).toISOString();
-  return `<Trackpoint><Time>${t}</Time><AltitudeMeters>${s.elevation.toFixed(2)}</AltitudeMeters><DistanceMeters>${sessionDistanceMeters(s.distance).toFixed(2)}</DistanceMeters>${s.heartRate!==null?`<HeartRateBpm><Value>${s.heartRate}</Value></HeartRateBpm>`:''}<Cadence>${s.cadence}</Cadence><Extensions><TPX xmlns="http://www.garmin.com/xmlschemas/ActivityExtension/v2">${s.hasPower===false?'':`<Watts>${s.power}</Watts>`}<Speed>${sampleSpeed.toFixed(2)}</Speed></TPX></Extensions></Trackpoint>`;
+  return `<Trackpoint><Time>${t}</Time><AltitudeMeters>${s.elevation.toFixed(2)}</AltitudeMeters><DistanceMeters>${sampleOdometer(s).toFixed(2)}</DistanceMeters>${s.heartRate!==null?`<HeartRateBpm><Value>${s.heartRate}</Value></HeartRateBpm>`:''}<Cadence>${s.cadence}</Cadence><Extensions><TPX xmlns="http://www.garmin.com/xmlschemas/ActivityExtension/v2">${s.hasPower===false?'':`<Watts>${s.power}</Watts>`}<Speed>${sampleSpeed.toFixed(2)}</Speed></TPX></Extensions></Trackpoint>`;
  }).join('');
  return `<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Activities><Activity Sport="Biking"><Id>${start}</Id><Lap StartTime="${start}"><TotalTimeSeconds>${(activeRideMs/1000).toFixed(1)}</TotalTimeSeconds><DistanceMeters>${sessionDistanceMeters().toFixed(2)}</DistanceMeters><Calories>${Math.round(energyKcal)}</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${entries}</Track></Lap><Notes>${tcxEscape(routeName)}\nElevation gain: ${Math.round(sessionGainFeet())} ft (${Math.round(sessionGainFeet()/FEET_PER_METER)} m)</Notes></Activity></Activities></TrainingCenterDatabase>`;
 }
@@ -432,7 +442,7 @@ async function archiveFinishedRide(){
  }catch(e){status('Could not save ride locally: '+String(e));throw e;}
 }
 
-function resetRideMetrics(){rideSessionStartDistance=distance;rideSamples=[];lastSampleSecond=-1;powerHistory=[];energyKcal=0;activeRideMs=0;lastActiveTick=0;avgPowerEnergy=0;avgPowerDuration=0;}
+function resetRideMetrics(){rideSessionStartDistance=distance;rideOdometer=0;rideSamples=[];lastSampleSecond=-1;powerHistory=[];energyKcal=0;activeRideMs=0;lastActiveTick=0;avgPowerEnergy=0;avgPowerDuration=0;}
 function threeSecondWatts(){
  return realTelemetry?timeWeightedPower(powerHistory,performance.now(),POWER_WINDOW_MS):null;
 }
@@ -1060,8 +1070,9 @@ async function setGrade(grade:number){
  return command(Array.from(new Uint8Array(b)));
 }
 function simRequestedGrade():number{
+ if(questParked())return 0;
  const routeGrade=at(distance).grade*num('difficulty')/100;
- return cycleQuestHold&&cycleQuestHeldGrade!==null?cycleQuestHeldGrade:Math.max(-12,Math.min(12,routeGrade));
+ return Math.max(-12,Math.min(12,routeGrade));
 }
 function resetSimController(){simAppliedGrade=NaN;simLastTime=0;trainerGrade=NaN;virtualPowerLastTime=-Infinity;lastTarget=-1;}
 async function updateSimResistance(now:number,immediate=false){
@@ -1086,7 +1097,7 @@ async function setVirtualGearResistance(immediate=false){
  const now=performance.now();
  if(!immediate&&now-virtualPowerLastTime<250)return;
  const rpm=now-cadenceReceivedAt<=3000?cadence:0;
- const slope=cycleQuestHold&&cycleQuestHeldSlope!==null?cycleQuestHeldSlope:at(distance).grade*num('difficulty')/100;
+ const slope=questParked()?0:at(distance).grade*num('difficulty')/100;
  const target=virtualGearTarget(gear,rpm,{massKg:Math.max(35,weightKg('weight')+weightKg('bikeWeight')),gradePercent:slope,crr:Math.max(0,num('crr'))});
  const watts=Math.round(target.watts);
  if(watts===lastTarget&&now-virtualPowerLastTime<2000)return;
@@ -1161,17 +1172,28 @@ function advanceRide(now:number){
     const limit=procedural?routeLimit:points.at(-1)!.distance;
     speed=now-cscLastSpeedAt<4500?cscSpeedMps:0;
     cadence=now-cscLastCadenceAt<4500?cadence:0;
+    // Cycle Quest at the end of the route: real distance still counts.
+    if(questParked()){rideOdometer+=speed*step;continue;}
+    const before=distance;
     distance=Math.min(limit,distance+speed*step);
+    rideOdometer+=distance-before;
     if(distance>=limit)break;
     continue;
    }
-   // Freeze route progress without discarding momentum. This keeps virtual gearing
-   // and trainer load continuous through battles, rewards and level-up screens.
-   if(cycleQuestHold)break;
+   // Cycle Quest at the end of the route (chapter boss, or a fight still going at the finish):
+   // ride a flat finish straight. Speed follows the rider's watts and the odometer counts it.
+   if(questParked()){
+    const flatStart=speed;
+    speed=advanceRoadSpeed(speed,watts,step,{massKg:mass,gradePercent:0,crr});
+    rideOdometer+=(flatStart+speed)*0.5*step;
+    continue;
+   }
    const oldSpeed=speed;
    speed=advanceRoadSpeed(speed,watts,step,{massKg:mass,gradePercent:at(distance).grade,crr});
    const limit=procedural?routeLimit:points.at(-1)!.distance;
+   const before=distance;
    distance=Math.min(limit,distance+(oldSpeed+speed)*0.5*step);
+   rideOdometer+=distance-before;
    if(distance>=limit)break;
   }
   if(procedural&&now-lastChartUpdate>5000){lastChartUpdate=now;ensureTerrain();svg();}
@@ -1180,7 +1202,8 @@ function advanceRide(now:number){
   if(!endless&&distance>=(procedural?routeLimit:points.at(-1)!.distance)){
    const summit=rideExperience==='cyclequest'?questHighestSummit():null;
    const waitForSummit=summit&&!questFinalSummitResolved&&summit.end>=(procedural?routeLimit:points.at(-1)!.distance)-100;
-   if(!waitForSummit&&!(rideExperience==='cyclequest'&&questStoryChapter>0)){finishRide();status('Route complete');}
+   // A Cycle Quest fight still going at the finish ends before the ride does.
+   if(!waitForSummit&&!(rideExperience==='cyclequest'&&(questStoryChapter>0||cycleQuestHold))){finishRide();status('Route complete');}
   }
   if(!cscOnly&&trainerMode==='sim')void updateSimResistance(now);
   if(!cscOnly&&trainerMode==='erg'&&now-lastGearUpdate>250){lastGearUpdate=now;void setVirtualGearResistance();}
@@ -3306,9 +3329,17 @@ window.addEventListener('message',event=>{
  else if(data.type==='music-setting'){questIntroMusic.setEnabled(data.enabled===true);}
  else if(data.type==='home'){if(openModeLanding())history.replaceState({...(history.state||{}),breakawayPage:'home'},'');}
  else if(data.type==='connect'){questSend({type:'navigate',page:'devices'});}
+ else if(data.type==='start'){if(!connected||!controlGranted||!realTelemetry){questSend({type:'navigate',page:'devices'});status('Connect your smart trainer to start Cycle Quest.');}else if(rideEnd)status('Finish the ride summary before starting another ride.');else if(!running)beginRide();}
+ else if(data.type==='arm'){if(connected&&controlGranted&&realTelemetry&&!running&&!rideEnd&&!rideAwaitingPedaling){rideAwaitingPedaling=true;pedalSince=0;}}
  else if(data.type==='toggle'){if(!connected||!controlGranted||!realTelemetry){questSend({type:'navigate',page:'devices'});status('Connect your smart trainer to start Cycle Quest.');}else if(running)pauseRide();else if(rideEnd){status('Finish the ride summary before starting another ride.');}else {rideAwaitingPedaling=true;pedalSince=0;questSend({type:'notice',message:'Ready — start pedaling to begin.'});}}
  else if(data.type==='pause'){if(running)pauseRide();if(data.autoResume===false)rideAwaitingPedaling=false;}
- else if(data.type==='finish'){if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();questSend({type:'ride-finished'});}else questSend({type:'notice',message:'No active ride to finish.'});}
+ else if(data.type==='finish'){
+  // Save & Quit. A ride already ended reopens its summary (TCX download, Strava/Garmin) rather than doing nothing.
+  console.info('[Cycle Quest] Save & Quit',{rideStart,rideEnd,running});
+  if(rideStart&&!rideEnd){if(running)pauseRide();finishRide();questSend({type:'ride-finished'});}
+  else if(rideStart&&rideEnd){showRideSummary();questSend({type:'ride-finished'});}
+  else questSend({type:'notice',message:'No ride in progress, so there is nothing to save.'});
+ }
  else if(data.type==='route'){if(pendingQuestRideRecovery){questStoryChapter=pendingQuestRideRecovery.questStoryChapter||data.route?.storyChapter||0;}else routeFromQuest(data);}
  else if(data.type==='ready'){
   if(pendingQuestRideRecovery){
@@ -3326,7 +3357,7 @@ window.addEventListener('message',event=>{
  else if(data.type==='quest-summary'&&rideEnd){
   const root=$('rideSummary');if(root.querySelector('#quest-summary-section'))return;
   const section=document.createElement('section');section.id='quest-summary-section';const heading=document.createElement('h2');heading.textContent='Cycle Quest';section.append(heading);
-  for(const value of (Array.isArray(data.lines)?data.lines:[]).slice(0,7)){if(typeof value!=='string')continue;const line=document.createElement('p');line.textContent=value.slice(0,100);section.append(line);}
+  for(const value of (Array.isArray(data.lines)?data.lines:[]).slice(0,12)){if(typeof value!=='string')continue;const line=document.createElement('p');line.textContent=value.slice(0,100);section.append(line);}
   if(typeof data.image==='string'&&data.image.startsWith('data:image/png;base64,')&&data.image.length<2000000){const image=document.createElement('img');image.src=data.image;image.alt='Cycle Quest shareable ride summary';image.style.cssText='display:block;width:min(100%,600px);margin:16px 0';section.append(image);const link=document.createElement('a');link.href=data.image;link.download='cycle-quest-ride-summary.png';link.textContent='Download Cycle Quest image';section.append(link);}
   root.append(section);
  }

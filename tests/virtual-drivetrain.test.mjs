@@ -11,7 +11,7 @@ const main=await readFile(new URL('../src/main.ts',import.meta.url),'utf8');
 const writer=main.slice(main.indexOf('async function setVirtualGearResistance('),main.indexOf('// True constant-wattage ERG'));
 function writerHarness(mode='sim'){
  let clock=1000;const sent=[];
- const c={performance:{now:()=>clock},drivetrainMode:'virtual',connected:true,controlGranted:true,running:true,realTelemetry:true,trainerMode:mode,virtualPowerBusy:false,virtualPowerLastTime:-Infinity,cadenceReceivedAt:1000,cadence:90,gear:1,cycleQuestHold:false,cycleQuestHeldSlope:null,lastTarget:-1,distance:0,at:()=>({grade:4}),num:id=>id==='difficulty'?100:.004,weightKg:id=>(id==='weight'?205:22)*.45359237,virtualGearTarget,command:async bytes=>{sent.push(bytes);return true;}};
+ const c={performance:{now:()=>clock},drivetrainMode:'virtual',connected:true,controlGranted:true,running:true,realTelemetry:true,trainerMode:mode,virtualPowerBusy:false,virtualPowerLastTime:-Infinity,cadenceReceivedAt:1000,cadence:90,gear:1,questParked:()=>false,lastTarget:-1,distance:0,at:()=>({grade:4}),num:id=>id==='difficulty'?100:.004,weightKg:id=>(id==='weight'?205:22)*.45359237,virtualGearTarget,command:async bytes=>{sent.push(bytes);return true;}};
  vm.createContext(c);vm.runInContext(transpile(writer),c);return {c,sent,clock:n=>clock=n};
 }
 test('exact Zwift ratios; gear 1 at 4% is roughly 100–115W at 80–90rpm for 205lb rider + 22lb bike',()=>{
@@ -36,9 +36,10 @@ test('SIM and ERG virtual selections both send the physical target; fixed ERG is
  for(const mode of ['sim','erg']){const {c,sent}=writerHarness(mode);await c.setVirtualGearResistance();assert.equal(sent.length,1);assert.equal(sent[0][0],5);assert.equal(sent[0][1]+256*sent[0][2],Math.round(virtualGearTarget(1,90,road).watts));}
  const {c,sent}=writerHarness('target');await c.setVirtualGearResistance();assert.equal(sent.length,0);
 });
-test('battle freezes grade, but downshifts and cadence reductions still lower resistance',async()=>{
- const {c,sent,clock}=writerHarness();c.cycleQuestHold=true;c.cycleQuestHeldSlope=4;c.gear=12;await c.setVirtualGearResistance();const initial=c.lastTarget;
- c.at=()=>({grade:16});clock(1300);await c.setVirtualGearResistance();assert.equal(c.lastTarget,initial);
+test('parked at the route end: flat road, and downshifts and cadence reductions still lower resistance',async()=>{
+ const {c,sent,clock}=writerHarness();c.questParked=()=>true;c.gear=12;await c.setVirtualGearResistance();const initial=c.lastTarget;
+ c.at=()=>({grade:16});clock(1300);await c.setVirtualGearResistance();assert.equal(c.lastTarget,initial,'the route grade no longer applies');
+ assert.equal(initial,Math.round(virtualGearTarget(12,90,{...road,gradePercent:0}).watts));
  c.gear=1;clock(1600);await c.setVirtualGearResistance();assert(c.lastTarget<initial/2);
  const low=c.lastTarget;c.cadence=30;clock(1900);await c.setVirtualGearResistance();assert(c.lastTarget<low/2);assert(sent.length>=3);
 });

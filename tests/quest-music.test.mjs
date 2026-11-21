@@ -39,7 +39,7 @@ test('a delayed play promise cannot start a stale fanfare timer after leaving',a
  music.sync({battle:true});music.sync({});music.sync({rest:true});release();await settled();assert.equal(timers.size,0);assert.equal(music.state().scene,'rest');
 });
 test('victory uses the dedicated 0–10-second asset and always restarts at zero',async()=>{
- const {music,tracks}=fixture();assert.ok(tracks[1].src.endsWith('/victory-opening-0-10.wav'));
+ const {music,tracks}=fixture();assert.ok(tracks[1].src.endsWith('/victory-opening-0-10.mp3'));
  music.sync({battle:true});tracks[1].currentTime=5;music.sync({});await settled();assert.equal(tracks[1].currentTime,0);assert.equal(tracks[1].loop,false);
 });
 test('new battles start at different positions but pause/resume keeps the current position',async()=>{

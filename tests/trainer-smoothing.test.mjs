@@ -40,26 +40,28 @@ test('live SIM controller cannot accelerate its ramp on sub-threshold frames',as
  await vm.runInContext('updateSimResistance(2500)',context);
  assert(Math.abs(context.simAppliedGrade-.6625)<1e-8);
 });
-test('battle holds preserve momentum and route mileage; exiting resumes without a zero-speed restart',async()=>{
+const parkFns=main.slice(main.indexOf('function questRouteEnd('),main.indexOf('function setCycleQuestHold('));
+test('battles ride the route; at the route end the rider parks on a flat finish and the odometer still counts',async()=>{
  const fn=main.slice(main.indexOf('function advanceRide('),main.indexOf('function tick('));
  const noop=()=>{};
  const physics=await readFile(new URL('../src/virtual-drivetrain.ts',import.meta.url),'utf8');
  const {advanceRoadSpeed}=await import('data:text/javascript;base64,'+Buffer.from(transpile(physics)).toString('base64'));
- const context={advanceRoadSpeed,last:1000,running:true,points:[{distance:10000}],connected:true,controlGranted:true,realTelemetry:true,activeRideMs:0,energyKcal:0,power:150,GROSS_EFFICIENCY:.24,avgPowerEnergy:0,avgPowerDuration:0,weightKg:()=>40,num:()=>.004,cadence:80,procedural:false,cycleQuestHold:true,speed:8,distance:100,endless:true,trainerMode:'target',lastGearUpdate:0,updateSimResistance:noop,setFixedErgPower:noop,recordRideSample:noop,update:noop,checkStationaryRide:noop,at:()=>({grade:0})};
- vm.createContext(context);vm.runInContext(transpile(fn),context);
- vm.runInContext('advanceRide(2000)',context);assert.equal(context.speed,8);assert.equal(context.distance,100);
- context.cycleQuestHold=false;vm.runInContext('advanceRide(2010)',context);assert(context.speed>7.9);assert(context.distance>100);
+ const context={advanceRoadSpeed,last:1000,running:true,points:[{distance:0},{distance:100}],connected:true,controlGranted:true,realTelemetry:true,activeRideMs:0,energyKcal:0,power:150,GROSS_EFFICIENCY:.24,avgPowerEnergy:0,avgPowerDuration:0,weightKg:()=>40,num:()=>.004,cadence:80,procedural:false,rideExperience:'cyclequest',questStoryChapter:1,questFinalSummitResolved:false,questHighestSummit:()=>null,finishRide:noop,status:noop,cycleQuestHold:true,speed:8,distance:40,rideOdometer:0,endless:false,routeLimit:0,trainerMode:'target',lastGearUpdate:0,updateSimResistance:noop,setVirtualGearResistance:noop,setFixedErgPower:noop,recordRideSample:noop,update:noop,checkStationaryRide:noop,sensorRideOnly:()=>false,at:()=>({grade:8})};
+ vm.createContext(context);vm.runInContext(transpile(parkFns+'\n'+fn),context);
+ vm.runInContext('advanceRide(2000)',context);
+ assert(context.distance>40,'mid-route, the route keeps going during a battle');
+ assert(Math.abs(context.rideOdometer-(context.distance-40))<1e-9,'route and ride file agree');
+ context.distance=100;context.speed=8;const odometer=context.rideOdometer;
+ vm.runInContext('advanceRide(3000)',context);
+ assert.equal(context.distance,100,'no road past the finish');
+ assert(context.speed>7.5&&context.speed<8.5,'momentum carries on the flat finish straight');
+ assert(context.rideOdometer>odometer+7.5,'pedaling at the finish is real distance for the ride file');
 });
-
-test('battle holds the applied SIM load even when the route target has moved, and shifting still works',()=>{
- const hold=main.slice(main.indexOf('function setCycleQuestHold('),main.indexOf("let drivetrainMode:"));
+test('SIM load follows the route during battles and is flat only when parked at the route end',()=>{
  const requested=main.slice(main.indexOf('function simRequestedGrade('),main.indexOf('function resetSimController('));
- for(const mode of ['traditional']){
-  const c={cycleQuestHold:false,cycleQuestHeldSpeed:0,cycleQuestHeldGrade:null,cycleQuestHeldRequestedGrade:0,cycleQuestHeldErgTarget:0,cycleQuestHeldGear:6,speed:8,trainerGrade:2,lastTarget:180,gear:12,distance:100,drivetrainMode:mode,at:()=>({grade:-3}),num:()=>100,zwiftGearMultiplier:()=>c.gear/12,climbingAssist:()=>1};
-  vm.createContext(c);vm.runInContext(transpile(hold+'\n'+requested),c);
-  vm.runInContext('setCycleQuestHold(true)',c);assert.equal(c.simRequestedGrade(),2);
-  c.speed=0;assert.equal(c.simRequestedGrade(),2,'transient speed changes cannot change battle load');
-  c.gear=13;if(mode==='virtual')assert(c.simRequestedGrade()>2);
-  vm.runInContext('setCycleQuestHold(false)',c);assert.equal(c.cycleQuestHeldGrade,null);assert.equal(c.cycleQuestHold,false);
- }
+ const c={cycleQuestHold:true,rideExperience:'cyclequest',questStoryChapter:0,endless:false,procedural:false,points:[{distance:0},{distance:1000}],distance:500,at:()=>({grade:7}),num:()=>100};
+ vm.createContext(c);vm.runInContext(transpile(parkFns+'\n'+requested),c);
+ assert.equal(c.simRequestedGrade(),7,'mid-route battles ride the real grade');
+ c.distance=1000;assert.equal(c.simRequestedGrade(),0,'parked at the finish');
+ c.cycleQuestHold=false;assert.equal(c.simRequestedGrade(),7,'Freeroam finish without a fight: no parking');
 });

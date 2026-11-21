@@ -3,9 +3,25 @@ function handleDemoAction(action){
  rewardChoice=null;
  if(action==='claim'){choose('coins');return;}
  if(action==='win'||action==='lose'){if(s.battle)finish(action==='win');render();return;}
+ // Jump a summit (or, for enrage, a chapter) boss straight to a phase so each prompt can be checked.
+ const bossScene=/^boss-(windup|brace|counter|enrage)$/.exec(action);
+ if(bossScene){
+  const phase=bossScene[1],kind=phase==='enrage'?'boss':'summit';
+  if(s.battle?.kind!==kind){levelUps.clear();levelUp=null;s.reward=false;s.pendingReward=null;s.battle=null;if(kind==='boss')s.mode='adventure';encounter(kind);}
+  const b=s.battle;if(!b)return;
+  Object.assign(b,{phase:phase==='windup'?'attack':phase,phaseTime:phase==='windup'?BOSS_FIGHT[kind].attack-12:phase==='brace'?20:8,round:phase==='enrage'?BOSS_FIGHT.boss.rounds:0,bracedSeconds:phase==='brace'?12:0,lastBrace:phase==='counter'?0.9:0});
+  save();render();return;
+ }
  levelUps.clear();levelUp=null;s.battle=null;s.reward=false;s.pendingReward=null;
  const crab=/^crab-([123])$/.exec(action),ratCount={rat:1,'rats-2':2,rats:3}[action];
  const fixedRat=/^rat-level-(1|6|10)$/.exec(action);
+ // Monster art previews: 1–3 wolves, or a wolf with two monsters that have no art yet.
+ const wolves=/^wolf-([123])$/.exec(action);
+ if(wolves||action==='wolf-mixed'){
+  const ids=wolves?Array(Number(wolves[1])).fill('wolf'):['wolf','jackal','hawk'];
+  s.battle=enemyGroup(ids.map(id=>makeBattle('enemy',{level:chapterLevels(s.chapter,s.miles).min,monsterId:id})));
+  showEncounterView();message='Monster art preview';save();render();return;
+ }
  if(crab||ratCount||fixedRat||['headwind','bat','snake','new-mobs'].includes(action)||action==='mixed-rats'){
   const id=['headwind','bat','snake'].includes(action)?action:crab?'crab':'rat';
   const levels=action==='mixed-rats'?[1,6,10]:Array.from({length:crab?Number(crab[1]):ratCount||1},()=>fixedRat?Number(fixedRat[1]):chapterLevels(s.chapter,s.miles).min);
@@ -13,7 +29,7 @@ function handleDemoAction(action){
   showEncounterView();message='Enemy-level artwork preview';
  }else if(action==='group'){encounter('enemy',3);return;}
  else if(action==='chapter-1'||action==='chapter-2'){
-  s.chapter=action==='chapter-1'?1:2;s.miles=0;s.boss=null;s.chapterEncounter=null;message='Previewing '+CHAPTER_BIOMES[s.chapter].name;
+  s.chapter=action==='chapter-1'?1:2;s.miles=0;s.nextEncounter=600;s.boss=null;s.chapterEncounter=null;message='Previewing '+chapterInfo(s.chapter).title;
  }else if(action==='reset'){
   s=fresh();s.route=generateRoute(15,'rolling',null,42077);s.routeMiles=0;lastLiveDistance=0;
   parentSend({type:'route',route:s.route});message='Autoplay preview reset.';
